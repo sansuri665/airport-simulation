@@ -1,0 +1,1158 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>北京有效客流预测测试</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080b10;
+      --surface: #10151d;
+      --surface-soft: #0c1118;
+      --line: #273244;
+      --line-strong: #43536c;
+      --ink: #f5f7fb;
+      --muted: #94a3b8;
+      --blue: #60a5fa;
+      --green: #34d399;
+      --red: #fb7185;
+      --amber: #f59e0b;
+      --yellow: #facc15;
+      --cyan: #22d3ee;
+      --purple: #a78bfa;
+      --slate: #64748b;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(8, 11, 16, 0.95);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 20px;
+      line-height: 1.1;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    h2 {
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .control,
+    .nav-link {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 13px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .nav-link:hover {
+      border-color: var(--blue);
+      color: var(--ink);
+    }
+
+    select {
+      min-width: 110px;
+      border: 0;
+      outline: none;
+      color: var(--ink);
+      background: transparent;
+    }
+
+    option {
+      color: var(--ink);
+      background: var(--surface);
+    }
+
+    input[type="range"] {
+      width: 210px;
+      accent-color: var(--cyan);
+    }
+
+    main {
+      width: 100%;
+      max-width: 1540px;
+      margin: 0 auto;
+      padding: 20px 22px 28px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      min-height: 88px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      min-width: 0;
+    }
+
+    .stat span {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: clamp(20px, 2.3vw, 28px);
+      line-height: 1.1;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .stat small {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .panel + .panel,
+    .stacked .panel + .panel {
+      margin-top: 14px;
+    }
+
+    .panel-head {
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-soft);
+    }
+
+    .panel-head small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .chart {
+      min-height: 420px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #070a0f;
+      overflow: hidden;
+    }
+
+    .chart svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 420px;
+    }
+
+    .small-chart {
+      min-height: 310px;
+    }
+
+    .small-chart svg {
+      min-height: 310px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 10px;
+      height: 10px;
+      display: inline-block;
+      border-radius: 50%;
+    }
+
+    .tool-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .score-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+    }
+
+    .score-card {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-soft);
+    }
+
+    .score-card span,
+    .score-card small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .score-card strong {
+      display: block;
+      margin: 6px 0;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .score-bar {
+      height: 7px;
+      margin-top: 9px;
+      border-radius: 999px;
+      background: #162033;
+      overflow: hidden;
+    }
+
+    .score-bar i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--red), var(--amber), var(--green));
+    }
+
+    .table-wrap {
+      max-height: 520px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    th,
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th:first-child,
+    td:first-child,
+    th:nth-child(2),
+    td:nth-child(2) {
+      text-align: left;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #121a25;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    tr:hover td {
+      background: rgba(96, 165, 250, 0.07);
+    }
+
+    .positive {
+      color: var(--green);
+    }
+
+    .warning {
+      color: var(--amber);
+    }
+
+    .danger {
+      color: var(--red);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 54px;
+      min-height: 24px;
+      padding: 0 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #111827;
+      color: var(--ink);
+    }
+
+    .empty {
+      padding: 30px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .topbar,
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        padding: 12px 14px;
+      }
+
+      .brand {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      h1 {
+        white-space: normal;
+      }
+
+      .control,
+      .nav-link,
+      input[type="range"],
+      select {
+        width: 100%;
+      }
+
+      main {
+        padding: 14px;
+      }
+
+      .chart,
+      .chart svg {
+        min-height: 300px;
+      }
+
+      .small-chart,
+      .small-chart svg {
+        min-height: 260px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>北京有效客流预测测试</h1>
+        <span class="status" id="statusText">loading</span>
+      </div>
+      <div class="controls">
+        <a class="nav-link" href="./beijing_airport_operations_viewer.html">运营面板</a>
+        <a class="nav-link" href="./global_gdp_viewer.html">宏观 viewer</a>
+        <label class="control">Seed <select id="seedSelect"></select></label>
+      </div>
+    </header>
+
+    <main>
+      <section class="summary-grid" id="summaryGrid" aria-label="预测测试摘要"></section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>预测曲线</h2>
+            <small id="asOfLabel">发布年份</small>
+          </div>
+          <div class="legend" id="forecastLegend"></div>
+        </div>
+        <div class="panel-body">
+          <div class="tool-row">
+            <label class="control">发布年份 <input id="asOfRange" type="range" min="0" max="0" value="0" /></label>
+            <label class="control">报告 <select id="reportSelect"></select></label>
+          </div>
+          <div class="chart" id="forecastChart"></div>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top: 14px;">
+        <div class="panel-head">
+          <div>
+            <h2>分项预测</h2>
+            <small id="componentCaption">五类有效客流结构</small>
+          </div>
+          <label class="control">目标年 <select id="componentYearSelect"></select></label>
+        </div>
+        <div class="panel-body">
+          <div class="score-card-grid" id="componentGrid"></div>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top: 14px;">
+        <div class="panel-head">
+          <div>
+            <h2>当前报告明细</h2>
+            <small id="tableCaption">当前 as-of 年份</small>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>目标年</th>
+                  <th>审计分</th>
+                  <th>生成分</th>
+                  <th>方向</th>
+                  <th>置信</th>
+                  <th>有效预测</th>
+                  <th>潜在/供给</th>
+                  <th>预测区间</th>
+                  <th>真实有效</th>
+                  <th>真实潜在/供给</th>
+                  <th>瓶颈</th>
+                  <th>中值偏差</th>
+                  <th>命中</th>
+                </tr>
+              </thead>
+              <tbody id="forecastTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./output/city_airport_potential_passenger_forecast/china_mainland/beijing_airport_system_potential_passenger_forecast_viewer_data.js"></script>
+  <script>
+    const payload = window.CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_DATA || { config: {}, rows: [] };
+    const rawRows = (payload.rows || []).map((row) => ({ ...row }));
+
+    const el = {
+      statusText: document.getElementById("statusText"),
+      seedSelect: document.getElementById("seedSelect"),
+      asOfRange: document.getElementById("asOfRange"),
+      reportSelect: document.getElementById("reportSelect"),
+      asOfLabel: document.getElementById("asOfLabel"),
+      summaryGrid: document.getElementById("summaryGrid"),
+      forecastLegend: document.getElementById("forecastLegend"),
+      forecastChart: document.getElementById("forecastChart"),
+      componentCaption: document.getElementById("componentCaption"),
+      componentYearSelect: document.getElementById("componentYearSelect"),
+      componentGrid: document.getElementById("componentGrid"),
+      forecastTable: document.getElementById("forecastTable"),
+      tableCaption: document.getElementById("tableCaption"),
+    };
+
+    const REPORT_META = {
+      public_consensus: { label: "初级预测", color: "#facc15" },
+      basic_research: { label: "中级预测", color: "#fb7185" },
+      professional_consulting: { label: "高级预测", color: "#22d3ee" },
+      top_institution: { label: "专业级预测", color: "#34d399" },
+      god_future_peek: { label: "神级预测", color: "#a78bfa" },
+    };
+    const CONFIG_REPORT_META = new Map((payload.config.forecast_reports || []).map((item) => [item.forecast_report_id, item]));
+    const COMPONENTS = [
+      { key: "business", label: "商务", weight: 1.3 },
+      { key: "leisure", label: "休闲", weight: 1.0 },
+      { key: "vfr", label: "探亲访友", weight: 0.75 },
+      { key: "long_haul", label: "长途", weight: 1.35 },
+      { key: "transfer", label: "中转", weight: 1.15 },
+    ];
+
+    const state = {
+      seed: null,
+      asOfIndex: 0,
+      reportId: "public_consensus",
+      componentYear: null,
+    };
+
+    function num(value, fallback = 0) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function uniq(values) {
+      return Array.from(new Set(values));
+    }
+
+    function fmt(value, digits = 1) {
+      if (!Number.isFinite(value)) return "n/a";
+      return value.toLocaleString("zh-CN", { maximumFractionDigits: digits, minimumFractionDigits: digits });
+    }
+
+    function fmtPassenger(value) {
+      return `${fmt(value, 1)} 百万人`;
+    }
+
+    function fmtPct(value, digits = 1) {
+      return `${fmt(value, digits)}%`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function reportLabel(reportId) {
+      return CONFIG_REPORT_META.get(reportId)?.forecast_report_display_name || REPORT_META[reportId]?.label || reportId;
+    }
+
+    function reportColor(reportId) {
+      const tier = CONFIG_REPORT_META.get(reportId)?.forecast_report_tier;
+      const tierColor = {
+        initial: "#facc15",
+        middle: "#fb7185",
+        high: "#22d3ee",
+        professional: "#34d399",
+        god: "#a78bfa",
+      }[tier];
+      return CONFIG_REPORT_META.get(reportId)?.forecast_report_color || REPORT_META[reportId]?.color || tierColor || "#94a3b8";
+    }
+
+    function bottleneckLabel(value) {
+      const labels = {
+        demand_limited: "潜在需求",
+        airline_supply_limited: "航司供给",
+        unknown: "未知",
+      };
+      return labels[value] || value || "-";
+    }
+
+    function isGodRow(row) {
+      return row.future_peek_mode === "true" || row.forecast_report_id === "god_future_peek";
+    }
+
+    function normalizeRows(rows) {
+      return rows.map((row) => {
+        const item = {
+          ...row,
+          seed: num(row.seed),
+          as_of_year: num(row.as_of_year),
+          forecast_year: num(row.forecast_year),
+          forecast_horizon_years: num(row.forecast_horizon_years),
+          configured_forecast_quality_score: num(row.configured_forecast_quality_score),
+          forecast_quality_score: num(row.forecast_quality_score),
+          current_effective_passengers_million: num(row.current_effective_passengers_million, num(row.current_potential_passengers_million)),
+          current_potential_passengers_million: num(row.current_potential_passengers_million),
+          current_airline_supply_passengers_million: num(row.current_airline_supply_passengers_million, num(row.current_potential_passengers_million)),
+          forecast_effective_passengers_mid_million: num(row.forecast_effective_passengers_mid_million, num(row.forecast_potential_passengers_mid_million)),
+          forecast_effective_passengers_low_million: num(row.forecast_effective_passengers_low_million, num(row.forecast_potential_passengers_low_million)),
+          forecast_effective_passengers_high_million: num(row.forecast_effective_passengers_high_million, num(row.forecast_potential_passengers_high_million)),
+          forecast_potential_passengers_mid_million: num(row.forecast_potential_passengers_mid_million),
+          forecast_airline_supply_passengers_mid_million: num(row.forecast_airline_supply_passengers_mid_million, num(row.forecast_potential_passengers_mid_million)),
+          realized_report_quality_score: num(row.realized_report_quality_score),
+          realized_point_quality_score: num(row.realized_point_quality_score),
+          realized_midpoint_accuracy_score: num(row.realized_midpoint_accuracy_score),
+          realized_trend_accuracy_score: num(row.realized_trend_accuracy_score),
+          realized_shape_accuracy_score: num(row.realized_shape_accuracy_score),
+          realized_component_structure_score: num(row.realized_component_structure_score),
+          realized_bottleneck_accuracy_score: num(row.realized_bottleneck_accuracy_score),
+          realized_interval_calibration_score: num(row.realized_interval_calibration_score),
+          realized_report_weighted_abs_error_pct: num(row.realized_report_weighted_abs_error_pct),
+          realized_report_interval_hit_rate_pct: num(row.realized_report_interval_hit_rate_pct),
+          realized_report_bias_pct: num(row.realized_report_bias_pct),
+          debug_hidden_true_effective_passengers_million: num(row.debug_hidden_true_effective_passengers_million, num(row.debug_hidden_true_potential_passengers_million)),
+          debug_hidden_true_potential_passengers_million: num(row.debug_hidden_true_potential_passengers_million),
+          debug_hidden_true_airline_supply_passengers_million: num(row.debug_hidden_true_airline_supply_passengers_million, num(row.debug_hidden_true_potential_passengers_million)),
+          debug_model_gap_to_true_pct: num(row.debug_model_gap_to_true_pct),
+          forecast_confidence_pct: num(row.forecast_confidence_pct),
+        };
+        COMPONENTS.forEach((component) => {
+          item[`${component.key}_forecast_effective_passengers_mid_million`] = num(row[`${component.key}_forecast_effective_passengers_mid_million`]);
+          item[`${component.key}_forecast_effective_share_pct`] = num(row[`${component.key}_forecast_effective_share_pct`]);
+          item[`${component.key}_debug_hidden_true_effective_passengers_million`] = num(row[`${component.key}_debug_hidden_true_effective_passengers_million`]);
+          item[`${component.key}_debug_hidden_true_effective_share_pct`] = num(row[`${component.key}_debug_hidden_true_effective_share_pct`]);
+          item[`${component.key}_debug_hidden_true_potential_passengers_million`] = num(row[`${component.key}_debug_hidden_true_potential_passengers_million`]);
+          item[`${component.key}_debug_hidden_true_airline_supply_passengers_million`] = num(row[`${component.key}_debug_hidden_true_airline_supply_passengers_million`]);
+        });
+        return item;
+      });
+    }
+
+    const rows = normalizeRows(rawRows);
+    const configuredReportOrder = (payload.config.forecast_reports || []).map((item) => item.forecast_report_id);
+
+    function reportOrder() {
+      const ids = uniq(rows.map((row) => row.forecast_report_id));
+      return [
+        ...configuredReportOrder.filter((id) => ids.includes(id)),
+        ...ids.filter((id) => !configuredReportOrder.includes(id)).sort(),
+      ];
+    }
+
+    function displayReportOrder() {
+      return reportOrder().includes(state.reportId) ? [state.reportId] : [];
+    }
+
+    function rowsForSeed() {
+      return rows.filter((row) => row.seed === state.seed);
+    }
+
+    function asOfYears() {
+      return uniq(rowsForSeed()
+        .filter((row) => row.forecast_report_id === state.reportId)
+        .map((row) => row.as_of_year)
+      ).sort((a, b) => a - b);
+    }
+
+    function selectedAsOfYear() {
+      const years = asOfYears();
+      return years[Math.min(state.asOfIndex, Math.max(0, years.length - 1))] || 0;
+    }
+
+    function selectedAsOfRows() {
+      const asOf = selectedAsOfYear();
+      return rowsForSeed()
+        .filter((row) => row.as_of_year === asOf)
+        .filter((row) => row.forecast_report_id === state.reportId)
+        .sort((left, right) => {
+          const reportDelta = reportOrder().indexOf(left.forecast_report_id) - reportOrder().indexOf(right.forecast_report_id);
+          return reportDelta || left.forecast_year - right.forecast_year;
+        });
+    }
+
+    function mean(values) {
+      const clean = values.filter(Number.isFinite);
+      if (!clean.length) return 0;
+      return clean.reduce((sum, value) => sum + value, 0) / clean.length;
+    }
+
+    function formatHorizonList(values) {
+      const sorted = uniq(values).sort((a, b) => a - b);
+      if (!sorted.length) return "-";
+      const continuous = sorted.every((value, index) => index === 0 || value === sorted[index - 1] + 1);
+      if (continuous) return `${sorted[0]}-${sorted.at(-1)}`;
+      if (sorted.length > 8) return `${sorted[0]}-${sorted.at(-1)} / ${sorted.length} 个年份`;
+      return sorted.join(" / ");
+    }
+
+    function statCard(label, value, note, tone = "") {
+      return `<article class="stat"><span>${escapeHtml(label)}</span><strong class="${tone}">${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`;
+    }
+
+    function renderSummary() {
+      const seedRows = rowsForSeed();
+      const selectedRows = selectedAsOfRows();
+      const reportRows = seedRows.filter((row) => row.forecast_report_id === state.reportId);
+      const selectedReportRows = selectedRows.filter((row) => !isGodRow(row));
+      const scoringRows = selectedReportRows.length ? selectedReportRows : selectedRows;
+      const targetYears = uniq(selectedRows.map((row) => row.forecast_year)).sort((a, b) => a - b);
+      const first = selectedRows[0] || reportRows[0] || {};
+      const generationScores = scoringRows.map((row) => row.forecast_quality_score);
+      const generationScoreLabel = generationScores.length
+        ? `${fmt(Math.min(...generationScores), 1)} - ${fmt(Math.max(...generationScores), 1)}`
+        : "n/a";
+      const auditScore = num(first.realized_report_quality_score, NaN);
+      const componentScore = num(first.realized_component_structure_score, NaN);
+      const bottleneckScore = num(first.realized_bottleneck_accuracy_score, NaN);
+      const hitRate = num(first.realized_report_interval_hit_rate_pct, NaN);
+      const weightedError = num(first.realized_report_weighted_abs_error_pct, NaN);
+      el.summaryGrid.innerHTML = [
+        statCard("城市", payload.config.city_name || "北京", `${payload.config.city_airport_market_id || "beijing_airport_system"}`),
+        statCard("报告", reportLabel(state.reportId), first.forecast_report_source || state.reportId),
+        statCard("发布年份", String(selectedAsOfYear()), `${targetYears[0] || "-"} 到 ${targetYears.at(-1) || "-"}`),
+        statCard("审计分", fmt(auditScore, 1), first.realized_report_bias_label || "输出后评分", auditScore >= 80 ? "positive" : auditScore >= 55 ? "warning" : "danger"),
+        statCard("分项分", fmt(componentScore, 1), `瓶颈分 ${fmt(bottleneckScore, 1)}`, componentScore >= 80 ? "positive" : componentScore >= 55 ? "warning" : "danger"),
+        statCard("生成分", generationScoreLabel, isGodRow(first) ? "神级未来透视" : "生成时使用的能力分"),
+        statCard("加权误差", fmtPct(weightedError), `区间命中 ${fmtPct(hitRate)}`),
+      ].join("");
+    }
+
+    function renderLegend() {
+      const items = state.reportId === "god_future_peek"
+        ? [`<span><i class="swatch" style="background:${reportColor(state.reportId)}"></i>神级预测 / 真实有效客流</span>`]
+        : [
+          `<span><i class="swatch" style="background:#f5f7fb"></i>隐藏真实有效客流</span>`,
+          ...displayReportOrder().map((id) => `<span><i class="swatch" style="background:${reportColor(id)}"></i>${escapeHtml(reportLabel(id))}</span>`),
+        ];
+      el.forecastLegend.innerHTML = items.join("");
+    }
+
+    function emptyChart(node, message) {
+      node.innerHTML = `<div class="empty">${escapeHtml(message)}</div>`;
+    }
+
+    function makeScale(domainMin, domainMax, rangeMin, rangeMax) {
+      const span = domainMax - domainMin || 1;
+      return (value) => rangeMin + (value - domainMin) / span * (rangeMax - rangeMin);
+    }
+
+    function svgText(x, y, content, options = {}) {
+      const fill = options.fill || "#94a3b8";
+      const anchor = options.anchor || "middle";
+      const size = options.size || 11;
+      return `<text x="${x}" y="${y}" fill="${fill}" font-size="${size}" text-anchor="${anchor}">${escapeHtml(content)}</text>`;
+    }
+
+    function svgLine(x1, y1, x2, y2, options = {}) {
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${options.stroke || "#273244"}" stroke-width="${options.width || 1}" stroke-dasharray="${options.dash || ""}" opacity="${options.opacity ?? 1}" />`;
+    }
+
+    function renderForecastChart() {
+      const chartRows = selectedAsOfRows();
+      if (!chartRows.length) {
+        emptyChart(el.forecastChart, "没有预测数据");
+        return;
+      }
+
+      const width = 1120;
+      const height = 430;
+      const margin = { top: 26, right: 28, bottom: 42, left: 62 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const asOf = selectedAsOfYear();
+      const current = chartRows[0].current_effective_passengers_million;
+      const targetYears = uniq(chartRows.map((row) => row.forecast_year)).sort((a, b) => a - b);
+      const xMin = Math.min(asOf, ...targetYears);
+      const xMax = Math.max(...targetYears);
+      const values = [current];
+      chartRows.forEach((row) => {
+        values.push(
+          row.forecast_effective_passengers_low_million,
+          row.forecast_effective_passengers_mid_million,
+          row.forecast_effective_passengers_high_million,
+          row.debug_hidden_true_effective_passengers_million
+        );
+      });
+      const yMin = Math.max(0, Math.min(...values) * 0.88);
+      const yMax = Math.max(...values) * 1.08;
+      const x = makeScale(xMin, xMax, margin.left, margin.left + innerW);
+      const y = makeScale(yMin, yMax, margin.top + innerH, margin.top);
+      const parts = [];
+
+      for (let i = 0; i <= 5; i += 1) {
+        const value = yMin + (yMax - yMin) * i / 5;
+        const yy = y(value);
+        parts.push(svgLine(margin.left, yy, margin.left + innerW, yy, { stroke: "#1f2937" }));
+        parts.push(svgText(margin.left - 10, yy + 4, fmt(value, 0), { anchor: "end" }));
+      }
+
+      const span = xMax - xMin;
+      const tickStep = span > 25 ? 5 : span > 14 ? 2 : 1;
+      const xTicks = [];
+      for (let year = Math.ceil(xMin / tickStep) * tickStep; year <= xMax; year += tickStep) {
+        xTicks.push(year);
+      }
+      if (!xTicks.includes(xMin)) xTicks.unshift(xMin);
+      if (!xTicks.includes(xMax)) xTicks.push(xMax);
+      xTicks.forEach((year) => {
+        const xx = x(year);
+        parts.push(svgLine(xx, margin.top, xx, margin.top + innerH, { stroke: "#111827" }));
+        parts.push(svgText(xx, margin.top + innerH + 24, String(year)));
+      });
+
+      parts.push(svgLine(margin.left, margin.top + innerH, margin.left + innerW, margin.top + innerH, { stroke: "#43536c" }));
+      parts.push(svgLine(margin.left, margin.top, margin.left, margin.top + innerH, { stroke: "#43536c" }));
+      parts.push(svgText(18, margin.top + 12, "百万人", { anchor: "start", size: 12 }));
+
+      const trueMap = new Map();
+      chartRows.forEach((row) => trueMap.set(row.forecast_year, row.debug_hidden_true_effective_passengers_million));
+      const truePoints = [{ year: asOf, value: current }, ...targetYears.map((year) => ({ year, value: trueMap.get(year) }))];
+      const truePolyline = truePoints.map((point) => `${x(point.year)},${y(point.value)}`).join(" ");
+      const trueColor = state.reportId === "god_future_peek" ? reportColor(state.reportId) : "#f5f7fb";
+      parts.push(`<polyline points="${truePolyline}" fill="none" stroke="${trueColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />`);
+      truePoints.forEach((point) => {
+        parts.push(`<circle cx="${x(point.year)}" cy="${y(point.value)}" r="4" fill="${trueColor}"><title>真实值 ${point.year}: ${fmtPassenger(point.value)}</title></circle>`);
+      });
+
+      if (state.reportId === "god_future_peek") {
+        el.forecastChart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="真实 seed 有效客流曲线">${parts.join("")}</svg>`;
+        return;
+      }
+
+      const ids = displayReportOrder();
+      const offsetStep = Math.min(8, innerW / Math.max(1, targetYears.length) / Math.max(6, ids.length + 2));
+      ids.forEach((reportId, index) => {
+        const reportRows = chartRows.filter((row) => row.forecast_report_id === reportId).sort((a, b) => a.forecast_year - b.forecast_year);
+        if (!reportRows.length) return;
+        const color = reportColor(reportId);
+        const offset = (index - (ids.length - 1) / 2) * offsetStep;
+        const points = [{ year: asOf, value: current }, ...reportRows.map((row) => ({ year: row.forecast_year, value: row.forecast_effective_passengers_mid_million }))];
+        const polyline = points.map((point) => `${x(point.year)},${y(point.value)}`).join(" ");
+        parts.push(`<polyline points="${polyline}" fill="none" stroke="${color}" stroke-width="${reportId === "god_future_peek" ? 1.8 : 2.4}" stroke-linecap="round" stroke-linejoin="round" opacity="${reportId === "god_future_peek" ? 0.75 : 0.95}" />`);
+        reportRows.forEach((row) => {
+          const xx = x(row.forecast_year) + offset;
+          const yyLow = y(row.forecast_effective_passengers_low_million);
+          const yyMid = y(row.forecast_effective_passengers_mid_million);
+          const yyHigh = y(row.forecast_effective_passengers_high_million);
+          const inside = row.debug_hidden_true_inside_forecast_range === "true";
+          parts.push(svgLine(xx, yyLow, xx, yyHigh, { stroke: color, width: inside ? 1.4 : 2.2, opacity: inside ? 0.45 : 0.9 }));
+          parts.push(svgLine(xx - 4, yyLow, xx + 4, yyLow, { stroke: color, width: 1, opacity: 0.65 }));
+          parts.push(svgLine(xx - 4, yyHigh, xx + 4, yyHigh, { stroke: color, width: 1, opacity: 0.65 }));
+          parts.push(`<circle cx="${xx}" cy="${yyMid}" r="${inside ? 3 : 4.6}" fill="${color}" stroke="${inside ? "#070a0f" : "#f5f7fb"}" stroke-width="${inside ? 1 : 1.5}"><title>${escapeHtml(reportLabel(reportId))} ${row.forecast_year}: 审计分 ${fmt(row.realized_point_quality_score, 1)}, 有效中值 ${fmtPassenger(row.forecast_effective_passengers_mid_million)}, 真实有效 ${fmtPassenger(row.debug_hidden_true_effective_passengers_million)}, 偏差 ${fmtPct(row.debug_model_gap_to_true_pct)}</title></circle>`);
+        });
+      });
+
+      el.forecastChart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="有效客流预测曲线">${parts.join("")}</svg>`;
+    }
+
+    function filteredContinuityRows() {
+      return rowsForSeed().filter((row) => {
+        if (state.continuityReport !== "all" && row.forecast_report_id !== state.continuityReport) return false;
+        return Number.isFinite(row.forecast_quality_score) && row.future_peek_mode !== "true";
+      });
+    }
+
+    function renderQualityChart() {
+      const sample = filteredContinuityRows();
+      if (!sample.length) {
+        emptyChart(el.qualityChart, "没有连续性样本");
+        return;
+      }
+      const width = 820;
+      const height = 310;
+      const margin = { top: 22, right: 22, bottom: 42, left: 54 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const yMax = Math.max(10, Math.min(60, Math.ceil(Math.max(...sample.map((row) => Math.abs(row.debug_model_gap_to_true_pct))) / 5) * 5));
+      const x = makeScale(0, 70, margin.left, margin.left + innerW);
+      const y = makeScale(0, yMax, margin.top + innerH, margin.top);
+      const parts = [];
+
+      for (let i = 0; i <= 7; i += 1) {
+        const score = i * 10;
+        const xx = x(score);
+        parts.push(svgLine(xx, margin.top, xx, margin.top + innerH, { stroke: "#111827" }));
+        parts.push(svgText(xx, margin.top + innerH + 24, String(score)));
+      }
+      for (let i = 0; i <= 5; i += 1) {
+        const value = yMax * i / 5;
+        const yy = y(value);
+        parts.push(svgLine(margin.left, yy, margin.left + innerW, yy, { stroke: "#1f2937" }));
+        parts.push(svgText(margin.left - 10, yy + 4, fmt(value, 0), { anchor: "end" }));
+      }
+
+      parts.push(svgText(margin.left + innerW / 2, height - 8, "forecast_quality_score", { size: 12 }));
+      parts.push(svgText(12, margin.top + 12, "误差%", { anchor: "start", size: 12 }));
+
+      sample.forEach((row) => {
+        const xx = x(row.forecast_quality_score);
+        const yy = y(Math.min(yMax, Math.abs(row.debug_model_gap_to_true_pct)));
+        const color = reportColor(row.forecast_report_id);
+        const outside = row.debug_hidden_true_inside_forecast_range !== "true";
+        parts.push(`<circle cx="${xx}" cy="${yy}" r="${outside ? 4.2 : 3.1}" fill="${color}" fill-opacity="${outside ? 0.95 : 0.62}" stroke="${outside ? "#f5f7fb" : "#070a0f"}" stroke-width="${outside ? 1.2 : 0.8}"><title>${escapeHtml(reportLabel(row.forecast_report_id))} ${row.as_of_year}->${row.forecast_year}: 分数 ${fmt(row.forecast_quality_score, 1)}, 绝对误差 ${fmtPct(Math.abs(row.debug_model_gap_to_true_pct))}, 区间${outside ? "外" : "内"}</title></circle>`);
+      });
+
+      const buckets = qualityBuckets(sample);
+      const bucketPoints = buckets
+        .filter((bucket) => bucket.count > 0)
+        .map((bucket) => `${x((bucket.low + bucket.high) / 2)},${y(Math.min(yMax, bucket.avgGap))}`)
+        .join(" ");
+      if (bucketPoints) {
+        parts.push(`<polyline points="${bucketPoints}" fill="none" stroke="#f5f7fb" stroke-width="2" stroke-dasharray="5 5" opacity="0.65" />`);
+      }
+
+      el.qualityChart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="质量分数和真实误差连续性">${parts.join("")}</svg>`;
+    }
+
+    function qualityBuckets(sample) {
+      const definitions = [
+        { label: "0-20", low: 0, high: 20 },
+        { label: "20-35", low: 20, high: 35 },
+        { label: "35-50", low: 35, high: 50 },
+        { label: "50-60", low: 50, high: 60 },
+        { label: "60-70", low: 60, high: 70.0001 },
+      ];
+      return definitions.map((definition) => {
+        const bucketRows = sample.filter((row) => row.forecast_quality_score >= definition.low && row.forecast_quality_score < definition.high);
+        const outsidePct = bucketRows.length
+          ? bucketRows.filter((row) => row.debug_hidden_true_inside_forecast_range !== "true").length / bucketRows.length * 100
+          : 0;
+        return {
+          ...definition,
+          count: bucketRows.length,
+          avgGap: mean(bucketRows.map((row) => Math.abs(row.debug_model_gap_to_true_pct))),
+          outsidePct,
+        };
+      });
+    }
+
+    function renderBuckets() {
+      const sample = filteredContinuityRows();
+      const buckets = qualityBuckets(sample);
+      el.bucketCaption.textContent = state.continuityReport === "all" ? "全部普通预测" : reportLabel(state.continuityReport);
+      el.scoreBuckets.innerHTML = buckets.map((bucket) => {
+        const width = Math.min(100, bucket.avgGap * 3.2);
+        return `<article class="score-card">
+          <span>评分 ${escapeHtml(bucket.label)}</span>
+          <strong>${fmtPct(bucket.avgGap)}</strong>
+          <small>${bucket.count} 条，区间外 ${fmtPct(bucket.outsidePct)}</small>
+          <div class="score-bar"><i style="width:${width}%"></i></div>
+        </article>`;
+      }).join("");
+    }
+
+    function renderReportCards() {
+      const seedRows = rowsForSeed();
+      const cards = reportOrder().map((reportId) => {
+        const reportRows = seedRows.filter((row) => row.forecast_report_id === reportId);
+        if (!reportRows.length) return "";
+        const ordinary = reportRows.filter((row) => row.future_peek_mode !== "true");
+        const scoreValues = reportRows.map((row) => row.forecast_quality_score);
+        const sample = ordinary.length ? ordinary : reportRows;
+        const avgGap = mean(sample.map((row) => Math.abs(row.debug_model_gap_to_true_pct)));
+        const outsidePct = sample.length
+          ? sample.filter((row) => row.debug_hidden_true_inside_forecast_range !== "true").length / sample.length * 100
+          : 0;
+        const first = reportRows[0];
+        const scoreRange = `${fmt(Math.min(...scoreValues), 1)} - ${fmt(Math.max(...scoreValues), 1)}`;
+        return `<article class="score-card">
+          <span><i class="swatch" style="background:${reportColor(reportId)}"></i> ${escapeHtml(reportLabel(reportId))}</span>
+          <strong>${scoreRange}</strong>
+          <small>${escapeHtml(first.forecast_bias_direction || "mixed")} / 平均误差 ${fmtPct(avgGap)} / 区间外 ${fmtPct(outsidePct)}</small>
+          <div class="score-bar"><i style="width:${Math.min(100, Math.max(...scoreValues))}%"></i></div>
+        </article>`;
+      });
+      el.reportCards.innerHTML = cards.join("");
+    }
+
+    function scoreTone(score) {
+      if (score >= 80) return "positive";
+      if (score >= 55) return "warning";
+      return "danger";
+    }
+
+    function selectedComponentRow() {
+      const rowsForAsOf = selectedAsOfRows();
+      if (!rowsForAsOf.length) return null;
+      const years = rowsForAsOf.map((row) => row.forecast_year);
+      if (!years.includes(state.componentYear)) {
+        state.componentYear = years.at(-1);
+      }
+      return rowsForAsOf.find((row) => row.forecast_year === state.componentYear) || rowsForAsOf.at(-1);
+    }
+
+    function renderComponentBreakdown() {
+      const row = selectedComponentRow();
+      if (!row) {
+        el.componentGrid.innerHTML = `<div class="empty">没有分项数据</div>`;
+        return;
+      }
+      el.componentCaption.textContent = `${selectedAsOfYear()} 年发布，目标 ${row.forecast_year}，${bottleneckLabel(row.forecast_market_bottleneck)}瓶颈`;
+      el.componentGrid.innerHTML = COMPONENTS.map((component) => {
+        const forecast = row[`${component.key}_forecast_effective_passengers_mid_million`];
+        const trueValue = row[`${component.key}_debug_hidden_true_effective_passengers_million`];
+        const forecastShare = row[`${component.key}_forecast_effective_share_pct`];
+        const trueShare = row[`${component.key}_debug_hidden_true_effective_share_pct`];
+        const potential = row[`${component.key}_debug_hidden_true_potential_passengers_million`];
+        const supply = row[`${component.key}_debug_hidden_true_airline_supply_passengers_million`];
+        const gapPct = trueValue ? (forecast - trueValue) / trueValue * 100 : 0;
+        const tone = Math.abs(gapPct) >= 15 ? "danger" : Math.abs(gapPct) >= 8 ? "warning" : "positive";
+        return `<article class="score-card">
+          <span>${escapeHtml(component.label)}有效客流</span>
+          <strong class="${tone}">${fmtPassenger(forecast)}</strong>
+          <small>真实 ${fmtPassenger(trueValue)} / 偏差 ${fmtPct(gapPct)}</small>
+          <small>占比 ${fmtPct(forecastShare)} / 真实 ${fmtPct(trueShare)}</small>
+          <small>真实潜在 ${fmtPassenger(potential)} / 真实供给 ${fmtPassenger(supply)}</small>
+        </article>`;
+      }).join("");
+    }
+
+    function renderTable() {
+      const tableRows = selectedAsOfRows();
+      el.tableCaption.textContent = `${selectedAsOfYear()} 年发布，${reportLabel(state.reportId)}，${tableRows.length} 条预测`;
+      el.forecastTable.innerHTML = tableRows.map((row) => {
+        const inside = row.debug_hidden_true_inside_forecast_range === "true";
+        const gap = row.debug_model_gap_to_true_pct;
+        return `<tr>
+          <td>${row.forecast_year}</td>
+          <td class="${scoreTone(row.realized_point_quality_score)}">${fmt(row.realized_point_quality_score, 1)}</td>
+          <td class="muted">${fmt(row.forecast_quality_score, 1)}</td>
+          <td>${escapeHtml(row.forecast_bias_direction)}</td>
+          <td>${fmtPct(row.forecast_confidence_pct)}</td>
+          <td>${fmt(row.forecast_effective_passengers_mid_million, 1)}</td>
+          <td>${fmt(row.forecast_potential_passengers_mid_million, 1)} / ${fmt(row.forecast_airline_supply_passengers_mid_million, 1)}</td>
+          <td>${fmt(row.forecast_effective_passengers_low_million, 1)} - ${fmt(row.forecast_effective_passengers_high_million, 1)}</td>
+          <td>${fmt(row.debug_hidden_true_effective_passengers_million, 1)}</td>
+          <td>${fmt(row.debug_hidden_true_potential_passengers_million, 1)} / ${fmt(row.debug_hidden_true_airline_supply_passengers_million, 1)}</td>
+          <td>${bottleneckLabel(row.forecast_market_bottleneck)} / ${bottleneckLabel(row.debug_hidden_true_market_bottleneck)}</td>
+          <td class="${Math.abs(gap) >= 15 ? "danger" : Math.abs(gap) >= 8 ? "warning" : "positive"}">${fmtPct(gap)}</td>
+          <td class="${inside ? "positive" : "danger"}">${inside ? "是" : "否"}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function syncControls() {
+      const seeds = uniq(rows.map((row) => row.seed)).sort((a, b) => a - b);
+      if (state.seed === null) state.seed = seeds[0] || null;
+      el.seedSelect.innerHTML = seeds.map((seed) => `<option value="${seed}">${seed}</option>`).join("");
+      el.seedSelect.value = String(state.seed);
+
+      const reports = reportOrder();
+      if (!reports.includes(state.reportId)) state.reportId = reports[0] || "";
+      el.reportSelect.innerHTML = reports.map((id) => {
+        return `<option value="${escapeHtml(id)}">${escapeHtml(reportLabel(id))}</option>`;
+      }).join("");
+      el.reportSelect.value = state.reportId;
+
+      const years = asOfYears();
+      el.asOfRange.min = "0";
+      el.asOfRange.max = String(Math.max(0, years.length - 1));
+      el.asOfRange.value = String(Math.min(state.asOfIndex, Math.max(0, years.length - 1)));
+      el.asOfLabel.textContent = `${selectedAsOfYear()} 年发布，显示未来 ${formatHorizonList(selectedAsOfRows().map((row) => row.forecast_horizon_years))} 年窗口`;
+
+      const componentRows = selectedAsOfRows();
+      const componentYears = componentRows.map((row) => row.forecast_year);
+      if (!componentYears.includes(state.componentYear)) state.componentYear = componentYears.at(-1) || null;
+      el.componentYearSelect.innerHTML = componentYears
+        .map((year) => `<option value="${year}">${year}</option>`)
+        .join("");
+      el.componentYearSelect.value = String(state.componentYear || "");
+    }
+
+    function render() {
+      if (!rows.length) {
+        document.querySelector("main").innerHTML = `<div class="empty">No forecast data found</div>`;
+        return;
+      }
+      syncControls();
+      renderSummary();
+      renderLegend();
+      renderForecastChart();
+      renderComponentBreakdown();
+      renderTable();
+      el.statusText.textContent = `${rows.length} rows / ${reportOrder().length} reports`;
+    }
+
+    function bindEvents() {
+      el.seedSelect.addEventListener("change", () => {
+        state.seed = Number(el.seedSelect.value);
+        state.asOfIndex = 0;
+        render();
+      });
+      el.asOfRange.addEventListener("input", () => {
+        state.asOfIndex = Number(el.asOfRange.value);
+        state.componentYear = null;
+        render();
+      });
+      el.reportSelect.addEventListener("change", () => {
+        state.reportId = el.reportSelect.value;
+        state.componentYear = null;
+        render();
+      });
+      el.componentYearSelect.addEventListener("change", () => {
+        state.componentYear = Number(el.componentYearSelect.value);
+        render();
+      });
+    }
+
+    bindEvents();
+    render();
+  </script>
+</body>
+</html>

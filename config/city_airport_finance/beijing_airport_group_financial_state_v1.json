@@ -1,0 +1,155 @@
+{
+  "schema_version": "city-airport-financial-state-config-v1",
+  "config_version": "beijing-airport-group-financial-state-v0.6",
+  "operator_id": "beijing_airport_group",
+  "operator_name": "北京机场集团",
+  "city_airport_market_id": "beijing_airport_system",
+  "city_name": "北京",
+  "region_id": "china_mainland",
+  "region_name": "中国大陆",
+  "currency": "CNY",
+  "amount_unit": "million_cny",
+  "design_note": "Beijing airport operator financial-state sample. Version 0.6 adds quarterly income-tax prepayment, Q4 annual tax settlement, and 5-year tax-loss carryforward. Quarterly operations profit is treated as pre-depreciation operating profit; this layer subtracts accounting depreciation, rebuild demolition expense, rebuild old-asset writeoffs, interest expense, and income tax to update retained earnings.",
+  "game_timeline": {
+    "simulation_start_year": 2025,
+    "startup_operating_history_years": 5,
+    "player_decision_start_year": 2030,
+    "design_note": "2025-2029 is automatic operating history. The player starts in 2030, with the first player-phase commercial contract cycle also beginning in 2030."
+  },
+  "opening_balance": {
+    "opening_cash_million_cny": 18000.0,
+    "opening_retained_earnings_million_cny": 0.0,
+    "opening_short_term_debt_million_cny": 0.0,
+    "opening_long_term_debt_million_cny": 0.0,
+    "design_note": "Opening cash is a game-calibrated 2025 balance. It is deliberately large enough for normal operations and the first sample renovation, but not so large that late new-build capex becomes irrelevant. Opening contributed capital is auto-balanced from opening cash plus 2025 opening asset book value."
+  },
+  "tax_policy": {
+    "corporate_income_tax_rate_pct": 25.0,
+    "quarterly_prepayment_ratio": 1.0,
+    "annual_settlement_quarter": "Q4",
+    "loss_carryforward_enabled": true,
+    "loss_carryforward_years": 5,
+    "design_note": "Simplified single-player tax model: positive quarterly pretax profit is prepaid at 25%; Q4 settles against annual pretax profit after FIFO tax-loss carryforward. Losses carry forward for 5 years and no deferred tax assets are recognized."
+  },
+  "debt_policy": {
+    "debt_enabled": true,
+    "auto_borrow_on_negative_cash": false,
+    "design_note": "General loans are enabled for sample testing. Auto borrowing remains disabled: negative cash should be visible as a warning rather than silently financed.",
+    "loan_rate_model": {
+      "model_version": "general-loan-rate-v0.2",
+      "rate_lock_policy": "fixed_at_draw",
+      "fallback_short_term_rate_pct": 3.6,
+      "fallback_long_term_rate_pct": 4.8,
+      "short_term_reference_adjustment_pct": -0.25,
+      "long_term_reference_adjustment_pct": 0.0,
+      "short_term_spread_bps": 60.0,
+      "long_term_spread_bps": 145.0,
+      "hy_spread_baseline_bps": 420.0,
+      "hy_spread_capture_ratio": 0.1,
+      "city_risk_spread_bps": 0.0,
+      "min_annual_interest_rate_pct": 1.0,
+      "max_annual_interest_rate_pct": 9.5,
+      "leverage_spread_model": {
+        "enabled": true,
+        "ratio_metric": "total_liabilities_to_total_assets",
+        "pricing_mode": "piecewise_linear",
+        "block_if_begin_ratio_at_or_above_pct": 80.0,
+        "block_if_post_draw_ratio_at_or_above_pct": 80.0,
+        "spread_curve": [
+          {
+            "liability_ratio_pct": 45.0,
+            "additional_spread_bps": 0.0
+          },
+          {
+            "liability_ratio_pct": 60.0,
+            "additional_spread_bps": 60.0
+          },
+          {
+            "liability_ratio_pct": 70.0,
+            "additional_spread_bps": 150.0
+          },
+          {
+            "liability_ratio_pct": 80.0,
+            "additional_spread_bps": 300.0
+          }
+        ],
+        "design_note": "Loan pricing uses the post-draw asset-liability ratio and linearly interpolates between spread-curve control points. If the beginning or post-draw ratio reaches 80%, the drawdown is blocked."
+      },
+      "design_note": "If a loan does not specify annual_interest_rate_pct, the rate is locked at draw from input_10y_yield_pct plus tenor spread, a small HY-spread stress component, and the asset-liability-ratio leverage spread."
+    }
+  },
+  "general_loans": [
+    {
+      "loan_id": "BJ_SHORT_BULLET_2030Q1",
+      "loan_name": "北京短期周转贷款测试",
+      "loan_type": "short_term",
+      "start_year": 2030,
+      "start_quarter": "Q1",
+      "principal_million_cny": 5000.0,
+      "tenor_quarters": 8,
+      "repayment_style": "bullet_principal",
+      "purpose_note": "Sample short-term loan. Pays quarterly interest and repays all principal at maturity."
+    },
+    {
+      "loan_id": "BJ_LONG_EQUAL_2056Q1",
+      "loan_name": "首都机场重建期长期贷款测试",
+      "loan_type": "long_term",
+      "start_year": 2056,
+      "start_quarter": "Q1",
+      "principal_million_cny": 30000.0,
+      "tenor_quarters": 80,
+      "repayment_style": "equal_principal",
+      "purpose_note": "Sample long-term equal-principal loan used to test rebuild-period leverage."
+    },
+    {
+      "loan_id": "BJ_LONG_GRACE_EQUAL_2065Q3",
+      "loan_name": "大兴扩建宽限期长期贷款测试",
+      "loan_type": "long_term",
+      "start_year": 2065,
+      "start_quarter": "Q3",
+      "principal_million_cny": 24000.0,
+      "tenor_quarters": 60,
+      "repayment_style": "grace_then_equal_principal",
+      "grace_period_quarters": 16,
+      "purpose_note": "Sample long-term loan with principal grace, used only to verify the third repayment style."
+    }
+  ],
+  "initial_assets": [
+    {
+      "asset_id": "PEK_SLOT_1_T3_INITIAL_ASSET",
+      "airport_id": "PEK",
+      "airport_name": "北京首都",
+      "slot_id": "PEK_SLOT_1",
+      "slot_name": "首都T3航站楼",
+      "facility_size": "extra_large",
+      "in_service_year": 2008,
+      "asset_original_million_cny": 51000.0,
+      "useful_life_years": 40,
+      "residual_value_pct": 10.0
+    },
+    {
+      "asset_id": "PEK_SLOT_2_T2_INITIAL_ASSET",
+      "airport_id": "PEK",
+      "airport_name": "北京首都",
+      "slot_id": "PEK_SLOT_2",
+      "slot_name": "首都T2航站楼",
+      "facility_size": "large",
+      "in_service_year": 2000,
+      "asset_original_million_cny": 28500.0,
+      "useful_life_years": 35,
+      "residual_value_pct": 10.0
+    },
+    {
+      "asset_id": "PKX_SLOT_1_T1_INITIAL_ASSET",
+      "airport_id": "PKX",
+      "airport_name": "北京大兴",
+      "slot_id": "PKX_SLOT_1",
+      "slot_name": "大兴T1航站楼",
+      "facility_size": "giant",
+      "in_service_year": 2019,
+      "asset_original_million_cny": 78750.0,
+      "useful_life_years": 45,
+      "residual_value_pct": 10.0
+    }
+  ]
+}

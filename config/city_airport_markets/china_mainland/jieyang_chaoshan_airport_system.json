@@ -1,0 +1,102 @@
+{
+  "schema_version": "city-airport-market-config-v1",
+  "config_version": "jieyang-chaoshan-airport-system-v2",
+  "market": {
+    "city_airport_market_id": "jieyang_chaoshan_airport_system",
+    "city_name": "揭阳/潮汕",
+    "region_id": "china_mainland",
+    "region_name": "中国大陆",
+    "market_tier": "secondary_gateway",
+    "market_type": "primary_single_airport",
+    "airport_system": "潮汕"
+  },
+  "upstream_linkage": {
+    "regional_aviation_demand_region_id": "china_mainland",
+    "regional_air_capacity_supply_region_id": "china_mainland",
+    "seed_mode": "inherit",
+    "branch_mode": "inherit",
+    "passenger_components": ["business", "leisure", "vfr", "long_haul", "transfer"]
+  },
+  "demand_model": {
+    "baseline_year": 2025,
+    "baseline_region_demand_share_pct": 1.35,
+    "baseline_city_potential_passengers_million": 11.0,
+    "annual_long_term_city_growth_bias_pct": 0.56,
+    "max_long_term_city_growth_bias_pct": 32.0,
+    "target_long_term_potential_range_million": [34.0, 68.0],
+    "seed_potential_model": {
+      "enabled": true,
+      "template_id": "china_south_coast_private_vfr_challenger_seed_potential_v1",
+      "release_start_year_index": 4.0,
+      "full_effect_year_index": 29.0,
+      "annual_growth_bias_range_pct": [-0.58, 0.8],
+      "max_growth_bias_range_pct": [-25.0, 42.0],
+      "regional_correlation_weight": 0.29,
+      "potential_multiplier_floor": 0.75,
+      "potential_multiplier_ceiling": 1.42
+    },
+    "design_note": "潮汕以汕潮揭都市圈、侨乡探亲、商务和旅游混合为主，第一版按潮汕 3 槽位单机场经营。"
+  },
+  "component_mix": {
+    "business_base_share_pct": 27.0,
+    "leisure_base_share_pct": 34.0,
+    "vfr_base_share_pct": 22.0,
+    "long_haul_base_share_pct": 7.0,
+    "transfer_base_share_pct": 10.0
+  },
+  "component_biases": {
+    "business_share_bias": 1.0,
+    "leisure_share_bias": 1.0,
+    "vfr_share_bias": 1.22,
+    "long_haul_share_bias": 0.96,
+    "transfer_share_bias": 0.82
+  },
+  "airline_supply_model": {
+    "base_airline_supply_passengers_million": 11.8,
+    "regional_airline_capacity_growth_capture": 0.27,
+    "annual_local_airline_supply_growth_pct": 0.21,
+    "max_local_airline_supply_growth_pct": 15.0,
+    "airline_supply_confidence_bias": 0.96,
+    "airline_supply_appetite_bias": 0.99,
+    "airline_supply_constraint_bias": 1.03
+  },
+  "commercial_biases": {
+    "premium_propensity_bias": 1.02,
+    "premium_share_bias": 1.02,
+    "duty_free_bias": 1.0,
+    "luxury_retail_bias": 1.01,
+    "electronics_retail_bias": 1.03,
+    "food_beverage_bias": 1.02,
+    "general_retail_bias": 1.0
+  },
+  "facility_model": {
+    "airport_facility_slot_profile_id": "jieyang_chaoshan_primary_single_3_slot_v1",
+    "facility_size_catalog": "standard_terminal_sizes_v1",
+    "airport_capacity_shortage_policy": "proportional_compression",
+    "use_design_capacity_for_crowding": true,
+    "use_max_capacity_for_hard_limit": true
+  },
+  "airports": [
+    {
+      "airport_id": "SWA",
+      "airport_name": "潮汕",
+      "airport_role": "chaoshan_metro_gateway",
+      "slot_count": 3,
+      "slots": [
+        {"slot_id": "SWA_SLOT_1", "slot_name": "T1/T2 主体", "slot_role": "auxiliary_slot", "facility_size": "medium", "open_year": 2025},
+        {"slot_id": "SWA_SLOT_2", "slot_name": "区域航站组合", "slot_role": "auxiliary_slot", "facility_size": "small", "open_year": 2025},
+        {"slot_id": "SWA_SLOT_3", "slot_name": "潮汕玩家改造槽位", "slot_role": "auxiliary_slot", "facility_size": "empty", "open_year": 2025}
+      ]
+    }
+  ],
+  "capacity_reference_profiles": [
+    {
+      "profile_id": "initial_2025",
+      "profile_name": "当前初始配置",
+      "design_capacity_million": 24.0,
+      "max_capacity_million": 36.0,
+      "slot_assignments": {"SWA_SLOT_1": "medium", "SWA_SLOT_2": "small", "SWA_SLOT_3": "empty"}
+    }
+  ],
+  "future_airport_options": []
+}

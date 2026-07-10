@@ -1,0 +1,590 @@
+{
+  "schema_version": "city-airport-quarterly-operations-parameter-schema-v1",
+  "schema_id": "city_airport_quarterly_operations_parameter_schema_v1",
+  "description": "Variable skeleton for city airport quarterly operations configs. This file documents required variables, units, and tuning intent only; it is not loaded by the simulator.",
+  "required_top_level_fields": [
+    "schema_version",
+    "config_version",
+    "city_airport_market_id",
+    "city_name",
+    "currency",
+    "amount_unit",
+    "game_timeline",
+    "quarter_component_weights",
+    "facility_fixed_operating_cost_million_cny_per_year",
+    "slot_fixed_operating_cost_model",
+    "facility_renovation_model",
+    "facility_renovation_events",
+    "facility_construction_model",
+    "facility_construction_events",
+    "facility_rebuild_model",
+    "facility_rebuild_events",
+    "aeronautical_revenue",
+    "passenger_variable_cost",
+    "congestion_cost",
+    "commercial"
+  ],
+  "parameters": {
+    "game_timeline": {
+      "unit": "years",
+      "shape": "simulation_start_year + startup_operating_history_years + player_decision_start_year",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "城市季度经营的游戏时间入口。建议正式玩法先自动运营若干年形成历史记录，再进入玩家决策期；北京默认 2025-2029 为开局经营记录，2030 开始玩家决策。"
+    },
+    "quarter_component_weights": {
+      "unit": "share_of_annual_component_passengers",
+      "shape": "component -> four quarterly weights",
+      "components": ["business", "leisure", "vfr", "long_haul", "transfer"],
+      "constraint": "Each component's four quarterly weights should sum to 1.0.",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "商务、休闲、探亲、长途和中转可有不同季节性。城市季度经营层承接上游年度城市客流和客群分项，再按这里拆成季度。"
+    },
+    "facility_fixed_operating_cost_million_cny_per_year": {
+      "unit": "million_cny_per_year",
+      "shape": "facility_size -> fixed operating cost",
+      "facility_sizes": ["empty", "small", "medium", "large", "extra_large", "giant"],
+      "city_tuning_priority": "high",
+      "city_tuning_note": "启用槽位产生的基础固定经营成本，不是折旧。应按城市人工、能源、安全、管理复杂度和机场规模调制。"
+    },
+    "slot_fixed_operating_cost_model": {
+      "unit": "mixed",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "在规格基准成本上叠加建筑年龄、季度暖通能耗、宏观成本压力和城市复杂度。slot_open_years 应逐城市按槽位填写；age_curve_points 可区域共用；quarter_cost_multipliers 应四季平均约为 1.0；macro_cost_pressure 使用上游城市/区域传入的宏观字段。"
+    },
+    "slot_fixed_operating_cost_model.macro_cost_pressure.weights": {
+      "unit": "weighted_index",
+      "shape": "upstream_city_airport_demand_field -> weight",
+      "recommended_upstream_fields": [
+        "input_core_inflation_cost_index",
+        "input_energy_cost_pressure_index",
+        "input_currency_pressure_index",
+        "input_regional_macro_stress_index",
+        "input_headline_inflation_cost_index"
+      ],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "固定经营成本的宏观压力入口。字段由城市机场需求层从区域宏观层传入；北京当前覆盖值以通胀、能源、汇率和宏观压力为主，不直接把旅客信心当作成本项。"
+    },
+    "facility_renovation_model": {
+      "unit": "mixed",
+      "shape": "standard slot renovation rules: duration, construction capacity multiplier, capex ratio, depreciation, effective maintenance age reduction",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "现有航站楼翻新机制模板。翻新不等于扩容，不改变槽位规格；施工期只降低该槽位有效容量，完工后新增翻新资产并单独折旧，同时把固定经营成本读取的有效维护年龄按比例降低。"
+    },
+    "facility_renovation_model.default_construction_capacity_multiplier": {
+      "unit": "multiplier",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "施工期该槽位设计容量和最大容量的可用比例。第一版建议统一使用 0.75，表达同等规模翻新的容量扰动；不同规格主要通过工期和投资额区分。"
+    },
+    "facility_renovation_model.maintenance_age_retention_ratio": {
+      "unit": "multiplier",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "翻新完工后有效维护年龄的保留比例。北京默认 0.55，即 34 年老楼翻新后按约 19 年有效维护年龄读取固定成本曲线，而不是归零。"
+    },
+    "facility_renovation_model.minimum_effective_maintenance_age_years": {
+      "unit": "years",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "翻新后的有效维护年龄下限，避免频繁翻新把老航站楼洗成全新资产。北京默认 5 年。"
+    },
+    "facility_renovation_model.replacement_cost_million_cny_by_facility_size": {
+      "unit": "million_cny",
+      "shape": "facility_size -> replacement cost",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "各规格航站楼的游戏口径重置成本。翻新费用默认按该重置成本乘 capex_ratio_by_facility_size 计算；城市可用 city_construction_cost_multiplier 或事件级 capex_million_cny 覆盖。"
+    },
+    "facility_renovation_model.duration_quarters_by_facility_size": {
+      "unit": "quarters",
+      "shape": "facility_size -> construction duration",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "不同规格的默认翻新工期。容量折损比例可以相同，但大规格项目持续时间更长。"
+    },
+    "facility_renovation_model.renovation_asset_depreciation": {
+      "unit": "years_and_pct",
+      "shape": "useful_life_years + residual_value_pct",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "翻新投资完工转固后的独立资产折旧参数。第一版不清理旧资产，旧航站楼资产继续折旧，新增翻新资产单独折旧。"
+    },
+    "facility_renovation_events": {
+      "unit": "event_list",
+      "shape": "event_id, airport_id, slot_id, facility_size, start_year, start_quarter, optional overrides",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "城市具体翻新项目列表。默认只需填槽位、规格和开始季度；可覆盖 duration_quarters、construction_capacity_multiplier、capex_million_cny、useful_life_years、residual_value_pct。"
+    },
+    "facility_construction_model": {
+      "unit": "mixed",
+      "shape": "new terminal construction rules: capex, duration, completion asset depreciation",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "新建航站楼机制模板。新建只用于 empty 槽位，施工期不增加容量；完工后城市机场客流配置应通过 open_year 暴露该槽位，季度经营层记录建设期资本开支、在建工程、完工后的新建资产折旧。"
+    },
+    "facility_construction_model.construction_cost_million_cny_by_facility_size": {
+      "unit": "million_cny",
+      "shape": "facility_size -> new-build construction cost",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "各规格航站楼完整新建造价，和翻新 replacement_cost 使用同一 2025 不变价游戏口径。城市可用 city_construction_cost_multiplier 或事件级 capex_million_cny 覆盖。"
+    },
+    "facility_construction_model.duration_quarters_by_facility_size": {
+      "unit": "quarters",
+      "shape": "facility_size -> construction duration",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "不同规格的新建标准工期。北京样板 PKX_SLOT_2 使用 large 标准工期 14 季度。"
+    },
+    "facility_construction_model.new_asset_depreciation": {
+      "unit": "years_and_pct",
+      "shape": "useful_life_years + residual_value_pct",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "新建航站楼完工转固后的资产折旧参数。第一版建议 40 年、10% 残值。"
+    },
+    "facility_construction_events": {
+      "unit": "event_list",
+      "shape": "event_id, airport_id, slot_id, target_facility_size, start_year, start_quarter, optional overrides",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "城市具体新建航站楼项目列表。默认只需填空槽位、目标规格和开始季度；可覆盖 duration_quarters、capex_million_cny、construction_cost_multiplier、useful_life_years、residual_value_pct。"
+    },
+    "facility_rebuild_model": {
+      "unit": "mixed",
+      "shape": "existing slot demolition and rebuild rules: full slot closure during construction, construction capex, demolition expense, duration, asset depreciation",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "拆除重建用于已启用槽位。v0.1 施工期该槽位有效容量固定归零；建造费用资本化为重建资产，拆除费用当期费用化，原初始资产和同槽位已完工翻新资产在重建开始时核销。区域、城市和事件差异主要通过工期、建造费和拆除费表达。"
+    },
+    "facility_rebuild_model.asset_cost_million_cny_by_facility_size": {
+      "unit": "million_cny",
+      "shape": "target_facility_size -> rebuild construction capex",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "重建后的新航站楼建造费用。默认可沿用新建造价，但区域和城市可按施工难度、土地限制、不停航组织和供应链成本调整；事件级 asset_capex_million_cny 或 capex_million_cny 可覆盖。"
+    },
+    "facility_rebuild_model.demolition_cost_ratio_by_source_facility_size": {
+      "unit": "ratio",
+      "shape": "source_facility_size -> demolition expense ratio",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "拆除费用按被拆旧规格的资产成本乘比例估算。它是期间费用，不形成新资产；不同区域、城市和槽位的拆除难度差异应通过 city_demolition_cost_multiplier 或事件级 demolition_expense_million_cny 覆盖。"
+    },
+    "facility_rebuild_model.duration_quarters_by_facility_size": {
+      "unit": "quarters",
+      "shape": "target_facility_size -> rebuild duration",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "拆除重建标准工期，通常比纯新建更长或更复杂。区域、城市和事件都可以覆盖。"
+    },
+    "facility_rebuild_events": {
+      "unit": "event_list",
+      "shape": "event_id, airport_id, slot_id, from_facility_size, target_facility_size, start_year, start_quarter, optional overrides",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "城市具体拆除重建项目列表。重建事件不能和同槽位翻新/重建事件施工窗口重叠；可覆盖 duration_quarters、asset_capex_million_cny、demolition_expense_million_cny、construction_cost_multiplier、demolition_cost_multiplier、useful_life_years、residual_value_pct。施工期容量不做事件级覆盖，固定归零。"
+    },
+    "upstream_macro_fields_from_city_airport_demand": {
+      "unit": "pass_through_or_derived_index",
+      "shape": "field list",
+      "fields": [
+        "input_regional_gdp_index",
+        "input_regional_gdp_growth_pct",
+        "input_regional_output_gap_pct",
+        "input_headline_inflation_pct",
+        "input_core_inflation_pct",
+        "input_headline_inflation_cost_index",
+        "input_core_inflation_cost_index",
+        "input_energy_cost_pressure_index",
+        "input_10y_yield_pct",
+        "input_hy_spread_bps",
+        "input_equity_return_pct",
+        "input_equity_valuation_pe",
+        "input_regional_macro_stress_index"
+      ],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "这些不是逐城市手填参数，而是城市机场需求层按 seed/year/历史岔路从区域宏观层带下来的桥接字段。城市经营配置可以选择其中一部分进入成本或收入黑箱。"
+    },
+    "aeronautical_revenue.base_revenue_per_passenger_cny": {
+      "unit": "cny_per_served_passenger",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "航运侧旅客收费基准，受机场收费水平、国内国际结构、枢纽议价能力影响。"
+    },
+    "aeronautical_revenue.component_mix_revenue_weights": {
+      "unit": "multiplier",
+      "shape": "component -> revenue multiplier",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "不同客群对航运侧收入的修正。商务和长途通常高于普通休闲，中转可能偏低。"
+    },
+    "aeronautical_revenue.quarter_revenue_multipliers": {
+      "unit": "multiplier",
+      "shape": "quarter -> multiplier",
+      "city_tuning_priority": "low",
+      "city_tuning_note": "季度航班运行和收费口径修正。建议四季平均接近 1.0，幅度小于商业收入季节性。"
+    },
+    "aeronautical_revenue.market_yield_environment": {
+      "unit": "multiplier_from_upstream_fields",
+      "shape": "field -> baseline, scale, direction, weight",
+      "recommended_upstream_fields": [
+        "input_airfare_pressure_index",
+        "input_consumer_confidence_index",
+        "input_core_inflation_cost_index",
+        "input_regional_macro_stress_index"
+      ],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "航空市场收益环境入口。机场航运收入受规制约束，敏感度应明显低于商业收入；高票价压力可略推高，宏观压力应略压低。"
+    },
+    "aeronautical_revenue.capacity_pricing": {
+      "unit": "design_utilization_pct_to_multiplier",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "容量议价修正。设计利用率太低时收入质量略弱；接近满载但未严重拥挤时略强。"
+    },
+    "aeronautical_revenue.crowding_revenue_penalty": {
+      "unit": "design_and_max_utilization_pct_to_multiplier",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "拥挤服务折减。超过设计容量较多或超过最大容量时，航运收入质量略有折损；该项应保持窄幅。"
+    },
+    "passenger_variable_cost.base_cost_per_passenger_cny": {
+      "unit": "cny_per_served_passenger",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "随旅客量增加的接待成本，覆盖安检、地服、清洁、旅客组织等经营压力。"
+    },
+    "passenger_variable_cost.component_complexity_weights": {
+      "unit": "multiplier",
+      "shape": "component -> cost multiplier",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "长途、国际和中转客服务复杂度通常更高。建议业务、长途和中转明显高于休闲与探亲，以便客群结构变化能进入接待成本曲线。"
+    },
+    "passenger_variable_cost.quarter_service_pressure_multipliers": {
+      "unit": "multiplier",
+      "shape": "quarter -> multiplier",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "季度接待压力系数，表达寒暑、旺季排班、安检和清洁压力。四季平均应接近 1.0。"
+    },
+    "passenger_variable_cost.macro_service_cost_pressure": {
+      "unit": "weighted_index",
+      "shape": "upstream_city_airport_demand_field -> weight",
+      "recommended_upstream_fields": [
+        "input_core_inflation_cost_index",
+        "input_energy_cost_pressure_index",
+        "input_currency_pressure_index",
+        "input_regional_macro_stress_index",
+        "input_headline_inflation_cost_index"
+      ],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "旅客接待成本的宏观服务成本入口。建议敏感度低于槽位固定成本，因为接待成本仍主要由旅客量和客群结构驱动。"
+    },
+    "passenger_variable_cost.load_pressure": {
+      "unit": "multiplier",
+      "shape": "design utilization thresholds",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "设计利用率较高时，每客组织、排班、安检和清洁成本略升。这里应保持温和；超过设计容量后的强惩罚仍由 congestion_cost 处理。"
+    },
+    "congestion_cost": {
+      "unit": "net_million_cny_adjustment",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "拥挤/宽松净调整项，可为负也可为正。低设计利用率给小幅宽松红利；超过设计容量后按曲线上升；超过最大容量后叠加硬惩罚。"
+    },
+    "congestion_cost.relief_thresholds": {
+      "unit": "design_utilization_pct_and_cny_per_passenger",
+      "shape": "relief_start_design_utilization_pct, full_relief_design_utilization_pct, max_relief_per_passenger_cny",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "宽松红利参数。建议保持小额，避免低客流年份因负拥挤成本导致利润过度好看。"
+    },
+    "congestion_cost.design_pressure": {
+      "unit": "design_utilization_pct_and_cny_per_passenger",
+      "shape": "congestion_start_design_utilization_pct, full_design_pressure_utilization_pct, cost_per_passenger_at_full_design_pressure_cny, design_pressure_power",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "超过设计客流后的主要拥挤惩罚。该项仍按承接旅客量计，因此会随季度客流波动。"
+    },
+    "congestion_cost.over_max_pressure": {
+      "unit": "cny_per_over_max_passenger",
+      "shape": "over_max_pressure_cost_per_passenger_cny, over_max_pressure_power",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "超过最大客流后的硬压力。该项应明显强于宽松红利，用来表达秩序、延误和服务质量全面恶化。"
+    },
+    "congestion_cost.component_crowding_weights": {
+      "unit": "multiplier",
+      "shape": "component -> crowding multiplier",
+      "components": ["business", "leisure", "vfr", "long_haul", "transfer"],
+      "city_tuning_priority": "low",
+      "city_tuning_note": "客群结构对拥挤调整的轻微修正。长途、中转和商务通常略高，探亲可略低；建议上下限较窄，避免抢过设计/最大利用率的主导地位。"
+    },
+    "commercial.food_retail": {
+      "unit": "mixed",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "餐饮、普通零售和电子零售自营盘。收入承接上游消费倾向指数和宏观消费环境；成本分销售成本、固定成本和随客流服务成本。"
+    },
+    "commercial.perceived_quality_model": {
+      "unit": "index_and_multiplier_model",
+      "shape": "slot quality = 100 + size score + continuous age score + capacity pressure score + renovation disruption; city index = slot quality weighted by carried passengers; commercial multiplier = 1 + sensitivity * tanh((quality - 100) / scale)",
+      "city_tuning_priority": "low",
+      "city_tuning_note": "城市机场感知品质指数。第一版建议作为通用参数，不逐城市频繁改；城市差异主要由槽位规格、建成年份、翻新事件、拆除重建后的有效槽位变化、客流利用率自然产生。该指数只影响商业收入/销售额，不反向改变客流、航司供给或机场运行成本。"
+    },
+    "commercial.perceived_quality_model.facility_size_scores": {
+      "unit": "index_points",
+      "shape": "facility_size -> score",
+      "city_tuning_priority": "low",
+      "city_tuning_note": "航站楼规格对观感的基础修正。建议小幅设置，例如 small -4、medium -1、large +1.5、extra_large +4、giant +6，避免巨型航站楼天然把指数顶到天花板。"
+    },
+    "commercial.perceived_quality_model.age_score": {
+      "unit": "continuous_index_points",
+      "shape": "max_score - score_span * sigmoid((effective_age - midpoint_years) / softness_years)",
+      "city_tuning_priority": "low",
+      "city_tuning_note": "新旧状态连续函数，读取 slot_fixed_operating_cost_model.slot_open_years 和翻新后的有效维护年龄。翻新不会让年龄归零，只通过维护年龄前推间接改善感知品质。"
+    },
+    "commercial.perceived_quality_model.capacity_pressure_score": {
+      "unit": "utilization_pct_to_index_points",
+      "shape": "comfort bonus below design capacity minus max(design penalty, hard max-capacity penalty)",
+      "city_tuning_priority": "low",
+      "city_tuning_note": "容量压力分。设计客流使用率负责普通拥挤，最大客流使用率只在接近硬上限时接管，二者用 max 而不是相加，避免重复惩罚。"
+    },
+    "commercial.perceived_quality_model.renovation_construction_disruption_score": {
+      "unit": "index_points",
+      "city_tuning_priority": "low",
+      "city_tuning_note": "当前只表达普通翻新施工期扰动。新建空槽位不影响既有航站楼观感；拆除重建施工期不额外设扰动分，而是通过该槽位有效容量归零和有效槽位移除体现。"
+    },
+    "commercial.perceived_quality_model.commercial_revenue_response": {
+      "unit": "nonlinear_multiplier",
+      "shape": "segment sensitivity using tanh response around baseline quality 100",
+      "city_tuning_priority": "low",
+      "city_tuning_note": "感知品质对商业收入的非线性传导。100 附近最敏感，偏离很远后钝化。自营餐饮零售低敏感，免税中敏感，奢侈品/精品高敏感。"
+    },
+    "commercial.food_retail.revenue_model": {
+      "unit": "cny_per_served_passenger_with_multipliers",
+      "shape": "quarter passengers * base revenue * propensity response * quarter * macro demand environment * efficiency * crowding penalty * perceived quality multiplier",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "自营商业收入模型。城市应重点调 base_revenue_per_passenger_cny、自营效率、消费倾向弹性、季度收入系数和宏观消费环境。该收入是自营流水/营业收入口径，不等同于净利润。"
+    },
+    "commercial.food_retail.revenue_model.propensity_response": {
+      "unit": "propensity_index_to_multiplier",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "把上游餐饮、普通零售、电子零售消费倾向转成收入乘数。建议 sensitivity 小于 1，避免宏观消费指数把机场自营收入机械放大过头。"
+    },
+    "commercial.food_retail.revenue_model.macro_demand_environment": {
+      "unit": "field_pressure_multiplier",
+      "shape": "upstream_city_airport_demand_field -> baseline/scale/direction/weight",
+      "recommended_upstream_fields": [
+        "input_consumer_confidence_index",
+        "input_regional_gdp_growth_pct",
+        "input_regional_macro_stress_index",
+        "input_core_inflation_cost_index"
+      ],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "自营收入的宏观消费环境入口。信心和增长通常抬高客单，宏观压力和成本型通胀通常压制消费。"
+    },
+    "commercial.food_retail.fixed_operating_cost_model": {
+      "unit": "mixed_multiplier_model",
+      "shape": "base facility-size cost * intensity * city complexity * macro pressure * quarter * load pressure",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "自营商业固定成本模型。基础成本仍由启用槽位规格决定；城市应重点调 commercial_intensity_multiplier、city_commercial_complexity_multiplier、季度系数和宏观敏感度。该项不跟商业收入直接挂钩，避免固定成本变成收入分成。"
+    },
+    "commercial.food_retail.fixed_operating_cost_model.macro_cost_pressure": {
+      "unit": "weighted_index",
+      "shape": "upstream_city_airport_demand_field -> weight",
+      "recommended_upstream_fields": [
+        "input_core_inflation_cost_index",
+        "input_energy_cost_pressure_index",
+        "input_currency_pressure_index",
+        "input_regional_macro_stress_index",
+        "input_headline_inflation_cost_index"
+      ],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "自营商业固定成本的宏观成本入口。建议敏感度温和，主要体现人工、能源、租赁维护和后台成本压力。"
+    },
+    "commercial.food_retail.fixed_operating_cost_model.load_pressure": {
+      "unit": "design_utilization_pct_to_multiplier",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "商业区固定运营的轻度客流压力。设计利用率很高时，导流、清洁、补货、秩序维护会让固定盘略升；主要客流服务压力仍由 passenger_service_cost_per_passenger_cny 承接。"
+    },
+    "commercial.food_retail.passenger_service_cost_model": {
+      "unit": "cny_per_served_passenger_with_multipliers",
+      "shape": "quarter passengers * base cost * consumption intensity * quarter * macro pressure * load pressure",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "自营餐饮零售的随客流服务成本模型。它覆盖清洁、排队管理、补货损耗、基础商业服务压力；比固定成本更贴近客流波动，但不直接按收入比例扣成本。"
+    },
+    "commercial.food_retail.passenger_service_cost_model.consumption_intensity": {
+      "unit": "propensity_index_to_multiplier",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "消费倾向越高，客单、补货和服务压力略高。建议敏感度保持温和，避免收入越高成本被机械吃掉。"
+    },
+    "commercial.food_retail.passenger_service_cost_model.macro_cost_pressure": {
+      "unit": "weighted_index",
+      "shape": "upstream_city_airport_demand_field -> weight",
+      "recommended_upstream_fields": [
+        "input_core_inflation_cost_index",
+        "input_energy_cost_pressure_index",
+        "input_currency_pressure_index",
+        "input_regional_macro_stress_index",
+        "input_headline_inflation_cost_index"
+      ],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "自营服务成本的宏观成本入口，主要体现人工、能源、耗材和后场履约压力。"
+    },
+    "commercial.food_retail.sales_cost_model": {
+      "unit": "pct_of_food_retail_revenue",
+      "shape": "food retail revenue * base cost ratio * sales mix pressure * macro cost pressure",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "自营商业销售成本模型。它覆盖餐饮原料、商品采购、损耗、支付渠道、基础促销等随流水上升的成本，是压低自营盘异常高利润率的核心参数。"
+    },
+    "commercial.food_retail.sales_cost_model.sales_mix_cost_pressure": {
+      "unit": "field_pressure_multiplier",
+      "shape": "food/general/electronics propensity -> cost ratio multiplier",
+      "recommended_upstream_fields": [
+        "food_beverage_propensity_index",
+        "general_retail_propensity_index",
+        "electronics_retail_propensity_index"
+      ],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "自营销售结构对成本率的影响。电子零售和普通零售通常让成本率更高，餐饮可按城市口径设为中性或略低。"
+    },
+    "commercial.food_retail.sales_cost_model.macro_cost_pressure": {
+      "unit": "weighted_index",
+      "shape": "upstream_city_airport_demand_field -> weight",
+      "recommended_upstream_fields": [
+        "input_core_inflation_cost_index",
+        "input_energy_cost_pressure_index",
+        "input_currency_pressure_index",
+        "input_regional_macro_stress_index",
+        "input_headline_inflation_cost_index"
+      ],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "自营销售成本率的宏观入口，主要体现采购、原料、汇率和库存损耗压力。"
+    },
+    "commercial.duty_free": {
+      "unit": "mixed",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "免税合同盘。先用 sales_model 估算运营商免税销售额，再由合同分成/保底转成机场收入。重点调有效客流权重、基础客单、宏观曲线、国际暴露、运营商捕获率、合同分成与保底。"
+    },
+    "commercial.duty_free.sales_model": {
+      "unit": "million_cny_sales_model",
+      "shape": "effective passengers * base sales per effective passenger * propensity curve * premium curve * macro environment * currency curve * international exposure * capture rate * crowding penalty * perceived quality multiplier",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "免税估算销售额模型。它输出运营商销售盘，不是机场收入；机场收入仍由 contract 节点按分成或保底计算。该模型应尽量承接区域航空层的客群分项和宏观消费/汇率/压力字段。"
+    },
+    "commercial.duty_free.sales_model.effective_passenger_weights": {
+      "unit": "component_weight",
+      "components": ["business", "leisure", "vfr", "long_haul", "transfer"],
+      "city_tuning_priority": "high",
+      "city_tuning_note": "把五类承接旅客转成免税有效客流。长途通常最高，中转次之，商务/休闲按城市国际化程度调，探亲访友通常较低。"
+    },
+    "commercial.duty_free.sales_model.propensity_curve": {
+      "unit": "index_to_multiplier_curve",
+      "recommended_upstream_fields": ["duty_free_propensity_index"],
+      "city_tuning_priority": "high",
+      "city_tuning_note": "免税消费倾向曲线。建议用分段点而不是线性比例，避免指数高位时销售额爆炸。"
+    },
+    "commercial.duty_free.sales_model.premium_mix_curve": {
+      "unit": "index_to_multiplier_curve",
+      "recommended_upstream_fields": ["premium_passenger_propensity_index"],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "高端/精品消费结构对免税客单的影响。用于让商务、长途和高端消费环境较好的年份抬高免税销售额。"
+    },
+    "commercial.duty_free.sales_model.macro_demand_environment": {
+      "unit": "field_pressure_multiplier",
+      "shape": "upstream_city_airport_demand_field -> baseline/scale/direction/weight",
+      "recommended_upstream_fields": [
+        "input_consumer_confidence_index",
+        "input_regional_gdp_growth_pct",
+        "input_regional_macro_stress_index",
+        "input_headline_inflation_cost_index"
+      ],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "免税销售额的宏观消费环境入口。消费者信心和经济增长抬高销售，宏观压力和通胀挤压销售。"
+    },
+    "commercial.duty_free.sales_model.currency_pressure_curve": {
+      "unit": "index_to_multiplier_curve",
+      "recommended_upstream_fields": ["input_currency_pressure_index"],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "汇率压力曲线。当前简化为压力越高，跨境免税消费越受压制；后续如果区分入境/出境，可在城市配置中改曲线。"
+    },
+    "commercial.duty_free.contract": {
+      "unit": "contract_revenue",
+      "shape": "startup fixed contract, then every contract_term_years use forecast_model to set minimum guarantee; revenue = max(actual sales * revenue_share_pct, forecast sales * revenue_share_pct * guarantee coverage)",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "免税机场收入合同。销售额模型只决定运营商销售盘；本节点决定机场拿分成还是保底。第一版建议用 5 年合同，开局历史期使用 startup_history_contract，玩家期每 5 年按历史销售和当前宏观环境自动重签。"
+    },
+    "commercial.duty_free.contract.startup_history_contract": {
+      "unit": "contract_revenue",
+      "shape": "fixed inherited contract for startup operating-history years",
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "正式游戏开始前的继承合同。用于给玩家展示前 5 年经营记录，避免第一天就无信息签约。该项暂时是记录口径，不代表玩家可操作。"
+    },
+    "commercial.duty_free.contract.forecast_model": {
+      "unit": "forecast_contract_model",
+      "shape": "lookback annual sales * trend multiplier * macro risk discount * airport bargaining power",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "免税合同预测占位模型。它只能使用签约时已经可见的历史销售和当前宏观/城市字段，不读取未来真实销售额。后续估值模型和玩家合同谈判可以沿用这一口径。"
+    },
+    "commercial.duty_free.contract.forecast_model.macro_risk_discount": {
+      "unit": "field_pressure_multiplier",
+      "recommended_upstream_fields": [
+        "input_consumer_confidence_index",
+        "input_regional_macro_stress_index",
+        "input_headline_inflation_cost_index",
+        "input_currency_pressure_index"
+      ],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "运营商给保底时考虑的风险折扣。信心低、压力高、通胀或汇率压力高时，保底预测应被压低。"
+    },
+    "commercial.duty_free.contract.forecast_model.airport_bargaining_power": {
+      "unit": "field_pressure_multiplier",
+      "recommended_upstream_fields": [
+        "city_served_passengers_million",
+        "duty_free_propensity_index",
+        "premium_passenger_propensity_index",
+        "input_regional_macro_stress_index"
+      ],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "机场议价能力。客流大、免税倾向强、高端客群强时保底预测更好；宏观压力会削弱议价。"
+    },
+    "commercial.luxury": {
+      "unit": "mixed",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "奢侈品/精品合同盘。先用 sales_model 估算运营商品牌销售盘，再由合同分成/保底转成机场收入。重点调有效客流权重、精品客单、高端曲线、宏观财富环境、捕获率、合同分成与保底。"
+    },
+    "commercial.luxury.sales_model": {
+      "unit": "million_cny_sales_model",
+      "shape": "effective passengers * base sales per effective passenger * luxury curve * premium curve * high-value share curve * macro wealth environment * currency curve * capture rate * crowding penalty * perceived quality multiplier",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "奢侈品估算销售额模型。它输出运营商品牌销售盘，不是机场收入。与免税不同，奢侈品更受商务/长途高端客群、精品消费倾向和财富环境影响；曲线必须封顶，避免高端指数长期上涨后销售额失控。"
+    },
+    "commercial.luxury.sales_model.effective_passenger_weights": {
+      "unit": "component_weight",
+      "components": ["business", "leisure", "vfr", "long_haul", "transfer"],
+      "city_tuning_priority": "high",
+      "city_tuning_note": "把五类承接旅客转成奢侈品有效客流。商务和长途通常最高，中转次之，休闲和探亲访友较低。"
+    },
+    "commercial.luxury.sales_model.luxury_propensity_curve": {
+      "unit": "index_to_multiplier_curve",
+      "recommended_upstream_fields": ["luxury_retail_propensity_index"],
+      "city_tuning_priority": "high",
+      "city_tuning_note": "奢侈品消费倾向曲线。建议使用分段点和上限，避免直接按指数线性放大。"
+    },
+    "commercial.luxury.sales_model.premium_mix_curve": {
+      "unit": "index_to_multiplier_curve",
+      "recommended_upstream_fields": ["premium_passenger_propensity_index"],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "高端旅客消费倾向曲线。它影响精品客单，但应比奢侈品倾向主曲线更温和。"
+    },
+    "commercial.luxury.sales_model.high_value_share_curve": {
+      "unit": "pct_to_multiplier_curve",
+      "recommended_upstream_fields": ["premium_passenger_share_pct"],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "高端客占比曲线。用于表达商务/高净值客群结构改善，但必须设置上限，避免与高端消费倾向重复放大。"
+    },
+    "commercial.luxury.sales_model.macro_wealth_environment": {
+      "unit": "field_pressure_multiplier",
+      "recommended_upstream_fields": [
+        "input_consumer_confidence_index",
+        "input_regional_gdp_growth_pct",
+        "input_regional_macro_stress_index",
+        "input_headline_inflation_cost_index",
+        "input_currency_pressure_index"
+      ],
+      "city_tuning_priority": "medium",
+      "city_tuning_note": "奢侈品销售额的宏观财富环境入口。信心和经济增长抬高销售，宏观压力、通胀和汇率压力压制销售。"
+    },
+    "commercial.luxury.contract": {
+      "unit": "contract_revenue",
+      "shape": "startup fixed contract, then every contract_term_years use forecast_model to set minimum guarantee; revenue = max(actual sales * revenue_share_pct, forecast sales * revenue_share_pct * guarantee coverage)",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "奢侈品机场收入合同。第一版与免税一样使用 5 年自动预测重签；后续可扩展为不同品牌集团、保底递增和阶梯分成。"
+    },
+    "commercial.luxury.contract.forecast_model": {
+      "unit": "forecast_contract_model",
+      "shape": "lookback annual sales * trend multiplier * macro risk discount * airport bargaining power",
+      "city_tuning_priority": "high",
+      "city_tuning_note": "奢侈品合同预测模型。只能使用签约时可见的历史销售和当前宏观/城市字段，不读取未来真实销售额。"
+    }
+  },
+  "not_in_scope": {
+    "renovation_capacity_upgrade": "本版翻新不改变槽位规格和长期容量；large -> extra_large 之类扩容升级后续单独建模。",
+    "construction_delay_or_overrun": "本版不模拟延期、超支、索赔和施工事故，只按配置工期线性发生资本开支。"
+  }
+}

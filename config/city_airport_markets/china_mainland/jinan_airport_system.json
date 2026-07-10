@@ -1,0 +1,155 @@
+{
+  "schema_version": "city-airport-market-config-v1",
+  "config_version": "jinan-airport-system-v2",
+  "market": {
+    "city_airport_market_id": "jinan_airport_system",
+    "city_name": "济南",
+    "region_id": "china_mainland",
+    "region_name": "中国大陆",
+    "market_tier": "regional_gateway",
+    "market_type": "primary_single_airport",
+    "airport_system": "遥墙"
+  },
+  "upstream_linkage": {
+    "regional_aviation_demand_region_id": "china_mainland",
+    "regional_air_capacity_supply_region_id": "china_mainland",
+    "seed_mode": "inherit",
+    "branch_mode": "inherit",
+    "passenger_components": [
+      "business",
+      "leisure",
+      "vfr",
+      "long_haul",
+      "transfer"
+    ]
+  },
+  "demand_model": {
+    "baseline_year": 2025,
+    "baseline_region_demand_share_pct": 3.0,
+    "baseline_city_potential_passengers_million": 24.5,
+    "annual_long_term_city_growth_bias_pct": 0.6,
+    "max_long_term_city_growth_bias_pct": 36.0,
+    "target_long_term_potential_range_million": [
+      75.0,
+      125.0
+    ],
+    "seed_potential_model": {
+      "enabled": true,
+      "template_id": "china_shandong_inland_gateway_seed_potential_v1",
+      "release_start_year_index": 4.0,
+      "full_effect_year_index": 28.0,
+      "annual_growth_bias_range_pct": [
+        -0.38,
+        0.58
+      ],
+      "max_growth_bias_range_pct": [
+        -17.0,
+        30.0
+      ],
+      "regional_correlation_weight": 0.31,
+      "potential_multiplier_floor": 0.83,
+      "potential_multiplier_ceiling": 1.3
+    },
+    "design_note": "济南以山东内陆省会、商务腹地和省内连接为主，第一版按遥墙单机场经营。"
+  },
+  "component_mix": {
+    "business_base_share_pct": 29.0,
+    "leisure_base_share_pct": 32.0,
+    "vfr_base_share_pct": 14.0,
+    "long_haul_base_share_pct": 6.0,
+    "transfer_base_share_pct": 19.0
+  },
+  "component_biases": {
+    "business_share_bias": 1.03,
+    "leisure_share_bias": 0.95,
+    "vfr_share_bias": 1.02,
+    "long_haul_share_bias": 0.9,
+    "transfer_share_bias": 1.08
+  },
+  "airline_supply_model": {
+    "base_airline_supply_passengers_million": 26.0,
+    "regional_airline_capacity_growth_capture": 0.32,
+    "annual_local_airline_supply_growth_pct": 0.24,
+    "max_local_airline_supply_growth_pct": 18.0,
+    "airline_supply_confidence_bias": 0.98,
+    "airline_supply_appetite_bias": 1.0,
+    "airline_supply_constraint_bias": 1.01
+  },
+  "commercial_biases": {
+    "premium_propensity_bias": 1.02,
+    "premium_share_bias": 1.03,
+    "duty_free_bias": 0.99,
+    "luxury_retail_bias": 1.0,
+    "electronics_retail_bias": 1.02,
+    "food_beverage_bias": 1.01,
+    "general_retail_bias": 1.0
+  },
+  "facility_model": {
+    "airport_facility_slot_profile_id": "jinan_primary_single_5_slot_v1",
+    "facility_size_catalog": "standard_terminal_sizes_v1",
+    "airport_capacity_shortage_policy": "proportional_compression",
+    "use_design_capacity_for_crowding": true,
+    "use_max_capacity_for_hard_limit": true
+  },
+  "airports": [
+    {
+      "airport_id": "TNA",
+      "airport_name": "济南遥墙",
+      "airport_role": "primary_shandong_inland_gateway",
+      "slot_count": 5,
+      "slots": [
+        {
+          "slot_id": "TNA_SLOT_1",
+          "slot_name": "T1/T2 主体",
+          "slot_role": "main_slot",
+          "facility_size": "large",
+          "open_year": 2025
+        },
+        {
+          "slot_id": "TNA_SLOT_2",
+          "slot_name": "T3/卫星厅预留组合",
+          "slot_role": "secondary_slot",
+          "facility_size": "medium",
+          "open_year": 2025
+        },
+        {
+          "slot_id": "TNA_SLOT_3",
+          "slot_name": "遥墙玩家扩建槽位 1",
+          "slot_role": "auxiliary_slot",
+          "facility_size": "empty",
+          "open_year": 2025
+        },
+        {
+          "slot_id": "TNA_SLOT_4",
+          "slot_name": "遥墙玩家扩建槽位 2",
+          "slot_role": "auxiliary_slot",
+          "facility_size": "empty",
+          "open_year": 2025
+        },
+        {
+          "slot_id": "TNA_SLOT_5",
+          "slot_name": "遥墙玩家扩建槽位 3",
+          "slot_role": "auxiliary_slot",
+          "facility_size": "empty",
+          "open_year": 2025
+        }
+      ]
+    }
+  ],
+  "capacity_reference_profiles": [
+    {
+      "profile_id": "initial_2025",
+      "profile_name": "当前初始配置",
+      "design_capacity_million": 48.0,
+      "max_capacity_million": 69.0,
+      "slot_assignments": {
+        "TNA_SLOT_1": "large",
+        "TNA_SLOT_2": "medium",
+        "TNA_SLOT_3": "empty",
+        "TNA_SLOT_4": "empty",
+        "TNA_SLOT_5": "empty"
+      }
+    }
+  ],
+  "future_airport_options": []
+}

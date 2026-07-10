@@ -1,0 +1,103 @@
+{
+  "schema_version": "city-airport-market-config-v1",
+  "config_version": "nanning-airport-system-v2",
+  "market": {
+    "city_airport_market_id": "nanning_airport_system",
+    "city_name": "南宁",
+    "region_id": "china_mainland",
+    "region_name": "中国大陆",
+    "market_tier": "regional_gateway",
+    "market_type": "primary_single_airport",
+    "airport_system": "吴圩"
+  },
+  "upstream_linkage": {
+    "regional_aviation_demand_region_id": "china_mainland",
+    "regional_air_capacity_supply_region_id": "china_mainland",
+    "seed_mode": "inherit",
+    "branch_mode": "inherit",
+    "passenger_components": ["business", "leisure", "vfr", "long_haul", "transfer"]
+  },
+  "demand_model": {
+    "baseline_year": 2025,
+    "baseline_region_demand_share_pct": 2.15,
+    "baseline_city_potential_passengers_million": 17.4,
+    "annual_long_term_city_growth_bias_pct": 0.6,
+    "max_long_term_city_growth_bias_pct": 36.0,
+    "target_long_term_potential_range_million": [55.0, 95.0],
+    "seed_potential_model": {
+      "enabled": true,
+      "template_id": "china_southwest_mountain_regional_gateway_seed_potential_v1",
+      "release_start_year_index": 4.0,
+      "full_effect_year_index": 28.0,
+      "annual_growth_bias_range_pct": [-0.42, 0.66],
+      "max_growth_bias_range_pct": [-20.0, 34.0],
+      "regional_correlation_weight": 0.31,
+      "potential_multiplier_floor": 0.8,
+      "potential_multiplier_ceiling": 1.34
+    },
+    "design_note": "南宁以广西省会、面向东盟门户和西南/华南连接为主，第一版按吴圩 4 槽位单机场经营。"
+  },
+  "component_mix": {
+    "business_base_share_pct": 25.0,
+    "leisure_base_share_pct": 38.0,
+    "vfr_base_share_pct": 13.0,
+    "long_haul_base_share_pct": 8.0,
+    "transfer_base_share_pct": 16.0
+  },
+  "component_biases": {
+    "business_share_bias": 0.96,
+    "leisure_share_bias": 1.04,
+    "vfr_share_bias": 1.0,
+    "long_haul_share_bias": 1.0,
+    "transfer_share_bias": 1.02
+  },
+  "airline_supply_model": {
+    "base_airline_supply_passengers_million": 18.4,
+    "regional_airline_capacity_growth_capture": 0.32,
+    "annual_local_airline_supply_growth_pct": 0.24,
+    "max_local_airline_supply_growth_pct": 18.0,
+    "airline_supply_confidence_bias": 0.98,
+    "airline_supply_appetite_bias": 1.01,
+    "airline_supply_constraint_bias": 1.0
+  },
+  "commercial_biases": {
+    "premium_propensity_bias": 1.0,
+    "premium_share_bias": 1.0,
+    "duty_free_bias": 1.02,
+    "luxury_retail_bias": 1.0,
+    "electronics_retail_bias": 1.02,
+    "food_beverage_bias": 1.03,
+    "general_retail_bias": 1.01
+  },
+  "facility_model": {
+    "airport_facility_slot_profile_id": "nanning_primary_single_4_slot_v1",
+    "facility_size_catalog": "standard_terminal_sizes_v1",
+    "airport_capacity_shortage_policy": "proportional_compression",
+    "use_design_capacity_for_crowding": true,
+    "use_max_capacity_for_hard_limit": true
+  },
+  "airports": [
+    {
+      "airport_id": "NNG",
+      "airport_name": "南宁吴圩",
+      "airport_role": "primary_guangxi_and_asean_gateway",
+      "slot_count": 4,
+      "slots": [
+        {"slot_id": "NNG_SLOT_1", "slot_name": "T2 主体", "slot_role": "secondary_slot", "facility_size": "large", "open_year": 2025},
+        {"slot_id": "NNG_SLOT_2", "slot_name": "T1/区域航站组合", "slot_role": "auxiliary_slot", "facility_size": "small", "open_year": 2025},
+        {"slot_id": "NNG_SLOT_3", "slot_name": "吴圩玩家扩建槽位 1", "slot_role": "auxiliary_slot", "facility_size": "empty", "open_year": 2025},
+        {"slot_id": "NNG_SLOT_4", "slot_name": "吴圩玩家扩建槽位 2", "slot_role": "auxiliary_slot", "facility_size": "empty", "open_year": 2025}
+      ]
+    }
+  ],
+  "capacity_reference_profiles": [
+    {
+      "profile_id": "initial_2025",
+      "profile_name": "当前初始配置",
+      "design_capacity_million": 40.0,
+      "max_capacity_million": 57.0,
+      "slot_assignments": {"NNG_SLOT_1": "large", "NNG_SLOT_2": "small", "NNG_SLOT_3": "empty", "NNG_SLOT_4": "empty"}
+    }
+  ],
+  "future_airport_options": []
+}

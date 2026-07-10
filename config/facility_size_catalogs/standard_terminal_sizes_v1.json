@@ -1,0 +1,85 @@
+{
+  "schema_version": "facility-size-catalog-v1",
+  "catalog_id": "standard_terminal_sizes_v1",
+  "description": "Standard terminal and satellite facility sizes for city airport market configs.",
+  "facility_sizes": {
+    "empty": {
+      "design_capacity_million": 0.0,
+      "max_capacity_million": 0.0,
+      "typical_use": "未启用槽位"
+    },
+    "small": {
+      "design_capacity_million": 8.0,
+      "max_capacity_million": 12.0,
+      "typical_use": "小航站楼、小卫星厅、旧楼改造"
+    },
+    "medium": {
+      "design_capacity_million": 16.0,
+      "max_capacity_million": 24.0,
+      "typical_use": "普通副航站楼"
+    },
+    "large": {
+      "design_capacity_million": 32.0,
+      "max_capacity_million": 45.0,
+      "typical_use": "大型副航站楼或主力扩建区"
+    },
+    "extra_large": {
+      "design_capacity_million": 50.0,
+      "max_capacity_million": 65.0,
+      "typical_use": "T3 级主航站楼"
+    },
+    "giant": {
+      "design_capacity_million": 72.0,
+      "max_capacity_million": 90.0,
+      "typical_use": "超级新机场一期或巨型主楼"
+    }
+  },
+  "slot_role_allowed_sizes": {
+    "main_slot": [
+      "empty",
+      "small",
+      "medium",
+      "large",
+      "extra_large",
+      "giant"
+    ],
+    "secondary_slot": [
+      "empty",
+      "small",
+      "medium",
+      "large",
+      "extra_large"
+    ],
+    "auxiliary_slot": [
+      "empty",
+      "small",
+      "medium",
+      "large"
+    ]
+  },
+  "slot_count_role_templates": {
+    "3": [
+      "auxiliary_slot",
+      "auxiliary_slot",
+      "auxiliary_slot"
+    ],
+    "4": [
+      "secondary_slot",
+      "auxiliary_slot",
+      "auxiliary_slot",
+      "auxiliary_slot"
+    ],
+    "5": [
+      "main_slot",
+      "secondary_slot",
+      "auxiliary_slot",
+      "auxiliary_slot",
+      "auxiliary_slot"
+    ]
+  },
+  "capacity_policy": {
+    "design_capacity_meaning": "低于设计客流时机场处于舒适或正常经营状态。",
+    "max_capacity_meaning": "超过设计客流但不超过极限客流时机场仍可运行，但会拥挤。",
+    "hard_limit_policy": "airport_capacity_shortage_policy: proportional_compression"
+  }
+}

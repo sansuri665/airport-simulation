@@ -1,0 +1,905 @@
+{
+  "schema_version": "city-airport-quarterly-operations-reference-defaults-v1",
+  "reference_defaults_id": "china_mainland_quarterly_operations_reference_defaults_v1",
+  "description": "Optional China mainland reference values for city airport quarterly operations. This file is not loaded automatically; city configs must explicitly fill their own values.",
+  "currency": "CNY",
+  "amount_unit": "million_cny",
+  "game_timeline": {
+    "simulation_start_year": 2025,
+    "startup_operating_history_years": 5,
+    "player_decision_start_year": 2030,
+    "design_note": "Default city airport operations start with five automatic operating-history years before player decisions."
+  },
+  "quarter_component_weights": {
+    "business": [0.235, 0.255, 0.245, 0.265],
+    "leisure": [0.27, 0.22, 0.3, 0.21],
+    "vfr": [0.3, 0.21, 0.27, 0.22],
+    "long_haul": [0.245, 0.24, 0.275, 0.24],
+    "transfer": [0.245, 0.25, 0.265, 0.24]
+  },
+  "facility_fixed_operating_cost_million_cny_per_year": {
+    "empty": 0.0,
+    "small": 260.0,
+    "medium": 520.0,
+    "large": 1200.0,
+    "extra_large": 2100.0,
+    "giant": 3000.0
+  },
+  "slot_fixed_operating_cost_model": {
+    "model_version": "slot-fixed-operating-cost-v0.1",
+    "city_complexity_multiplier": 1.0,
+    "slot_open_years": {},
+    "age_curve_points": [
+      {"age_year": 0, "multiplier": 0.92},
+      {"age_year": 5, "multiplier": 1.0},
+      {"age_year": 15, "multiplier": 1.12},
+      {"age_year": 30, "multiplier": 1.45},
+      {"age_year": 45, "multiplier": 1.6},
+      {"age_year": 60, "multiplier": 1.65}
+    ],
+    "quarter_cost_multipliers": {
+      "Q1": 1.035,
+      "Q2": 0.945,
+      "Q3": 1.055,
+      "Q4": 0.965
+    },
+    "macro_cost_pressure": {
+      "baseline_index": 50.0,
+      "sensitivity": 0.24,
+      "min_multiplier": 0.88,
+      "max_multiplier": 1.22,
+      "weights": {
+        "input_core_inflation_cost_index": 0.3,
+        "input_energy_cost_pressure_index": 0.35,
+        "input_currency_pressure_index": 0.15,
+        "input_regional_macro_stress_index": 0.15,
+        "input_headline_inflation_cost_index": 0.05
+      }
+    }
+  },
+  "facility_renovation_model": {
+    "model_version": "facility-renovation-v0.1",
+    "facility_size_catalog": "standard_terminal_sizes_v1",
+    "default_construction_capacity_multiplier": 0.75,
+    "maintenance_age_retention_ratio": 0.55,
+    "minimum_effective_maintenance_age_years": 5.0,
+    "city_construction_cost_multiplier": 1.0,
+    "replacement_cost_million_cny_by_facility_size": {
+      "empty": 0.0,
+      "small": 6750.0,
+      "medium": 13500.0,
+      "large": 28500.0,
+      "extra_large": 51000.0,
+      "giant": 78750.0
+    },
+    "capex_ratio_by_facility_size": {
+      "small": 0.16,
+      "medium": 0.16,
+      "large": 0.16,
+      "extra_large": 0.16,
+      "giant": 0.16
+    },
+    "duration_quarters_by_facility_size": {
+      "small": 4,
+      "medium": 5,
+      "large": 6,
+      "extra_large": 8,
+      "giant": 10
+    },
+    "renovation_asset_depreciation": {
+      "useful_life_years": 20,
+      "residual_value_pct": 5.0
+    }
+  },
+  "facility_construction_model": {
+    "model_version": "facility-construction-v0.1",
+    "facility_size_catalog": "standard_terminal_sizes_v1",
+    "city_construction_cost_multiplier": 1.0,
+    "construction_cost_million_cny_by_facility_size": {
+      "empty": 0.0,
+      "small": 6750.0,
+      "medium": 13500.0,
+      "large": 28500.0,
+      "extra_large": 51000.0,
+      "giant": 78750.0
+    },
+    "duration_quarters_by_facility_size": {
+      "small": 8,
+      "medium": 10,
+      "large": 14,
+      "extra_large": 18,
+      "giant": 24
+    },
+    "new_asset_depreciation": {
+      "useful_life_years": 40,
+      "residual_value_pct": 10.0
+    }
+  },
+  "facility_rebuild_model": {
+    "model_version": "facility-rebuild-v0.1",
+    "facility_size_catalog": "standard_terminal_sizes_v1",
+    "default_construction_capacity_multiplier": 0.0,
+    "city_construction_cost_multiplier": 1.0,
+    "city_demolition_cost_multiplier": 1.0,
+    "asset_cost_million_cny_by_facility_size": {
+      "empty": 0.0,
+      "small": 6750.0,
+      "medium": 13500.0,
+      "large": 28500.0,
+      "extra_large": 51000.0,
+      "giant": 78750.0
+    },
+    "demolition_cost_ratio_by_source_facility_size": {
+      "small": 0.08,
+      "medium": 0.08,
+      "large": 0.1,
+      "extra_large": 0.12,
+      "giant": 0.14
+    },
+    "duration_quarters_by_facility_size": {
+      "small": 10,
+      "medium": 13,
+      "large": 18,
+      "extra_large": 24,
+      "giant": 32
+    },
+    "new_asset_depreciation": {
+      "useful_life_years": 40,
+      "residual_value_pct": 10.0
+    }
+  },
+  "facility_renovation_events": [],
+  "facility_construction_events": [],
+  "facility_rebuild_events": [],
+  "aeronautical_revenue": {
+    "model_version": "aeronautical-revenue-v0.2",
+    "base_revenue_per_passenger_cny": 78.0,
+    "component_mix_revenue_weights": {
+      "business": 1.1,
+      "leisure": 0.96,
+      "vfr": 0.9,
+      "long_haul": 1.28,
+      "transfer": 0.82
+    },
+    "quarter_revenue_multipliers": {
+      "Q1": 1.012,
+      "Q2": 0.995,
+      "Q3": 1.018,
+      "Q4": 0.975
+    },
+    "market_yield_environment": {
+      "sensitivity": 0.08,
+      "min_multiplier": 0.96,
+      "max_multiplier": 1.07,
+      "fields": {
+        "input_airfare_pressure_index": {
+          "baseline": 55.0,
+          "scale": 30.0,
+          "direction": 1.0,
+          "weight": 0.42
+        },
+        "input_consumer_confidence_index": {
+          "baseline": 42.0,
+          "scale": 25.0,
+          "direction": 1.0,
+          "weight": 0.2
+        },
+        "input_core_inflation_cost_index": {
+          "baseline": 50.0,
+          "scale": 30.0,
+          "direction": 1.0,
+          "weight": 0.16
+        },
+        "input_regional_macro_stress_index": {
+          "baseline": 35.0,
+          "scale": 30.0,
+          "direction": -1.0,
+          "weight": 0.22
+        }
+      }
+    },
+    "capacity_pricing": {
+      "weak_pricing_below_design_utilization_pct": 70.0,
+      "full_weak_pricing_design_utilization_pct": 45.0,
+      "max_weak_pricing_discount_pct": 2.5,
+      "tight_pricing_start_design_utilization_pct": 88.0,
+      "full_tight_pricing_design_utilization_pct": 112.0,
+      "max_tight_pricing_premium_pct": 3.2
+    },
+    "crowding_revenue_penalty": {
+      "service_quality_penalty_start_design_utilization_pct": 108.0,
+      "full_service_quality_penalty_design_utilization_pct": 138.0,
+      "max_service_quality_revenue_penalty_pct": 5.0,
+      "over_max_penalty_full_max_utilization_pct": 118.0,
+      "over_max_revenue_penalty_pct": 3.0,
+      "min_multiplier": 0.9
+    }
+  },
+  "passenger_variable_cost": {
+    "model_version": "passenger-variable-cost-v0.2",
+    "base_cost_per_passenger_cny": 44.0,
+    "component_complexity_weights": {
+      "business": 1.12,
+      "leisure": 1.0,
+      "vfr": 0.9,
+      "long_haul": 1.35,
+      "transfer": 1.26
+    },
+    "quarter_service_pressure_multipliers": {
+      "Q1": 1.025,
+      "Q2": 0.985,
+      "Q3": 1.035,
+      "Q4": 0.955
+    },
+    "macro_service_cost_pressure": {
+      "baseline_index": 50.0,
+      "sensitivity": 0.12,
+      "min_multiplier": 0.94,
+      "max_multiplier": 1.1,
+      "weights": {
+        "input_core_inflation_cost_index": 0.35,
+        "input_energy_cost_pressure_index": 0.25,
+        "input_currency_pressure_index": 0.15,
+        "input_regional_macro_stress_index": 0.15,
+        "input_headline_inflation_cost_index": 0.1
+      }
+    },
+    "load_pressure": {
+      "start_design_utilization_pct": 78.0,
+      "full_design_utilization_pct": 118.0,
+      "min_multiplier": 1.0,
+      "max_multiplier": 1.08
+    }
+  },
+  "congestion_cost": {
+    "model_version": "congestion-relief-adjustment-v0.2",
+    "relief_start_design_utilization_pct": 72.0,
+    "full_relief_design_utilization_pct": 45.0,
+    "max_relief_per_passenger_cny": 4.5,
+    "congestion_start_design_utilization_pct": 100.0,
+    "full_design_pressure_utilization_pct": 132.0,
+    "cost_per_passenger_at_full_design_pressure_cny": 26.0,
+    "design_pressure_power": 1.35,
+    "over_max_pressure_cost_per_passenger_cny": 42.0,
+    "over_max_pressure_power": 1.1,
+    "component_crowding_weights": {
+      "business": 1.05,
+      "leisure": 1.0,
+      "vfr": 0.92,
+      "long_haul": 1.16,
+      "transfer": 1.12
+    },
+    "component_mix_multiplier_min": 0.94,
+    "component_mix_multiplier_max": 1.12
+  },
+  "commercial": {
+    "perceived_quality_model": {
+      "model_version": "city-airport-perceived-quality-v0.1",
+      "design_note": "Generic city airport perceived quality model for commercial revenue response. City configs may copy this block directly unless a region has clearly different terminal standards.",
+      "facility_size_catalog": "standard_terminal_sizes_v1",
+      "baseline_index": 100.0,
+      "min_slot_quality_index": 60.0,
+      "max_slot_quality_index": 140.0,
+      "min_city_quality_index": 60.0,
+      "max_city_quality_index": 140.0,
+      "default_effective_age_years": 20.0,
+      "facility_size_scores": {
+        "small": -4.0,
+        "medium": -1.0,
+        "large": 1.5,
+        "extra_large": 4.0,
+        "giant": 6.0
+      },
+      "age_score": {
+        "max_score": 6.0,
+        "score_span": 18.0,
+        "midpoint_years": 24.0,
+        "softness_years": 8.0
+      },
+      "capacity_pressure_score": {
+        "comfort_bonus_start_design_utilization_pct": 100.0,
+        "full_comfort_bonus_design_utilization_pct": 75.0,
+        "max_comfort_bonus_score": 3.0,
+        "design_penalty_start_utilization_pct": 100.0,
+        "design_penalty_full_utilization_pct": 135.0,
+        "max_design_penalty_score": 14.0,
+        "design_penalty_power": 1.25,
+        "hard_penalty_start_max_utilization_pct": 88.0,
+        "hard_penalty_full_max_utilization_pct": 105.0,
+        "max_hard_penalty_score": 18.0,
+        "hard_penalty_power": 1.15,
+        "min_capacity_score": -22.0,
+        "max_capacity_score": 3.0
+      },
+      "renovation_construction_disruption_score": -5.0,
+      "commercial_revenue_response": {
+        "baseline_index": 100.0,
+        "quality_scale": 18.0,
+        "food_retail": {
+          "sensitivity": 0.1,
+          "min_multiplier": 0.9,
+          "max_multiplier": 1.1
+        },
+        "duty_free": {
+          "sensitivity": 0.18,
+          "min_multiplier": 0.82,
+          "max_multiplier": 1.18
+        },
+        "luxury": {
+          "sensitivity": 0.28,
+          "min_multiplier": 0.72,
+          "max_multiplier": 1.28
+        }
+      }
+    },
+    "food_retail": {
+      "operation_mode": "self_operated_auto",
+      "base_revenue_per_passenger_cny": 54.0,
+      "self_operated_efficiency": 0.96,
+      "revenue_model": {
+        "model_version": "self-operated-commercial-revenue-v0.1",
+        "base_revenue_per_passenger_cny": 50.0,
+        "self_operated_efficiency": 0.94,
+        "propensity_response": {
+          "baseline_index": 100.0,
+          "sensitivity": 0.75,
+          "min_multiplier": 0.85,
+          "max_multiplier": 1.35
+        },
+        "quarter_revenue_multipliers": {
+          "Q1": 0.99,
+          "Q2": 0.97,
+          "Q3": 1.04,
+          "Q4": 1.01
+        },
+        "macro_demand_environment": {
+          "sensitivity": 0.08,
+          "min_multiplier": 0.94,
+          "max_multiplier": 1.08,
+          "fields": {
+            "input_consumer_confidence_index": {
+              "baseline": 50.0,
+              "scale": 25.0,
+              "direction": 1.0,
+              "weight": 0.4
+            },
+            "input_regional_gdp_growth_pct": {
+              "baseline": 3.5,
+              "scale": 4.0,
+              "direction": 1.0,
+              "weight": 0.2
+            },
+            "input_regional_macro_stress_index": {
+              "baseline": 50.0,
+              "scale": 25.0,
+              "direction": -1.0,
+              "weight": 0.2
+            },
+            "input_core_inflation_cost_index": {
+              "baseline": 50.0,
+              "scale": 25.0,
+              "direction": -0.5,
+              "weight": 0.2
+            }
+          }
+        },
+        "max_crowding_revenue_penalty_pct": 18.0,
+        "min_crowding_revenue_multiplier": 0.74
+      },
+      "fixed_operating_cost_million_cny_per_year_by_facility_size": {
+        "empty": 0.0,
+        "small": 35.0,
+        "medium": 70.0,
+        "large": 160.0,
+        "extra_large": 280.0,
+        "giant": 400.0
+      },
+      "fixed_operating_cost_model": {
+        "model_version": "self-operated-commercial-fixed-cost-v0.1",
+        "commercial_intensity_multiplier": 1.0,
+        "city_commercial_complexity_multiplier": 1.0,
+        "quarter_cost_multipliers": {
+          "Q1": 1.03,
+          "Q2": 0.97,
+          "Q3": 1.05,
+          "Q4": 0.95
+        },
+        "macro_cost_pressure": {
+          "baseline_index": 50.0,
+          "sensitivity": 0.14,
+          "min_multiplier": 0.92,
+          "max_multiplier": 1.14,
+          "weights": {
+            "input_core_inflation_cost_index": 0.35,
+            "input_energy_cost_pressure_index": 0.25,
+            "input_currency_pressure_index": 0.1,
+            "input_regional_macro_stress_index": 0.15,
+            "input_headline_inflation_cost_index": 0.15
+          }
+        },
+        "load_pressure": {
+          "start_design_utilization_pct": 85.0,
+          "full_design_utilization_pct": 130.0,
+          "min_multiplier": 1.0,
+          "max_multiplier": 1.08
+        }
+      },
+      "passenger_service_cost_per_passenger_cny": 6.5,
+      "passenger_service_cost_model": {
+        "model_version": "self-operated-commercial-service-cost-v0.1",
+        "base_cost_per_passenger_cny": 6.5,
+        "consumption_intensity": {
+          "baseline_index": 100.0,
+          "sensitivity": 0.2,
+          "min_multiplier": 0.94,
+          "max_multiplier": 1.08
+        },
+        "quarter_service_cost_multipliers": {
+          "Q1": 1.025,
+          "Q2": 0.985,
+          "Q3": 1.04,
+          "Q4": 0.95
+        },
+        "macro_cost_pressure": {
+          "baseline_index": 50.0,
+          "sensitivity": 0.1,
+          "min_multiplier": 0.94,
+          "max_multiplier": 1.1,
+          "weights": {
+            "input_core_inflation_cost_index": 0.35,
+            "input_energy_cost_pressure_index": 0.25,
+            "input_currency_pressure_index": 0.1,
+            "input_regional_macro_stress_index": 0.15,
+            "input_headline_inflation_cost_index": 0.15
+          }
+        },
+        "load_pressure": {
+          "start_design_utilization_pct": 82.0,
+          "full_design_utilization_pct": 128.0,
+          "min_multiplier": 1.0,
+          "max_multiplier": 1.1
+        }
+      },
+      "sales_cost_model": {
+        "model_version": "self-operated-commercial-sales-cost-v0.1",
+        "base_sales_cost_ratio_pct": 52.0,
+        "min_sales_cost_ratio_pct": 44.0,
+        "max_sales_cost_ratio_pct": 64.0,
+        "sales_mix_cost_pressure": {
+          "sensitivity": 0.08,
+          "min_multiplier": 0.97,
+          "max_multiplier": 1.05,
+          "fields": {
+            "food_beverage_propensity_index": {
+              "baseline": 100.0,
+              "scale": 30.0,
+              "direction": -0.4,
+              "weight": 0.3
+            },
+            "general_retail_propensity_index": {
+              "baseline": 100.0,
+              "scale": 30.0,
+              "direction": 0.2,
+              "weight": 0.35
+            },
+            "electronics_retail_propensity_index": {
+              "baseline": 100.0,
+              "scale": 30.0,
+              "direction": 1.0,
+              "weight": 0.35
+            }
+          }
+        },
+        "macro_cost_pressure": {
+          "baseline_index": 50.0,
+          "sensitivity": 0.12,
+          "min_multiplier": 0.94,
+          "max_multiplier": 1.12,
+          "weights": {
+            "input_core_inflation_cost_index": 0.4,
+            "input_energy_cost_pressure_index": 0.15,
+            "input_currency_pressure_index": 0.15,
+            "input_regional_macro_stress_index": 0.15,
+            "input_headline_inflation_cost_index": 0.15
+          }
+        }
+      },
+      "propensity_weights": {
+        "food_beverage_propensity_index": 0.46,
+        "general_retail_propensity_index": 0.42,
+        "electronics_retail_propensity_index": 0.12
+      },
+      "max_crowding_revenue_penalty_pct": 16.0
+    },
+    "duty_free": {
+      "sales_per_weighted_passenger_cny": 430.0,
+      "international_exposure_adjustment": 0.74,
+      "operator_commercial_capture_rate": 0.82,
+      "weighted_passenger_weights": {
+        "long_haul": 1.0,
+        "transfer": 0.52,
+        "leisure": 0.18
+      },
+      "sales_model": {
+        "model_version": "duty-free-sales-v0.1",
+        "base_sales_per_effective_passenger_cny": 440.0,
+        "effective_passenger_weights": {
+          "business": 0.22,
+          "leisure": 0.2,
+          "vfr": 0.06,
+          "long_haul": 1.0,
+          "transfer": 0.52
+        },
+        "propensity_curve": {
+          "field": "duty_free_propensity_index",
+          "baseline_index": 100.0,
+          "min_multiplier": 0.72,
+          "max_multiplier": 1.34,
+          "curve_points": [
+            {"index": 70, "multiplier": 0.74},
+            {"index": 85, "multiplier": 0.88},
+            {"index": 100, "multiplier": 1.0},
+            {"index": 115, "multiplier": 1.16},
+            {"index": 130, "multiplier": 1.3}
+          ]
+        },
+        "premium_mix_curve": {
+          "field": "premium_passenger_propensity_index",
+          "baseline_index": 100.0,
+          "min_multiplier": 0.86,
+          "max_multiplier": 1.18,
+          "curve_points": [
+            {"index": 70, "multiplier": 0.9},
+            {"index": 100, "multiplier": 1.0},
+            {"index": 130, "multiplier": 1.13}
+          ]
+        },
+        "macro_demand_environment": {
+          "sensitivity": 0.1,
+          "min_multiplier": 0.9,
+          "max_multiplier": 1.1,
+          "fields": {
+            "input_consumer_confidence_index": {
+              "baseline": 50.0,
+              "scale": 25.0,
+              "direction": 1.0,
+              "weight": 0.36
+            },
+            "input_regional_gdp_growth_pct": {
+              "baseline": 3.5,
+              "scale": 4.0,
+              "direction": 1.0,
+              "weight": 0.18
+            },
+            "input_regional_macro_stress_index": {
+              "baseline": 50.0,
+              "scale": 25.0,
+              "direction": -1.0,
+              "weight": 0.24
+            },
+            "input_headline_inflation_cost_index": {
+              "baseline": 50.0,
+              "scale": 25.0,
+              "direction": -0.7,
+              "weight": 0.22
+            }
+          }
+        },
+        "currency_pressure_curve": {
+          "field": "input_currency_pressure_index",
+          "baseline_index": 50.0,
+          "min_multiplier": 0.82,
+          "max_multiplier": 1.08,
+          "curve_points": [
+            {"index": 30, "multiplier": 1.06},
+            {"index": 50, "multiplier": 1.0},
+            {"index": 70, "multiplier": 0.93},
+            {"index": 90, "multiplier": 0.84}
+          ]
+        },
+        "international_exposure_adjustment": 0.72,
+        "operator_commercial_capture_rate": 0.74,
+        "crowding_penalty": {
+          "max_crowding_sales_penalty_pct": 16.0,
+          "min_crowding_sales_multiplier": 0.78
+        }
+      },
+      "contract": {
+        "contract_type": "forecast_minimum_guarantee_plus_share",
+        "contract_term_years": 5,
+        "renewal_mode": "automatic_forecast_reprice",
+        "revenue_share_pct": 24.0,
+        "minimum_guarantee_coverage_pct": 70.0,
+        "minimum_guarantee_ratio_pct": 70.0,
+        "baseline_quarter_contract_revenue_million_cny": 360.0,
+        "startup_history_contract": {
+          "model_version": "startup-history-fixed-contract-v0.1",
+          "contract_type": "minimum_guarantee_plus_share",
+          "contract_term_years": 5,
+          "revenue_share_pct": 24.0,
+          "minimum_guarantee_ratio_pct": 80.0,
+          "baseline_quarter_contract_revenue_million_cny": 360.0
+        },
+        "forecast_model": {
+          "model_version": "duty-free-contract-forecast-v0.1",
+          "forecast_horizon_years": 5,
+          "lookback_years": 3,
+          "startup_history_lookback_years": 5,
+          "trend_weight": 0.35,
+          "min_trend_multiplier": 0.86,
+          "max_trend_multiplier": 1.18,
+          "macro_risk_discount": {
+            "sensitivity": 0.12,
+            "min_multiplier": 0.86,
+            "max_multiplier": 1.08,
+            "fields": {
+              "input_consumer_confidence_index": {
+                "baseline": 50.0,
+                "scale": 25.0,
+                "direction": 1.0,
+                "weight": 0.32
+              },
+              "input_regional_macro_stress_index": {
+                "baseline": 50.0,
+                "scale": 25.0,
+                "direction": -1.0,
+                "weight": 0.28
+              },
+              "input_headline_inflation_cost_index": {
+                "baseline": 50.0,
+                "scale": 25.0,
+                "direction": -0.7,
+                "weight": 0.2
+              },
+              "input_currency_pressure_index": {
+                "baseline": 50.0,
+                "scale": 25.0,
+                "direction": -0.8,
+                "weight": 0.2
+              }
+            }
+          },
+          "airport_bargaining_power": {
+            "sensitivity": 0.08,
+            "min_multiplier": 0.9,
+            "max_multiplier": 1.12,
+            "fields": {
+              "city_served_passengers_million": {
+                "baseline": 100.0,
+                "scale": 80.0,
+                "direction": 1.0,
+                "weight": 0.35
+              },
+              "duty_free_propensity_index": {
+                "baseline": 100.0,
+                "scale": 30.0,
+                "direction": 1.0,
+                "weight": 0.3
+              },
+              "premium_passenger_propensity_index": {
+                "baseline": 100.0,
+                "scale": 35.0,
+                "direction": 1.0,
+                "weight": 0.2
+              },
+              "input_regional_macro_stress_index": {
+                "baseline": 50.0,
+                "scale": 25.0,
+                "direction": -0.6,
+                "weight": 0.15
+              }
+            }
+          }
+        }
+      }
+    },
+    "luxury": {
+      "sales_per_weighted_passenger_cny": 360.0,
+      "operator_commercial_capture_rate": 0.76,
+      "premium_share_base_pct": 12.0,
+      "premium_share_sensitivity": 0.018,
+      "weighted_passenger_weights": {
+        "business": 0.26,
+        "long_haul": 0.62,
+        "transfer": 0.18
+      },
+      "sales_model": {
+        "model_version": "luxury-sales-v0.1",
+        "base_sales_per_effective_passenger_cny": 370.0,
+        "effective_passenger_weights": {
+          "business": 0.28,
+          "leisure": 0.05,
+          "vfr": 0.03,
+          "long_haul": 0.56,
+          "transfer": 0.15
+        },
+        "luxury_propensity_curve": {
+          "field": "luxury_retail_propensity_index",
+          "baseline_index": 100.0,
+          "min_multiplier": 0.78,
+          "max_multiplier": 1.48,
+          "curve_points": [
+            {"index": 80, "multiplier": 0.82},
+            {"index": 100, "multiplier": 1.0},
+            {"index": 130, "multiplier": 1.18},
+            {"index": 170, "multiplier": 1.34},
+            {"index": 230, "multiplier": 1.45}
+          ]
+        },
+        "premium_mix_curve": {
+          "field": "premium_passenger_propensity_index",
+          "baseline_index": 100.0,
+          "min_multiplier": 0.9,
+          "max_multiplier": 1.22,
+          "curve_points": [
+            {"index": 80, "multiplier": 0.92},
+            {"index": 100, "multiplier": 1.0},
+            {"index": 140, "multiplier": 1.1},
+            {"index": 180, "multiplier": 1.18},
+            {"index": 220, "multiplier": 1.22}
+          ]
+        },
+        "high_value_share_curve": {
+          "field": "premium_passenger_share_pct",
+          "baseline_index": 15.0,
+          "min_multiplier": 0.88,
+          "max_multiplier": 1.18,
+          "curve_points": [
+            {"index": 10, "multiplier": 0.92},
+            {"index": 15, "multiplier": 1.0},
+            {"index": 25, "multiplier": 1.1},
+            {"index": 38, "multiplier": 1.16}
+          ]
+        },
+        "macro_wealth_environment": {
+          "sensitivity": 0.08,
+          "min_multiplier": 0.9,
+          "max_multiplier": 1.08,
+          "fields": {
+            "input_consumer_confidence_index": {
+              "baseline": 50.0,
+              "scale": 25.0,
+              "direction": 1.0,
+              "weight": 0.3
+            },
+            "input_regional_gdp_growth_pct": {
+              "baseline": 3.5,
+              "scale": 4.0,
+              "direction": 1.0,
+              "weight": 0.18
+            },
+            "input_regional_macro_stress_index": {
+              "baseline": 50.0,
+              "scale": 25.0,
+              "direction": -1.0,
+              "weight": 0.22
+            },
+            "input_headline_inflation_cost_index": {
+              "baseline": 50.0,
+              "scale": 25.0,
+              "direction": -0.5,
+              "weight": 0.15
+            },
+            "input_currency_pressure_index": {
+              "baseline": 50.0,
+              "scale": 25.0,
+              "direction": -0.5,
+              "weight": 0.15
+            }
+          }
+        },
+        "currency_pressure_curve": {
+          "field": "input_currency_pressure_index",
+          "baseline_index": 50.0,
+          "min_multiplier": 0.88,
+          "max_multiplier": 1.04,
+          "curve_points": [
+            {"index": 30, "multiplier": 1.03},
+            {"index": 50, "multiplier": 1.0},
+            {"index": 70, "multiplier": 0.95},
+            {"index": 90, "multiplier": 0.88}
+          ]
+        },
+        "operator_commercial_capture_rate": 0.62,
+        "crowding_penalty": {
+          "max_crowding_sales_penalty_pct": 12.0,
+          "min_crowding_sales_multiplier": 0.82
+        }
+      },
+      "contract": {
+        "contract_type": "forecast_minimum_guarantee_plus_share",
+        "contract_term_years": 5,
+        "renewal_mode": "automatic_forecast_reprice",
+        "revenue_share_pct": 14.0,
+        "minimum_guarantee_coverage_pct": 65.0,
+        "minimum_guarantee_ratio_pct": 65.0,
+        "baseline_quarter_contract_revenue_million_cny": 220.0,
+        "startup_history_contract": {
+          "model_version": "startup-history-fixed-contract-v0.1",
+          "contract_type": "minimum_guarantee_plus_share",
+          "contract_term_years": 5,
+          "revenue_share_pct": 14.0,
+          "minimum_guarantee_ratio_pct": 70.0,
+          "baseline_quarter_contract_revenue_million_cny": 220.0
+        },
+        "forecast_model": {
+          "model_version": "luxury-contract-forecast-v0.1",
+          "forecast_horizon_years": 5,
+          "lookback_years": 3,
+          "startup_history_lookback_years": 5,
+          "trend_weight": 0.3,
+          "min_trend_multiplier": 0.86,
+          "max_trend_multiplier": 1.16,
+          "macro_risk_discount": {
+            "sensitivity": 0.12,
+            "min_multiplier": 0.86,
+            "max_multiplier": 1.08,
+            "fields": {
+              "input_consumer_confidence_index": {
+                "baseline": 50.0,
+                "scale": 25.0,
+                "direction": 1.0,
+                "weight": 0.28
+              },
+              "input_regional_macro_stress_index": {
+                "baseline": 50.0,
+                "scale": 25.0,
+                "direction": -1.0,
+                "weight": 0.28
+              },
+              "input_headline_inflation_cost_index": {
+                "baseline": 50.0,
+                "scale": 25.0,
+                "direction": -0.7,
+                "weight": 0.2
+              },
+              "input_currency_pressure_index": {
+                "baseline": 50.0,
+                "scale": 25.0,
+                "direction": -0.8,
+                "weight": 0.24
+              }
+            }
+          },
+          "airport_bargaining_power": {
+            "sensitivity": 0.08,
+            "min_multiplier": 0.9,
+            "max_multiplier": 1.12,
+            "fields": {
+              "city_served_passengers_million": {
+                "baseline": 100.0,
+                "scale": 80.0,
+                "direction": 1.0,
+                "weight": 0.28
+              },
+              "luxury_retail_propensity_index": {
+                "baseline": 100.0,
+                "scale": 45.0,
+                "direction": 1.0,
+                "weight": 0.26
+              },
+              "premium_passenger_propensity_index": {
+                "baseline": 100.0,
+                "scale": 45.0,
+                "direction": 1.0,
+                "weight": 0.22
+              },
+              "premium_passenger_share_pct": {
+                "baseline": 15.0,
+                "scale": 18.0,
+                "direction": 1.0,
+                "weight": 0.12
+              },
+              "input_regional_macro_stress_index": {
+                "baseline": 50.0,
+                "scale": 25.0,
+                "direction": -0.6,
+                "weight": 0.12
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

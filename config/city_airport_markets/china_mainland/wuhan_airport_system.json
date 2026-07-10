@@ -1,0 +1,189 @@
+{
+  "schema_version": "city-airport-market-config-v1",
+  "config_version": "wuhan-airport-system-v2",
+  "market": {
+    "city_airport_market_id": "wuhan_airport_system",
+    "city_name": "武汉",
+    "region_id": "china_mainland",
+    "region_name": "中国大陆",
+    "market_tier": "regional_gateway",
+    "market_type": "primary_single_airport",
+    "airport_system": "天河"
+  },
+  "upstream_linkage": {
+    "regional_aviation_demand_region_id": "china_mainland",
+    "regional_air_capacity_supply_region_id": "china_mainland",
+    "seed_mode": "inherit",
+    "branch_mode": "inherit",
+    "passenger_components": [
+      "business",
+      "leisure",
+      "vfr",
+      "long_haul",
+      "transfer"
+    ]
+  },
+  "demand_model": {
+    "baseline_year": 2025,
+    "baseline_region_demand_share_pct": 4.8,
+    "baseline_city_potential_passengers_million": 39.0,
+    "annual_long_term_city_growth_bias_pct": 0.66,
+    "max_long_term_city_growth_bias_pct": 40.0,
+    "target_long_term_potential_range_million": [
+      120.0,
+      185.0
+    ],
+    "seed_potential_model": {
+      "enabled": true,
+      "template_id": "china_inland_hub_competitor_seed_potential_v1",
+      "release_start_year_index": 4,
+      "full_effect_year_index": 28,
+      "annual_growth_bias_range_pct": [
+        -0.45,
+        0.65
+      ],
+      "max_growth_bias_range_pct": [
+        -20.0,
+        32.0
+      ],
+      "regional_correlation_weight": 0.31,
+      "potential_multiplier_floor": 0.8,
+      "potential_multiplier_ceiling": 1.34,
+      "design_note": "Inland hub competitor template: seed can tilt Wuhan between steady central hub and stronger business/transfer gateway while remaining linked to China mainland aviation/macro conditions."
+    },
+    "design_note": "武汉以中部核心枢纽、省会商务、学生和探亲流动为主，同时受到高铁网络竞争约束，第一版按天河单机场经营；v2 启用内陆枢纽竞争者 seed 势能模板。"
+  },
+  "component_mix": {
+    "business_base_share_pct": 30.0,
+    "leisure_base_share_pct": 34.0,
+    "vfr_base_share_pct": 12.0,
+    "long_haul_base_share_pct": 7.0,
+    "transfer_base_share_pct": 17.0
+  },
+  "component_biases": {
+    "business_share_bias": 1.03,
+    "leisure_share_bias": 0.96,
+    "vfr_share_bias": 1.0,
+    "long_haul_share_bias": 0.94,
+    "transfer_share_bias": 1.1
+  },
+  "airline_supply_model": {
+    "base_airline_supply_passengers_million": 41.0,
+    "regional_airline_capacity_growth_capture": 0.36,
+    "annual_local_airline_supply_growth_pct": 0.27,
+    "max_local_airline_supply_growth_pct": 21.0,
+    "airline_supply_confidence_bias": 0.99,
+    "airline_supply_appetite_bias": 1.01,
+    "airline_supply_constraint_bias": 1.0
+  },
+  "commercial_biases": {
+    "premium_propensity_bias": 1.05,
+    "premium_share_bias": 1.07,
+    "duty_free_bias": 1.01,
+    "luxury_retail_bias": 1.02,
+    "electronics_retail_bias": 1.04,
+    "food_beverage_bias": 1.02,
+    "general_retail_bias": 1.0
+  },
+  "facility_model": {
+    "airport_facility_slot_profile_id": "wuhan_primary_single_5_slot_v1",
+    "facility_size_catalog": "standard_terminal_sizes_v1",
+    "airport_capacity_shortage_policy": "proportional_compression",
+    "use_design_capacity_for_crowding": true,
+    "use_max_capacity_for_hard_limit": true
+  },
+  "airports": [
+    {
+      "airport_id": "WUH",
+      "airport_name": "武汉天河",
+      "airport_role": "primary_central_china_gateway",
+      "slot_count": 5,
+      "slots": [
+        {
+          "slot_id": "WUH_SLOT_1",
+          "slot_name": "T3 主体",
+          "slot_role": "main_slot",
+          "facility_size": "large",
+          "allowed_sizes": [
+            "empty",
+            "small",
+            "medium",
+            "large",
+            "extra_large",
+            "giant"
+          ],
+          "open_year": 2025
+        },
+        {
+          "slot_id": "WUH_SLOT_2",
+          "slot_name": "T2/T4 预留组合",
+          "slot_role": "secondary_slot",
+          "facility_size": "medium",
+          "allowed_sizes": [
+            "empty",
+            "small",
+            "medium",
+            "large",
+            "extra_large"
+          ],
+          "open_year": 2025
+        },
+        {
+          "slot_id": "WUH_SLOT_3",
+          "slot_name": "天河玩家扩建槽位 1",
+          "slot_role": "auxiliary_slot",
+          "facility_size": "empty",
+          "allowed_sizes": [
+            "empty",
+            "small",
+            "medium",
+            "large"
+          ],
+          "open_year": 2025
+        },
+        {
+          "slot_id": "WUH_SLOT_4",
+          "slot_name": "天河玩家扩建槽位 2",
+          "slot_role": "auxiliary_slot",
+          "facility_size": "empty",
+          "allowed_sizes": [
+            "empty",
+            "small",
+            "medium",
+            "large"
+          ],
+          "open_year": 2025
+        },
+        {
+          "slot_id": "WUH_SLOT_5",
+          "slot_name": "天河玩家扩建槽位 3",
+          "slot_role": "auxiliary_slot",
+          "facility_size": "empty",
+          "allowed_sizes": [
+            "empty",
+            "small",
+            "medium",
+            "large"
+          ],
+          "open_year": 2025
+        }
+      ]
+    }
+  ],
+  "capacity_reference_profiles": [
+    {
+      "profile_id": "initial_2025",
+      "profile_name": "当前初始配置",
+      "design_capacity_million": 48.0,
+      "max_capacity_million": 69.0,
+      "slot_assignments": {
+        "WUH_SLOT_1": "large",
+        "WUH_SLOT_2": "medium",
+        "WUH_SLOT_3": "empty",
+        "WUH_SLOT_4": "empty",
+        "WUH_SLOT_5": "empty"
+      }
+    }
+  ],
+  "future_airport_options": []
+}

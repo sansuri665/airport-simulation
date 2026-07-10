@@ -1,0 +1,119 @@
+{
+  "schema_version": "city-airport-valuation-forecast-config-v1",
+  "config_version": "beijing-airport-group-valuation-forecast-v0.5",
+  "operator_id": "beijing_airport_group",
+  "operator_name": "北京机场集团",
+  "city_airport_market_id": "beijing_airport_system",
+  "city_name": "北京",
+  "region_id": "china_mainland",
+  "region_name": "中国大陆",
+  "currency": "CNY",
+  "amount_unit": "million_cny",
+  "valuation_scenario_tag": "reported_financial_state_including_configured_loans",
+  "design_note": "Beijing valuation/forecast model v0.5. Current single-player phase uses net asset value as the primary valuation basis. Experimental Operating EV and Market EV remain available only as observation fields and use simplified 25% cash tax until forecasting, contract, capital allocation, and city comparison models are mature.",
+  "timeline": {
+    "simulation_start_year": 2025,
+    "player_decision_start_year": 2030,
+    "startup_operating_history_years": 5
+  },
+  "forecast": {
+    "forecast_horizon_quarters": 20,
+    "history_quarters": 12,
+    "minimum_history_quarters": 4,
+    "fallback_annual_passenger_growth_pct": 2.2,
+    "fallback_annual_revenue_growth_pct": 2.6,
+    "long_term_margin_weight": 0.55,
+    "annual_growth_floor_pct": -8.0,
+    "annual_growth_cap_pct": 7.5,
+    "cash_tax_rate_pct": 25.0,
+    "maintenance_capex_ratio_of_depreciation": 0.78,
+    "maintenance_capex_ratio_of_fixed_asset_book_value_pct": 0.85,
+    "maintenance_capex_annual_growth_pct": 1.7,
+    "macro_revenue_sensitivity": {
+      "hy_spread_baseline_bps": 420.0,
+      "hy_spread_growth_drag_per_100bps_pct": 0.20,
+      "branch_watch_growth_drag_pct": 0.15,
+      "branch_occurred_growth_drag_pct": 0.45
+    }
+  },
+  "valuation": {
+    "primary_method": "net_asset_value",
+    "net_asset_valuation": {
+      "equity_value_basis": "reported_total_equity",
+      "enterprise_value_basis": "reported_total_equity_plus_net_debt",
+      "pb_anchor_multiple": 1.0
+    },
+    "cash_recognition_rate": 1.0,
+    "base_airport_equity_risk_premium_pct": 3.6,
+    "risk_free_rate_floor_pct": 1.5,
+    "risk_free_rate_cap_pct": 6.5,
+    "discount_rate_floor_pct": 5.0,
+    "discount_rate_cap_pct": 13.5,
+    "hy_spread_baseline_bps": 420.0,
+    "macro_risk_premium_per_100bps_hy_pct": 0.18,
+    "branch_watch_risk_premium_pct": 0.15,
+    "branch_occurred_risk_premium_pct": 0.45,
+    "leverage_risk_start_pct": 45.0,
+    "leverage_risk_full_pct": 80.0,
+    "leverage_risk_premium_cap_pct": 2.4,
+    "quality_risk_premium_cap_pct": 0.8,
+    "crowding_risk_premium_cap_pct": 0.7,
+    "terminal_growth_base_pct": 1.2,
+    "terminal_growth_floor_pct": 0.2,
+    "terminal_growth_cap_pct": 2.0,
+    "terminal_discount_spread_min_pct": 2.8,
+    "terminal_fcff_multiple_cap": 18.0,
+    "terminal_negative_fcff_multiple": 4.0,
+    "operating_value": {
+      "normalized_risk_free_rate_pct": 3.0,
+      "base_operating_risk_premium_pct": 3.6,
+      "operating_discount_rate_floor_pct": 5.2,
+      "operating_discount_rate_cap_pct": 9.5,
+      "structural_asset_risk_weight": 0.55,
+      "historical_fcff_anchor_quarters": 24,
+      "historical_fcff_anchor_weight": 0.70,
+      "terminal_fcff_average_years": 5
+    },
+    "market_valuation": {
+      "neutral_10y_yield_pct": 3.0,
+      "rate_discount_per_100bp_pct": 4.0,
+      "hy_spread_baseline_bps": 420.0,
+      "credit_discount_per_100bps_pct": 3.0,
+      "credit_premium_per_100bps_pct": 1.0,
+      "neutral_equity_valuation_pe": 17.0,
+      "equity_valuation_pe_sensitivity": 0.30,
+      "equity_valuation_discount_cap_pct": 10.0,
+      "equity_valuation_premium_cap_pct": 9.0,
+      "neutral_equity_return_pct": 0.0,
+      "equity_return_sensitivity": 0.35,
+      "equity_sentiment_cap_pct": 12.0,
+      "branch_watch_discount_pct": 2.0,
+      "branch_occurred_discount_pct": 6.0,
+      "market_discount_cap_pct": 28.0,
+      "market_premium_cap_pct": 24.0
+    },
+    "asset_quality_adjustment": {
+      "enabled": true,
+      "max_premium_pct_of_book_value": 5.0,
+      "max_discount_pct_of_book_value": 7.0,
+      "quality_index_midpoint": 100.0,
+      "capacity_sweet_spot_design_utilization_pct": 92.0,
+      "overcrowding_penalty_start_pct": 108.0
+    },
+    "contract_quality_adjustment": {
+      "enabled": true,
+      "annual_contract_revenue_multiple": 0.45,
+      "max_premium_pct_of_annual_contract_revenue": 22.0,
+      "max_discount_pct_of_annual_contract_revenue": 16.0
+    },
+    "uncertainty": {
+      "base_range_pct": 14.0,
+      "short_history_add_pct": 4.0,
+      "negative_fcff_add_pct": 5.0,
+      "high_leverage_add_pct": 7.0,
+      "branch_occurred_add_pct": 4.0,
+      "range_floor_pct": 10.0,
+      "range_cap_pct": 38.0
+    }
+  }
+}
