@@ -1,146 +1,126 @@
-# Airport Docs Index
+# Airport 项目文档
 
-这个目录按模型层级组织机场游戏文档，避免宏观、区域、航空和机场经营说明混在一起。
+这里保存项目当前有效的说明。文档按读者要解决的问题组织，不再按开发时间或版本演进堆叠。
 
-## 文档分区
+如果文档与代码、配置、JSON Schema 或测试冲突，应先核实真实实现并修正文档。旧设计和被取代内容由 Git 保存，不在这里建立第二套历史归档。
 
-```text
-docs/
-  architecture/
-    Current_Architecture_and_Runtime.md
-      当前真实入口、前后端、Run、Viewer、缓存和存档关系
-    Game_Overview.md
-      游戏机制和当前产品边界
-    API_and_JSON_Schema.md
-      本地 API、Schema 和兼容规则
-    Forecast_Viewer_Lazy_Loading.md
-    Global_Viewer_Lazy_Loading.md
-    Operations_Viewer_Lazy_Loading.md
-      三个 Viewer 的现行按需加载边界
-  refactoring/
-    REFACTORING_GUIDE.md
-      修整约束、实施状态和后续顺序
-    Performance_and_Incremental_Evaluation.md
-      区域/城市并行和玩家增量重算的技术评估与暂缓结论
-  plans/
-    Project_Slimming_and_Python_Entry_Unification_Plan.md
-      输出瘦身、缓存生命周期和 Python 入口统一的实施路径
-    Post_Refactor_UI_Consolidation_Plan.md
-      整理完成后的界面合并方向
-  audits/
-    Project_Slimming_Audit_2026-07-11.md
-      本轮实际删除、保护哈希、备份和固定 Seed 对照记录
-  macro/
-    全球宏观、反馈校准、分岔风险和一键 run 编排
-  regional_macro/
-    14 区区域宏观、区域分岔传导和区域对账
-  regional_aviation/
-    区域航空需求、航司供给和供给满足率
-  parameter_ranges/
-    IMPORTANT：宏观、区域航空、城市机场客流、季度经营的参数范围和代码索引
-  airport_operations/
-    城市机场市场、机场名单、离散扩建和后续商业经营
-```
+## 我应该从哪里开始
 
-## 推荐阅读顺序
+### 想先理解这是什么项目
 
-1. `architecture/Current_Architecture_and_Runtime.md`
-2. `architecture/Game_Overview.md`
-3. `architecture/API_and_JSON_Schema.md`
-4. `refactoring/Performance_and_Incremental_Evaluation.md`
-5. `plans/Project_Slimming_and_Python_Entry_Unification_Plan.md`
-6. `architecture/Forecast_Viewer_Lazy_Loading.md`
-7. `architecture/Global_Viewer_Lazy_Loading.md`
-8. `architecture/Operations_Viewer_Lazy_Loading.md`
-9. `macro/Macro_Run_Orchestration.md`
-10. `macro/Global_Macro_Layer_Index.md`
-11. `regional_macro/Regional_Macro_Roadmap.md`
-12. `regional_macro/Regional_Branch_Transmission_Plan.md`
-13. `regional_macro/Regional_Macro_Reconciliation_Layer_Design.md`
-14. `parameter_ranges/IMPORTANT_Macro_Regional_Aviation_Parameter_Range_Guide.md`
-15. `regional_aviation/Regional_Aviation_Demand_Layer_Overview.md`
-16. `regional_aviation/Regional_Air_Capacity_Supply_Layer_Design.md`
-17. `airport_operations/City_Airport_Market_Layer_Plan.md`
-18. `airport_operations/City_Airport_Potential_Passenger_Forecast_System_Plan.md`
-19. `parameter_ranges/IMPORTANT_City_Airport_Market_Parameter_Range_Guide.md`
-20. `parameter_ranges/IMPORTANT_City_Airport_Quarterly_Operations_Parameter_Range_Guide.md`
+1. [游戏总体介绍](product/Game_Overview.md)
+2. [游戏流程](product/Game_Flow.md)
+3. [模型主链](models/Model_Pipeline.md)
+4. [术语表](reference/Glossary.md)
 
-文档边界：`architecture/Current_Architecture_and_Runtime.md` 是当前运行事实的唯一入口；`architecture/Game_Overview.md` 解释游戏机制；`refactoring/Performance_and_Incremental_Evaluation.md` 记录已完成的技术评估和暂缓实施结论；`plans/Project_Slimming_and_Python_Entry_Unification_Plan.md` 记录输出瘦身和 Python 入口统一路径；`plans/Post_Refactor_UI_Consolidation_Plan.md` 只记录整理完成后的界面合并方向，不代表已经实现。
+### 想启动并使用界面
 
-## 当前主链条
+1. [快速开始](getting_started/Quick_Start.md)
+2. [界面使用指南](getting_started/User_Guide.md)
+3. [常见问题](development/Troubleshooting.md)
 
-```text
-Global macro
-  -> Branch risk watchlist
-  -> Optional occurred / counterfactual branch path
-  -> 14 regional macro paths
-  -> Regional reconciliation and GDP levels
-  -> Regional aviation demand
-  -> Regional air capacity / supply fulfillment
-  -> City airport market
-       |-> Effective passenger forecast (player information)
-       `-> Airport quarterly operations (real city input)
-             -> Financial state
-             -> Net-asset valuation observation
-```
+### 想理解模型
 
-## 当前完成度
+1. [模型主链](models/Model_Pipeline.md)
+2. [全球宏观](models/Global_Macro.md)
+3. [区域宏观](models/Regional_Macro.md)
+4. [航空与城市机场市场](models/Aviation_and_City_Market.md)
+5. [机场季度经营](models/Airport_Operations.md)
+6. [财务、合同与项目](models/Finance_Contracts_and_Projects.md)
 
-已完成：
+### 想修改或维护代码
 
-- 全球宏观主链条和反馈校准。
-- 全球分岔风险 watchlist。
-- 可选 occurred/counterfactual 分岔路径。
-- 14 区区域宏观。
-- 区域 GDP 体量、占比、排名、增长贡献和对账诊断。
-- 全球分岔对区域宏观的显式传导。
-- 14 区区域航空需求层 v0.1。
-- 14 区区域航空供给/满足率层 v0.1。
-- 中国大陆 47 城市机场市场真实潜在客流层。
-- 中国大陆 47 城市 seed 航空势能模板。
-- 北京有效客流预测层 v0.3：先预测潜在客流和航司供给，再取小值作为有效客流，并输出五类分项预测、瓶颈判断和事后审计分。
-- 北京季度经营样板，包括容量裁剪、分项潜在/供给、航空收入、自营餐饮零售、免税/奢侈品合同收入、固定成本、拥挤成本和季节性。
-- 北京财务状态、一般贷款、税务、亏损结转和净资产主估值样板。
-- 一键生成 baseline/scenario run，并可发布到现有 viewer。
-- viewer 内置 run browser。
-- 概率分岔时间线可以按 Seed 连续选择多个事件，并保留事件冷却期。
-- 北京动态测试已经形成可操作的最小闭环：季度推进、存档、合同确认、翻新、新建、拆除、拆除重建和融资行动都会由 Python 服务端重算。
-- 统一首页和单端口本地服务已经集中四个主要页面，并显示 Viewer、缓存和存档状态。
-- 玩家存档已与临时 Run 缓存分离；清理缓存不会删除独立存档。
-- 完整 Run 和 Viewer 发布均使用 staging、校验和原子切换。
-- Viewer 已分别按报告、区域和估值数据块进行按需加载。
-- 已建立固定 Seed 回归测试、API 快照、JSON Schema、最小 `pyproject.toml` 和跨平台 CI。
-- 已建立 60 年 baseline/occurred/probabilistic 语义摘要、14 区与 47 城结构、关键 CSV 表头及融资行动回放保护。
-- 已提供 `python -m airport_ui` 跨平台统一入口，Windows BAT 继续兼容。
-- 本地 HTTP 服务已限制 2 MiB JSON 请求、检查 Content-Type、区分错误类型，并要求非回环启动显式授权。
-- 缓存列表只计算一次当前指纹，指纹依赖字节按文件状态复用。
-- 完整 Run 校验已扩展到表头、列宽、Seed、年份、`year_index` 和 14 区覆盖。
-- 五个 HTML 页面已归入 `web/pages/`，CSS 和 JavaScript 已归入 `web/static/`；既有浏览器地址保持不变。
-- 正式本地服务已归入 `airport_sim/server/app.py`，storage、progress、run locks、HTTP、后台 jobs、repository、serializers 和 validation 位于同一服务包；旧动态测试服务脚本只保留兼容入口。
-- 可选后台 Run Job 已提供提交和查询接口，旧同步 API 保持不变。
-- 前端已拆出 bootstrap、state、data client 与主要 Renderer；Seed Explorer 已按九类职责拆分业务脚本。
-- 统一首页和四个页面已经完成实际浏览器验收。
-- 公共 `clamp`、`resolve_seeds` 和行为完全相同的最大 `round_record` 组已在不改变结果的前提下抽取。
-- 区域/城市并行与玩家增量重算已完成技术评估，当前决定暂缓实现。
+1. [系统架构](architecture/System_Overview.md)
+2. [本地服务与 Web](architecture/Runtime_and_Web.md)
+3. [Run、缓存、存档与 Viewer 发布](architecture/Data_Cache_Save_and_Viewer.md)
+4. [API 与数据契约](reference/API_and_Data_Contracts.md)
+5. [测试与安全修改](development/Testing_and_Safe_Changes.md)
+6. [文档维护规则](development/Documentation_Standard.md)
 
-未完成：
+### 想把北京样板扩展到其它城市
 
-- 其它城市的季度经营和财务配置。
-- 合同合作方、报价选择和谈判博弈；当前只有建议条款确认与到期处理。
-- 独立商业销售预测；当前合同规则已经可运行，但仍主要依赖既有经营输入和建议条款。
-- 商业情报中心、研究所、市场交易和并购。
-- 其它国家和地区的城市机场经营配置。
-- 把经营历史、有效客流预测和玩家事务合并为正式游戏 UI。
-- 正式游戏界面的未来信息隔离；当前动态测试仍会把完整季度结果发送给浏览器用于本地推进。
+1. [北京样板与新增完整经营城市指南](reference/Beijing_Template_and_New_City_Guide.md)
+2. [航空与城市机场市场](models/Aviation_and_City_Market.md)
+3. [机场经营参数参考](reference/Airport_Operations_Parameters.md)
+4. [财务与估值参数参考](reference/Finance_and_Valuation_Parameters.md)
+5. [测试与安全修改](development/Testing_and_Safe_Changes.md)
 
-## 分区入口
+## 文档地图
 
-- `architecture/Current_Architecture_and_Runtime.md`
-- `refactoring/REFACTORING_GUIDE.md`
-- `plans/Project_Slimming_and_Python_Entry_Unification_Plan.md`
-- `audits/Project_Slimming_Audit_2026-07-11.md`
-- `macro/README.md`
-- `regional_macro/README.md`
-- `regional_aviation/README.md`
-- `parameter_ranges/README.md`
-- `airport_operations/README.md`
+### `getting_started/`
+
+| 文档 | 说明 |
+| --- | --- |
+| [Quick_Start.md](getting_started/Quick_Start.md) | Python 3.13、启动、停止、Run 和缓存命令 |
+| [User_Guide.md](getting_started/User_Guide.md) | 五个页面分别怎样使用，哪些页面只读，哪些可以操作 |
+
+### `product/`
+
+| 文档 | 说明 |
+| --- | --- |
+| [Game_Overview.md](product/Game_Overview.md) | 玩家身份、世界生成、季度循环、报表、目标与当前边界 |
+| [Game_Flow.md](product/Game_Flow.md) | 玩家看到的信息、季度推进和决策关系 |
+
+### `architecture/`
+
+| 文档 | 说明 |
+| --- | --- |
+| [System_Overview.md](architecture/System_Overview.md) | 代码目录、模块职责和调用关系 |
+| [Runtime_and_Web.md](architecture/Runtime_and_Web.md) | 8776 服务、页面路由、前后端和兼容入口 |
+| [Data_Cache_Save_and_Viewer.md](architecture/Data_Cache_Save_and_Viewer.md) | 输出生命周期、原子写入、缓存、存档和 Viewer 发布 |
+
+### `models/`
+
+| 文档 | 说明 |
+| --- | --- |
+| [Model_Pipeline.md](models/Model_Pipeline.md) | 从全球宏观到机场财务的完整主链 |
+| [Global_Macro.md](models/Global_Macro.md) | 全球增长、通胀、利率、信用、资产、商品和分岔 |
+| [Regional_Macro.md](models/Regional_Macro.md) | 14 区路径、全球传导和区域对账 |
+| [Aviation_and_City_Market.md](models/Aviation_and_City_Market.md) | 航空需求、航司供给、47 城市场和有效客流预测 |
+| [Airport_Operations.md](models/Airport_Operations.md) | 北京机场季度容量、服务、收入和成本样板 |
+| [Finance_Contracts_and_Projects.md](models/Finance_Contracts_and_Projects.md) | 财务、税务、贷款、商业合同和设施项目 |
+
+### `reference/`
+
+| 文档 | 说明 |
+| --- | --- |
+| [Glossary.md](reference/Glossary.md) | Seed、Run、客流、报表、缓存和存档等统一术语 |
+| [Beijing_Template_and_New_City_Guide.md](reference/Beijing_Template_and_New_City_Guide.md) | 北京五层配置的迁移分类、新城市接入顺序和验收清单 |
+| [API_and_Data_Contracts.md](reference/API_and_Data_Contracts.md) | HTTP API、JSON Schema、版本和兼容规则 |
+| [Macro_Regional_Aviation_Parameters.md](reference/Macro_Regional_Aviation_Parameters.md) | 全球、区域和航空参数来源、单位与约束 |
+| [Airport_Operations_Parameters.md](reference/Airport_Operations_Parameters.md) | 城市市场、季度需求、容量、服务和商业经营参数 |
+| [Finance_and_Valuation_Parameters.md](reference/Finance_and_Valuation_Parameters.md) | 财务、贷款、税务和估值参数 |
+
+### `development/`
+
+| 文档 | 说明 |
+| --- | --- |
+| [Testing_and_Safe_Changes.md](development/Testing_and_Safe_Changes.md) | 固定 Seed、API、Schema、UI 和结构重构保护 |
+| [Troubleshooting.md](development/Troubleshooting.md) | 端口、Python、缓存、页面和数据问题排查 |
+| [Documentation_Standard.md](development/Documentation_Standard.md) | 文档归属、写法、更新和淘汰规则 |
+
+### `plans/`
+
+| 文档 | 说明 |
+| --- | --- |
+| [Roadmap.md](plans/Roadmap.md) | 唯一的未来工作清单；正式说明不混入待办事项 |
+
+## 当前事实由什么决定
+
+| 事实类型 | 首要来源 |
+| --- | --- |
+| 命令和运行入口 | `airport_sim/`、`airport_ui/`、根目录 BAT |
+| 模型计算 | `macro_layers/` |
+| 参数与版本 | `config/` |
+| JSON 字段和兼容约束 | `schemas/` 与 API 实现 |
+| 页面结构和交互 | `web/pages/`、`web/static/` |
+| 回归保护 | `tests/` |
+| 未来方向 | `plans/Roadmap.md` |
+
+文档负责解释这些事实，但不替代它们。
+
+## 当前项目边界
+
+当前完整模型链覆盖全球宏观、14 区区域宏观、区域航空需求和供给、中国大陆 47 城市市场；机场季度经营、财务、合同、项目、融资和预测以北京为主要样板。其它城市的完整经营配置、正式游戏信息隔离、交易并购和更完整的商业谈判仍未实现。
+
+具体限制写在各专题文档末尾；所有未来工作统一维护在 [Roadmap.md](plans/Roadmap.md)。

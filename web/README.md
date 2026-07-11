@@ -16,5 +16,6 @@ web/
 - `/beijing-operations`
 - `/beijing-forecast`
 
-`/static/...` 由服务安全映射到 `web/static/`；模型和 Viewer 数据继续通过
-`/output/...` 读取。移动页面文件时必须保持这些 HTTP 地址不变。
+`/static/...` 由服务安全映射到 `web/static/`；模型和 Viewer 数据继续通过 `/output/...` 读取。移动页面文件时必须保持这些 HTTP 地址不变。
+
+页面路由、服务端职责和兼容入口见 [运行与 Web 架构](../docs/architecture/Runtime_and_Web.md)。
