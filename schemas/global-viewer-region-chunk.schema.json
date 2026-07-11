@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/global-viewer-region-chunk.schema.json",
+  "title": "Global macro Viewer regional data chunk",
+  "type": "object",
+  "required": [
+    "schemaVersion", "regionId", "regionalMacroRows",
+    "aviationDemandRows", "airCapacitySupplyRows"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "airport-global-viewer-region-chunk-v1" },
+    "regionId": { "type": "string", "minLength": 1 },
+    "regionalMacroRows": { "type": "array", "items": { "type": "object" } },
+    "aviationDemandRows": { "type": "array", "items": { "type": "object" } },
+    "airCapacitySupplyRows": { "type": "array", "items": { "type": "object" } }
+  },
+  "additionalProperties": false
+}

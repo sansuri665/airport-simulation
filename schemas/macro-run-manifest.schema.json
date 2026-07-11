@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/macro-run-manifest.schema.json",
+  "title": "Airport complete Macro Run manifest",
+  "type": "object",
+  "required": [
+    "schema_version", "model_version", "output_schema_version", "orchestrator_version",
+    "python_version", "python_implementation", "run_id", "seed", "start_year", "years",
+    "feedback_iterations", "volatility_scale", "initial_gdp", "output_dir", "variants",
+    "scenario", "scenario_variant", "branch_scenario_profile_count",
+    "branch_scenario_profile_ids", "published", "run_state", "validation", "run_index"
+  ],
+  "properties": {
+    "schema_version": { "const": "airport-macro-run-manifest-v1" },
+    "model_version": { "const": "airport-model-v0.5" },
+    "output_schema_version": { "const": "airport-model-output-v1" },
+    "orchestrator_version": { "const": "macro-run-orchestrator-v0.5" },
+    "python_version": { "type": "string", "minLength": 1 },
+    "python_implementation": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "seed": { "type": "integer" },
+    "start_year": { "type": "integer" },
+    "years": { "type": "integer", "minimum": 1 },
+    "feedback_iterations": { "type": "integer", "minimum": 1 },
+    "volatility_scale": { "type": "number" },
+    "initial_gdp": { "type": "number" },
+    "output_dir": { "type": "string", "minLength": 1 },
+    "variants": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/variant" }
+    },
+    "scenario": { "type": ["object", "null"] },
+    "scenario_variant": { "type": ["string", "null"] },
+    "branch_scenario_profile_count": { "type": "integer", "minimum": 0 },
+    "branch_scenario_profile_ids": { "type": "array", "items": { "type": "string" } },
+    "published": { "type": ["object", "null"] },
+    "run_state": { "const": "complete" },
+    "validation": { "$ref": "#/$defs/validation" },
+    "run_index": {
+      "type": "object",
+      "required": ["index_json", "index_js", "run_count"],
+      "properties": {
+        "index_json": { "type": "string", "minLength": 1 },
+        "index_js": { "type": "string", "minLength": 1 },
+        "run_count": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "variant": {
+      "type": "object",
+      "required": [
+        "path", "global_rows", "regional_rows", "reconciled_rows", "aviation_rows",
+        "supply_rows", "city_airport_rows", "potential_passenger_forecast_rows",
+        "quarterly_operations_rows", "financial_state_rows", "valuation_rows",
+        "city_airport_downstream_skips"
+      ],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "global_rows": { "type": "integer", "minimum": 0 },
+        "regional_rows": { "type": "integer", "minimum": 0 },
+        "reconciled_rows": { "type": "integer", "minimum": 0 },
+        "aviation_rows": { "type": "integer", "minimum": 0 },
+        "supply_rows": { "type": "integer", "minimum": 0 },
+        "city_airport_rows": { "type": "integer", "minimum": 0 },
+        "potential_passenger_forecast_rows": { "type": "integer", "minimum": 0 },
+        "quarterly_operations_rows": { "type": "integer", "minimum": 0 },
+        "financial_state_rows": { "type": "integer", "minimum": 0 },
+        "valuation_rows": { "type": "integer", "minimum": 0 },
+        "city_airport_downstream_skips": { "type": "integer", "minimum": 0 },
+        "active_global_scenario_rows": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "rowCounts": {
+      "type": "object",
+      "required": [
+        "global_rows", "regional_rows", "reconciled_rows", "aviation_rows", "supply_rows",
+        "city_airport_rows", "potential_passenger_forecast_rows", "quarterly_operations_rows",
+        "financial_state_rows", "valuation_rows"
+      ],
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["schema_version", "validated_at", "variant_count", "row_counts"],
+      "properties": {
+        "schema_version": { "const": "airport-run-validation-v1" },
+        "validated_at": { "type": "string", "minLength": 1 },
+        "variant_count": { "type": "integer", "minimum": 1 },
+        "row_counts": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "$ref": "#/$defs/rowCounts" }
+        },
+        "file_counts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "header_digests": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          }
+        },
+        "region_coverage": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 },
+              "uniqueItems": true
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,20 +1,31 @@
 from __future__ import annotations
 
+from importlib import import_module
+
+_SIBLING_PREFIX = f"{__package__}." if __package__ else ""
+simulation_io = import_module(f"{_SIBLING_PREFIX}simulation_io")
+simulation_utils = import_module(f"{_SIBLING_PREFIX}simulation_utils")
+
+write_csv = simulation_io.write_csv
+write_json = simulation_io.write_json
+clamp = simulation_utils.clamp
+resolve_seeds = simulation_utils.resolve_seeds
+round_record = simulation_utils.round_record
+
 import argparse
-import csv
 import json
 import math
 import random
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from statistics import mean
-from typing import Any, Iterable
+from typing import Any
 
-from global_gdp_annual_sim import (
-    ANNUAL_FIELDS as GDP_ANNUAL_FIELDS,
-    GDPParams,
-    simulate_global_gdp,
-)
+global_gdp_layer = import_module(f"{_SIBLING_PREFIX}global_gdp_annual_sim")
+
+GDP_ANNUAL_FIELDS = global_gdp_layer.ANNUAL_FIELDS
+GDPParams = global_gdp_layer.GDPParams
+simulate_global_gdp = global_gdp_layer.simulate_global_gdp
 
 
 INFLATION_PARAM_VERSION = "global-inflation-layer-v0.1"
@@ -130,9 +141,6 @@ class InflationRecord:
     inflation_to_gdp_drag_placeholder: float
 
 
-def clamp(value: float, low: float, high: float) -> float:
-    return max(low, min(high, value))
-
 
 def smooth(old: float, target: float, speed: float) -> float:
     return old * (1.0 - speed) + target * speed
@@ -212,14 +220,6 @@ def draw_external_supply_shock(
         state.external_supply_shock_severity = 0.0
         state.external_supply_shock_cooldown = params.external_supply_shock_cooldown_years
     return component
-
-
-def round_record(record: dict[str, Any]) -> dict[str, Any]:
-    result = dict(record)
-    for key, value in list(result.items()):
-        if isinstance(value, float):
-            result[key] = round(value, 4)
-    return result
 
 
 def simulate_inflation_for_gdp_path(
@@ -469,20 +469,6 @@ def summarize_seed(records: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def write_csv(path: Path, rows: Iterable[dict[str, Any]], fields: list[str]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as handle:
-        json.dump(payload, handle, ensure_ascii=False, indent=2)
-
-
 def write_viewer_data_js(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(rows, ensure_ascii=False, separators=(",", ":"))
@@ -568,14 +554,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=Path(__file__).resolve().parents[1] / "output" / "global_macro")
     parser.add_argument("--no-svg", action="store_true", help="Skip writing the SVG chart.")
     return parser.parse_args()
-
-
-def resolve_seeds(args: argparse.Namespace) -> list[int]:
-    if args.seed is not None:
-        return [args.seed]
-    if args.seeds:
-        return list(dict.fromkeys(args.seeds))
-    return list(range(args.seed_start, args.seed_start + args.seed_count))
 
 
 def main() -> int:

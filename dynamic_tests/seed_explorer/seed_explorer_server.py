@@ -1,28 +1,114 @@
 from __future__ import annotations
 
 import argparse
-import csv
+import functools
 import hashlib
+import ipaddress
 import json
-import math
+import os
+import platform
+import secrets
 import shutil
 import subprocess
 import sys
-import threading
 import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from importlib import import_module
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, unquote, urlparse
+
+_SIBLING_PREFIX = f"{__package__}." if __package__ else ""
+http_utils = import_module(f"{_SIBLING_PREFIX}seed_explorer_http")
+background_jobs = import_module(f"{_SIBLING_PREFIX}seed_explorer_jobs")
+progress_store = import_module(f"{_SIBLING_PREFIX}seed_explorer_progress")
+repositories = import_module(f"{_SIBLING_PREFIX}seed_explorer_repository")
+run_locks = import_module(f"{_SIBLING_PREFIX}seed_explorer_run_locks")
+serializers = import_module(f"{_SIBLING_PREFIX}seed_explorer_serializers")
+validation = import_module(f"{_SIBLING_PREFIX}seed_explorer_validation")
+storage = import_module(f"{_SIBLING_PREFIX}seed_explorer_storage")
+
+_read_config_json_cached = storage._read_config_json_cached
+atomic_write_text = storage.atomic_write_text
+ensure_inside = storage.ensure_inside
+read_config_json = storage.read_config_json
+read_csv = storage.read_csv
+read_json = storage.read_json
+write_csv = storage.write_csv
+write_json = storage.write_json
 
 
 TOOL_DIR = Path(__file__).resolve().parent
 ROOT_DIR = TOOL_DIR.parent.parent
 RUN_ROOT = ROOT_DIR / "output" / "seed_explorer_runs"
+SAVE_ROOT = ROOT_DIR / "saves" / "seed_explorer"
 VIEWER_HTML = TOOL_DIR / "seed_explorer_viewer.html"
+HOME_HTML = ROOT_DIR / "airport_home.html"
+OUTPUT_ROOT = ROOT_DIR / "output"
+SCHEMA_ROOT = ROOT_DIR / "schemas"
+STATIC_ROOT = ROOT_DIR / "static"
 ORCHESTRATOR = ROOT_DIR / "macro_layers" / "macro_run_orchestrator_sim.py"
-MAX_CACHED_RUNS = 4
+MAX_CACHED_RUNS = max(1, int(os.environ.get("AIRPORT_MAX_CACHED_RUNS", "2")))
+MAX_REQUEST_BODY_BYTES = 2 * 1024 * 1024
+CACHE_FINGERPRINT_VERSION = "seed-explorer-run-cache-v3"
+TASK_PROGRESS_VERSION = progress_store.TASK_PROGRESS_VERSION
+MAX_TASK_PROGRESS_ENTRIES = progress_store.MAX_TASK_PROGRESS_ENTRIES
+LOCAL_UI_SERVICE_ID = "airport-local-ui-v1"
+VERSION_RECORD_PATH = ROOT_DIR / "config" / "airport_versions.json"
+VERSION_RECORD = json.loads(VERSION_RECORD_PATH.read_text(encoding="utf-8"))
+MODEL_VERSION = str(VERSION_RECORD["model_version"])
+OUTPUT_SCHEMA_VERSION = str(VERSION_RECORD["output_schema_version"])
+SEED_EXPLORER_API_SCHEMA_VERSION = str(VERSION_RECORD["seed_explorer_api_schema_version"])
+VIEWER_ROUTES = {
+    "/seed-explorer": VIEWER_HTML,
+    "/seed_explorer_viewer.html": VIEWER_HTML,
+    "/global-gdp": ROOT_DIR / "global_gdp_viewer.html",
+    "/global_gdp_viewer.html": ROOT_DIR / "global_gdp_viewer.html",
+    "/beijing-operations": ROOT_DIR / "beijing_airport_operations_viewer.html",
+    "/beijing_airport_operations_viewer.html": ROOT_DIR / "beijing_airport_operations_viewer.html",
+    "/beijing-forecast": ROOT_DIR / "beijing_potential_passenger_forecast_viewer.html",
+    "/beijing_potential_passenger_forecast_viewer.html": (
+        ROOT_DIR / "beijing_potential_passenger_forecast_viewer.html"
+    ),
+}
+VIEWER_REDIRECTS = {
+    "/seed-explorer/": "/seed-explorer",
+    "/global-gdp/": "/global-gdp",
+    "/beijing-operations/": "/beijing-operations",
+    "/beijing-forecast/": "/beijing-forecast",
+}
+STATIC_CONTENT_TYPES = {
+    ".css": "text/css; charset=utf-8",
+    ".ico": "image/x-icon",
+    ".js": "text/javascript; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".webp": "image/webp",
+}
+SCHEMA_CATALOG_VERSION = "airport-schema-catalog-v1"
+SCHEMA_FILES = {
+    "versionRecord": "airport-version-record.schema.json",
+    "macroRunManifest": "macro-run-manifest.schema.json",
+    "viewerReleaseManifest": "viewer-release-manifest.schema.json",
+    "apiEnvelope": "api-envelope.schema.json",
+    "apiError": "api-error-response.schema.json",
+    "health": "health-response.schema.json",
+    "workspaceStatus": "workspace-status-response.schema.json",
+    "seedExplorerRun": "seed-explorer-run-response.schema.json",
+    "beijingOperations": "beijing-operations-response.schema.json",
+    "playerSimulation": "player-simulation-response.schema.json",
+    "forecastLazyIndex": "forecast-viewer-lazy-index.schema.json",
+    "forecastReportChunk": "forecast-viewer-report-chunk.schema.json",
+    "randomSeed": "random-seed-response.schema.json",
+    "taskProgress": "task-progress-response.schema.json",
+    "backgroundJob": "background-job-response.schema.json",
+}
+
+
+UnsupportedMediaTypeError = http_utils.UnsupportedMediaTypeError
+RequestTooLargeError = http_utils.RequestTooLargeError
 BEIJING_OPERATIONS_RELATIVE_CSV = Path(
     "baseline/city_airport_quarterly_operations/china_mainland/"
     "beijing_airport_system_quarterly_operations_seed_sweep.csv"
@@ -61,6 +147,7 @@ INITIAL_DESIGN_CAPACITY_MILLION = 154.0
 INITIAL_MAX_CAPACITY_MILLION = 200.0
 PLAYER_DECISION_START_YEAR = 2030
 SIMULATION_START_YEAR = 2025
+PLAYER_SIMULATION_MIN_YEARS = 60
 RENOVATION_COOLDOWN_QUARTERS = 6 * 4
 REBUILD_COOLDOWN_QUARTERS = 20 * 4
 DEMOLITION_CLEARANCE_QUARTERS = 4
@@ -313,28 +400,72 @@ OPERATION_MODE_DETAILS = {
     },
 }
 
-RUN_LOCK = threading.Lock()
+RUN_LOCKS_GUARD = run_locks.RUN_LOCKS_GUARD
+RUN_LOCKS = run_locks.RUN_LOCKS
+RUN_LOCK_USERS = run_locks.RUN_LOCK_USERS
+TASK_PROGRESS_LOCK = progress_store.TASK_PROGRESS_LOCK
+TASK_PROGRESS = progress_store.TASK_PROGRESS
+
+
+def structured_log(event: str, **fields: Any) -> None:
+    progress_store.structured_log(event, **fields)
+
+
+def update_task_progress(
+    run_id: str,
+    seed: int,
+    years: int,
+    status: str,
+    phase: str,
+    progress_pct: int,
+    message: str,
+    *,
+    cached: bool | None = None,
+) -> dict[str, Any]:
+    return progress_store.update_task_progress(
+        run_id,
+        seed,
+        years,
+        status,
+        phase,
+        progress_pct,
+        message,
+        cached=cached,
+        max_entries=MAX_TASK_PROGRESS_ENTRIES,
+        logger=structured_log,
+    )
+
+
+def task_progress(run_id: str, seed: int, years: int) -> dict[str, Any]:
+    return progress_store.task_progress(run_id, seed, years)
+
+
+def submit_run_job(seed: int, years: int, force: bool) -> dict[str, Any]:
+    run_id = run_id_for(seed, years)
+    job_key = f"{run_id}:force={int(force)}"
+    return background_jobs.submit_job(
+        "seed_run",
+        job_key,
+        lambda: run_seed(seed, years, force),
+        logger=structured_log,
+    )
+
+
+lock_for_run = run_locks.lock_for_run
+try_lock_for_run = run_locks.try_lock_for_run
 
 
 def as_float(value: Any, default: float = 0.0) -> float:
-    if value in (None, ""):
-        return default
-    try:
-        number = float(value)
-    except (TypeError, ValueError):
-        return default
-    if math.isnan(number) or math.isinf(number):
-        return default
-    return number
+    return validation.as_float(value, default)
 
 
 def as_bool(value: Any) -> bool:
-    return str(value).strip().lower() in {"1", "true", "yes", "y"}
+    return validation.as_bool(value)
 
 
 def facility_size_catalog() -> dict[str, Any]:
     catalog_path = ROOT_DIR / "config" / "facility_size_catalogs" / "standard_terminal_sizes_v1.json"
-    return read_json(catalog_path) if catalog_path.exists() else {}
+    return read_config_json(catalog_path) if catalog_path.exists() else {}
 
 
 def allowed_rebuild_target_sizes(template: dict[str, Any]) -> list[str]:
@@ -348,7 +479,7 @@ def allowed_construction_target_sizes(template: dict[str, Any]) -> list[str]:
 
 
 def construction_event_config(target_size: str) -> dict[str, Any]:
-    operations_config = read_json(BEIJING_OPERATIONS_CONFIG)
+    operations_config = read_config_json(BEIJING_OPERATIONS_CONFIG)
     construction_model = operations_config.get("facility_construction_model", {})
     capex = as_float(construction_model.get("construction_cost_million_cny_by_facility_size", {}).get(target_size))
     capex *= as_float(construction_model.get("city_construction_cost_multiplier"), 1.0)
@@ -363,7 +494,7 @@ def construction_event_config(target_size: str) -> dict[str, Any]:
 
 
 def rebuild_event_config(source_size: str, target_size: str) -> dict[str, Any]:
-    operations_config = read_json(BEIJING_OPERATIONS_CONFIG)
+    operations_config = read_config_json(BEIJING_OPERATIONS_CONFIG)
     rebuild_model = operations_config.get("facility_rebuild_model", {})
     construction_model = operations_config.get("facility_construction_model", {})
     capex = as_float(construction_model.get("construction_cost_million_cny_by_facility_size", {}).get(target_size))
@@ -394,7 +525,7 @@ def rebuild_event_config(source_size: str, target_size: str) -> dict[str, Any]:
 
 
 def demolition_event_config(source_size: str) -> dict[str, Any]:
-    operations_config = read_json(BEIJING_OPERATIONS_CONFIG)
+    operations_config = read_config_json(BEIJING_OPERATIONS_CONFIG)
     rebuild_model = operations_config.get("facility_rebuild_model", {})
     demolition = as_float(rebuild_model.get("asset_cost_million_cny_by_facility_size", {}).get(source_size))
     demolition *= as_float(rebuild_model.get("demolition_cost_ratio_by_source_facility_size", {}).get(source_size), 0.10)
@@ -412,7 +543,7 @@ def demolition_event_config(source_size: str) -> dict[str, Any]:
 
 
 def renovation_event_config(facility_size: str) -> dict[str, Any]:
-    operations_config = read_json(BEIJING_OPERATIONS_CONFIG)
+    operations_config = read_config_json(BEIJING_OPERATIONS_CONFIG)
     renovation_model = operations_config.get("facility_renovation_model", {})
     replacement_cost = as_float(renovation_model.get("replacement_cost_million_cny_by_facility_size", {}).get(facility_size))
     capex_ratio = as_float(renovation_model.get("capex_ratio_by_facility_size", {}).get(facility_size))
@@ -439,28 +570,15 @@ def rounded(row: dict[str, str], key: str, digits: int = 4) -> float:
 
 
 def clean_seed(value: Any) -> int:
-    try:
-        seed = int(str(value).strip())
-    except (TypeError, ValueError):
-        raise ValueError("seed must be an integer")
-    if seed < 0:
-        raise ValueError("seed must be non-negative")
-    return seed
+    return validation.clean_seed(value)
 
 
 def clean_years(value: Any) -> int:
-    try:
-        years = int(str(value).strip())
-    except (TypeError, ValueError):
-        return 60
-    return max(5, min(90, years))
+    return validation.clean_years(value)
 
 
 def clean_operation_mode(value: Any) -> str:
-    mode = str(value or "replay").strip()
-    if mode not in OPERATION_MODE_DETAILS:
-        raise ValueError(f"unsupported operation mode: {mode}")
-    return mode
+    return validation.clean_operation_mode(value, OPERATION_MODE_DETAILS)
 
 
 def clean_player_actions(value: Any) -> list[dict[str, Any]]:
@@ -817,9 +935,9 @@ def player_project_events(actions: list[dict[str, Any]]) -> dict[str, list[dict[
 
 
 def project_catalog() -> list[dict[str, Any]]:
-    operations_config = read_json(BEIJING_OPERATIONS_CONFIG)
+    operations_config = read_config_json(BEIJING_OPERATIONS_CONFIG)
     catalog_path = ROOT_DIR / "config" / "facility_size_catalogs" / "standard_terminal_sizes_v1.json"
-    facility_sizes = read_json(catalog_path).get("facility_sizes", {}) if catalog_path.exists() else {}
+    facility_sizes = read_config_json(catalog_path).get("facility_sizes", {}) if catalog_path.exists() else {}
     renovation_model = operations_config.get("facility_renovation_model", {})
     construction_model = operations_config.get("facility_construction_model", {})
     rebuild_model = operations_config.get("facility_rebuild_model", {})
@@ -983,100 +1101,39 @@ def project_catalog() -> list[dict[str, Any]]:
 
 
 def run_id_for(seed: int, years: int) -> str:
-    return f"seed_{seed}_years_{years}"
+    return repositories.run_id_for(seed, years)
 
 
 def parse_run_id(run_id: str) -> tuple[int | None, int | None]:
-    parts = run_id.split("_")
-    try:
-        seed_index = parts.index("seed") + 1
-        years_index = parts.index("years") + 1
-        return int(parts[seed_index]), int(parts[years_index])
-    except (ValueError, IndexError):
-        return None, None
+    return repositories.parse_run_id(run_id)
 
 
-def ensure_inside(parent: Path, child: Path) -> Path:
-    parent_resolved = parent.resolve()
-    child_resolved = child.resolve()
-    if parent_resolved != child_resolved and parent_resolved not in child_resolved.parents:
-        raise ValueError(f"path outside allowed root: {child_resolved}")
-    return child_resolved
+def save_repository() -> repositories.SaveRepository:
+    return repositories.SaveRepository(ROOT_DIR, RUN_ROOT, SAVE_ROOT, SIMULATION_DIR_NAME)
 
 
-def read_csv(path: Path) -> list[dict[str, str]]:
-    with path.open("r", encoding="utf-8-sig", newline="") as handle:
-        return list(csv.DictReader(handle))
-
-
-def write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str] | None = None) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if fieldnames is None:
-        fieldnames = list(rows[0].keys()) if rows else []
-    with path.open("w", encoding="utf-8-sig", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def read_json(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+def legacy_sim_save_path(seed: int, years: int) -> Path:
+    return save_repository().legacy_path(seed, years)
 
 
 def sim_save_path(seed: int, years: int) -> Path:
-    run_dir = RUN_ROOT / run_id_for(seed, years)
-    return ensure_inside(run_dir, run_dir / SIMULATION_DIR_NAME / "dynamic_test_save.json")
+    return save_repository().save_path(seed, years)
+
+
+def migrate_legacy_sim_save(seed: int, years: int) -> Path | None:
+    return save_repository().migrate_legacy(seed, years)
+
+
+def migrate_all_legacy_sim_saves() -> int:
+    return save_repository().migrate_all_legacy()
 
 
 def sim_save_summary(seed: int, years: int, payload: dict[str, Any] | None = None) -> dict[str, Any]:
-    path = sim_save_path(seed, years)
-    if not payload:
-        return {
-            "label": "当前 seed 存档",
-            "occupied": False,
-            "seed": seed,
-            "years": years,
-            "runId": run_id_for(seed, years),
-            "savePath": str(path.relative_to(ROOT_DIR).as_posix()),
-        }
-    return {
-        "label": "当前 seed 存档",
-        "occupied": True,
-        "seed": payload.get("seed", seed),
-        "years": payload.get("years", years),
-        "mode": payload.get("mode"),
-        "runId": payload.get("runId", run_id_for(seed, years)),
-        "savePath": str(path.relative_to(ROOT_DIR).as_posix()),
-        "currentQuarterIndex": payload.get("currentQuarterIndex"),
-        "currentLabel": payload.get("currentLabel", ""),
-        "savedAt": payload.get("savedAt", ""),
-        "savedAtUnix": payload.get("savedAtUnix", 0),
-        "contractSignatureCount": len(payload.get("contractSignatures", {}) or {}),
-        "playerActionCount": len(payload.get("playerActions", []) or []),
-        "projectActionCount": len(
-            [action for action in payload.get("playerActions", []) if action.get("type") == "start_project"]
-        ),
-        "slotRenameCount": len(
-            [action for action in payload.get("playerActions", []) if action.get("type") == "rename_slot"]
-        ),
-        "operationOverrideQuarterCount": 0,
-    }
+    return save_repository().summary(seed, years, payload)
 
 
 def read_sim_save(seed: int, years: int) -> dict[str, Any] | None:
-    path = sim_save_path(seed, years)
-    if not path.exists():
-        return None
-    payload = read_json(path)
-    payload["seed"] = seed
-    payload["years"] = years
-    payload["runId"] = run_id_for(seed, years)
-    return payload
+    return save_repository().read(seed, years)
 
 
 def save_sim_save(body: dict[str, Any]) -> dict[str, Any]:
@@ -1115,86 +1172,12 @@ def save_sim_save(body: dict[str, Any]) -> dict[str, Any]:
 
 
 def clear_sim_save(seed: int, years: int) -> None:
-    path = sim_save_path(seed, years)
-    if path.exists():
-        path.unlink()
+    save_repository().clear(seed, years)
 
 
-def cagr_pct(start_value: float, end_value: float, years: int) -> float:
-    if start_value <= 0.0 or end_value <= 0.0 or years <= 0:
-        return 0.0
-    return (math.pow(end_value / start_value, 1.0 / years) - 1.0) * 100.0
-
-
-def market_bottleneck(potential: float, supply: float) -> str:
-    return "airline_supply_limited" if supply < potential else "demand_limited"
-
-
-def summarize_city(rows: list[dict[str, str]]) -> dict[str, Any]:
-    first = rows[0]
-    last = rows[-1]
-    start_year = int(as_float(first.get("year")))
-    final_year = int(as_float(last.get("year")))
-    first_effective = min(
-        as_float(first.get("city_potential_passengers_million")),
-        as_float(first.get("city_airline_supply_passengers_million")),
-    )
-    final_potential = as_float(last.get("city_potential_passengers_million"))
-    final_supply = as_float(last.get("city_airline_supply_passengers_million"))
-    final_effective = min(final_potential, final_supply)
-    peak_effective = max(
-        min(
-            as_float(row.get("city_potential_passengers_million")),
-            as_float(row.get("city_airline_supply_passengers_million")),
-        )
-        for row in rows
-    )
-    bottleneck_years = {
-        "airline_supply_limited": 0,
-        "demand_limited": 0,
-    }
-    points: list[dict[str, Any]] = []
-    for row in rows:
-        potential = as_float(row.get("city_potential_passengers_million"))
-        supply = as_float(row.get("city_airline_supply_passengers_million"))
-        effective = min(potential, supply)
-        bottleneck = str(row.get("city_binding_bottleneck") or market_bottleneck(potential, supply))
-        if bottleneck not in bottleneck_years:
-            bottleneck_years[bottleneck] = 0
-        bottleneck_years[bottleneck] += 1
-        points.append(
-            {
-                "year": int(as_float(row.get("year"))),
-                "potential": round(potential, 4),
-                "airlineSupply": round(supply, 4),
-                "effective": round(effective, 4),
-                "served": round(as_float(row.get("city_served_passengers_million"), effective), 4),
-                "supplyGap": round(max(0.0, potential - supply), 4),
-                "supplyFulfillmentPct": round(as_float(row.get("city_airline_supply_fulfillment_pct")), 4),
-                "bindingBottleneck": bottleneck,
-                "supplyRegime": str(row.get("city_airline_supply_regime") or ""),
-                "supplyVolatilityRegime": str(row.get("city_airline_supply_volatility_regime") or ""),
-            }
-        )
-
-    return {
-        "id": str(first.get("city_airport_market_id") or ""),
-        "name": str(first.get("city_name") or first.get("city_airport_market_id") or ""),
-        "region": str(first.get("region_name") or first.get("region_id") or ""),
-        "marketTier": str(first.get("market_tier") or ""),
-        "marketType": str(first.get("market_type") or ""),
-        "startYear": start_year,
-        "finalYear": final_year,
-        "finalPotential": round(final_potential, 4),
-        "finalAirlineSupply": round(final_supply, 4),
-        "finalEffective": round(final_effective, 4),
-        "finalSupplyGap": round(max(0.0, final_potential - final_supply), 4),
-        "effectiveCagrPct": round(cagr_pct(first_effective, final_effective, final_year - start_year), 4),
-        "peakEffective": round(peak_effective, 4),
-        "finalBottleneck": market_bottleneck(final_potential, final_supply),
-        "bottleneckYears": bottleneck_years,
-        "points": points,
-    }
+cagr_pct = serializers.cagr_pct
+market_bottleneck = serializers.market_bottleneck
+summarize_city = serializers.summarize_city
 
 
 def aggregate_run(run_dir: Path, seed: int, years: int, elapsed_sec: float, cached: bool) -> dict[str, Any]:
@@ -1239,19 +1222,80 @@ def cache_path(run_dir: Path) -> Path:
     return run_dir / "seed_explorer_city_market_cache.json"
 
 
-def load_cached(run_dir: Path) -> dict[str, Any] | None:
+def cache_dependency_files() -> list[Path]:
+    files = {
+        path.resolve()
+        for path in TOOL_DIR.glob("seed_explorer_*.py")
+        if path.is_file()
+    }
+    files.update(path.resolve() for path in (ROOT_DIR / "macro_layers").glob("*.py") if path.is_file())
+    files.update(path.resolve() for path in (ROOT_DIR / "config").rglob("*.json") if path.is_file())
+    return sorted(files, key=lambda path: path.as_posix())
+
+
+@functools.lru_cache(maxsize=256)
+def _cached_dependency_bytes(path_text: str, modified_ns: int, size: int) -> bytes:
+    del modified_ns, size
+    return Path(path_text).read_bytes()
+
+
+def dependency_bytes(path: Path) -> bytes:
+    stat = path.stat()
+    return _cached_dependency_bytes(str(path.resolve()), stat.st_mtime_ns, stat.st_size)
+
+
+def current_cache_fingerprint() -> str:
+    digest = hashlib.sha256()
+    digest.update(CACHE_FINGERPRINT_VERSION.encode("utf-8"))
+    digest.update(b"\0")
+    digest.update(platform.python_implementation().encode("utf-8"))
+    digest.update(b"\0")
+    digest.update(sys.version.encode("utf-8"))
+    digest.update(b"\0")
+    digest.update(platform.platform().encode("utf-8"))
+    digest.update(b"\0")
+    for path in cache_dependency_files():
+        relative = path.relative_to(ROOT_DIR).as_posix()
+        digest.update(relative.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(dependency_bytes(path))
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def cache_metadata() -> dict[str, Any]:
+    return {
+        "cacheFingerprintVersion": CACHE_FINGERPRINT_VERSION,
+        "cacheFingerprint": current_cache_fingerprint(),
+        "cachePython": f"{platform.python_implementation()} {platform.python_version()}",
+        "cachePlatform": platform.platform(),
+    }
+
+
+def load_cached(run_dir: Path, expected_fingerprint: str | None = None) -> dict[str, Any] | None:
     path = cache_path(run_dir)
     if not path.exists():
         return None
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError):
+        return None
+    if payload.get("cacheFingerprintVersion") != CACHE_FINGERPRINT_VERSION:
+        return None
+    fingerprint = expected_fingerprint if expected_fingerprint is not None else current_cache_fingerprint()
+    if payload.get("cacheFingerprint") != fingerprint:
+        return None
+    return payload
 
 
 def save_cached(run_dir: Path, payload: dict[str, Any]) -> None:
-    cache_path(run_dir).write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    payload.update(cache_metadata())
+    atomic_write_text(cache_path(run_dir), json.dumps(payload, ensure_ascii=False))
 
 
-def cached_run_entry(run_dir: Path) -> dict[str, Any]:
-    payload = load_cached(run_dir) or {}
+def cached_run_entry(run_dir: Path, expected_fingerprint: str | None = None) -> dict[str, Any]:
+    cached_payload = load_cached(run_dir, expected_fingerprint)
+    payload = cached_payload or {}
     seed_from_name, years_from_name = parse_run_id(run_dir.name)
     stat = run_dir.stat()
     return {
@@ -1263,7 +1307,8 @@ def cached_run_entry(run_dir: Path) -> dict[str, Any]:
         "finalYear": payload.get("finalYear"),
         "generatedAt": payload.get("generatedAt", ""),
         "lastWriteTime": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(stat.st_mtime)),
-        "hasCityCache": cache_path(run_dir).exists(),
+        "hasCityCache": cached_payload is not None,
+        "cacheStatus": "valid" if cached_payload is not None else "missing_or_stale",
         "hasBeijingOperations": (run_dir / BEIJING_OPERATIONS_RELATIVE_CSV).exists(),
     }
 
@@ -1271,28 +1316,70 @@ def cached_run_entry(run_dir: Path) -> dict[str, Any]:
 def list_cached_runs() -> list[dict[str, Any]]:
     if not RUN_ROOT.exists():
         return []
-    prune_cached_runs()
     run_dirs = [path for path in RUN_ROOT.iterdir() if path.is_dir()]
     run_dirs.sort(key=lambda path: path.stat().st_mtime, reverse=True)
-    return [cached_run_entry(path) for path in run_dirs]
+    fingerprint = current_cache_fingerprint() if run_dirs else None
+    return [cached_run_entry(path, fingerprint) for path in run_dirs]
+
+
+def cache_retention_policy() -> dict[str, Any]:
+    try:
+        from airport_sim.cache_service import load_policy
+
+        policy = load_policy()
+        return {
+            "maxCachedRuns": int(policy["maxCachedRuns"]),
+            "pinnedRunIds": list(policy["pinnedRunIds"]),
+        }
+    except (ImportError, KeyError, TypeError, ValueError):
+        return {"maxCachedRuns": MAX_CACHED_RUNS, "pinnedRunIds": []}
 
 
 def prune_cached_runs() -> None:
     if not RUN_ROOT.exists():
         return
-    run_dirs = [path for path in RUN_ROOT.iterdir() if path.is_dir()]
-    stale = sorted(run_dirs, key=lambda path: path.stat().st_mtime, reverse=True)[MAX_CACHED_RUNS:]
+    # Staging directories belong to an in-flight atomic build (or an interrupted
+    # build for later diagnosis) and are never cache entries. Active per-Run
+    # directories are also excluded now that unrelated seeds may run in parallel.
+    with RUN_LOCKS_GUARD:
+        active_run_ids = set(RUN_LOCK_USERS)
+    run_dirs = [
+        path
+        for path in RUN_ROOT.iterdir()
+        if path.is_dir()
+        and not path.name.startswith(".staging_")
+        and path.name not in active_run_ids
+    ]
+    policy = cache_retention_policy()
+    max_cached_runs = int(policy["maxCachedRuns"])
+    pinned_run_ids = set(policy["pinnedRunIds"])
+    eligible = [path for path in run_dirs if path.name not in pinned_run_ids]
+    expected_fingerprint = current_cache_fingerprint() if eligible else None
+    valid = [path for path in eligible if load_cached(path, expected_fingerprint) is not None]
+    invalid = [path for path in eligible if path not in valid]
+    stale = invalid + sorted(valid, key=lambda path: path.stat().st_mtime, reverse=True)[max_cached_runs:]
     for path in stale:
-        resolved = ensure_inside(RUN_ROOT, path)
-        shutil.rmtree(resolved)
+        with try_lock_for_run(path.name) as reserved:
+            if not reserved or not path.exists():
+                continue
+            seed, years = parse_run_id(path.name)
+            if seed is not None and years is not None:
+                migrate_legacy_sim_save(seed, years)
+            resolved = ensure_inside(RUN_ROOT, path)
+            shutil.rmtree(resolved)
 
 
 def run_orchestrator(seed: int, years: int, run_dir: Path, force: bool) -> tuple[float, str]:
-    if force and run_dir.exists():
+    # This function is called only after a valid cache miss. The orchestrator now
+    # refuses to merge into an existing formal Run, so replace the stale cache
+    # directory here while preserving any migrated player save outside RUN_ROOT.
+    if run_dir.exists():
+        migrate_legacy_sim_save(seed, years)
         resolved = ensure_inside(RUN_ROOT, run_dir)
         shutil.rmtree(resolved)
     RUN_ROOT.mkdir(parents=True, exist_ok=True)
     started = time.perf_counter()
+    structured_log("orchestrator_start", run_id=run_dir.name, seed=seed, years=years, force=force)
     cmd = [
         sys.executable,
         str(ORCHESTRATOR),
@@ -1310,6 +1397,8 @@ def run_orchestrator(seed: int, years: int, run_dir: Path, force: bool) -> tuple
         str(ROOT_DIR / "output" / "seed_explorer_viewer"),
         "--publish-viewer",
         "none",
+        "--artifact-profile",
+        "seed-cache",
     ]
     result = subprocess.run(
         cmd,
@@ -1322,29 +1411,63 @@ def run_orchestrator(seed: int, years: int, run_dir: Path, force: bool) -> tuple
     elapsed = time.perf_counter() - started
     output_tail = (result.stdout + "\n" + result.stderr)[-6000:]
     if result.returncode != 0:
+        structured_log(
+            "orchestrator_failed",
+            run_id=run_dir.name,
+            seed=seed,
+            years=years,
+            return_code=result.returncode,
+            elapsed_sec=round(elapsed, 4),
+        )
         raise RuntimeError(f"orchestrator failed with code {result.returncode}\n{output_tail}")
+    structured_log(
+        "orchestrator_complete",
+        run_id=run_dir.name,
+        seed=seed,
+        years=years,
+        elapsed_sec=round(elapsed, 4),
+    )
     return elapsed, output_tail
 
 
 def run_seed(seed: int, years: int, force: bool) -> dict[str, Any]:
     run_dir = RUN_ROOT / run_id_for(seed, years)
+    update_task_progress(run_dir.name, seed, years, "running", "cache_check", 5, "正在检查缓存")
     cached_payload = None if force else load_cached(run_dir)
     if cached_payload:
         cached_payload["cached"] = True
         cached_payload["elapsedSec"] = 0.0
+        update_task_progress(run_dir.name, seed, years, "complete", "cache_hit", 100, "已读取缓存", cached=True)
         return cached_payload
 
-    with RUN_LOCK:
+    with lock_for_run(run_dir.name):
         cached_payload = None if force else load_cached(run_dir)
         if cached_payload:
             cached_payload["cached"] = True
             cached_payload["elapsedSec"] = 0.0
+            update_task_progress(run_dir.name, seed, years, "complete", "cache_hit", 100, "已读取缓存", cached=True)
             return cached_payload
-        elapsed, _ = run_orchestrator(seed, years, run_dir, force)
-        payload = aggregate_run(run_dir, seed, years, elapsed, cached=False)
-        save_cached(run_dir, payload)
-        prune_cached_runs()
-        return payload
+        try:
+            update_task_progress(run_dir.name, seed, years, "running", "model_run", 15, "Python 正在运行完整模型")
+            elapsed, _ = run_orchestrator(seed, years, run_dir, force)
+            update_task_progress(run_dir.name, seed, years, "running", "aggregate", 88, "正在聚合城市结果")
+            payload = aggregate_run(run_dir, seed, years, elapsed, cached=False)
+            save_cached(run_dir, payload)
+            prune_cached_runs()
+            update_task_progress(run_dir.name, seed, years, "complete", "complete", 100, "完整 Run 已就绪", cached=False)
+            return payload
+        except Exception as error:
+            update_task_progress(
+                run_dir.name,
+                seed,
+                years,
+                "failed",
+                "failed",
+                100,
+                f"{type(error).__name__}: {str(error).splitlines()[0][:240]}",
+                cached=False,
+            )
+            raise
 
 
 def update_simulation_city_row(row: dict[str, str]) -> dict[str, Any]:
@@ -1432,7 +1555,7 @@ def write_player_simulation_configs(
     player_actions: list[dict[str, Any]],
 ) -> tuple[Path, Path]:
     config_dir = run_dir / SIMULATION_DIR_NAME / "configs"
-    operations_config = read_json(BEIJING_OPERATIONS_CONFIG)
+    operations_config = read_config_json(BEIJING_OPERATIONS_CONFIG)
     operations_config["config_version"] = f"{operations_config.get('config_version', 'beijing-operations')}-simulate-default"
     operations_config["simulation_mode"] = "simulate_default"
     operations_config["simulation_design_note"] = (
@@ -1445,7 +1568,7 @@ def write_player_simulation_configs(
     operations_config["facility_rebuild_events"] = project_events["facility_rebuild_events"]
     operations_config["player_contract_actions"] = player_actions
 
-    finance_config = read_json(BEIJING_FINANCE_CONFIG)
+    finance_config = read_config_json(BEIJING_FINANCE_CONFIG)
     finance_config["config_version"] = f"{finance_config.get('config_version', 'beijing-finance')}-simulate-default"
     finance_config["simulation_mode"] = "simulate_default"
     finance_config["simulation_design_note"] = "Player-operation sandbox: loans are replayed from the seed-bound player action journal."
@@ -1932,7 +2055,7 @@ def aggregate_beijing_operations(
     }
 
 
-def load_beijing_operations(seed: int, years: int, force: bool, mode: str = "replay") -> dict[str, Any]:
+def _load_beijing_operations_locked(seed: int, years: int, force: bool, mode: str = "replay") -> dict[str, Any]:
     run_payload = run_seed(seed, years, force)
     run_dir = RUN_ROOT / str(run_payload["runId"])
     if mode == "simulate_default":
@@ -1954,6 +2077,11 @@ def load_beijing_operations(seed: int, years: int, force: bool, mode: str = "rep
         run_payload = run_seed(seed, years, True)
         run_dir = RUN_ROOT / str(run_payload["runId"])
         return aggregate_beijing_operations(run_dir, seed, years, False, mode)
+
+
+def load_beijing_operations(seed: int, years: int, force: bool, mode: str = "replay") -> dict[str, Any]:
+    with lock_for_run(run_id_for(seed, years)):
+        return _load_beijing_operations_locked(seed, years, force, mode)
 
 
 def player_contract_previews(
@@ -2053,7 +2181,7 @@ def player_contract_previews(
     return previews
 
 
-def load_player_simulation(
+def _load_player_simulation_locked(
     seed: int,
     years: int,
     force: bool,
@@ -2093,7 +2221,7 @@ def load_player_simulation(
             "slotNames": player_slot_names(clean_actions),
             "projectCatalog": project_catalog(),
             "financingProducts": FINANCING_PRODUCTS,
-            "financingPolicy": read_json(BEIJING_FINANCE_CONFIG).get("debt_policy", {}).get("loan_rate_model", {}),
+            "financingPolicy": read_config_json(BEIJING_FINANCE_CONFIG).get("debt_policy", {}).get("loan_rate_model", {}),
             "contractPreviews": player_contract_previews(all_quarters, active_index),
             "operationSource": "simulation_default/server_action_journal",
         }
@@ -2101,34 +2229,237 @@ def load_player_simulation(
     return payload
 
 
+def load_player_simulation(
+    seed: int,
+    years: int,
+    force: bool,
+    player_actions: list[dict[str, Any]],
+    current_quarter_index: int | None,
+) -> dict[str, Any]:
+    # Short runs remain useful for fast city/model inspection, but they end at
+    # or shortly after the 2030 player handover.  A playable operations world
+    # therefore always uses the full long-horizon contract.
+    years = max(PLAYER_SIMULATION_MIN_YEARS, clean_years(years))
+    with lock_for_run(run_id_for(seed, years)):
+        return _load_player_simulation_locked(seed, years, force, player_actions, current_quarter_index)
+
+
+def current_viewer_release_status() -> dict[str, Any]:
+    manifest_path = OUTPUT_ROOT / "current_viewer_manifest.json"
+    manifest: dict[str, Any] = {}
+    if manifest_path.exists():
+        try:
+            loaded = read_json(manifest_path)
+            if isinstance(loaded, dict):
+                manifest = loaded
+        except (OSError, ValueError, json.JSONDecodeError):
+            manifest = {}
+    release_id = str(manifest.get("release_id") or "").strip()
+    return {
+        "mode": "versioned_release" if release_id else "legacy_canonical",
+        "releaseId": release_id or None,
+        "runId": manifest.get("run_id"),
+        "variant": manifest.get("variant"),
+        "seed": manifest.get("seed"),
+        "startYear": manifest.get("start_year"),
+        "years": manifest.get("years"),
+        "modelVersion": manifest.get("model_version"),
+        "outputSchemaVersion": manifest.get("output_schema_version"),
+        "generatedAt": manifest.get("generated_at"),
+        "schemaVersion": manifest.get("schema_version"),
+    }
+
+
+def workspace_status() -> dict[str, Any]:
+    cached_runs = list_cached_runs()
+    save_count = sum(1 for path in SAVE_ROOT.glob("**/dynamic_test_save.json") if path.is_file())
+    return {
+        "ok": True,
+        "serviceId": LOCAL_UI_SERVICE_ID,
+        "servicePid": os.getpid(),
+        "viewerRelease": current_viewer_release_status(),
+        "cachedRunCount": len(cached_runs),
+        "saveCount": save_count,
+        "runRoot": str(RUN_ROOT.relative_to(ROOT_DIR).as_posix()),
+        "saveRoot": str(SAVE_ROOT.relative_to(ROOT_DIR).as_posix()),
+        "pages": {
+            "home": "/",
+            "seedExplorer": "/seed-explorer",
+            "globalGdp": "/global-gdp",
+            "beijingOperations": "/beijing-operations",
+            "beijingForecast": "/beijing-forecast",
+        },
+    }
+
+
+def safe_output_file(request_path: str) -> Path | None:
+    prefix = "/output/"
+    if not request_path.startswith(prefix):
+        return None
+    relative_text = unquote(request_path[len(prefix) :]).replace("\\", "/")
+    if not relative_text or relative_text.startswith("/"):
+        return None
+    candidate = (OUTPUT_ROOT / relative_text).resolve()
+    try:
+        candidate.relative_to(OUTPUT_ROOT.resolve())
+    except ValueError:
+        return None
+    if candidate.suffix.lower() not in STATIC_CONTENT_TYPES:
+        return None
+    return candidate if candidate.is_file() else None
+
+
+def safe_schema_file(request_path: str) -> Path | None:
+    prefix = "/schemas/"
+    if not request_path.startswith(prefix):
+        return None
+    name = unquote(request_path[len(prefix) :])
+    if not name or "/" in name or "\\" in name or not name.endswith(".schema.json"):
+        return None
+    candidate = (SCHEMA_ROOT / name).resolve()
+    try:
+        candidate.relative_to(SCHEMA_ROOT.resolve())
+    except ValueError:
+        return None
+    return candidate if candidate.is_file() else None
+
+
+def safe_static_file(request_path: str) -> Path | None:
+    prefix = "/static/"
+    if not request_path.startswith(prefix):
+        return None
+    relative_text = unquote(request_path[len(prefix) :]).replace("\\", "/")
+    if not relative_text or relative_text.startswith("/"):
+        return None
+    candidate = (STATIC_ROOT / relative_text).resolve()
+    try:
+        candidate.relative_to(STATIC_ROOT.resolve())
+    except ValueError:
+        return None
+    if candidate.suffix.lower() not in STATIC_CONTENT_TYPES:
+        return None
+    return candidate if candidate.is_file() else None
+
+
+def is_loopback_host(host: str | None) -> bool:
+    clean_host = str(host or "").strip().strip("[]").lower()
+    if clean_host == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(clean_host).is_loopback
+    except ValueError:
+        return False
+
+
+def request_is_local(handler: BaseHTTPRequestHandler) -> bool:
+    if bool(getattr(handler.server, "allow_non_loopback", False)):
+        return True
+    host_name = urlparse(f"//{handler.headers.get('Host', '')}").hostname
+    if not is_loopback_host(host_name):
+        return False
+    origin = str(handler.headers.get("Origin") or "").strip()
+    if not origin:
+        return True
+    return is_loopback_host(urlparse(origin).hostname)
+
+
+def api_schema_catalog() -> dict[str, Any]:
+    return {
+        "ok": True,
+        "catalogVersion": SCHEMA_CATALOG_VERSION,
+        "jsonSchemaDraft": "https://json-schema.org/draft/2020-12/schema",
+        "schemas": {
+            schema_id: f"/schemas/{filename}"
+            for schema_id, filename in SCHEMA_FILES.items()
+        },
+        "endpoints": {
+            "GET /api/health": "/schemas/health-response.schema.json",
+            "GET /api/workspace-status": "/schemas/workspace-status-response.schema.json",
+            "GET /api/random-seed": "/schemas/random-seed-response.schema.json",
+            "GET /api/task-status": "/schemas/task-progress-response.schema.json",
+            "POST /api/run-job": "/schemas/background-job-response.schema.json",
+            "GET /api/jobs/<jobId>": "/schemas/background-job-response.schema.json",
+            "POST /api/run": "/schemas/seed-explorer-run-response.schema.json",
+            "POST /api/beijing-operations": "/schemas/beijing-operations-response.schema.json",
+            "POST /api/player-simulation": "/schemas/player-simulation-response.schema.json",
+            "error": "/schemas/api-error-response.schema.json",
+        },
+    }
+
+
+def api_metadata() -> dict[str, Any]:
+    return {
+        "apiSchemaVersion": SEED_EXPLORER_API_SCHEMA_VERSION,
+        "modelVersion": MODEL_VERSION,
+        "outputSchemaVersion": OUTPUT_SCHEMA_VERSION,
+        "pythonVersion": platform.python_version(),
+        "schemaCatalog": "/api/schema",
+    }
+
+
+def api_envelope(payload: dict[str, Any]) -> dict[str, Any]:
+    return http_utils.api_envelope(payload, api_metadata())
+
+
 def json_response(handler: BaseHTTPRequestHandler, status: int, payload: dict[str, Any]) -> None:
-    raw = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    handler.send_response(status)
-    handler.send_header("Content-Type", "application/json; charset=utf-8")
-    handler.send_header("Content-Length", str(len(raw)))
-    handler.end_headers()
-    handler.wfile.write(raw)
+    http_utils.json_response(handler, status, payload, api_metadata())
+
+
+def api_error_response(
+    handler: BaseHTTPRequestHandler,
+    status: int,
+    error_code: str,
+    message: str,
+) -> None:
+    http_utils.api_error_response(handler, status, error_code, message, api_metadata())
+
+
+def read_json_request(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
+    return http_utils.read_json_request(handler, MAX_REQUEST_BODY_BYTES)
+
+
+def redirect_response(handler: BaseHTTPRequestHandler, location: str) -> None:
+    http_utils.redirect_response(handler, location)
 
 
 def file_response(handler: BaseHTTPRequestHandler, path: Path, content_type: str) -> None:
-    raw = path.read_bytes()
-    handler.send_response(200)
-    handler.send_header("Content-Type", content_type)
-    handler.send_header("Content-Length", str(len(raw)))
-    handler.end_headers()
-    handler.wfile.write(raw)
+    http_utils.file_response(handler, path, content_type)
 
 
 class SeedExplorerHandler(BaseHTTPRequestHandler):
-    server_version = "SeedExplorer/0.1"
+    server_version = "AirportLocalUI/1.0"
 
     def log_message(self, format: str, *args: Any) -> None:
         sys.stderr.write("%s - - [%s] %s\n" % (self.address_string(), self.log_date_time_string(), format % args))
 
     def do_GET(self) -> None:
-        path = urlparse(self.path).path
-        if path in {"/", "/seed_explorer_viewer.html"}:
-            file_response(self, VIEWER_HTML, "text/html; charset=utf-8")
+        if not request_is_local(self):
+            api_error_response(self, 403, "non_local_request", "本地服务拒绝了非本机来源的请求")
+            return
+        parsed_url = urlparse(self.path)
+        path = parsed_url.path
+        if path in {"/", "/airport_home.html"}:
+            file_response(self, HOME_HTML, "text/html; charset=utf-8")
+            return
+        redirect_target = VIEWER_REDIRECTS.get(path)
+        if redirect_target is not None:
+            redirect_response(self, redirect_target)
+            return
+        viewer_path = VIEWER_ROUTES.get(path)
+        if viewer_path is not None:
+            file_response(self, viewer_path, "text/html; charset=utf-8")
+            return
+        output_path = safe_output_file(path)
+        if output_path is not None:
+            file_response(self, output_path, STATIC_CONTENT_TYPES[output_path.suffix.lower()])
+            return
+        schema_path = safe_schema_file(path)
+        if schema_path is not None:
+            file_response(self, schema_path, "application/schema+json; charset=utf-8")
+            return
+        static_path = safe_static_file(path)
+        if static_path is not None:
+            file_response(self, static_path, STATIC_CONTENT_TYPES[static_path.suffix.lower()])
             return
         if path == "/api/health":
             json_response(
@@ -2136,10 +2467,50 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
                 200,
                 {
                     "ok": True,
+                    "serviceId": LOCAL_UI_SERVICE_ID,
+                    "servicePid": os.getpid(),
                     "runRoot": str(RUN_ROOT.relative_to(ROOT_DIR).as_posix()),
-                    "maxCachedRuns": MAX_CACHED_RUNS,
+                    "saveRoot": str(SAVE_ROOT.relative_to(ROOT_DIR).as_posix()),
+                    "maxCachedRuns": cache_retention_policy()["maxCachedRuns"],
+                    "cacheFingerprintVersion": CACHE_FINGERPRINT_VERSION,
                 },
             )
+            return
+        if path == "/api/workspace-status":
+            json_response(self, 200, workspace_status())
+            return
+        if path == "/api/random-seed":
+            json_response(
+                self,
+                200,
+                {
+                    "ok": True,
+                    "seed": 20_260_000 + secrets.randbelow(2_000),
+                    "source": "python-secrets",
+                },
+            )
+            return
+        if path == "/api/task-status":
+            query = parse_qs(parsed_url.query)
+            try:
+                seed = clean_seed(query.get("seed", [""])[0])
+                years = clean_years(query.get("years", [60])[0])
+            except ValueError as error:
+                json_response(self, 400, {"ok": False, "error": str(error)})
+                return
+            run_id = run_id_for(seed, years)
+            json_response(self, 200, task_progress(run_id, seed, years))
+            return
+        if path.startswith("/api/jobs/"):
+            job_id = path.removeprefix("/api/jobs/").strip()
+            payload = background_jobs.get_job(job_id)
+            if payload is None:
+                api_error_response(self, 404, "job_not_found", "后台任务不存在或已经过期")
+            else:
+                json_response(self, 200, payload)
+            return
+        if path == "/api/schema":
+            json_response(self, 200, api_schema_catalog())
             return
         if path == "/api/cached-runs":
             json_response(
@@ -2148,7 +2519,9 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
                 {
                     "ok": True,
                     "runRoot": str(RUN_ROOT.relative_to(ROOT_DIR).as_posix()),
-                    "maxCachedRuns": MAX_CACHED_RUNS,
+                    "saveRoot": str(SAVE_ROOT.relative_to(ROOT_DIR).as_posix()),
+                    "maxCachedRuns": cache_retention_policy()["maxCachedRuns"],
+                    "cacheFingerprintVersion": CACHE_FINGERPRINT_VERSION,
                     "runs": list_cached_runs(),
                 },
             )
@@ -2168,9 +2541,13 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
         json_response(self, 404, {"ok": False, "error": "not found"})
 
     def do_POST(self) -> None:
+        if not request_is_local(self):
+            api_error_response(self, 403, "non_local_request", "本地服务拒绝了非本机来源的请求")
+            return
         path = urlparse(self.path).path
         if path not in {
             "/api/run",
+            "/api/run-job",
             "/api/beijing-operations",
             "/api/player-simulation",
             "/api/sim-save",
@@ -2179,9 +2556,13 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
             json_response(self, 404, {"ok": False, "error": "not found"})
             return
         try:
-            length = int(self.headers.get("Content-Length", "0"))
-            raw = self.rfile.read(length).decode("utf-8") if length else "{}"
-            body = json.loads(raw or "{}")
+            body = read_json_request(self)
+            if path == "/api/run-job":
+                seed = clean_seed(body.get("seed"))
+                years = clean_years(body.get("years", 60))
+                force = bool(body.get("force", False))
+                json_response(self, 202, submit_run_job(seed, years, force))
+                return
             if path in {"/api/sim-save", "/api/sim-save-slot"}:
                 seed = clean_seed(body.get("seed"))
                 years = clean_years(body.get("years", 60))
@@ -2234,27 +2615,68 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
             else:
                 payload = run_seed(seed, years, force)
             json_response(self, 200, {"ok": True, **payload})
+        except UnsupportedMediaTypeError as exc:
+            api_error_response(self, 415, "unsupported_media_type", str(exc))
+        except RequestTooLargeError as exc:
+            api_error_response(self, 413, "request_too_large", str(exc))
+        except ValueError as exc:
+            api_error_response(self, 400, "invalid_request", str(exc))
+        except FileNotFoundError as exc:
+            api_error_response(self, 404, "resource_not_found", str(exc))
+        except FileExistsError as exc:
+            api_error_response(self, 409, "resource_conflict", str(exc))
+        except background_jobs.JobQueueFullError as exc:
+            api_error_response(self, 503, "job_queue_full", str(exc))
+        except subprocess.TimeoutExpired:
+            structured_log("api_error", path=path, error_type="TimeoutExpired")
+            api_error_response(self, 504, "task_timeout", "模型运行超时，请稍后重试")
         except Exception as exc:
-            json_response(self, 500, {"ok": False, "error": str(exc)})
+            structured_log("api_error", path=path, error_type=type(exc).__name__)
+            api_error_response(self, 500, "internal_error", "服务运行失败，请查看启动窗口中的错误日志")
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Local full-chain city market seed explorer.")
+    parser = argparse.ArgumentParser(description="Airport local UI and full-chain seed explorer.")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8776)
-    parser.add_argument("--open", action="store_true", help="Open the explorer in the default browser.")
+    parser.add_argument(
+        "--allow-non-loopback",
+        action="store_true",
+        help="Explicitly allow binding outside localhost; disables local Host/Origin checks.",
+    )
+    parser.add_argument("--open", action="store_true", help="Open the local UI in the default browser.")
+    parser.add_argument("--open-path", default="/", help="Local page to open after starting the server.")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
+    if not is_loopback_host(args.host) and not args.allow_non_loopback:
+        raise ValueError("non-loopback --host requires explicit --allow-non-loopback")
     if not ORCHESTRATOR.exists():
         raise FileNotFoundError(f"missing orchestrator: {ORCHESTRATOR}")
+    if not HOME_HTML.exists():
+        raise FileNotFoundError(f"missing local UI home page: {HOME_HTML}")
     if not VIEWER_HTML.exists():
         raise FileNotFoundError(f"missing viewer: {VIEWER_HTML}")
+    missing_schemas = [
+        str((SCHEMA_ROOT / filename).relative_to(ROOT_DIR).as_posix())
+        for filename in SCHEMA_FILES.values()
+        if not (SCHEMA_ROOT / filename).is_file()
+    ]
+    if missing_schemas:
+        raise FileNotFoundError(f"missing API Schema files: {', '.join(missing_schemas)}")
+    migrated_saves = migrate_all_legacy_sim_saves()
+    if migrated_saves:
+        print(f"Migrated {migrated_saves} legacy dynamic-test save(s) to {SAVE_ROOT.relative_to(ROOT_DIR).as_posix()}.")
     server = ThreadingHTTPServer((args.host, args.port), SeedExplorerHandler)
-    url = f"http://{args.host}:{args.port}/"
-    print(f"Seed Explorer listening on {url}")
+    server.allow_non_loopback = bool(args.allow_non_loopback)
+    base_url = f"http://{args.host}:{args.port}"
+    open_path = str(args.open_path or "/").strip()
+    if not open_path.startswith("/") or open_path.startswith("//"):
+        raise ValueError("--open-path must be a local absolute path beginning with one '/'")
+    url = f"{base_url}{open_path}"
+    print(f"Airport local UI listening on {base_url}/")
     print("Press Ctrl+C to stop.")
     if args.open:
         webbrowser.open(url)

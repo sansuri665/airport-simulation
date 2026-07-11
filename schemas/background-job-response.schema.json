@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/background-job-response.schema.json",
+  "title": "Airport optional background job status",
+  "allOf": [
+    { "$ref": "api-envelope.schema.json" },
+    {
+      "type": "object",
+      "required": ["ok", "schemaVersion", "jobId", "kind", "key", "status", "submittedAt"],
+      "properties": {
+        "ok": { "const": true },
+        "schemaVersion": { "const": "airport-background-job-v1" },
+        "jobId": { "type": "string", "pattern": "^[0-9a-f]{24}$" },
+        "kind": { "type": "string", "minLength": 1 },
+        "key": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["queued", "running", "complete", "failed"] },
+        "submittedAt": { "type": "string", "minLength": 1 },
+        "startedAt": { "type": ["string", "null"] },
+        "completedAt": { "type": ["string", "null"] },
+        "updatedEpoch": { "type": "number" },
+        "deduplicated": { "type": "boolean" },
+        "result": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    }
+  ]
+}

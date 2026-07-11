@@ -1,0 +1,96 @@
+{
+  "snapshotSchemaVersion": "seed-explorer-api-snapshot-v1",
+  "apiSchemaVersion": "seed-explorer-api-v1",
+  "modelVersion": "airport-model-v0.5",
+  "outputSchemaVersion": "airport-model-output-v1",
+  "schemaCatalog": "/api/schema",
+  "seed": 20261324,
+  "years": 12,
+  "cityMarket": {
+    "sha256": "a09160853159f4ae4ddab32aa9f7eb19c5fbad14e923609d71078bd225912c78",
+    "cityCount": 47,
+    "cityKeys": [
+      "id", "name", "region", "marketTier", "marketType", "startYear", "finalYear",
+      "finalPotential", "finalAirlineSupply", "finalEffective", "finalSupplyGap",
+      "effectiveCagrPct", "peakEffective", "finalBottleneck", "bottleneckYears", "points"
+    ],
+    "pointKeys": [
+      "year", "potential", "airlineSupply", "effective", "served", "supplyGap",
+      "supplyFulfillmentPct", "bindingBottleneck", "supplyRegime", "supplyVolatilityRegime"
+    ],
+    "leader": {
+      "id": "shanghai_airport_system",
+      "finalPotential": 167.3163,
+      "finalAirlineSupply": 170.3947,
+      "finalEffective": 167.3163,
+      "finalSupplyGap": 0.0,
+      "effectiveCagrPct": 2.472,
+      "finalBottleneck": "demand_limited"
+    },
+    "beijing": {
+      "id": "beijing_airport_system",
+      "finalPotential": 156.0068,
+      "finalAirlineSupply": 136.8381,
+      "finalEffective": 136.8381,
+      "finalSupplyGap": 19.1687,
+      "effectiveCagrPct": 1.2624,
+      "finalBottleneck": "airline_supply_limited"
+    }
+  },
+  "beijingOperations": {
+    "sha256": "592697c3a54e0cdc6ada77f14d94a757a9cde65fe1af1c89683aa1c288912426",
+    "periodCount": 52,
+    "playerStartIndex": 20,
+    "quarterKeys": [
+      "index", "year", "quarter", "label", "gamePhase", "playerDecisionEnabled",
+      "demand", "capacity", "operations", "finance", "projects", "warnings"
+    ],
+    "nestedKeysSha256": "369e5c734b44d460ea2fea2d645720c2ea847d1b232ced4789cf1563c55c6d4e",
+    "nestedKeyCounts": {
+      "demand": 11,
+      "capacity": 15,
+      "operations": 62,
+      "finance": 46,
+      "projects": 41
+    },
+    "firstQuarter": {
+      "label": "2025 Q1",
+      "gamePhase": "startup_operating_history",
+      "playerDecisionEnabled": false,
+      "annualServed": 117.7139,
+      "quarterServed": 30.4205,
+      "totalRevenue": 4733.2718,
+      "operatingProfit": 826.1743,
+      "endCash": 18826.1743,
+      "totalAssets": 128933.4064,
+      "grossDebt": 0.0,
+      "warnings": []
+    },
+    "playerStartQuarter": {
+      "label": "2030 Q1",
+      "gamePhase": "player_operation",
+      "playerDecisionEnabled": true,
+      "annualServed": 132.1694,
+      "quarterServed": 34.127,
+      "totalRevenue": 5479.2159,
+      "operatingProfit": 1177.368,
+      "endCash": 43156.3038,
+      "totalAssets": 135986.7502,
+      "grossDebt": 5000.0,
+      "warnings": []
+    },
+    "finalQuarter": {
+      "label": "2037 Q4",
+      "gamePhase": "player_operation",
+      "playerDecisionEnabled": true,
+      "annualServed": 136.8381,
+      "quarterServed": 32.0863,
+      "totalRevenue": 5361.5622,
+      "operatingProfit": 1259.1788,
+      "endCash": 72603.2352,
+      "totalAssets": 144438.5352,
+      "grossDebt": 0.0,
+      "warnings": []
+    }
+  }
+}

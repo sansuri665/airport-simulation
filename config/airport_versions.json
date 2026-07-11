@@ -1,0 +1,9 @@
+{
+  "schema_version": "airport-version-record-v1",
+  "model_version": "airport-model-v0.5",
+  "orchestrator_version": "macro-run-orchestrator-v0.5",
+  "output_schema_version": "airport-model-output-v1",
+  "run_manifest_schema_version": "airport-macro-run-manifest-v1",
+  "seed_explorer_api_schema_version": "seed-explorer-api-v1",
+  "minimum_python_version": "3.13"
+}

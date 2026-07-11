@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/operations-viewer-chunk.schema.json",
+  "title": "Airport operations Viewer deferred dataset chunk",
+  "type": "object",
+  "required": ["schemaVersion", "datasetId", "marketId", "rowCount", "rows"],
+  "properties": {
+    "schemaVersion": { "const": "airport-operations-viewer-chunk-v1" },
+    "datasetId": { "const": "valuation" },
+    "marketId": { "type": "string", "minLength": 1 },
+    "rowCount": { "type": "integer", "minimum": 0 },
+    "rows": { "type": "array", "items": { "type": "object" } }
+  },
+  "additionalProperties": false
+}

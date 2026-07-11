@@ -1,26 +1,59 @@
 from __future__ import annotations
 
+from importlib import import_module
+
+_SIBLING_PREFIX = f"{__package__}." if __package__ else ""
+simulation_io = import_module(f"{_SIBLING_PREFIX}simulation_io")
+simulation_utils = import_module(f"{_SIBLING_PREFIX}simulation_utils")
+
+write_csv = simulation_io.write_csv
+write_json = simulation_io.write_json
+clamp = simulation_utils.clamp
+resolve_seeds = simulation_utils.resolve_seeds
+round_record = simulation_utils.round_record
+
 import argparse
-import csv
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from statistics import mean, pstdev
-from typing import Any, Iterable, Mapping
+from typing import Any, Mapping
 
-from global_asset_price_layer_sim import ASSET_PRICE_PARAM_VERSION, AssetPriceParams, simulate_asset_prices_for_credit_path
-from global_credit_spread_layer_sim import CREDIT_SPREAD_PARAM_VERSION, CreditSpreadParams, simulate_credit_spreads_for_dollar_path
-from global_dollar_liquidity_layer_sim import DOLLAR_LIQUIDITY_PARAM_VERSION, DollarLiquidityParams, simulate_dollar_liquidity_for_yield_path
-from global_gdp_annual_sim import GDPParams, PARAM_VERSION as GDP_PARAM_VERSION, simulate_global_gdp
-from global_inflation_annual_sim import INFLATION_PARAM_VERSION, InflationParams, as_float, simulate_inflation_for_gdp_path
-from global_oil_commodity_layer_sim import (
-    COMBINED_OIL_COMMODITY_FIELDS,
-    OIL_COMMODITY_PARAM_VERSION,
-    OilCommodityParams,
-    simulate_oil_commodities_for_asset_path,
-)
-from global_policy_rate_layer_sim import POLICY_PARAM_VERSION, PolicyRateParams, simulate_policy_for_macro_path
-from global_yield_curve_layer_sim import YIELD_CURVE_PARAM_VERSION, YieldCurveParams, simulate_yield_curve_for_policy_path
+asset_price_layer = import_module(f"{_SIBLING_PREFIX}global_asset_price_layer_sim")
+credit_spread_layer = import_module(f"{_SIBLING_PREFIX}global_credit_spread_layer_sim")
+dollar_liquidity_layer = import_module(f"{_SIBLING_PREFIX}global_dollar_liquidity_layer_sim")
+global_gdp_layer = import_module(f"{_SIBLING_PREFIX}global_gdp_annual_sim")
+inflation_layer = import_module(f"{_SIBLING_PREFIX}global_inflation_annual_sim")
+oil_commodity_layer = import_module(f"{_SIBLING_PREFIX}global_oil_commodity_layer_sim")
+policy_rate_layer = import_module(f"{_SIBLING_PREFIX}global_policy_rate_layer_sim")
+yield_curve_layer = import_module(f"{_SIBLING_PREFIX}global_yield_curve_layer_sim")
+
+ASSET_PRICE_PARAM_VERSION = asset_price_layer.ASSET_PRICE_PARAM_VERSION
+AssetPriceParams = asset_price_layer.AssetPriceParams
+simulate_asset_prices_for_credit_path = asset_price_layer.simulate_asset_prices_for_credit_path
+CREDIT_SPREAD_PARAM_VERSION = credit_spread_layer.CREDIT_SPREAD_PARAM_VERSION
+CreditSpreadParams = credit_spread_layer.CreditSpreadParams
+simulate_credit_spreads_for_dollar_path = credit_spread_layer.simulate_credit_spreads_for_dollar_path
+DOLLAR_LIQUIDITY_PARAM_VERSION = dollar_liquidity_layer.DOLLAR_LIQUIDITY_PARAM_VERSION
+DollarLiquidityParams = dollar_liquidity_layer.DollarLiquidityParams
+simulate_dollar_liquidity_for_yield_path = dollar_liquidity_layer.simulate_dollar_liquidity_for_yield_path
+GDPParams = global_gdp_layer.GDPParams
+GDP_PARAM_VERSION = global_gdp_layer.PARAM_VERSION
+simulate_global_gdp = global_gdp_layer.simulate_global_gdp
+INFLATION_PARAM_VERSION = inflation_layer.INFLATION_PARAM_VERSION
+InflationParams = inflation_layer.InflationParams
+as_float = inflation_layer.as_float
+simulate_inflation_for_gdp_path = inflation_layer.simulate_inflation_for_gdp_path
+COMBINED_OIL_COMMODITY_FIELDS = oil_commodity_layer.COMBINED_OIL_COMMODITY_FIELDS
+OIL_COMMODITY_PARAM_VERSION = oil_commodity_layer.OIL_COMMODITY_PARAM_VERSION
+OilCommodityParams = oil_commodity_layer.OilCommodityParams
+simulate_oil_commodities_for_asset_path = oil_commodity_layer.simulate_oil_commodities_for_asset_path
+POLICY_PARAM_VERSION = policy_rate_layer.POLICY_PARAM_VERSION
+PolicyRateParams = policy_rate_layer.PolicyRateParams
+simulate_policy_for_macro_path = policy_rate_layer.simulate_policy_for_macro_path
+YIELD_CURVE_PARAM_VERSION = yield_curve_layer.YIELD_CURVE_PARAM_VERSION
+YieldCurveParams = yield_curve_layer.YieldCurveParams
+simulate_yield_curve_for_policy_path = yield_curve_layer.simulate_yield_curve_for_policy_path
 
 
 MACRO_FEEDBACK_PARAM_VERSION = "global-macro-feedback-calibration-v0.1"
@@ -96,20 +129,9 @@ class MacroFeedbackParams:
     convergence_delta_index_tolerance: float = 75.0
 
 
-def clamp(value: float, low: float, high: float) -> float:
-    return max(low, min(high, value))
-
 
 def smooth(old: float, target: float, speed: float) -> float:
     return old * (1.0 - speed) + target * speed
-
-
-def round_record(record: dict[str, Any]) -> dict[str, Any]:
-    result = dict(record)
-    for key, value in list(result.items()):
-        if isinstance(value, float):
-            result[key] = round(value, 4)
-    return result
 
 
 def calibrated_gdp_params(args: argparse.Namespace) -> GDPParams:
@@ -941,20 +963,6 @@ def summarize_seed(records: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def write_csv(path: Path, rows: Iterable[dict[str, Any]], fields: list[str]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as handle:
-        json.dump(payload, handle, ensure_ascii=False, indent=2)
-
-
 def write_viewer_data_js(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(rows, ensure_ascii=False, separators=(",", ":"))
@@ -1035,14 +1043,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=Path(__file__).resolve().parents[1] / "output" / "global_macro")
     parser.add_argument("--no-svg", action="store_true", help="Skip writing the SVG chart.")
     return parser.parse_args()
-
-
-def resolve_seeds(args: argparse.Namespace) -> list[int]:
-    if args.seed is not None:
-        return [args.seed]
-    if args.seeds:
-        return list(dict.fromkeys(args.seeds))
-    return list(range(args.seed_start, args.seed_start + args.seed_count))
 
 
 def main() -> int:

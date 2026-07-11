@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/forecast-viewer-lazy-index.schema.json",
+  "title": "Effective passenger forecast Viewer lazy index",
+  "type": "object",
+  "required": [
+    "schemaVersion", "chunkSchemaVersion", "config", "totalRows", "seeds",
+    "defaultReportId", "chunkBase", "reports"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "airport-forecast-viewer-lazy-index-v1" },
+    "chunkSchemaVersion": { "const": "airport-forecast-viewer-report-chunk-v1" },
+    "config": {
+      "type": "object",
+      "required": [
+        "config_version", "forecast_model_version", "city_airport_market_id",
+        "city_name", "region_id", "forecast_reports"
+      ],
+      "additionalProperties": true
+    },
+    "totalRows": { "type": "integer", "minimum": 0 },
+    "seeds": { "type": "array", "items": { "type": "integer" } },
+    "defaultReportId": { "type": "string" },
+    "chunkBase": { "type": "string", "minLength": 1 },
+    "baseUrl": { "type": "string", "minLength": 1 },
+    "reports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["reportId", "rowCount", "file", "sha256", "bytes"],
+        "properties": {
+          "reportId": { "type": "string", "minLength": 1 },
+          "rowCount": { "type": "integer", "minimum": 0 },
+          "file": { "type": "string", "pattern": "^r_.*\\.json$" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "bytes": { "type": "integer", "minimum": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}

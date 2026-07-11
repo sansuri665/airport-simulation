@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/api-error-response.schema.json",
+  "title": "Airport local API error response",
+  "allOf": [
+    { "$ref": "api-envelope.schema.json" },
+    {
+      "type": "object",
+      "required": ["ok", "error"],
+      "properties": {
+        "ok": { "const": false },
+        "error": { "type": "string", "minLength": 1 },
+        "errorCode": { "type": "string", "minLength": 1 }
+      }
+    }
+  ]
+}

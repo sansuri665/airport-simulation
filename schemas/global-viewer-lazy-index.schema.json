@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/global-viewer-lazy-index.schema.json",
+  "title": "Global macro Viewer regional lazy index",
+  "type": "object",
+  "required": ["schemaVersion", "chunkSchemaVersion", "chunkBase", "regions"],
+  "properties": {
+    "schemaVersion": { "const": "airport-global-viewer-lazy-index-v1" },
+    "chunkSchemaVersion": { "const": "airport-global-viewer-region-chunk-v1" },
+    "chunkBase": { "type": "string", "minLength": 1 },
+    "baseUrl": { "type": "string", "minLength": 1 },
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "regionId", "regionName", "regionalMacroRowCount",
+          "aviationDemandRowCount", "airCapacitySupplyRowCount",
+          "file", "sha256", "bytes"
+        ],
+        "properties": {
+          "regionId": { "type": "string", "minLength": 1 },
+          "regionName": { "type": "string", "minLength": 1 },
+          "regionalMacroRowCount": { "type": "integer", "minimum": 0 },
+          "aviationDemandRowCount": { "type": "integer", "minimum": 0 },
+          "airCapacitySupplyRowCount": { "type": "integer", "minimum": 0 },
+          "file": { "type": "string", "pattern": "^r_.*\\.json$" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "bytes": { "type": "integer", "minimum": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}

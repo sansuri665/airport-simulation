@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/task-progress-response.schema.json",
+  "title": "Seed Explorer task progress response",
+  "type": "object",
+  "required": [
+    "ok", "schemaVersion", "runId", "seed", "years", "status", "phase",
+    "progressPct", "message", "apiSchemaVersion", "modelVersion",
+    "outputSchemaVersion", "pythonVersion"
+  ],
+  "properties": {
+    "ok": { "const": true },
+    "schemaVersion": { "const": "airport-task-progress-v1" },
+    "runId": { "type": "string", "minLength": 1 },
+    "seed": { "type": "integer", "minimum": 0 },
+    "years": { "type": "integer", "minimum": 5, "maximum": 90 },
+    "status": { "enum": ["idle", "running", "complete", "failed"] },
+    "phase": { "type": "string", "minLength": 1 },
+    "progressPct": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "message": { "type": "string" },
+    "cached": { "type": ["boolean", "null"] },
+    "updatedAt": { "type": ["string", "null"] },
+    "updatedEpoch": { "type": ["number", "null"] },
+    "apiSchemaVersion": { "type": "string", "minLength": 1 },
+    "modelVersion": { "type": "string", "minLength": 1 },
+    "outputSchemaVersion": { "type": "string", "minLength": 1 },
+    "pythonVersion": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": true
+}

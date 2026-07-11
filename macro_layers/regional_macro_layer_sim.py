@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+from importlib import import_module
+
+_SIBLING_PREFIX = f"{__package__}." if __package__ else ""
+simulation_utils = import_module(f"{_SIBLING_PREFIX}simulation_utils")
+
+clamp = simulation_utils.clamp
+resolve_seeds = simulation_utils.resolve_seeds
+round_record = simulation_utils.round_record
+
 import argparse
 import hashlib
 import json
@@ -9,27 +18,30 @@ from pathlib import Path
 from statistics import mean, pstdev
 from typing import Any
 
-from global_dollar_liquidity_layer_sim import DollarLiquidityParams
-from global_inflation_annual_sim import InflationParams, as_float
-from global_macro_feedback_calibration_sim import (
-    MacroFeedbackParams,
-    annotate_feedback_records,
-    blend_feedback_paths,
-    calibrated_asset_params,
-    calibrated_credit_params,
-    calibrated_gdp_params,
-    calibrated_oil_params,
-    clamp,
-    convergence_summary,
-    derive_feedback_path,
-    round_record,
-    run_full_chain,
-    smooth,
-    write_csv,
-    write_json,
-)
-from global_policy_rate_layer_sim import PolicyRateParams
-from global_yield_curve_layer_sim import YieldCurveParams
+dollar_liquidity_layer = import_module(f"{_SIBLING_PREFIX}global_dollar_liquidity_layer_sim")
+inflation_layer = import_module(f"{_SIBLING_PREFIX}global_inflation_annual_sim")
+feedback_layer = import_module(f"{_SIBLING_PREFIX}global_macro_feedback_calibration_sim")
+policy_rate_layer = import_module(f"{_SIBLING_PREFIX}global_policy_rate_layer_sim")
+yield_curve_layer = import_module(f"{_SIBLING_PREFIX}global_yield_curve_layer_sim")
+
+DollarLiquidityParams = dollar_liquidity_layer.DollarLiquidityParams
+InflationParams = inflation_layer.InflationParams
+as_float = inflation_layer.as_float
+MacroFeedbackParams = feedback_layer.MacroFeedbackParams
+annotate_feedback_records = feedback_layer.annotate_feedback_records
+blend_feedback_paths = feedback_layer.blend_feedback_paths
+calibrated_asset_params = feedback_layer.calibrated_asset_params
+calibrated_credit_params = feedback_layer.calibrated_credit_params
+calibrated_gdp_params = feedback_layer.calibrated_gdp_params
+calibrated_oil_params = feedback_layer.calibrated_oil_params
+convergence_summary = feedback_layer.convergence_summary
+derive_feedback_path = feedback_layer.derive_feedback_path
+run_full_chain = feedback_layer.run_full_chain
+smooth = feedback_layer.smooth
+write_csv = feedback_layer.write_csv
+write_json = feedback_layer.write_json
+PolicyRateParams = policy_rate_layer.PolicyRateParams
+YieldCurveParams = yield_curve_layer.YieldCurveParams
 
 
 REGIONAL_MACRO_PARAM_VERSION = "regional-macro-layer-v0.3"
@@ -2442,14 +2454,6 @@ def write_viewer_data_js(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(rows, ensure_ascii=False, separators=(",", ":"))
     path.write_text(f"window.REGIONAL_MACRO_DATA = {payload};\n", encoding="utf-8")
-
-
-def resolve_seeds(args: argparse.Namespace) -> list[int]:
-    if args.seed is not None:
-        return [args.seed]
-    if args.seeds:
-        return list(dict.fromkeys(args.seeds))
-    return list(range(args.seed_start, args.seed_start + args.seed_count))
 
 
 def parse_args() -> argparse.Namespace:

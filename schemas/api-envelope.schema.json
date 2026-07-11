@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/api-envelope.schema.json",
+  "title": "Airport local API envelope",
+  "type": "object",
+  "required": [
+    "ok",
+    "apiSchemaVersion",
+    "modelVersion",
+    "outputSchemaVersion",
+    "pythonVersion",
+    "schemaCatalog"
+  ],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "apiSchemaVersion": { "const": "seed-explorer-api-v1" },
+    "modelVersion": { "const": "airport-model-v0.5" },
+    "outputSchemaVersion": { "const": "airport-model-output-v1" },
+    "pythonVersion": { "type": "string", "minLength": 1 },
+    "schemaCatalog": { "const": "/api/schema" }
+  },
+  "additionalProperties": true
+}

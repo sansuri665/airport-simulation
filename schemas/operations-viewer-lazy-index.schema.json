@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/operations-viewer-lazy-index.schema.json",
+  "title": "Airport operations Viewer lazy dataset index",
+  "type": "object",
+  "required": ["schemaVersion", "chunkSchemaVersion", "marketId", "chunkBase", "core", "datasets"],
+  "properties": {
+    "schemaVersion": { "const": "airport-operations-viewer-lazy-index-v1" },
+    "chunkSchemaVersion": { "const": "airport-operations-viewer-chunk-v1" },
+    "marketId": { "type": "string", "minLength": 1 },
+    "chunkBase": { "type": "string", "minLength": 1 },
+    "baseUrl": { "type": "string", "minLength": 1 },
+    "core": {
+      "type": "object",
+      "required": ["quarterlyOperationsRowCount", "financialStateRowCount"],
+      "properties": {
+        "quarterlyOperationsRowCount": { "type": "integer", "minimum": 0 },
+        "financialStateRowCount": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "datasets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["datasetId", "rowCount", "file", "sha256", "bytes"],
+        "properties": {
+          "datasetId": { "const": "valuation" },
+          "rowCount": { "type": "integer", "minimum": 0 },
+          "file": { "type": "string", "pattern": "^d_.*\\.json$" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "bytes": { "type": "integer", "minimum": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}

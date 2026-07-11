@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/viewer-release-manifest.schema.json",
+  "title": "Airport atomic Viewer release manifest",
+  "type": "object",
+  "required": [
+    "schema_version", "release_id", "run_id", "variant", "generated_at", "source_variant", "release_path",
+    "scripts", "bundle_sha256", "bundle_count", "canonical_copy_count"
+  ],
+  "properties": {
+    "schema_version": { "const": "airport-viewer-release-manifest-v1" },
+    "release_id": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "variant": { "type": "string", "minLength": 1 },
+    "seed": { "type": ["integer", "null"] },
+    "start_year": { "type": ["integer", "null"] },
+    "years": { "type": ["integer", "null"] },
+    "model_version": { "type": "string", "minLength": 1 },
+    "output_schema_version": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "source_variant": { "type": "string", "minLength": 1 },
+    "release_path": { "type": "string", "minLength": 1 },
+    "scripts": {
+      "type": "object",
+      "required": ["global_gdp_viewer", "beijing_airport_operations_viewer", "beijing_potential_passenger_forecast_viewer"],
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "bundle_sha256": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+    },
+    "bundle_count": { "type": "integer", "minimum": 3 },
+    "canonical_copy_count": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": true
+}

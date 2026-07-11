@@ -1,5 +1,18 @@
 from __future__ import annotations
 
+from importlib import import_module
+
+_SIBLING_PREFIX = f"{__package__}." if __package__ else ""
+simulation_io = import_module(f"{_SIBLING_PREFIX}simulation_io")
+simulation_utils = import_module(f"{_SIBLING_PREFIX}simulation_utils")
+
+read_csv = simulation_io.read_csv_utf8_sig
+write_csv = simulation_io.write_csv_utf8_sig_with_extra_fields
+write_json = simulation_io.write_json_utf8_data
+as_float = simulation_utils.as_float_convert_lookup_default
+clamp = simulation_utils.clamp
+safe_divide = simulation_utils.safe_divide
+
 import argparse
 import csv
 import hashlib
@@ -12,6 +25,8 @@ from typing import Any
 
 CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_PARAM_VERSION = "city-airport-effective-passenger-forecast-layer-v0.3"
 CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_INTERFACE_VERSION = "city-airport-effective-passenger-forecast-interface-v0.2"
+FORECAST_VIEWER_LAZY_INDEX_VERSION = "airport-forecast-viewer-lazy-index-v1"
+FORECAST_VIEWER_CHUNK_VERSION = "airport-forecast-viewer-report-chunk-v1"
 
 AIRPORT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_DIR = AIRPORT_DIR / "config" / "city_airport_potential_passenger_forecast"
@@ -145,26 +160,6 @@ POTENTIAL_PASSENGER_FORECAST_FIELDS = [
 ]
 
 
-def as_float(row: dict[str, Any], key: str, default: float = 0.0) -> float:
-    value = row.get(key, default)
-    if value is None or value == "":
-        return default
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return default
-
-
-def clamp(value: float, low: float, high: float) -> float:
-    return max(low, min(high, value))
-
-
-def safe_divide(numerator: float, denominator: float, default: float = 0.0) -> float:
-    if abs(denominator) <= 1e-9:
-        return default
-    return numerator / denominator
-
-
 def stable_unit_float(*parts: Any) -> float:
     raw = "::".join(str(part) for part in parts).encode("utf-8")
     digest = hashlib.sha256(raw).digest()
@@ -173,25 +168,6 @@ def stable_unit_float(*parts: Any) -> float:
 
 def interpolate(low: float, high: float, unit: float) -> float:
     return low + (high - low) * clamp(unit, 0.0, 1.0)
-
-
-def read_csv(path: Path) -> list[dict[str, str]]:
-    with path.open("r", encoding="utf-8-sig", newline="") as handle:
-        return list(csv.DictReader(handle))
-
-
-def write_csv(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    field_order = list(dict.fromkeys([*fields, *(key for row in rows for key in row)]))
-    with path.open("w", encoding="utf-8-sig", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=field_order, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def write_json(path: Path, data: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def round_record(record: dict[str, Any]) -> dict[str, Any]:
@@ -1192,25 +1168,106 @@ def summarize(rows: list[dict[str, Any]], config: dict[str, Any]) -> dict[str, A
     }
 
 
+def forecast_viewer_config(config: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "config_version": config.get("config_version"),
+        "forecast_model_version": (
+            config.get("forecast_model_version")
+            or config.get("forecast", {}).get("forecast_model_version")
+        ),
+        "city_airport_market_id": config.get("city_airport_market_id"),
+        "city_name": config.get("city_name"),
+        "region_id": config.get("region_id"),
+        "forecast_reports": config.get("forecast_reports", []),
+    }
+
+
 def write_viewer_data_js(path: Path, rows: list[dict[str, Any]], config: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {
-        "config": {
-            "config_version": config.get("config_version"),
-            "forecast_model_version": config.get("forecast", {}).get("forecast_model_version"),
-            "city_airport_market_id": config.get("city_airport_market_id"),
-            "city_name": config.get("city_name"),
-            "region_id": config.get("region_id"),
-            "forecast_reports": config.get("forecast_reports", []),
-        },
-        "rows": rows,
-    }
+    payload = {"config": forecast_viewer_config(config), "rows": rows}
     path.write_text(
         "window.CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_DATA = "
         + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
         + ";\n",
         encoding="utf-8",
     )
+
+
+def safe_report_filename(report_id: str) -> str:
+    clean = "".join(char if char.isalnum() or char in ("-", "_") else "_" for char in report_id)
+    return clean.strip("_") or "forecast_report"
+
+
+def write_viewer_lazy_assets(
+    output_dir: Path,
+    rows: list[dict[str, Any]],
+    config: dict[str, Any],
+) -> dict[str, Any]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    market_id = str(config.get("city_airport_market_id") or "city_airport_market")
+    index_filename = f"{market_id}_forecast_index.js"
+    chunk_dir_name = f"{market_id}_forecast_chunks"
+    chunk_dir = output_dir / chunk_dir_name
+    chunk_dir.mkdir(parents=True, exist_ok=True)
+
+    configured_ids = [
+        str(item.get("forecast_report_id") or "").strip()
+        for item in config.get("forecast_reports", [])
+        if str(item.get("forecast_report_id") or "").strip()
+    ]
+    row_ids = {str(row.get("forecast_report_id") or "").strip() for row in rows}
+    report_ids = [report_id for report_id in configured_ids if report_id in row_ids]
+    report_ids.extend(sorted(report_id for report_id in row_ids if report_id and report_id not in report_ids))
+
+    reports: list[dict[str, Any]] = []
+    for report_id in report_ids:
+        report_rows = [row for row in rows if str(row.get("forecast_report_id") or "") == report_id]
+        filename = f"r_{safe_report_filename(report_id)}.json"
+        chunk_payload = {
+            "schemaVersion": FORECAST_VIEWER_CHUNK_VERSION,
+            "reportId": report_id,
+            "rowCount": len(report_rows),
+            "rows": report_rows,
+        }
+        raw = json.dumps(chunk_payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        (chunk_dir / filename).write_bytes(raw)
+        reports.append(
+            {
+                "reportId": report_id,
+                "rowCount": len(report_rows),
+                "file": filename,
+                "sha256": hashlib.sha256(raw).hexdigest(),
+                "bytes": len(raw),
+            }
+        )
+
+    seeds = sorted({int(float(row.get("seed", 0))) for row in rows})
+    default_report_id = "public_consensus" if "public_consensus" in report_ids else (report_ids[0] if report_ids else "")
+    index = {
+        "schemaVersion": FORECAST_VIEWER_LAZY_INDEX_VERSION,
+        "chunkSchemaVersion": FORECAST_VIEWER_CHUNK_VERSION,
+        "config": forecast_viewer_config(config),
+        "totalRows": len(rows),
+        "seeds": seeds,
+        "defaultReportId": default_report_id,
+        "chunkBase": f"./{chunk_dir_name}/",
+        "reports": reports,
+    }
+    index_json = json.dumps(index, ensure_ascii=False, separators=(",", ":"))
+    index_script = (
+        "(() => { const index = "
+        + index_json
+        + "; index.baseUrl = new URL(index.chunkBase, document.currentScript.src).href; "
+        + "window.AIRPORT_FORECAST_LAZY_INDEX = index; })();\n"
+    )
+    (output_dir / index_filename).write_text(index_script, encoding="utf-8")
+    return {
+        "index": str((output_dir / index_filename).as_posix()),
+        "chunkDir": str(chunk_dir.as_posix()),
+        "totalRows": len(rows),
+        "reportCount": len(reports),
+        "chunkBytes": sum(int(report["bytes"]) for report in reports),
+    }
 
 
 def main() -> None:
@@ -1242,11 +1299,13 @@ def main() -> None:
     write_csv(csv_path, rows, POTENTIAL_PASSENGER_FORECAST_FIELDS)
     write_json(summary_path, summarize(rows, config))
     write_viewer_data_js(js_path, rows, config)
+    lazy_assets = write_viewer_lazy_assets(args.output_dir, rows, config)
     print(json.dumps({
         "rows": len(rows),
         "csv": str(csv_path),
         "summary": str(summary_path),
         "viewer_data": str(js_path),
+        "viewer_lazy": lazy_assets,
     }, ensure_ascii=False, indent=2))
 
 

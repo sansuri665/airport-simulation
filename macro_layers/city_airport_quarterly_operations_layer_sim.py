@@ -1,5 +1,17 @@
 from __future__ import annotations
 
+from importlib import import_module
+
+_SIBLING_PREFIX = f"{__package__}." if __package__ else ""
+simulation_io = import_module(f"{_SIBLING_PREFIX}simulation_io")
+simulation_utils = import_module(f"{_SIBLING_PREFIX}simulation_utils")
+
+read_csv = simulation_io.read_csv_utf8_sig
+write_csv = simulation_io.write_csv_utf8_sig_ignore
+write_json = simulation_io.write_json_utf8_data
+as_float = simulation_utils.as_float_convert_lookup_default
+clamp = simulation_utils.clamp
+
 import argparse
 import copy
 import csv
@@ -279,20 +291,6 @@ QUARTERLY_OPERATIONS_FIELDS = [
 ]
 
 
-def as_float(row: dict[str, Any], key: str, default: float = 0.0) -> float:
-    value = row.get(key, default)
-    if value is None or value == "":
-        return default
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return default
-
-
-def clamp(value: float, low: float, high: float) -> float:
-    return max(low, min(high, value))
-
-
 def stable_unit_float(*parts: Any) -> float:
     raw = "::".join(str(part) for part in parts).encode("utf-8")
     digest = hashlib.sha256(raw).digest()
@@ -320,24 +318,6 @@ def quarter_capacity_realization_factor(
     if pressure >= 1.12:
         factor -= min(0.012, (pressure - 1.12) * 0.030)
     return clamp(factor, 0.955 if has_disruptive_project else 0.970, 0.997)
-
-
-def read_csv(path: Path) -> list[dict[str, str]]:
-    with path.open("r", encoding="utf-8-sig", newline="") as handle:
-        return list(csv.DictReader(handle))
-
-
-def write_csv(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8-sig", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def write_json(path: Path, data: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def write_viewer_data_js(path: Path, rows: list[dict[str, Any]]) -> None:

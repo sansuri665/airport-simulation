@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/player-simulation-response.schema.json",
+  "title": "Airport player simulation response",
+  "allOf": [
+    { "$ref": "beijing-operations-response.schema.json" },
+    {
+      "type": "object",
+      "required": [
+        "allQuarters", "worldPeriodCount", "worldFinalLabel", "currentQuarterIndex",
+        "playerActions", "actionCount", "slotNames", "projectCatalog", "financingProducts",
+        "financingPolicy", "contractPreviews"
+      ],
+      "properties": {
+        "mode": { "const": "simulate_default" },
+        "allQuarters": {
+          "type": "array",
+          "items": { "$ref": "beijing-operations-response.schema.json#/$defs/quarter" }
+        },
+        "worldPeriodCount": { "type": "integer", "minimum": 0 },
+        "worldFinalLabel": { "type": "string" },
+        "currentQuarterIndex": { "type": "integer", "minimum": 0 },
+        "playerActions": { "type": "array", "items": { "type": "object" } },
+        "actionCount": { "type": "integer", "minimum": 0 },
+        "slotNames": { "type": "object", "additionalProperties": { "type": "string" } },
+        "projectCatalog": { "type": "array", "items": { "type": "object" } },
+        "financingProducts": { "type": "object" },
+        "financingPolicy": { "type": "object" },
+        "contractPreviews": { "type": "object" }
+      }
+    }
+  ]
+}

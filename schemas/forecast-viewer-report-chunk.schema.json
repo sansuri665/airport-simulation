@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/forecast-viewer-report-chunk.schema.json",
+  "title": "Effective passenger forecast Viewer report chunk",
+  "type": "object",
+  "required": ["schemaVersion", "reportId", "rowCount", "rows"],
+  "properties": {
+    "schemaVersion": { "const": "airport-forecast-viewer-report-chunk-v1" },
+    "reportId": { "type": "string", "minLength": 1 },
+    "rowCount": { "type": "integer", "minimum": 0 },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["seed", "as_of_year", "forecast_report_id", "forecast_year"],
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

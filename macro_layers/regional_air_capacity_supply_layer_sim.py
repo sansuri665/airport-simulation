@@ -1,5 +1,16 @@
 from __future__ import annotations
 
+from importlib import import_module
+
+_SIBLING_PREFIX = f"{__package__}." if __package__ else ""
+simulation_io = import_module(f"{_SIBLING_PREFIX}simulation_io")
+simulation_utils = import_module(f"{_SIBLING_PREFIX}simulation_utils")
+
+read_csv = simulation_io.read_csv_utf8
+write_json = simulation_io.write_json_utf8_payload
+as_float = simulation_utils.as_float_return_missing_default
+clamp = simulation_utils.clamp
+
 import argparse
 import csv
 import json
@@ -436,19 +447,6 @@ AIR_SUPPLY_REGION_CONFIGS = {
 }
 
 
-def clamp(value: float, low: float, high: float) -> float:
-    return max(low, min(high, value))
-
-
-def as_float(row: dict[str, Any], key: str, default: float = 0.0) -> float:
-    value = row.get(key)
-    if value in (None, ""):
-        return default
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return default
-
 
 def pct_change(current: float, previous: float) -> float:
     if previous == 0:
@@ -470,11 +468,6 @@ def round_record(record: dict[str, Any]) -> dict[str, Any]:
     return output
 
 
-def read_csv(path: Path) -> list[dict[str, Any]]:
-    with path.open("r", newline="", encoding="utf-8") as handle:
-        return list(csv.DictReader(handle))
-
-
 def write_csv(path: Path, rows: Iterable[dict[str, Any]], fields: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
@@ -482,11 +475,6 @@ def write_csv(path: Path, rows: Iterable[dict[str, Any]], fields: list[str]) -> 
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
-
-
-def write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def write_viewer_data_js(path: Path, rows: list[dict[str, Any]]) -> None:

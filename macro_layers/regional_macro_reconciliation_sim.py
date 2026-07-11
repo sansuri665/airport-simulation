@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+from importlib import import_module
+
+_SIBLING_PREFIX = f"{__package__}." if __package__ else ""
+simulation_io = import_module(f"{_SIBLING_PREFIX}simulation_io")
+simulation_utils = import_module(f"{_SIBLING_PREFIX}simulation_utils")
+
+write_json = simulation_io.write_json_utf8_payload
+clamp = simulation_utils.clamp
+
 import argparse
 import csv
 import json
@@ -8,7 +17,8 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
-from regional_macro_layer_sim import REGION_CONFIGS
+regional_macro_layer = import_module(f"{_SIBLING_PREFIX}regional_macro_layer_sim")
+REGION_CONFIGS = regional_macro_layer.REGION_CONFIGS
 
 
 RECONCILIATION_PARAM_VERSION = "regional-macro-reconciliation-v0.3"
@@ -227,9 +237,6 @@ DIAGNOSTIC_FIELDS = [
 ]
 
 
-def clamp(value: float, low: float, high: float) -> float:
-    return max(low, min(high, value))
-
 
 def as_float(row: dict[str, Any], key: str, default: float = 0.0) -> float:
     try:
@@ -252,11 +259,6 @@ def write_csv(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> None
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
         writer.writerows(rows)
-
-
-def write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def write_viewer_js(path: Path, regional_rows: list[dict[str, Any]], diagnostic_rows: list[dict[str, Any]]) -> None:

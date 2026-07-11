@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/workspace-status-response.schema.json",
+  "title": "Airport workspace status response",
+  "allOf": [
+    { "$ref": "api-envelope.schema.json" },
+    {
+      "type": "object",
+      "required": [
+        "ok", "serviceId", "servicePid", "viewerRelease", "cachedRunCount",
+        "saveCount", "runRoot", "saveRoot", "pages"
+      ],
+      "properties": {
+        "ok": { "const": true },
+        "serviceId": { "const": "airport-local-ui-v1" },
+        "servicePid": { "type": "integer", "minimum": 1 },
+        "viewerRelease": {
+          "type": "object",
+          "required": ["mode", "releaseId", "runId", "variant", "generatedAt", "schemaVersion"],
+          "properties": {
+            "mode": { "enum": ["legacy_canonical", "versioned_release"] },
+            "releaseId": { "type": ["string", "null"] },
+            "runId": { "type": ["string", "null"] },
+            "variant": { "type": ["string", "null"] },
+            "seed": { "type": ["integer", "null"] },
+            "startYear": { "type": ["integer", "null"] },
+            "years": { "type": ["integer", "null"] },
+            "modelVersion": { "type": ["string", "null"] },
+            "outputSchemaVersion": { "type": ["string", "null"] },
+            "generatedAt": { "type": ["string", "null"] },
+            "schemaVersion": { "type": ["string", "null"] }
+          }
+        },
+        "cachedRunCount": { "type": "integer", "minimum": 0 },
+        "saveCount": { "type": "integer", "minimum": 0 },
+        "runRoot": { "type": "string", "minLength": 1 },
+        "saveRoot": { "type": "string", "minLength": 1 },
+        "pages": {
+          "type": "object",
+          "required": ["home", "seedExplorer", "globalGdp", "beijingOperations", "beijingForecast"],
+          "additionalProperties": { "type": "string", "pattern": "^/" }
+        }
+      }
+    }
+  ]
+}

@@ -2,100 +2,126 @@ from __future__ import annotations
 
 import argparse
 import csv
+import errno
+import hashlib
 import json
+import os
+import platform
 import random
 import shutil
 import time
+from importlib import import_module
 from pathlib import Path
 from typing import Any
 
-from global_macro_feedback_calibration_sim import (
-    COMBINED_MACRO_FEEDBACK_FIELDS,
-    annotate_feedback_records,
-    blend_feedback_paths,
-    clamp,
-    convergence_summary,
-    derive_feedback_path,
-    round_record,
-    run_full_chain,
-    summarize_seed,
-    write_viewer_data_js as write_global_viewer_data_js,
-)
-from regional_macro_layer_sim import (
-    REGION_CONFIGS,
-    REGIONAL_MACRO_FIELDS,
-    build_global_params,
-    simulate_region_for_global_path,
-    summarize_region_seed,
-    write_viewer_data_js as write_regional_viewer_data_js,
-)
-from regional_macro_reconciliation_sim import (
-    DIAGNOSTIC_FIELDS,
-    REGION_ORDER,
-    REGIONAL_VALUE_FIELDS,
-    build_reconciliation,
-    key_for,
-    write_viewer_js as write_reconciliation_viewer_js,
-)
-from regional_aviation_demand_layer_sim import (
-    AVIATION_DEMAND_FIELDS,
-    AVIATION_REGION_CONFIGS,
-    merge_region_inputs,
-    simulate_region_aviation_demand,
-    summarize_region_seed as summarize_aviation_seed,
-    write_viewer_data_js as write_aviation_viewer_data_js,
-)
-from regional_air_capacity_supply_layer_sim import (
-    AIR_SUPPLY_FIELDS,
-    AIR_SUPPLY_REGION_CONFIGS,
-    simulate_region_air_supply,
-    summarize_region_seed as summarize_supply_seed,
-    write_viewer_data_js as write_supply_viewer_data_js,
-)
-from city_airport_market_demand_layer_sim import (
-    CITY_AIRPORT_DEMAND_FIELDS,
-    CITY_MARKET_CONFIGS,
-    merge_region_inputs as merge_city_airport_inputs,
-    simulate_city_airport_demand,
-    summarize_market_seed as summarize_city_airport_seed,
-    write_viewer_data_js as write_city_airport_viewer_data_js,
-)
-from city_airport_potential_passenger_forecast_layer_sim import (
-    DEFAULT_CONFIG_DIR as POTENTIAL_PASSENGER_FORECAST_CONFIG_DIR,
-    POTENTIAL_PASSENGER_FORECAST_FIELDS,
-    load_config as load_potential_passenger_forecast_config,
-    simulate_potential_passenger_forecast,
-    summarize as summarize_potential_passenger_forecast,
-    write_viewer_data_js as write_potential_passenger_forecast_viewer_data_js,
-)
-from city_airport_quarterly_operations_layer_sim import (
-    DEFAULT_CONFIG_DIR as QUARTERLY_OPERATIONS_CONFIG_DIR,
-    QUARTERLY_OPERATIONS_FIELDS,
-    load_config as load_quarterly_operations_config,
-    simulate_quarterly_operations,
-    summarize as summarize_quarterly_operations,
-    write_viewer_data_js as write_quarterly_operations_viewer_data_js,
-)
-from city_airport_financial_state_layer_sim import (
-    DEFAULT_CONFIG_DIR as FINANCIAL_STATE_CONFIG_DIR,
-    FINANCIAL_STATE_FIELDS,
-    load_config as load_financial_state_config,
-    simulate_financial_state,
-    summarize as summarize_financial_state,
-    write_viewer_data_js as write_financial_state_viewer_data_js,
-)
-from city_airport_valuation_forecast_layer_sim import (
-    DEFAULT_CONFIG_DIR as VALUATION_FORECAST_CONFIG_DIR,
-    VALUATION_FORECAST_FIELDS,
-    load_config as load_valuation_forecast_config,
-    simulate_valuation_forecast,
-    summarize as summarize_valuation_forecast,
-    write_viewer_data_js as write_valuation_forecast_viewer_data_js,
-)
+_SIBLING_PREFIX = f"{__package__}." if __package__ else ""
+
+
+def _sibling_module(name: str):
+    return import_module(f"{_SIBLING_PREFIX}{name}")
+
+
+financial_state_layer = _sibling_module("city_airport_financial_state_layer_sim")
+city_market_layer = _sibling_module("city_airport_market_demand_layer_sim")
+potential_forecast_layer = _sibling_module("city_airport_potential_passenger_forecast_layer_sim")
+quarterly_operations_layer = _sibling_module("city_airport_quarterly_operations_layer_sim")
+valuation_layer = _sibling_module("city_airport_valuation_forecast_layer_sim")
+global_feedback_layer = _sibling_module("global_macro_feedback_calibration_sim")
+air_supply_layer = _sibling_module("regional_air_capacity_supply_layer_sim")
+aviation_demand_layer = _sibling_module("regional_aviation_demand_layer_sim")
+regional_macro_layer = _sibling_module("regional_macro_layer_sim")
+reconciliation_layer = _sibling_module("regional_macro_reconciliation_sim")
+simulation_utils = _sibling_module("simulation_utils")
+
+FINANCIAL_STATE_CONFIG_DIR = financial_state_layer.DEFAULT_CONFIG_DIR
+FINANCIAL_STATE_FIELDS = financial_state_layer.FINANCIAL_STATE_FIELDS
+load_financial_state_config = financial_state_layer.load_config
+simulate_financial_state = financial_state_layer.simulate_financial_state
+summarize_financial_state = financial_state_layer.summarize
+write_financial_state_viewer_data_js = financial_state_layer.write_viewer_data_js
+
+CITY_AIRPORT_DEMAND_FIELDS = city_market_layer.CITY_AIRPORT_DEMAND_FIELDS
+CITY_MARKET_CONFIGS = city_market_layer.CITY_MARKET_CONFIGS
+merge_city_airport_inputs = city_market_layer.merge_region_inputs
+simulate_city_airport_demand = city_market_layer.simulate_city_airport_demand
+summarize_city_airport_seed = city_market_layer.summarize_market_seed
+write_city_airport_viewer_data_js = city_market_layer.write_viewer_data_js
+
+POTENTIAL_PASSENGER_FORECAST_CONFIG_DIR = potential_forecast_layer.DEFAULT_CONFIG_DIR
+POTENTIAL_PASSENGER_FORECAST_FIELDS = potential_forecast_layer.POTENTIAL_PASSENGER_FORECAST_FIELDS
+load_potential_passenger_forecast_config = potential_forecast_layer.load_config
+simulate_potential_passenger_forecast = potential_forecast_layer.simulate_potential_passenger_forecast
+summarize_potential_passenger_forecast = potential_forecast_layer.summarize
+write_potential_passenger_forecast_viewer_data_js = potential_forecast_layer.write_viewer_data_js
+write_potential_passenger_forecast_lazy_assets = potential_forecast_layer.write_viewer_lazy_assets
+
+QUARTERLY_OPERATIONS_CONFIG_DIR = quarterly_operations_layer.DEFAULT_CONFIG_DIR
+QUARTERLY_OPERATIONS_FIELDS = quarterly_operations_layer.QUARTERLY_OPERATIONS_FIELDS
+load_quarterly_operations_config = quarterly_operations_layer.load_config
+simulate_quarterly_operations = quarterly_operations_layer.simulate_quarterly_operations
+summarize_quarterly_operations = quarterly_operations_layer.summarize
+write_quarterly_operations_viewer_data_js = quarterly_operations_layer.write_viewer_data_js
+
+VALUATION_FORECAST_CONFIG_DIR = valuation_layer.DEFAULT_CONFIG_DIR
+VALUATION_FORECAST_FIELDS = valuation_layer.VALUATION_FORECAST_FIELDS
+load_valuation_forecast_config = valuation_layer.load_config
+simulate_valuation_forecast = valuation_layer.simulate_valuation_forecast
+summarize_valuation_forecast = valuation_layer.summarize
+write_valuation_forecast_viewer_data_js = valuation_layer.write_viewer_data_js
+
+COMBINED_MACRO_FEEDBACK_FIELDS = global_feedback_layer.COMBINED_MACRO_FEEDBACK_FIELDS
+annotate_feedback_records = global_feedback_layer.annotate_feedback_records
+blend_feedback_paths = global_feedback_layer.blend_feedback_paths
+convergence_summary = global_feedback_layer.convergence_summary
+derive_feedback_path = global_feedback_layer.derive_feedback_path
+run_full_chain = global_feedback_layer.run_full_chain
+summarize_seed = global_feedback_layer.summarize_seed
+write_global_viewer_data_js = global_feedback_layer.write_viewer_data_js
+
+AIR_SUPPLY_FIELDS = air_supply_layer.AIR_SUPPLY_FIELDS
+AIR_SUPPLY_REGION_CONFIGS = air_supply_layer.AIR_SUPPLY_REGION_CONFIGS
+simulate_region_air_supply = air_supply_layer.simulate_region_air_supply
+summarize_supply_seed = air_supply_layer.summarize_region_seed
+write_supply_viewer_data_js = air_supply_layer.write_viewer_data_js
+
+AVIATION_DEMAND_FIELDS = aviation_demand_layer.AVIATION_DEMAND_FIELDS
+AVIATION_REGION_CONFIGS = aviation_demand_layer.AVIATION_REGION_CONFIGS
+merge_region_inputs = aviation_demand_layer.merge_region_inputs
+simulate_region_aviation_demand = aviation_demand_layer.simulate_region_aviation_demand
+summarize_aviation_seed = aviation_demand_layer.summarize_region_seed
+write_aviation_viewer_data_js = aviation_demand_layer.write_viewer_data_js
+
+REGION_CONFIGS = regional_macro_layer.REGION_CONFIGS
+REGIONAL_MACRO_FIELDS = regional_macro_layer.REGIONAL_MACRO_FIELDS
+build_global_params = regional_macro_layer.build_global_params
+simulate_region_for_global_path = regional_macro_layer.simulate_region_for_global_path
+summarize_region_seed = regional_macro_layer.summarize_region_seed
+write_regional_viewer_data_js = regional_macro_layer.write_viewer_data_js
+
+DIAGNOSTIC_FIELDS = reconciliation_layer.DIAGNOSTIC_FIELDS
+REGION_ORDER = reconciliation_layer.REGION_ORDER
+REGIONAL_VALUE_FIELDS = reconciliation_layer.REGIONAL_VALUE_FIELDS
+build_reconciliation = reconciliation_layer.build_reconciliation
+key_for = reconciliation_layer.key_for
+write_reconciliation_viewer_js = reconciliation_layer.write_viewer_js
+
+clamp = simulation_utils.clamp
+round_record = simulation_utils.round_record
 
 
 ORCHESTRATOR_VERSION = "macro-run-orchestrator-v0.5"
 RUN_INDEX_VERSION = "macro-run-index-v0.5"
+RUN_MANIFEST_SCHEMA_VERSION = "airport-macro-run-manifest-v1"
+OUTPUT_SCHEMA_VERSION = "airport-model-output-v1"
+MODEL_VERSION = "airport-model-v0.5"
+AIRPORT_DIR = Path(__file__).resolve().parents[1]
+DEFAULT_OUTPUT_ROOT = AIRPORT_DIR / "output" / "macro_runs"
+DEFAULT_VIEWER_OUTPUT_ROOT = AIRPORT_DIR / "output"
+VIEWER_RELEASE_MANIFEST_VERSION = "airport-viewer-release-manifest-v1"
+GLOBAL_VIEWER_LAZY_INDEX_VERSION = "airport-global-viewer-lazy-index-v1"
+GLOBAL_VIEWER_REGION_CHUNK_VERSION = "airport-global-viewer-region-chunk-v1"
+OPERATIONS_VIEWER_LAZY_INDEX_VERSION = "airport-operations-viewer-lazy-index-v1"
+OPERATIONS_VIEWER_CHUNK_VERSION = "airport-operations-viewer-chunk-v1"
 
 FEEDBACK_NUMERIC_FIELDS = (
     "feedback_growth_impulse_pct",
@@ -541,15 +567,34 @@ def parse_args() -> argparse.Namespace:
         default=2,
         help="Earliest zero-based year index eligible for automatic branch triggering.",
     )
-    parser.add_argument("--output-root", default="airport/output/macro_runs")
+    parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=DEFAULT_OUTPUT_ROOT,
+        help="Run archive root. Defaults to <airport>/output/macro_runs regardless of the current working directory.",
+    )
     parser.add_argument("--index-only", action="store_true", help="Refresh macro_run_index.js without running simulation.")
     parser.add_argument(
         "--publish-viewer",
         choices=("none", "baseline", "scenario"),
         default="none",
-        help="Also copy one variant to airport/output so global_gdp_viewer.html reads it.",
+        help="Also copy one variant to <airport>/output so global_gdp_viewer.html reads it.",
     )
-    parser.add_argument("--viewer-output-root", default="airport/output")
+    parser.add_argument(
+        "--viewer-output-root",
+        type=Path,
+        default=DEFAULT_VIEWER_OUTPUT_ROOT,
+        help="Canonical viewer data root. Defaults to <airport>/output regardless of the current working directory.",
+    )
+    parser.add_argument(
+        "--artifact-profile",
+        choices=("full", "seed-cache"),
+        default="full",
+        help=(
+            "Output artifact profile. 'full' keeps static Viewer bundles and lazy assets; "
+            "'seed-cache' keeps only model/API data needed by Seed Explorer."
+        ),
+    )
     parser.add_argument("--run-id", default=None)
     return parser.parse_args()
 
@@ -593,13 +638,162 @@ def write_csv_file(path: Path, rows: list[dict[str, Any]], base_fields: tuple[st
             writer.writerow(row)
 
 
-def write_json_file(path: Path, payload: dict[str, Any]) -> None:
+def atomic_write_text_file(path: Path, content: str, encoding: str = "utf-8") -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    # Keep the temporary basename short: deeply nested regional output paths can
+    # otherwise exceed the traditional Windows path limit during staging.
+    temporary_path = path.with_name(f".__tmp_{os.getpid()}_{time.time_ns():x}")
+    try:
+        temporary_path.write_text(content, encoding=encoding)
+        os.replace(temporary_path, path)
+    finally:
+        if temporary_path.exists():
+            temporary_path.unlink()
+
+
+def replace_directory_with_retry(source: Path, target: Path, attempts: int = 4) -> None:
+    """Retry only transient Windows directory sharing/access failures."""
+    for attempt in range(attempts):
+        try:
+            os.replace(source, target)
+            return
+        except OSError as error:
+            windows_code = getattr(error, "winerror", None)
+            retryable = os.name == "nt" and (
+                windows_code in {5, 32}
+                or error.errno in {errno.EACCES, errno.EBUSY}
+            )
+            if not retryable or attempt + 1 >= attempts:
+                raise
+            time.sleep(0.05 * (2**attempt))
+
+
+def write_json_file(path: Path, payload: dict[str, Any]) -> None:
+    atomic_write_text_file(path, json.dumps(payload, ensure_ascii=False, indent=2))
 
 
 def read_json_file(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def write_global_viewer_lazy_assets(
+    global_dir: Path,
+    regional_result: dict[str, Any],
+) -> dict[str, Any]:
+    """Publish one compact Viewer chunk per region without changing model rows."""
+    global_dir.mkdir(parents=True, exist_ok=True)
+    chunk_dir_name = "global_viewer_chunks"
+    chunk_dir = global_dir / chunk_dir_name
+    chunk_dir.mkdir(parents=True, exist_ok=True)
+
+    regions: list[dict[str, Any]] = []
+    for region_id in REGION_ORDER:
+        regional_rows = regional_result.get("regional_rows_by_region", {}).get(region_id, [])
+        aviation_rows = regional_result.get("aviation_rows_by_region", {}).get(region_id, [])
+        supply_rows = regional_result.get("supply_rows_by_region", {}).get(region_id, [])
+        filename = f"r_{region_id}.json"
+        chunk_payload = {
+            "schemaVersion": GLOBAL_VIEWER_REGION_CHUNK_VERSION,
+            "regionId": region_id,
+            "regionalMacroRows": regional_rows,
+            "aviationDemandRows": aviation_rows,
+            "airCapacitySupplyRows": supply_rows,
+        }
+        raw = json.dumps(chunk_payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        atomic_write_text_file(chunk_dir / filename, raw.decode("utf-8"))
+        regions.append(
+            {
+                "regionId": region_id,
+                "regionName": REGION_CONFIGS[region_id].region_name,
+                "regionalMacroRowCount": len(regional_rows),
+                "aviationDemandRowCount": len(aviation_rows),
+                "airCapacitySupplyRowCount": len(supply_rows),
+                "file": filename,
+                "sha256": hashlib.sha256(raw).hexdigest(),
+                "bytes": len(raw),
+            }
+        )
+
+    index = {
+        "schemaVersion": GLOBAL_VIEWER_LAZY_INDEX_VERSION,
+        "chunkSchemaVersion": GLOBAL_VIEWER_REGION_CHUNK_VERSION,
+        "chunkBase": f"./{chunk_dir_name}/",
+        "regions": regions,
+    }
+    index_json = json.dumps(index, ensure_ascii=False, separators=(",", ":"))
+    index_script = (
+        "(() => { const index = "
+        + index_json
+        + "; index.baseUrl = new URL(index.chunkBase, document.currentScript.src).href; "
+        + "window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX = index; })();\n"
+    )
+    index_path = global_dir / "global_viewer_index.js"
+    atomic_write_text_file(index_path, index_script)
+    return {
+        "index": str(index_path.as_posix()),
+        "chunkDir": str(chunk_dir.as_posix()),
+        "regionCount": len(regions),
+        "chunkBytes": sum(int(region["bytes"]) for region in regions),
+    }
+
+
+def write_operations_viewer_lazy_assets(
+    output_dir: Path,
+    market_id: str,
+    quarterly_rows: list[dict[str, Any]],
+    financial_rows: list[dict[str, Any]],
+    valuation_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Keep the default operations view in the core bundle and defer valuation rows."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    chunk_dir_name = f"{market_id}_operations_chunks"
+    chunk_dir = output_dir / chunk_dir_name
+    chunk_dir.mkdir(parents=True, exist_ok=True)
+
+    filename = "d_valuation.json"
+    chunk_payload = {
+        "schemaVersion": OPERATIONS_VIEWER_CHUNK_VERSION,
+        "datasetId": "valuation",
+        "marketId": market_id,
+        "rowCount": len(valuation_rows),
+        "rows": valuation_rows,
+    }
+    raw = json.dumps(chunk_payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    atomic_write_text_file(chunk_dir / filename, raw.decode("utf-8"))
+    index = {
+        "schemaVersion": OPERATIONS_VIEWER_LAZY_INDEX_VERSION,
+        "chunkSchemaVersion": OPERATIONS_VIEWER_CHUNK_VERSION,
+        "marketId": market_id,
+        "chunkBase": f"./{chunk_dir_name}/",
+        "core": {
+            "quarterlyOperationsRowCount": len(quarterly_rows),
+            "financialStateRowCount": len(financial_rows),
+        },
+        "datasets": [
+            {
+                "datasetId": "valuation",
+                "rowCount": len(valuation_rows),
+                "file": filename,
+                "sha256": hashlib.sha256(raw).hexdigest(),
+                "bytes": len(raw),
+            }
+        ],
+    }
+    index_json = json.dumps(index, ensure_ascii=False, separators=(",", ":"))
+    index_script = (
+        "(() => { const index = "
+        + index_json
+        + "; index.baseUrl = new URL(index.chunkBase, document.currentScript.src).href; "
+        + "window.AIRPORT_OPERATIONS_VIEWER_LAZY_INDEX = index; })();\n"
+    )
+    index_path = output_dir / f"{market_id}_operations_index.js"
+    atomic_write_text_file(index_path, index_script)
+    return {
+        "index": str(index_path.as_posix()),
+        "chunkDir": str(chunk_dir.as_posix()),
+        "valuationRows": len(valuation_rows),
+        "chunkBytes": len(raw),
+    }
 
 
 def load_city_configs_by_market(config_dir: Path, loader: Any) -> dict[str, dict[str, Any]]:
@@ -613,9 +807,8 @@ def load_city_configs_by_market(config_dir: Path, loader: Any) -> dict[str, dict
 
 
 def airport_relative(path: Path) -> str:
-    airport_dir = Path(__file__).resolve().parents[1]
     try:
-        return path.resolve().relative_to(airport_dir).as_posix()
+        return path.resolve().relative_to(AIRPORT_DIR).as_posix()
     except ValueError:
         return path.as_posix()
 
@@ -1405,7 +1598,9 @@ def write_variant_outputs(
     global_result: dict[str, Any],
     regional_result: dict[str, Any],
     scenario: dict[str, Any] | None,
+    artifact_profile: str = "full",
 ) -> None:
+    write_viewer_artifacts = artifact_profile == "full"
     global_dir = variant_dir / "global_macro"
     regional_dir = variant_dir / "regional_macro"
     reconciled_dir = variant_dir / "regional_macro_reconciled"
@@ -1431,10 +1626,11 @@ def write_variant_outputs(
             "convergence": [global_result["convergence"]],
         },
     )
-    write_global_viewer_data_js(
-        global_dir / "global_macro_feedback_viewer_data.js",
-        global_rows,
-    )
+    if write_viewer_artifacts:
+        write_global_viewer_data_js(
+            global_dir / "global_macro_feedback_viewer_data.js",
+            global_rows,
+        )
 
     for region_id in REGION_ORDER:
         rows = regional_result["regional_rows_by_region"][region_id]
@@ -1453,10 +1649,11 @@ def write_variant_outputs(
                 ],
             },
         )
-        write_regional_viewer_data_js(
-            region_dir / f"{region_id}_regional_macro_viewer_data.js",
-            rows,
-        )
+        if write_viewer_artifacts:
+            write_regional_viewer_data_js(
+                region_dir / f"{region_id}_regional_macro_viewer_data.js",
+                rows,
+            )
 
     write_csv_file(
         reconciled_dir / "regional_macro_reconciled_seed_sweep.csv",
@@ -1489,11 +1686,12 @@ def write_variant_outputs(
             "summaries": regional_result["reconciliation_summaries"],
         },
     )
-    write_reconciliation_viewer_js(
-        reconciled_dir / "regional_macro_reconciled_viewer_data.js",
-        regional_result["reconciled_rows"],
-        regional_result["diagnostics"],
-    )
+    if write_viewer_artifacts:
+        write_reconciliation_viewer_js(
+            reconciled_dir / "regional_macro_reconciled_viewer_data.js",
+            regional_result["reconciled_rows"],
+            regional_result["diagnostics"],
+        )
 
     for region_id, rows in regional_result.get("aviation_rows_by_region", {}).items():
         region_dir = aviation_dir / region_id
@@ -1511,10 +1709,11 @@ def write_variant_outputs(
                 ],
             },
         )
-        write_aviation_viewer_data_js(
-            region_dir / f"{region_id}_aviation_demand_viewer_data.js",
-            rows,
-        )
+        if write_viewer_artifacts:
+            write_aviation_viewer_data_js(
+                region_dir / f"{region_id}_aviation_demand_viewer_data.js",
+                rows,
+            )
 
     for region_id, rows in regional_result.get("supply_rows_by_region", {}).items():
         region_dir = supply_dir / region_id
@@ -1532,10 +1731,14 @@ def write_variant_outputs(
                 ],
             },
         )
-        write_supply_viewer_data_js(
-            region_dir / f"{region_id}_air_capacity_supply_viewer_data.js",
-            rows,
-        )
+        if write_viewer_artifacts:
+            write_supply_viewer_data_js(
+                region_dir / f"{region_id}_air_capacity_supply_viewer_data.js",
+                rows,
+            )
+
+    if write_viewer_artifacts:
+        write_global_viewer_lazy_assets(global_dir, regional_result)
 
     for market_id, rows in regional_result.get("city_airport_rows_by_market", {}).items():
         if not rows:
@@ -1557,10 +1760,11 @@ def write_variant_outputs(
                 ],
             },
         )
-        write_city_airport_viewer_data_js(
-            region_dir / f"{market_id}_city_airport_demand_viewer_data.js",
-            rows,
-        )
+        if write_viewer_artifacts:
+            write_city_airport_viewer_data_js(
+                region_dir / f"{market_id}_city_airport_demand_viewer_data.js",
+                rows,
+            )
 
     for market_id, rows in regional_result.get("potential_passenger_forecast_rows_by_market", {}).items():
         if not rows:
@@ -1568,10 +1772,6 @@ def write_variant_outputs(
         region_id = str(rows[0].get("region_id") or "unknown_region")
         region_dir = potential_passenger_forecast_dir / region_id
         summary = regional_result.get("potential_passenger_forecast_summaries", {}).get(market_id, {})
-        potential_forecast_config = load_city_configs_by_market(
-            POTENTIAL_PASSENGER_FORECAST_CONFIG_DIR,
-            load_potential_passenger_forecast_config,
-        ).get(market_id, {})
         write_csv_file(
             region_dir / f"{market_id}_potential_passenger_forecast_seed_sweep.csv",
             rows,
@@ -1587,11 +1787,21 @@ def write_variant_outputs(
                 "summary": summary,
             },
         )
-        write_potential_passenger_forecast_viewer_data_js(
-            region_dir / f"{market_id}_potential_passenger_forecast_viewer_data.js",
-            rows,
-            potential_forecast_config,
-        )
+        if write_viewer_artifacts:
+            potential_forecast_config = load_city_configs_by_market(
+                POTENTIAL_PASSENGER_FORECAST_CONFIG_DIR,
+                load_potential_passenger_forecast_config,
+            ).get(market_id, {})
+            write_potential_passenger_forecast_viewer_data_js(
+                region_dir / f"{market_id}_potential_passenger_forecast_viewer_data.js",
+                rows,
+                potential_forecast_config,
+            )
+            write_potential_passenger_forecast_lazy_assets(
+                region_dir,
+                rows,
+                potential_forecast_config,
+            )
 
     for market_id, rows in regional_result.get("quarterly_operations_rows_by_market", {}).items():
         if not rows:
@@ -1610,10 +1820,11 @@ def write_variant_outputs(
                 "summary": summary,
             },
         )
-        write_quarterly_operations_viewer_data_js(
-            region_dir / f"{market_id}_quarterly_operations_viewer_data.js",
-            rows,
-        )
+        if write_viewer_artifacts:
+            write_quarterly_operations_viewer_data_js(
+                region_dir / f"{market_id}_quarterly_operations_viewer_data.js",
+                rows,
+            )
 
     for market_id, rows in regional_result.get("financial_state_rows_by_market", {}).items():
         if not rows:
@@ -1621,10 +1832,6 @@ def write_variant_outputs(
         region_id = str(rows[0].get("region_id") or "unknown_region")
         region_dir = financial_state_dir / region_id
         summary = regional_result.get("financial_state_summaries", {}).get(market_id, {})
-        financial_config = load_city_configs_by_market(
-            FINANCIAL_STATE_CONFIG_DIR,
-            load_financial_state_config,
-        ).get(market_id, {})
         write_csv_file(region_dir / f"{market_id}_financial_state_seed_sweep.csv", rows, FINANCIAL_STATE_FIELDS)
         write_json_file(
             region_dir / f"{market_id}_financial_state_summary.json",
@@ -1636,11 +1843,16 @@ def write_variant_outputs(
                 "summary": summary,
             },
         )
-        write_financial_state_viewer_data_js(
-            region_dir / f"{market_id}_financial_state_viewer_data.js",
-            rows,
-            financial_config,
-        )
+        if write_viewer_artifacts:
+            financial_config = load_city_configs_by_market(
+                FINANCIAL_STATE_CONFIG_DIR,
+                load_financial_state_config,
+            ).get(market_id, {})
+            write_financial_state_viewer_data_js(
+                region_dir / f"{market_id}_financial_state_viewer_data.js",
+                rows,
+                financial_config,
+            )
 
     for market_id, rows in regional_result.get("valuation_forecast_rows_by_market", {}).items():
         if not rows:
@@ -1648,10 +1860,6 @@ def write_variant_outputs(
         region_id = str(rows[0].get("region_id") or "unknown_region")
         region_dir = valuation_forecast_dir / region_id
         summary = regional_result.get("valuation_forecast_summaries", {}).get(market_id, {})
-        valuation_config = load_city_configs_by_market(
-            VALUATION_FORECAST_CONFIG_DIR,
-            load_valuation_forecast_config,
-        ).get(market_id, {})
         write_csv_file(region_dir / f"{market_id}_valuation_forecast_seed_sweep.csv", rows, VALUATION_FORECAST_FIELDS)
         write_json_file(
             region_dir / f"{market_id}_valuation_forecast_summary.json",
@@ -1663,11 +1871,29 @@ def write_variant_outputs(
                 "summary": summary,
             },
         )
-        write_valuation_forecast_viewer_data_js(
-            region_dir / f"{market_id}_valuation_forecast_viewer_data.js",
-            rows,
-            valuation_config,
-        )
+        if write_viewer_artifacts:
+            valuation_config = load_city_configs_by_market(
+                VALUATION_FORECAST_CONFIG_DIR,
+                load_valuation_forecast_config,
+            ).get(market_id, {})
+            write_valuation_forecast_viewer_data_js(
+                region_dir / f"{market_id}_valuation_forecast_viewer_data.js",
+                rows,
+                valuation_config,
+            )
+
+    if write_viewer_artifacts:
+        for market_id, quarterly_rows in regional_result.get("quarterly_operations_rows_by_market", {}).items():
+            if not quarterly_rows:
+                continue
+            region_id = str(quarterly_rows[0].get("region_id") or "unknown_region")
+            write_operations_viewer_lazy_assets(
+                quarterly_operations_dir / region_id,
+                market_id,
+                quarterly_rows,
+                regional_result.get("financial_state_rows_by_market", {}).get(market_id, []),
+                regional_result.get("valuation_forecast_rows_by_market", {}).get(market_id, []),
+            )
 
     write_json_file(
         variant_dir / "city_airport_downstream_skips.json",
@@ -1695,9 +1921,40 @@ def copy_files(source_dir: Path, target_dir: Path, pattern: str = "*") -> list[s
     return copied
 
 
-def publish_variant_to_viewer(variant_dir: Path, viewer_output_root: Path) -> dict[str, Any]:
+def copy_tree_files(source_dir: Path, target_dir: Path) -> list[str]:
     copied: list[str] = []
-    copied.extend(copy_files(variant_dir / "global_macro", viewer_output_root / "global_macro"))
+    if not source_dir.is_dir():
+        return copied
+    for source in sorted(source_dir.rglob("*")):
+        if not source.is_file():
+            continue
+        relative = source.relative_to(source_dir)
+        target = target_dir / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+        copied.append(str(target.as_posix()))
+    return copied
+
+
+def copy_variant_to_legacy_viewer(variant_dir: Path, viewer_output_root: Path) -> list[str]:
+    copied: list[str] = []
+    global_source = variant_dir / "global_macro"
+    global_target = viewer_output_root / "global_macro"
+    global_index = global_source / "global_viewer_index.js"
+    for source in sorted(global_source.glob("*")):
+        if source.is_file() and source != global_index:
+            target = global_target / source.name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+            copied.append(str(target.as_posix()))
+        elif source.is_dir() and source.name == "global_viewer_chunks":
+            copied.extend(copy_tree_files(source, global_target / source.name))
+    # The index is the compatibility pointer and must become visible after its chunks.
+    if global_index.is_file():
+        target = global_target / global_index.name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(global_index, target)
+        copied.append(str(target.as_posix()))
     copied.extend(copy_files(variant_dir / "regional_macro_reconciled", viewer_output_root / "regional_macro_reconciled"))
 
     regional_target = viewer_output_root / "regional_macro"
@@ -1731,14 +1988,44 @@ def publish_variant_to_viewer(variant_dir: Path, viewer_output_root: Path) -> di
     if potential_forecast_source.exists():
         for region_dir in sorted(potential_forecast_source.glob("*")):
             if region_dir.is_dir():
-                copied.extend(copy_files(region_dir, potential_forecast_target / region_dir.name))
+                target_region_dir = potential_forecast_target / region_dir.name
+                index_files = sorted(region_dir.glob("*_forecast_index.js"))
+                for source in sorted(region_dir.glob("*")):
+                    if source.is_file() and source not in index_files:
+                        target = target_region_dir / source.name
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(source, target)
+                        copied.append(str(target.as_posix()))
+                    elif source.is_dir() and source.name.endswith("_forecast_chunks"):
+                        copied.extend(copy_tree_files(source, target_region_dir / source.name))
+                # The lightweight index is the compatibility pointer and is copied last.
+                for source in index_files:
+                    target = target_region_dir / source.name
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(source, target)
+                    copied.append(str(target.as_posix()))
 
     quarterly_operations_target = viewer_output_root / "city_airport_quarterly_operations"
     quarterly_operations_source = variant_dir / "city_airport_quarterly_operations"
     if quarterly_operations_source.exists():
         for region_dir in sorted(quarterly_operations_source.glob("*")):
             if region_dir.is_dir():
-                copied.extend(copy_files(region_dir, quarterly_operations_target / region_dir.name))
+                target_region_dir = quarterly_operations_target / region_dir.name
+                index_files = sorted(region_dir.glob("*_operations_index.js"))
+                for source in sorted(region_dir.glob("*")):
+                    if source.is_file() and source not in index_files:
+                        target = target_region_dir / source.name
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(source, target)
+                        copied.append(str(target.as_posix()))
+                    elif source.is_dir() and source.name.endswith("_operations_chunks"):
+                        copied.extend(copy_tree_files(source, target_region_dir / source.name))
+                # Publish deferred datasets before switching the lightweight index pointer.
+                for source in index_files:
+                    target = target_region_dir / source.name
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(source, target)
+                    copied.append(str(target.as_posix()))
 
     financial_state_target = viewer_output_root / "city_airport_financial_state"
     financial_state_source = variant_dir / "city_airport_financial_state"
@@ -1754,9 +2041,319 @@ def publish_variant_to_viewer(variant_dir: Path, viewer_output_root: Path) -> di
             if region_dir.is_dir():
                 copied.extend(copy_files(region_dir, valuation_target / region_dir.name))
 
+    return copied
+
+
+def viewer_script_source(path: Path, default_script: str) -> str:
+    if not path.exists():
+        return default_script.rstrip() + "\n"
+    return path.read_text(encoding="utf-8").rstrip() + "\n"
+
+
+def viewer_run_metadata(variant_dir: Path) -> dict[str, Any]:
+    run_manifest_path = variant_dir.parent / "manifest.json"
+    run_manifest: dict[str, Any] = {}
+    if run_manifest_path.is_file():
+        try:
+            loaded = json.loads(run_manifest_path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                run_manifest = loaded
+        except (OSError, ValueError, json.JSONDecodeError):
+            run_manifest = {}
+    return {
+        "seed": run_manifest.get("seed"),
+        "start_year": run_manifest.get("start_year"),
+        "years": run_manifest.get("years"),
+        "model_version": str(run_manifest.get("model_version") or MODEL_VERSION),
+        "output_schema_version": str(
+            run_manifest.get("output_schema_version") or OUTPUT_SCHEMA_VERSION
+        ),
+    }
+
+
+def viewer_release_info_script(release_id: str, variant_dir: Path) -> str:
+    payload = json.dumps(
+        {
+            "schema_version": VIEWER_RELEASE_MANIFEST_VERSION,
+            "release_id": release_id,
+            "run_id": variant_dir.parent.name,
+            "variant": variant_dir.name,
+            **viewer_run_metadata(variant_dir),
+        },
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    return f"window.AIRPORT_VIEWER_RELEASE_INFO = {payload};\n"
+
+
+def build_global_viewer_bundle(variant_dir: Path, release_id: str) -> str:
+    lazy_index = variant_dir / "global_macro" / "global_viewer_index.js"
+    if lazy_index.exists():
+        return "".join(
+            [
+                f"/* Atomic airport Viewer release: {release_id} */\n",
+                viewer_script_source(
+                    variant_dir / "global_macro" / "global_macro_feedback_viewer_data.js",
+                    "window.GLOBAL_MACRO_FEEDBACK_DATA = [];",
+                ),
+                viewer_script_source(
+                    variant_dir / "regional_macro_reconciled" / "regional_macro_reconciled_viewer_data.js",
+                    "window.REGIONAL_MACRO_RECONCILED_DATA = [];\nwindow.REGIONAL_MACRO_RECONCILIATION_DATA = [];",
+                ),
+                viewer_script_source(lazy_index, "window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX = null;"),
+                viewer_release_info_script(release_id, variant_dir),
+            ]
+        )
+
+    parts = [
+        f"/* Atomic airport Viewer release: {release_id} */\n",
+        viewer_script_source(
+            variant_dir / "global_macro" / "global_macro_feedback_viewer_data.js",
+            "window.GLOBAL_MACRO_FEEDBACK_DATA = [];",
+        ),
+        "window.REGIONAL_MACRO_DATASETS = {};\n",
+    ]
+    for region_id in REGION_ORDER:
+        parts.append("window.REGIONAL_MACRO_DATA = [];\n")
+        parts.append(
+            viewer_script_source(
+                variant_dir / "regional_macro" / region_id / f"{region_id}_regional_macro_viewer_data.js",
+                "window.REGIONAL_MACRO_DATA = [];",
+            )
+        )
+        parts.append(
+            f"window.REGIONAL_MACRO_DATASETS[{json.dumps(region_id)}] = window.REGIONAL_MACRO_DATA || [];\n"
+        )
+
+    parts.append(
+        viewer_script_source(
+            variant_dir / "regional_macro_reconciled" / "regional_macro_reconciled_viewer_data.js",
+            "window.REGIONAL_MACRO_RECONCILED_DATA = [];\nwindow.REGIONAL_MACRO_RECONCILIATION_DATA = [];",
+        )
+    )
+    parts.append("window.REGIONAL_AVIATION_DEMAND_DATASETS = {};\n")
+    for region_id in REGION_ORDER:
+        parts.append("window.REGIONAL_AVIATION_DEMAND_DATA = [];\n")
+        parts.append(
+            viewer_script_source(
+                variant_dir
+                / "regional_aviation_demand"
+                / region_id
+                / f"{region_id}_aviation_demand_viewer_data.js",
+                "window.REGIONAL_AVIATION_DEMAND_DATA = [];",
+            )
+        )
+        parts.append(
+            "window.REGIONAL_AVIATION_DEMAND_DATASETS"
+            f"[{json.dumps(region_id)}] = window.REGIONAL_AVIATION_DEMAND_DATA || [];\n"
+        )
+
+    parts.append("window.REGIONAL_AIR_CAPACITY_SUPPLY_DATASETS = {};\n")
+    for region_id in REGION_ORDER:
+        parts.append("window.REGIONAL_AIR_CAPACITY_SUPPLY_DATA = [];\n")
+        parts.append(
+            viewer_script_source(
+                variant_dir
+                / "regional_air_capacity_supply"
+                / region_id
+                / f"{region_id}_air_capacity_supply_viewer_data.js",
+                "window.REGIONAL_AIR_CAPACITY_SUPPLY_DATA = [];",
+            )
+        )
+        parts.append(
+            "window.REGIONAL_AIR_CAPACITY_SUPPLY_DATASETS"
+            f"[{json.dumps(region_id)}] = window.REGIONAL_AIR_CAPACITY_SUPPLY_DATA || [];\n"
+        )
+    parts.append(viewer_release_info_script(release_id, variant_dir))
+    return "".join(parts)
+
+
+def build_beijing_operations_viewer_bundle(variant_dir: Path, release_id: str) -> str:
+    operations_dir = (
+        variant_dir
+        / "city_airport_quarterly_operations"
+        / "china_mainland"
+    )
+    lazy_index = operations_dir / "beijing_airport_system_operations_index.js"
+    parts = [
+        f"/* Atomic airport Viewer release: {release_id} */\n",
+        viewer_script_source(
+            operations_dir
+            / "beijing_airport_system_quarterly_operations_viewer_data.js",
+            "window.CITY_AIRPORT_QUARTERLY_OPERATIONS_DATA = {rows: []};",
+        ),
+        viewer_script_source(
+            variant_dir
+            / "city_airport_financial_state"
+            / "china_mainland"
+            / "beijing_airport_system_financial_state_viewer_data.js",
+            "window.CITY_AIRPORT_FINANCIAL_STATE_DATA = {rows: [], initial_assets: [], general_loans: []};",
+        ),
+    ]
+    if lazy_index.exists():
+        parts.append(viewer_script_source(lazy_index, "window.AIRPORT_OPERATIONS_VIEWER_LAZY_INDEX = null;"))
+    else:
+        parts.append(
+            viewer_script_source(
+                variant_dir
+                / "city_airport_valuation"
+                / "china_mainland"
+                / "beijing_airport_system_valuation_forecast_viewer_data.js",
+                "window.CITY_AIRPORT_VALUATION_FORECAST_DATA = {rows: []};",
+            )
+        )
+    parts.append(viewer_release_info_script(release_id, variant_dir))
+    return "".join(parts)
+
+
+def build_beijing_forecast_viewer_bundle(variant_dir: Path, release_id: str) -> str:
+    forecast_dir = (
+        variant_dir
+        / "city_airport_potential_passenger_forecast"
+        / "china_mainland"
+    )
+    lazy_index = forecast_dir / "beijing_airport_system_forecast_index.js"
+    if lazy_index.exists():
+        data_script = viewer_script_source(
+            lazy_index,
+            "window.AIRPORT_FORECAST_LAZY_INDEX = null;",
+        )
+    else:
+        data_script = viewer_script_source(
+            forecast_dir / "beijing_airport_system_potential_passenger_forecast_viewer_data.js",
+            "window.CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_DATA = {config: {}, rows: []};",
+        )
+    return "".join(
+        [
+            f"/* Atomic airport Viewer release: {release_id} */\n",
+            data_script,
+            viewer_release_info_script(release_id, variant_dir),
+        ]
+    )
+
+
+def write_viewer_release_bundles(variant_dir: Path, release_dir: Path, release_id: str) -> dict[str, str]:
+    global_chunk_dir = variant_dir / "global_macro" / "global_viewer_chunks"
+    if global_chunk_dir.is_dir():
+        copy_tree_files(global_chunk_dir, release_dir / global_chunk_dir.name)
+
+    operations_chunk_root = (
+        variant_dir
+        / "city_airport_quarterly_operations"
+        / "china_mainland"
+    )
+    for chunk_dir in sorted(operations_chunk_root.glob("*_operations_chunks")):
+        if chunk_dir.is_dir():
+            copy_tree_files(chunk_dir, release_dir / chunk_dir.name)
+
+    forecast_dir = (
+        variant_dir
+        / "city_airport_potential_passenger_forecast"
+        / "china_mainland"
+    )
+    for chunk_dir in sorted(forecast_dir.glob("*_forecast_chunks")):
+        if chunk_dir.is_dir():
+            copy_tree_files(chunk_dir, release_dir / chunk_dir.name)
+
+    bundles = {
+        "global_gdp_viewer": ("global_gdp_viewer_bundle.js", build_global_viewer_bundle(variant_dir, release_id)),
+        "beijing_airport_operations_viewer": (
+            "beijing_airport_operations_viewer_bundle.js",
+            build_beijing_operations_viewer_bundle(variant_dir, release_id),
+        ),
+        "beijing_potential_passenger_forecast_viewer": (
+            "beijing_potential_passenger_forecast_viewer_bundle.js",
+            build_beijing_forecast_viewer_bundle(variant_dir, release_id),
+        ),
+    }
+    filenames: dict[str, str] = {}
+    for viewer_id, (filename, content) in bundles.items():
+        if not content.strip():
+            raise ValueError(f"empty Viewer bundle for {viewer_id}")
+        atomic_write_text_file(release_dir / filename, content)
+        filenames[viewer_id] = filename
+    return filenames
+
+
+def viewer_script_url(path: Path) -> str:
+    try:
+        relative = path.resolve().relative_to(AIRPORT_DIR.resolve()).as_posix()
+    except ValueError:
+        return path.resolve().as_uri()
+    return f"./{relative}"
+
+
+def sha256_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def publish_variant_to_viewer(variant_dir: Path, viewer_output_root: Path) -> dict[str, Any]:
+    variant_dir = variant_dir.resolve()
+    viewer_output_root = viewer_output_root.resolve()
+    if not variant_dir.exists():
+        raise FileNotFoundError(f"missing Viewer source variant: {variant_dir}")
+
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    unique_suffix = f"{time.time_ns() % 1_000_000_000:09d}"
+    release_id = clean_run_id(f"{variant_dir.parent.name}_{variant_dir.name}_{timestamp}_{unique_suffix}")
+    releases_root = viewer_output_root / "viewer_releases"
+    staging_dir = releases_root / f".staging_{release_id}"
+    release_dir = releases_root / release_id
+    if staging_dir.exists() or release_dir.exists():
+        raise FileExistsError(f"Viewer release already exists: {release_id}")
+
+    releases_root.mkdir(parents=True, exist_ok=True)
+    try:
+        staging_dir.mkdir()
+        bundle_filenames = write_viewer_release_bundles(variant_dir, staging_dir, release_id)
+        bundle_hashes = {
+            viewer_id: sha256_file(staging_dir / filename)
+            for viewer_id, filename in bundle_filenames.items()
+        }
+        replace_directory_with_retry(staging_dir, release_dir)
+
+        # Keep the established canonical output tree for compatibility with older pages/tools.
+        canonical_copied = copy_variant_to_legacy_viewer(variant_dir, viewer_output_root)
+
+        manifest = {
+            "schema_version": VIEWER_RELEASE_MANIFEST_VERSION,
+            "release_id": release_id,
+            "run_id": variant_dir.parent.name,
+            "variant": variant_dir.name,
+            **viewer_run_metadata(variant_dir),
+            "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "source_variant": airport_relative(variant_dir),
+            "release_path": airport_relative(release_dir),
+            "scripts": {
+                viewer_id: viewer_script_url(release_dir / filename)
+                for viewer_id, filename in bundle_filenames.items()
+            },
+            "bundle_sha256": bundle_hashes,
+            "bundle_count": len(bundle_filenames),
+            "canonical_copy_count": len(canonical_copied),
+        }
+        manifest_json_path = viewer_output_root / "current_viewer_manifest.json"
+        manifest_js_path = viewer_output_root / "current_viewer_manifest.js"
+        write_json_file(manifest_json_path, manifest)
+        compact_manifest = json.dumps(manifest, ensure_ascii=False, separators=(",", ":"))
+        # This JS pointer is the final atomic switch used by the static Viewer pages.
+        atomic_write_text_file(
+            manifest_js_path,
+            f"window.AIRPORT_VIEWER_MANIFEST = {compact_manifest};\n",
+        )
+    except Exception:
+        if staging_dir.exists() and staging_dir.parent.resolve() == releases_root.resolve():
+            shutil.rmtree(staging_dir)
+        raise
+
     return {
         "viewer_output_root": str(viewer_output_root.as_posix()),
-        "copied_files": len(copied),
+        "copied_files": len(canonical_copied),
+        "release_id": release_id,
+        "release_path": airport_relative(release_dir),
+        "release_manifest_json": airport_relative(manifest_json_path),
+        "release_manifest_js": airport_relative(manifest_js_path),
+        "bundle_count": len(bundle_filenames),
     }
 
 
@@ -1782,7 +2379,11 @@ def build_run_index(output_root: Path) -> dict[str, Any]:
     runs: list[dict[str, Any]] = []
     if output_root.exists():
         manifest_paths = sorted(
-            output_root.glob("*/manifest.json"),
+            (
+                path
+                for path in output_root.glob("*/manifest.json")
+                if not path.parent.name.startswith(".staging_")
+            ),
             key=lambda item: item.stat().st_mtime,
             reverse=True,
         )
@@ -1849,7 +2450,7 @@ def write_run_index(output_root: Path) -> dict[str, Any]:
     js_path = output_root / "macro_run_index.js"
     write_json_file(json_path, payload)
     js_payload = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
-    js_path.write_text(f"window.MACRO_RUN_INDEX = {js_payload};\n", encoding="utf-8")
+    atomic_write_text_file(js_path, f"window.MACRO_RUN_INDEX = {js_payload};\n")
     return {
         "index_json": airport_relative(json_path),
         "index_js": airport_relative(js_path),
@@ -1857,27 +2458,189 @@ def write_run_index(output_root: Path) -> dict[str, Any]:
     }
 
 
-def main() -> None:
-    args = parse_args()
-    output_root = Path(args.output_root)
-    if args.index_only:
-        index_info = write_run_index(output_root)
-        print(json.dumps(index_info, ensure_ascii=False, indent=2))
-        return
+def csv_data_row_count(path: Path) -> int:
+    with path.open("r", newline="", encoding="utf-8") as handle:
+        reader = csv.reader(handle)
+        next(reader, None)
+        return sum(1 for _ in reader)
 
-    seed = resolve_seed(args)
-    timestamp = time.strftime("%Y%m%d_%H%M%S")
-    run_id = clean_run_id(args.run_id or f"run_{timestamp}_seed_{seed}")
-    run_dir = output_root / run_id
-    run_dir.mkdir(parents=True, exist_ok=True)
 
+def glob_csv_row_count(root: Path, pattern: str) -> int:
+    return sum(csv_data_row_count(path) for path in root.glob(pattern) if path.is_file())
+
+
+def inspect_staged_csv(
+    path: Path,
+    expected_seed: int,
+    start_year: int,
+    final_year: int,
+) -> dict[str, Any]:
+    with path.open("r", newline="", encoding="utf-8") as handle:
+        reader = csv.reader(handle)
+        header = next(reader, None)
+        if not header or any(not str(field).strip() for field in header):
+            raise ValueError(f"staged CSV has an empty header: {path}")
+        if len(header) != len(set(header)):
+            raise ValueError(f"staged CSV has duplicate header fields: {path}")
+        if "seed" not in header:
+            raise ValueError(f"staged CSV is missing seed field: {path}")
+
+        seed_index = header.index("seed")
+        year_index = header.index("year") if "year" in header else None
+        year_offset_index = header.index("year_index") if "year_index" in header else None
+        region_index = header.index("region_id") if "region_id" in header else None
+        regions: set[str] = set()
+        row_count = 0
+        for row_number, row in enumerate(reader, start=2):
+            if len(row) != len(header):
+                raise ValueError(
+                    f"staged CSV row width mismatch at {path}:{row_number}: "
+                    f"expected {len(header)}, got {len(row)}"
+                )
+            try:
+                row_seed = int(float(row[seed_index]))
+            except (TypeError, ValueError) as error:
+                raise ValueError(f"staged CSV has invalid seed at {path}:{row_number}") from error
+            if row_seed != expected_seed:
+                raise ValueError(
+                    f"staged CSV seed mismatch at {path}:{row_number}: "
+                    f"expected {expected_seed}, got {row_seed}"
+                )
+            if year_index is not None:
+                try:
+                    row_year = int(float(row[year_index]))
+                except (TypeError, ValueError) as error:
+                    raise ValueError(f"staged CSV has invalid year at {path}:{row_number}") from error
+                if row_year < start_year or row_year > final_year:
+                    raise ValueError(
+                        f"staged CSV year outside Run range at {path}:{row_number}: {row_year}"
+                    )
+            if year_offset_index is not None:
+                try:
+                    row_year_index = int(float(row[year_offset_index]))
+                except (TypeError, ValueError) as error:
+                    raise ValueError(f"staged CSV has invalid year_index at {path}:{row_number}") from error
+                if row_year_index < 0 or row_year_index > final_year - start_year:
+                    raise ValueError(
+                        f"staged CSV year_index outside Run range at {path}:{row_number}: {row_year_index}"
+                    )
+            if region_index is not None and row[region_index]:
+                regions.add(row[region_index])
+            row_count += 1
+
+    return {
+        "row_count": row_count,
+        "header": header,
+        "regions": regions,
+    }
+
+
+def validate_staged_run(run_dir: Path, manifest: dict[str, Any]) -> dict[str, Any]:
+    variants = manifest.get("variants")
+    if not isinstance(variants, dict) or not variants:
+        raise ValueError("Run manifest has no variants")
+
+    expected_seed = int(manifest["seed"])
+    start_year = int(manifest["start_year"])
+    final_year = start_year + int(manifest["years"])
+    checks: dict[str, dict[str, int]] = {}
+    file_counts: dict[str, dict[str, int]] = {}
+    header_digests: dict[str, dict[str, str]] = {}
+    region_coverage: dict[str, dict[str, list[str]]] = {}
+    count_patterns = {
+        "global_rows": "global_macro/global_macro_feedback_seed_sweep.csv",
+        "regional_rows": "regional_macro/*/*_regional_macro_seed_sweep.csv",
+        "reconciled_rows": "regional_macro_reconciled/regional_macro_reconciled_seed_sweep.csv",
+        "aviation_rows": "regional_aviation_demand/*/*_aviation_demand_seed_sweep.csv",
+        "supply_rows": "regional_air_capacity_supply/*/*_air_capacity_supply_seed_sweep.csv",
+        "city_airport_rows": "city_airport_market_demand/*/*_city_airport_demand_seed_sweep.csv",
+        "potential_passenger_forecast_rows": (
+            "city_airport_potential_passenger_forecast/*/*_potential_passenger_forecast_seed_sweep.csv"
+        ),
+        "quarterly_operations_rows": "city_airport_quarterly_operations/*/*_quarterly_operations_seed_sweep.csv",
+        "financial_state_rows": "city_airport_financial_state/*/*_financial_state_seed_sweep.csv",
+        "valuation_rows": "city_airport_valuation/*/*_valuation_forecast_seed_sweep.csv",
+    }
+    full_region_fields = {"regional_rows", "reconciled_rows", "aviation_rows", "supply_rows"}
+    for variant_id, raw_meta in variants.items():
+        meta = raw_meta if isinstance(raw_meta, dict) else {}
+        variant_dir = run_dir / str(variant_id)
+        if not variant_dir.is_dir():
+            raise FileNotFoundError(f"missing staged variant directory: {variant_dir}")
+        skip_manifest = variant_dir / "city_airport_downstream_skips.json"
+        if not skip_manifest.is_file():
+            raise FileNotFoundError(f"missing staged downstream skip manifest: {skip_manifest}")
+        variant_checks: dict[str, int] = {}
+        variant_file_counts: dict[str, int] = {}
+        variant_header_digests: dict[str, str] = {}
+        variant_region_coverage: dict[str, list[str]] = {}
+        for field, pattern in count_patterns.items():
+            expected = int(meta.get(field, 0) or 0)
+            paths = sorted(path for path in variant_dir.glob(pattern) if path.is_file())
+            header_digest = hashlib.sha256()
+            regions: set[str] = set()
+            actual = 0
+            for path in paths:
+                inspection = inspect_staged_csv(path, expected_seed, start_year, final_year)
+                actual += int(inspection["row_count"])
+                regions.update(inspection["regions"])
+                header_digest.update(path.relative_to(variant_dir).as_posix().encode("utf-8"))
+                header_digest.update(b"\0")
+                header_digest.update(",".join(inspection["header"]).encode("utf-8"))
+                header_digest.update(b"\0")
+            if actual != expected:
+                raise ValueError(
+                    f"staged row count mismatch for {variant_id}/{field}: expected {expected}, got {actual}"
+                )
+            if expected > 0 and field in full_region_fields and regions != set(REGION_ORDER):
+                missing = sorted(set(REGION_ORDER) - regions)
+                unexpected = sorted(regions - set(REGION_ORDER))
+                raise ValueError(
+                    f"staged region coverage mismatch for {variant_id}/{field}: "
+                    f"missing={missing}, unexpected={unexpected}"
+                )
+            variant_checks[field] = actual
+            variant_file_counts[field] = len(paths)
+            variant_header_digests[field] = header_digest.hexdigest()
+            if field in full_region_fields:
+                variant_region_coverage[field] = sorted(regions)
+        checks[str(variant_id)] = variant_checks
+        file_counts[str(variant_id)] = variant_file_counts
+        header_digests[str(variant_id)] = variant_header_digests
+        region_coverage[str(variant_id)] = variant_region_coverage
+    return {
+        "schema_version": "airport-run-validation-v1",
+        "validated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "variant_count": len(variants),
+        "row_counts": checks,
+        "file_counts": file_counts,
+        "header_digests": header_digests,
+        "region_coverage": region_coverage,
+    }
+
+
+def build_run_in_directory(
+    args: argparse.Namespace,
+    seed: int,
+    run_id: str,
+    run_dir: Path,
+    final_run_dir: Path,
+) -> dict[str, Any]:
     baseline_global = run_global_variant(seed, args, "baseline")
     baseline_regional = run_regional_and_reconciliation(seed, baseline_global["rows"])
-    write_variant_outputs(run_dir / "baseline", seed, "baseline", baseline_global, baseline_regional, None)
+    write_variant_outputs(
+        run_dir / "baseline",
+        seed,
+        "baseline",
+        baseline_global,
+        baseline_regional,
+        None,
+        artifact_profile=getattr(args, "artifact_profile", "full"),
+    )
 
     variants = {
         "baseline": {
-            "path": str((run_dir / "baseline").as_posix()),
+            "path": str((final_run_dir / "baseline").as_posix()),
             "global_rows": len(baseline_global["rows"]),
             "regional_rows": sum(len(rows) for rows in baseline_regional["regional_rows_by_region"].values()),
             "reconciled_rows": len(baseline_regional["reconciled_rows"]),
@@ -1946,9 +2709,10 @@ def main() -> None:
             scenario_global,
             scenario_regional,
             scenario_manifest,
+            artifact_profile=getattr(args, "artifact_profile", "full"),
         )
         variants[scenario_variant_name] = {
-            "path": str((run_dir / scenario_variant_name).as_posix()),
+            "path": str((final_run_dir / scenario_variant_name).as_posix()),
             "global_rows": len(scenario_global["rows"]),
             "regional_rows": sum(len(rows) for rows in scenario_regional["regional_rows_by_region"].values()),
             "reconciled_rows": len(scenario_regional["reconciled_rows"]),
@@ -1973,23 +2737,14 @@ def main() -> None:
             "active_global_scenario_rows": active_scenario_rows(scenario_global["rows"]),
         }
 
-    published = None
-    if args.publish_viewer != "none":
-        if args.publish_viewer == "scenario":
-            if scenario_variant_name is None:
-                raise ValueError(
-                    "--publish-viewer scenario requires --scenario-state occurred, counterfactual, or probabilistic"
-                )
-            publish_name = scenario_variant_name
-        else:
-            publish_name = "baseline"
-        published = {
-            "variant": publish_name,
-            **publish_variant_to_viewer(run_dir / publish_name, Path(args.viewer_output_root)),
-        }
-
-    manifest = {
+    return {
+        "schema_version": RUN_MANIFEST_SCHEMA_VERSION,
+        "model_version": MODEL_VERSION,
+        "output_schema_version": OUTPUT_SCHEMA_VERSION,
         "orchestrator_version": ORCHESTRATOR_VERSION,
+        "python_version": platform.python_version(),
+        "python_implementation": platform.python_implementation(),
+        "artifact_profile": getattr(args, "artifact_profile", "full"),
         "run_id": run_id,
         "seed": seed,
         "start_year": args.start_year,
@@ -1997,16 +2752,74 @@ def main() -> None:
         "feedback_iterations": args.feedback_iterations,
         "volatility_scale": args.volatility_scale,
         "initial_gdp": args.initial_gdp,
-        "output_dir": str(run_dir.as_posix()),
+        "output_dir": str(final_run_dir.as_posix()),
         "variants": variants,
         "scenario": scenario_manifest,
+        "scenario_variant": scenario_variant_name,
         "branch_scenario_profile_count": len(BRANCH_SCENARIO_PROFILES),
         "branch_scenario_profile_ids": sorted(BRANCH_SCENARIO_PROFILES),
-        "published": published,
+        "published": None,
     }
-    write_json_file(run_dir / "manifest.json", manifest)
+
+
+def requested_publish_variant(args: argparse.Namespace, manifest: dict[str, Any]) -> str | None:
+    if args.publish_viewer == "none":
+        return None
+    if args.publish_viewer == "baseline":
+        return "baseline"
+    scenario_variant = str(manifest.get("scenario_variant") or "").strip()
+    if not scenario_variant:
+        raise ValueError(
+            "--publish-viewer scenario requires --scenario-state occurred, counterfactual, or probabilistic"
+        )
+    return scenario_variant
+
+
+def execute_run(args: argparse.Namespace) -> dict[str, Any]:
+    output_root = Path(args.output_root).resolve()
+    if getattr(args, "artifact_profile", "full") != "full" and args.publish_viewer != "none":
+        raise ValueError("--artifact-profile seed-cache cannot be combined with --publish-viewer")
+    if args.index_only:
+        return write_run_index(output_root)
+
+    seed = resolve_seed(args)
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    run_id = clean_run_id(args.run_id or f"run_{timestamp}_seed_{seed}")
+    final_run_dir = output_root / run_id
+    staging_dir = output_root / f".staging_{os.getpid()}_{time.time_ns():x}"
+    output_root.mkdir(parents=True, exist_ok=True)
+    if final_run_dir.exists():
+        raise FileExistsError(f"Run already exists and will not be overwritten: {final_run_dir}")
+
+    try:
+        staging_dir.mkdir()
+        manifest = build_run_in_directory(args, seed, run_id, staging_dir, final_run_dir)
+        publish_name = requested_publish_variant(args, manifest)
+        manifest["run_state"] = "staging"
+        write_json_file(staging_dir / "manifest.json", manifest)
+        manifest["validation"] = validate_staged_run(staging_dir, manifest)
+        manifest["run_state"] = "complete"
+        write_json_file(staging_dir / "manifest.json", manifest)
+        replace_directory_with_retry(staging_dir, final_run_dir)
+    except Exception:
+        if staging_dir.exists() and staging_dir.parent.resolve() == output_root:
+            shutil.rmtree(staging_dir)
+        raise
+
+    if publish_name is not None:
+        manifest["published"] = {
+            "variant": publish_name,
+            **publish_variant_to_viewer(final_run_dir / publish_name, Path(args.viewer_output_root)),
+        }
+        write_json_file(final_run_dir / "manifest.json", manifest)
+
     manifest["run_index"] = write_run_index(output_root)
-    write_json_file(run_dir / "manifest.json", manifest)
+    write_json_file(final_run_dir / "manifest.json", manifest)
+    return manifest
+
+
+def main() -> None:
+    manifest = execute_run(parse_args())
     print(json.dumps(manifest, ensure_ascii=False, indent=2))
 
 

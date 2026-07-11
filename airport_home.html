@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Airport 模拟工作台</title>
+  <link rel="stylesheet" href="./static/css/airport_home.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">✈</span>
+        <span class="brand-text">AIRPORT SIMULATION</span>
+      </div>
+      <div class="service-state" id="serviceState" role="status">
+        <span class="state-dot"></span>
+        <span id="serviceStateText">正在读取本地服务…</span>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Unified Local Workspace</p>
+        <h1>机场模拟工作台</h1>
+        <p class="lead">从一个入口运行 Seed 动态测试，并查看全球宏观、北京机场经营和有效客流预测。页面只负责导航与展示，不会自动重算或修改现有模型结果。</p>
+      </div>
+      <aside class="release-panel" aria-label="当前 Viewer 数据状态">
+        <div class="panel-label">当前 Viewer 数据</div>
+        <div class="release-mode" id="releaseMode">正在读取…</div>
+        <dl class="release-meta">
+          <div><dt>Run</dt><dd id="releaseRun">—</dd></div>
+          <div><dt>变体</dt><dd id="releaseVariant">—</dd></div>
+          <div><dt>Seed</dt><dd id="releaseSeed">—</dd></div>
+          <div><dt>模型</dt><dd id="releaseModel">—</dd></div>
+          <div><dt>发布时间</dt><dd id="releaseTime">—</dd></div>
+        </dl>
+      </aside>
+    </section>
+
+    <section aria-labelledby="entryTitle">
+      <h2 class="section-title" id="entryTitle">选择入口</h2>
+      <div class="cards">
+        <a class="card primary" href="/seed-explorer">
+          <span class="card-kicker">Interactive</span>
+          <h2>Seed 动态测试</h2>
+          <p>输入 Seed、生成完整世界线、推进季度并测试机场项目、合同与融资行动。需要计算时由本地 Python 后端统一执行。</p>
+          <span class="card-action">进入动态测试 →</span>
+        </a>
+        <a class="card" href="/global-gdp">
+          <span class="card-kicker">Global & Regional</span>
+          <h2>全球宏观 Viewer</h2>
+          <p>查看全球宏观反馈链、14 个区域、区域对账、航空需求与航空供给满足率。</p>
+          <span class="card-action">查看全球数据 →</span>
+        </a>
+        <a class="card" href="/beijing-operations">
+          <span class="card-kicker">Operations</span>
+          <h2>北京机场经营</h2>
+          <p>查看北京机场体系的季度经营、财务状态、估值以及有效客流预测摘要。</p>
+          <span class="card-action">查看经营面板 →</span>
+        </a>
+        <a class="card" href="/beijing-forecast">
+          <span class="card-kicker">Forecast</span>
+          <h2>有效客流预测</h2>
+          <p>按预测等级和报告期查看潜在客流、航司供给与最终有效客流预测结果。</p>
+          <span class="card-action">查看预测报告 →</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="lower" aria-label="工作区状态与使用提示">
+      <div class="info-panel">
+        <h2 class="section-title">本地数据概况</h2>
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-value" id="cachedRunCount">—</div>
+            <div class="metric-label">Seed Explorer 缓存 Run</div>
+          </div>
+          <div class="metric">
+            <div class="metric-value" id="saveCount">—</div>
+            <div class="metric-label">独立玩家存档</div>
+          </div>
+        </div>
+      </div>
+      <div class="info-panel">
+        <h2 class="section-title">使用提示</h2>
+        <ul class="tips">
+          <li><strong>只是查看：</strong>直接进入三个 Viewer，不会启动计算。</li>
+          <li><strong>运行新 Seed：</strong>进入 Seed 动态测试。</li>
+          <li><strong>更新静态 Viewer：</strong>仍需运行 orchestrator 并使用 <code>--publish-viewer</code>。</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>本页面仅绑定 127.0.0.1，本机之外无法访问。</footer>
+  </main>
+
+  <script src="./static/js/home/page.js"></script>
+</body>
+</html>

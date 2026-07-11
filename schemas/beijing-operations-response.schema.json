@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/beijing-operations-response.schema.json",
+  "title": "Beijing airport operations response",
+  "allOf": [
+    { "$ref": "api-envelope.schema.json" },
+    {
+      "type": "object",
+      "required": [
+        "ok", "seed", "years", "cached", "mode", "modeLabel", "modeDescription",
+        "runId", "runDir", "operationSource", "cityName", "periodCount",
+        "playerStartIndex", "startLabel", "finalLabel", "quarters"
+      ],
+      "properties": {
+        "ok": { "const": true },
+        "seed": { "type": "integer" },
+        "years": { "type": "integer", "minimum": 1 },
+        "cached": { "type": "boolean" },
+        "mode": { "enum": ["replay", "simulate_default"] },
+        "modeLabel": { "type": "string", "minLength": 1 },
+        "modeDescription": { "type": "string", "minLength": 1 },
+        "runId": { "type": "string", "minLength": 1 },
+        "runDir": { "type": "string", "minLength": 1 },
+        "operationSource": { "type": "string", "minLength": 1 },
+        "cityName": { "type": "string", "minLength": 1 },
+        "periodCount": { "type": "integer", "minimum": 0 },
+        "playerStartIndex": { "type": "integer", "minimum": 0 },
+        "startLabel": { "type": "string" },
+        "finalLabel": { "type": "string" },
+        "quarters": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/quarter" }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "quarter": {
+      "type": "object",
+      "required": [
+        "index", "year", "quarter", "label", "gamePhase", "playerDecisionEnabled",
+        "demand", "capacity", "operations", "finance", "projects", "warnings"
+      ],
+      "properties": {
+        "index": { "type": "integer", "minimum": 0 },
+        "year": { "type": "integer" },
+        "quarter": { "enum": ["Q1", "Q2", "Q3", "Q4"] },
+        "label": { "type": "string", "minLength": 1 },
+        "gamePhase": { "type": "string" },
+        "playerDecisionEnabled": { "type": "boolean" },
+        "demand": {
+          "type": "object",
+          "required": [
+            "annualPotential", "annualAirlineSupply", "annualServed", "quarterPotential",
+            "quarterAirlineSupply", "quarterServiceableDemand", "quarterServed",
+            "capacityLost", "airlineSupplyGap", "bindingBottleneck", "componentServed"
+          ],
+          "additionalProperties": true
+        },
+        "capacity": {
+          "type": "object",
+          "required": [
+            "cityDesignCapacity", "cityMaxCapacity", "quarterDesignCapacity", "quarterMaxCapacity",
+            "designUtilizationPct", "maxUtilizationPct", "capacityRealizationPct",
+            "perceivedQualityIndex", "activeFacilitySlots", "effectiveFacilitySlots"
+          ],
+          "additionalProperties": true
+        },
+        "operations": {
+          "type": "object",
+          "required": [
+            "aeronauticalRevenue", "commercialRevenue", "commercialProfit", "totalRevenue",
+            "totalCost", "operatingProfit", "operatingMarginPct", "revenuePerPassengerCny",
+            "costPerPassengerCny"
+          ],
+          "additionalProperties": true
+        },
+        "finance": {
+          "type": "object",
+          "required": [
+            "beginCash", "endCash", "totalAssets", "totalLiabilities", "accountingProfit",
+            "freeCashFlowBeforeFinancing", "grossDebt", "netDebt", "totalEquity", "liabilityRatioPct"
+          ],
+          "additionalProperties": true
+        },
+        "projects": { "type": "object", "additionalProperties": true },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  }
+}

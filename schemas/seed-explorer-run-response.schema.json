@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/seed-explorer-run-response.schema.json",
+  "title": "Seed Explorer city market run response",
+  "allOf": [
+    { "$ref": "api-envelope.schema.json" },
+    {
+      "type": "object",
+      "required": [
+        "ok", "seed", "years", "cached", "elapsedSec", "runId", "runDir",
+        "generatedAt", "cityCount", "startYear", "finalYear", "cities", "rankings"
+      ],
+      "properties": {
+        "ok": { "const": true },
+        "seed": { "type": "integer" },
+        "years": { "type": "integer", "minimum": 1 },
+        "cached": { "type": "boolean" },
+        "elapsedSec": { "type": "number", "minimum": 0 },
+        "runId": { "type": "string", "minLength": 1 },
+        "runDir": { "type": "string", "minLength": 1 },
+        "generatedAt": { "type": "string", "minLength": 1 },
+        "cityCount": { "type": "integer", "minimum": 1 },
+        "startYear": { "type": "integer" },
+        "finalYear": { "type": "integer" },
+        "cities": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/city" }
+        },
+        "rankings": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/ranking" }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "cityPoint": {
+      "type": "object",
+      "required": [
+        "year", "potential", "airlineSupply", "effective", "served", "supplyGap",
+        "supplyFulfillmentPct", "bindingBottleneck", "supplyRegime", "supplyVolatilityRegime"
+      ],
+      "properties": {
+        "year": { "type": "integer" },
+        "potential": { "type": "number" },
+        "airlineSupply": { "type": "number" },
+        "effective": { "type": "number" },
+        "served": { "type": "number" },
+        "supplyGap": { "type": "number" },
+        "supplyFulfillmentPct": { "type": "number" },
+        "bindingBottleneck": { "type": "string" },
+        "supplyRegime": { "type": "string" },
+        "supplyVolatilityRegime": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "city": {
+      "type": "object",
+      "required": [
+        "id", "name", "region", "marketTier", "marketType", "startYear", "finalYear",
+        "finalPotential", "finalAirlineSupply", "finalEffective", "finalSupplyGap",
+        "effectiveCagrPct", "peakEffective", "finalBottleneck", "bottleneckYears", "points"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "region": { "type": "string" },
+        "marketTier": { "type": "string" },
+        "marketType": { "type": "string" },
+        "startYear": { "type": "integer" },
+        "finalYear": { "type": "integer" },
+        "finalPotential": { "type": "number" },
+        "finalAirlineSupply": { "type": "number" },
+        "finalEffective": { "type": "number" },
+        "finalSupplyGap": { "type": "number" },
+        "effectiveCagrPct": { "type": "number" },
+        "peakEffective": { "type": "number" },
+        "finalBottleneck": { "type": "string" },
+        "bottleneckYears": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "points": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/cityPoint" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "ranking": {
+      "type": "object",
+      "required": ["rank", "id", "name", "finalEffective", "finalPotential", "finalAirlineSupply"],
+      "properties": {
+        "rank": { "type": "integer", "minimum": 1 },
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "finalEffective": { "type": "number" },
+        "finalPotential": { "type": "number" },
+        "finalAirlineSupply": { "type": "number" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

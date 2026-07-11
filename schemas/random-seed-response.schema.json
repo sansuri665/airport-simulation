@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/random-seed-response.schema.json",
+  "title": "Python-generated random Seed response",
+  "type": "object",
+  "required": [
+    "ok", "seed", "source", "apiSchemaVersion", "modelVersion",
+    "outputSchemaVersion", "pythonVersion"
+  ],
+  "properties": {
+    "ok": { "const": true },
+    "seed": { "type": "integer", "minimum": 20260000, "maximum": 20261999 },
+    "source": { "const": "python-secrets" },
+    "apiSchemaVersion": { "type": "string", "minLength": 1 },
+    "modelVersion": { "type": "string", "minLength": 1 },
+    "outputSchemaVersion": { "type": "string", "minLength": 1 },
+    "pythonVersion": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": true
+}

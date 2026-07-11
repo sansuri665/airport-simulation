@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/health-response.schema.json",
+  "title": "Airport local UI health response",
+  "allOf": [
+    { "$ref": "api-envelope.schema.json" },
+    {
+      "type": "object",
+      "required": [
+        "ok", "serviceId", "servicePid", "runRoot", "saveRoot",
+        "maxCachedRuns", "cacheFingerprintVersion"
+      ],
+      "properties": {
+        "ok": { "const": true },
+        "serviceId": { "const": "airport-local-ui-v1" },
+        "servicePid": { "type": "integer", "minimum": 1 },
+        "runRoot": { "type": "string", "minLength": 1 },
+        "saveRoot": { "type": "string", "minLength": 1 },
+        "maxCachedRuns": { "type": "integer", "minimum": 0 },
+        "cacheFingerprintVersion": { "type": "string", "minLength": 1 }
+      }
+    }
+  ]
+}

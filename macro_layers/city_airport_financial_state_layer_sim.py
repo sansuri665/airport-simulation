@@ -1,5 +1,17 @@
 from __future__ import annotations
 
+from importlib import import_module
+
+_SIBLING_PREFIX = f"{__package__}." if __package__ else ""
+simulation_io = import_module(f"{_SIBLING_PREFIX}simulation_io")
+simulation_utils = import_module(f"{_SIBLING_PREFIX}simulation_utils")
+
+read_csv = simulation_io.read_csv_utf8_sig
+write_csv = simulation_io.write_csv_utf8_sig_ignore
+write_json = simulation_io.write_json_utf8_data
+as_float = simulation_utils.as_float_convert_lookup_default
+clamp = simulation_utils.clamp
+
 import argparse
 import csv
 import json
@@ -123,20 +135,6 @@ FINANCIAL_STATE_FIELDS = [
 ]
 
 
-def as_float(row: dict[str, Any], key: str, default: float = 0.0) -> float:
-    value = row.get(key, default)
-    if value is None or value == "":
-        return default
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return default
-
-
-def clamp(value: float, low: float, high: float) -> float:
-    return max(low, min(high, value))
-
-
 def split_semicolon_values(value: Any) -> list[str]:
     return [part.strip() for part in str(value or "").split(";") if part.strip()]
 
@@ -186,24 +184,6 @@ def use_tax_losses(buckets: list[dict[str, float]], taxable_income: float) -> fl
         used += take
     buckets[:] = [bucket for bucket in buckets if float(bucket.get("amount_million_cny", 0.0)) > 1e-9]
     return used
-
-
-def read_csv(path: Path) -> list[dict[str, str]]:
-    with path.open("r", encoding="utf-8-sig", newline="") as handle:
-        return list(csv.DictReader(handle))
-
-
-def write_csv(path: Path, rows: list[dict[str, Any]], fields: list[str]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8-sig", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def write_json(path: Path, data: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def write_viewer_data_js(path: Path, rows: list[dict[str, Any]], config: dict[str, Any]) -> None:
