@@ -14,14 +14,12 @@ from unittest import mock
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 MACRO_DIR = ROOT_DIR / "macro_layers"
-SEED_EXPLORER_DIR = ROOT_DIR / "dynamic_tests" / "seed_explorer"
-for import_dir in (MACRO_DIR, SEED_EXPLORER_DIR):
-    import_path = str(import_dir)
-    if import_path not in sys.path:
-        sys.path.insert(0, import_path)
+SERVER_DIR = ROOT_DIR / "airport_sim" / "server"
+if str(MACRO_DIR) not in sys.path:
+    sys.path.insert(0, str(MACRO_DIR))
 
 import macro_run_orchestrator_sim as orchestrator
-import seed_explorer_server
+from airport_sim.server import app as seed_explorer_server
 import simulation_io
 import simulation_utils
 from simulation_utils import clamp as shared_clamp
@@ -275,15 +273,19 @@ class RuntimeSafetyTests(unittest.TestCase):
 
         self.assertNotEqual(before, after)
 
-    def test_cache_dependencies_include_split_server_modules(self) -> None:
+    def test_cache_dependencies_include_formal_server_modules(self) -> None:
         dependencies = set(seed_explorer_server.cache_dependency_files())
         expected = {
             path.resolve()
-            for path in SEED_EXPLORER_DIR.glob("seed_explorer_*.py")
+            for path in SERVER_DIR.glob("*.py")
             if path.is_file()
         }
         self.assertTrue(expected)
         self.assertTrue(expected.issubset(dependencies))
+        self.assertNotIn(
+            (ROOT_DIR / "dynamic_tests" / "seed_explorer" / "seed_explorer_server.py").resolve(),
+            dependencies,
+        )
 
     def test_cached_run_listing_computes_fingerprint_once(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:

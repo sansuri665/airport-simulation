@@ -14,7 +14,7 @@
 - orchestrator 默认输出已改为基于 `airport` 根目录，不再依赖当前工作目录。
 - Seed Explorer 玩家存档已从临时 Run 缓存分离到 `saves/seed_explorer/`。
 - 已加入旧存档兼容迁移，现有一份旧存档已完成等字节迁移并保留原文件。
-- 完整 Run 缓存指纹已升级为 v3，覆盖 Python 环境、模型脚本、配置、全部 `seed_explorer_*.py` 拆分服务模块和精简 artifact profile 边界。
+- 完整 Run 缓存指纹已升级为 v4，覆盖 Python 环境、模型脚本、配置、全部 `airport_sim/server/*.py` 服务模块和精简 artifact profile 边界。
 - 查询缓存列表不再触发清理；主动清理缓存不会删除独立存档。
 - Seed Explorer 的 JSON 和缓存写入已采用临时文件加原子替换。
 - Viewer 发布已改为版本目录、三个页面数据包和 Manifest 原子切换；Manifest 会记录 Run、变体、Seed、起始年、年数、模型版本、输出 Schema 版本和生成时间，旧 canonical 路径继续兼容。
@@ -30,8 +30,8 @@
 - 全球宏观 Viewer 已改为“全球主链与协调结果首屏加载、14 个区域按需加载”；12 年固定 Seed 验证中首屏发布包由约 2.64 MB 降至 0.91 MB，下降约 65.6%。
 - 北京经营 Viewer 已明确数据边界：季度经营和财务状态作为首屏核心数据，估值只在打开“估值曲线”时加载；12 年验证中首屏发布包下降约 17.8%。
 - Seed Explorer 的正式随机 Seed 已改为由 `/api/random-seed` 使用 Python `secrets` 生成；全球页面保留的前端模型已明确标成“浏览器近似预览”，不会写入正式 Run。
-- 五个页面的 CSS 和页面 JavaScript 已搬到 `static/`；各 Viewer 已拆出 bootstrap/state，全球与北京经营已拆出 data client 和 Renderer，Seed Explorer 已按九类职责脚本拆分。
-- Seed Explorer 已拆出 storage、progress、run locks、HTTP 和 jobs 五个公共服务模块，并继续抽出玩家存档 `SaveRepository` 和城市汇总 serializers；路由、运行/玩家服务、其余 API 序列化以及项目、合同、融资领域职责仍未全部搬出主服务。
+- 五个 HTML 页面已归入 `web/pages/`，CSS 和页面 JavaScript 已归入 `web/static/`；各 Viewer 已拆出 bootstrap/state，全球与北京经营已拆出 data client 和 Renderer，Seed Explorer 已按九类职责脚本拆分。
+- 正式本地服务已从动态测试目录归入 `airport_sim/server/app.py`；storage、progress、run locks、HTTP、jobs、玩家存档 `SaveRepository`、城市汇总 serializers 和 validation 位于同一服务包。路由、运行/玩家服务、其余 API 序列化以及项目、合同、融资领域职责仍未全部搬出 `app.py`。
 - 模型层已抽取不改变运算顺序的公共 `clamp`、`resolve_seeds`、最大行为等价组的 `round_record`、两类不同缺失值语义的 `as_float` 和 `safe_divide`；公共 `simulation_io.py` 也已覆盖现用的 UTF-8/UTF-8-SIG CSV 与 JSON 薄包装。
 - 配置 JSON 已加入按文件状态自动失效的只读缓存，并通过副本隔离测试避免调用者修改缓存原件。
 - 缓存列表只计算一次当前依赖指纹；依赖文件字节按路径、修改时间和大小缓存，避免反复读取未变化脚本和配置。
@@ -39,10 +39,10 @@
 - 本地服务已增加结构化 JSON 日志和任务进度；可选 `POST /api/run-job` 与 `GET /api/jobs/<jobId>` 支持后台 Run，旧同步 `POST /api/run` 保持兼容。
 - 本地 HTTP POST 限制为 2 MiB UTF-8 JSON，检查 Content-Type 并区分 400/403/404/409/413/415/500/503/504；默认只允许回环 Host/Origin，非回环绑定必须显式授权。
 - 已增加最小 `pyproject.toml`、正确性优先的 Ruff 配置，以及 Windows/Linux、Python 3.13 的 GitHub Actions 测试矩阵。
-- 已建立 `docs/Current_Architecture_and_Runtime.md`，把当前事实与未来界面合并计划分开记录。
+- 已建立 `docs/architecture/Current_Architecture_and_Runtime.md`，把当前事实与未来界面合并计划分开记录。
 - 已完成统一首页和四个主要页面的实际浏览器验收，并建立区域/城市并行与玩家增量重算评估文档。
 
-尚未实施的后续重点包括继续拆分有效客流预测和少数页面装配逻辑，把 Seed Explorer 的路由、运行/玩家服务、其余 API 序列化及项目/合同/融资领域规则继续搬出主服务，引入命名运行 Profile，以及把原子写入扩展到各层单模块正式输出。区域/城市并行和玩家行动增量重算已经完成技术评估，但实施继续暂缓。
+尚未实施的后续重点包括继续拆分有效客流预测和少数页面装配逻辑，把 `airport_sim/server/app.py` 中的路由、运行/玩家服务、其余 API 序列化及项目/合同/融资领域规则继续按职责拆分，引入命名运行 Profile，以及把原子写入扩展到各层单模块正式输出。区域/城市并行和玩家行动增量重算已经完成技术评估，但实施继续暂缓。
 
 核心原则是：
 
@@ -107,9 +107,9 @@ py -3.13 .\macro_layers\regional_air_capacity_supply_layer_sim.py --region china
 
 主要静态页面：
 
-- `global_gdp_viewer.html`
-- `beijing_airport_operations_viewer.html`
-- `beijing_potential_passenger_forecast_viewer.html`
+- `web/pages/global_gdp_viewer.html`
+- `web/pages/beijing_airport_operations_viewer.html`
+- `web/pages/beijing_potential_passenger_forecast_viewer.html`
 
 这些页面主要读取 Python 预先生成的 Viewer JS 数据并在浏览器中筛选、绘图。
 
@@ -132,7 +132,7 @@ http://127.0.0.1:8776/
 ```text
 浏览器页面
   -> /api/run、/api/player-simulation 等接口
-  -> seed_explorer_server.py
+  -> airport_sim/server/app.py
   -> orchestrator 或经营/财务脚本
   -> CSV/JSON/缓存
   -> 服务端汇总后返回浏览器
@@ -303,7 +303,7 @@ saves/
 
 ### 5.4 给缓存加入版本指纹
 
-缓存目录仍以 `seed + years` 作为便于识别的名称，但是否复用不再只看文件存在。缓存 Manifest 已记录模型脚本、配置和 Python 环境指纹；任一计算依赖变化后会自动拒绝旧缓存并重算。当前指纹版本为 `seed-explorer-run-cache-v3`，依赖集合包含全部 `dynamic_tests/seed_explorer/seed_explorer_*.py`，所以后续抽出的服务模块发生变化时也不会误用旧缓存；自动化测试会检查这些拆分模块没有漏出指纹范围。
+缓存目录仍以 `seed + years` 作为便于识别的名称，但是否复用不再只看文件存在。缓存 Manifest 已记录模型脚本、配置和 Python 环境指纹；任一计算依赖变化后会自动拒绝旧缓存并重算。当前指纹版本为 `seed-explorer-run-cache-v4`，依赖集合包含全部 `airport_sim/server/*.py`，所以后续抽出的服务模块发生变化时也不会误用旧缓存；自动化测试会检查这些拆分模块没有漏出指纹范围。
 
 缓存 Manifest 至少应记录：
 
@@ -333,7 +333,7 @@ Python version
 
 ### 5.5 消除前端和 Python 两套宏观模型
 
-全球 Viewer 的页面脚本 `static/js/global-gdp/page.js` 不仅展示结果，还保留一套 JavaScript 宏观模拟、情景分岔和随机 Seed 生成逻辑。
+全球 Viewer 的页面脚本 `web/static/js/global-gdp/page.js` 不仅展示结果，还保留一套 JavaScript 宏观模拟、情景分岔和随机 Seed 生成逻辑。
 
 当前实际存在：
 
@@ -475,7 +475,7 @@ python -m airport_sim serve
 - 本地 HTTP 服务支持 gzip/Brotli、ETag 和缓存控制。
 - 归档数据和展示数据分开生成。
 
-当前进度：有效客流预测已按报告拆分；全球宏观页面已按区域拆分三组数据；北京经营页面已把估值从首屏核心包中分离。旧完整 JS 仍作为兼容回退，所以磁盘占用尚未按首屏比例同步下降。具体结构与兼容策略见 `docs/Forecast_Viewer_Lazy_Loading.md`、`docs/Global_Viewer_Lazy_Loading.md` 和 `docs/Operations_Viewer_Lazy_Loading.md`。
+当前进度：有效客流预测已按报告拆分；全球宏观页面已按区域拆分三组数据；北京经营页面已把估值从首屏核心包中分离。旧完整 JS 仍作为兼容回退，所以磁盘占用尚未按首屏比例同步下降。具体结构与兼容策略见 `docs/architecture/Forecast_Viewer_Lazy_Loading.md`、`docs/architecture/Global_Viewer_Lazy_Loading.md` 和 `docs/architecture/Operations_Viewer_Lazy_Loading.md`。
 
 ### 6.3 拆分超大前端文件
 
@@ -512,19 +512,22 @@ viewer/
 
 ### 6.4 拆分 Seed Explorer 服务端
 
-`seed_explorer_server.py` 已把五类公共基础设施和两类边界职责搬出：
+正式服务已经从动态测试目录归入 `airport_sim/server/app.py`，并把公共基础设施与部分边界职责放在同一个服务包：
 
 ```text
-seed_explorer_storage.py
-seed_explorer_progress.py
-seed_explorer_run_locks.py
-seed_explorer_http.py
-seed_explorer_jobs.py
-seed_explorer_repository.py    # 玩家存档 SaveRepository
-seed_explorer_serializers.py   # 城市结果汇总 serializers
+airport_sim/server/
+  app.py
+  storage.py
+  progress.py
+  run_locks.py
+  http.py
+  jobs.py
+  repository.py    # 玩家存档 SaveRepository
+  serializers.py   # 城市结果汇总 serializers
+  validation.py
 ```
 
-主文件仍同时负责：
+`app.py` 仍同时负责：
 
 - HTTP 路由。
 - 输入清洗。
@@ -537,8 +540,8 @@ seed_explorer_serializers.py   # 城市结果汇总 serializers
 建议拆分为：
 
 ```text
-seed_explorer/
-  server.py
+airport_sim/server/
+  app.py
   routes.py
   services/
     run_service.py
@@ -555,7 +558,7 @@ seed_explorer/
 
 先机械搬移现有函数，通过 API 快照验证 JSON 不变。
 
-当前进度：存储、进度、锁、HTTP 公共响应和后台 Job 已拆出并保留原服务兼容导出；玩家存档的 `SaveRepository` 与城市结果汇总 serializers 也已搬入独立模块。路由、运行服务、玩家模拟服务、缓存仓储、其余 API 序列化和项目/合同/融资领域规则仍待拆分；因此只能表述为“基础设施与部分边界职责拆分完成”，不能声称 Seed Explorer 已完成完整的 routes/services/repositories/domain 分层。
+当前进度：正式服务和 helper 已归入 `airport_sim/server/`，旧 `dynamic_tests/seed_explorer/seed_explorer_server.py` 保留兼容转发；玩家存档的 `SaveRepository` 与城市结果汇总 serializers 已在独立模块中。路由、运行服务、玩家模拟服务、缓存仓储、其余 API 序列化和项目/合同/融资领域规则仍待拆分；因此只能表述为“正式归位与基础设施拆分完成”，不能声称已经完成完整的 routes/services/repositories/domain 分层。
 
 ### 6.5 建立正式前后端数据协议
 
@@ -678,7 +681,7 @@ airport_sim/common/
 
 为降低风险，可先保留旧函数作为薄包装，内部调用公共实现。
 
-当前进度：17 个模型模块已经共用 `macro_layers/simulation_utils.py` 中的 `clamp`，10 个模型模块已经共用相同行为的 `resolve_seeds`，行为完全相同的最大 `round_record` 组也已抽取；语义不同的 `round_record` 继续留在原模块。`simulation_utils.py` 还增加了两类明确命名的 `as_float`：一类会把缺失时的默认值也转换成 `float`，另一类直接返回缺失默认值并保留其类型；预测和估值层共用的 `safe_divide` 也已抽取。`simulation_io.py` 已扩展为兼容现有 UTF-8/UTF-8-SIG、忽略或追加额外 CSV 字段、以及不同 JSON 参数名的薄包装，并有编码、字段顺序与失败行为测试。Seed Explorer 的文件与 JSON 工具已搬到 `seed_explorer_storage.py`。不同模块的舍入位数、Viewer JS 格式和少量特有 IO 契约仍不完全相同，因此其余工具继续逐项抽取，不能一次性统一行为。
+当前进度：17 个模型模块已经共用 `macro_layers/simulation_utils.py` 中的 `clamp`，10 个模型模块已经共用相同行为的 `resolve_seeds`，行为完全相同的最大 `round_record` 组也已抽取；语义不同的 `round_record` 继续留在原模块。`simulation_utils.py` 还增加了两类明确命名的 `as_float`：一类会把缺失时的默认值也转换成 `float`，另一类直接返回缺失默认值并保留其类型；预测和估值层共用的 `safe_divide` 也已抽取。`simulation_io.py` 已扩展为兼容现有 UTF-8/UTF-8-SIG、忽略或追加额外 CSV 字段、以及不同 JSON 参数名的薄包装，并有编码、字段顺序与失败行为测试。Seed Explorer 的文件与 JSON 工具已搬到 `airport_sim/server/storage.py`。不同模块的舍入位数、Viewer JS 格式和少量特有 IO 契约仍不完全相同，因此其余工具继续逐项抽取，不能一次性统一行为。
 
 ### 7.2 整理为正式 Python 包
 
@@ -714,7 +717,7 @@ Seed Explorer 已对一次运行中反复读取的 JSON 配置按解析路径、
 - 序列化顺序固定。
 - 并行前后固定 Seed 输出完全一致。
 
-第一轮技术评估已经完成：区域和城市存在理论并行边界，但 Windows spawn、模块重复导入、大列表序列化、内存峰值和固定顺序汇总可能抵消收益。当前串行结果已有稳定确定性契约，尚无普通 Windows 环境下的实测证据证明多进程值得引入，因此实施暂缓。详见 `docs/Performance_and_Incremental_Evaluation.md`。
+第一轮技术评估已经完成：区域和城市存在理论并行边界，但 Windows spawn、模块重复导入、大列表序列化、内存峰值和固定顺序汇总可能抵消收益。当前串行结果已有稳定确定性契约，尚无普通 Windows 环境下的实测证据证明多进程值得引入，因此实施暂缓。详见 `docs/refactoring/Performance_and_Incremental_Evaluation.md`。
 
 ### 7.5 玩家行动后的增量重算
 
@@ -729,7 +732,7 @@ Seed Explorer 已对一次运行中反复读取的 JSON 配置按解析路径、
 
 因此这项优化收益较高、风险也最高，应放在最后，并为每种行动建立完整回放测试。
 
-第一轮技术评估已经完成：正确增量起点必须恢复现金、资产与折旧、贷款、税损、合同、项目、容量、维护年龄等完整状态。当前没有版本化季度状态恢复接口，完整重算成本仍可接受，因此实施暂缓。`allQuarters` 只用于**没有新行动时**在前端推进或回看季度；一旦玩家产生新行动，仍由服务端完整重算。详见 `docs/Performance_and_Incremental_Evaluation.md`。
+第一轮技术评估已经完成：正确增量起点必须恢复现金、资产与折旧、贷款、税损、合同、项目、容量、维护年龄等完整状态。当前没有版本化季度状态恢复接口，完整重算成本仍可接受，因此实施暂缓。`allQuarters` 只用于**没有新行动时**在前端推进或回看季度；一旦玩家产生新行动，仍由服务端完整重算。详见 `docs/refactoring/Performance_and_Incremental_Evaluation.md`。
 
 ### 7.6 前端局部更新
 
@@ -779,10 +782,10 @@ Seed Explorer 服务端虽然描述为只暴露当前季度以前的历史，但
 当前架构的唯一事实来源是：
 
 ```text
-docs/Current_Architecture_and_Runtime.md
+docs/architecture/Current_Architecture_and_Runtime.md
 ```
 
-其中只描述当前已经运行的结构；区域/城市并行与玩家增量重算的已评估暂缓结论记录在 `docs/Performance_and_Incremental_Evaluation.md`；未来界面合并放在 `docs/Post_Refactor_UI_Consolidation_Plan.md`，更长期的模型与游戏规划继续留在各 Roadmap。以后修改入口、目录或 API 边界时，应先同步当前架构文档。
+其中只描述当前已经运行的结构；区域/城市并行与玩家增量重算的已评估暂缓结论记录在 `docs/refactoring/Performance_and_Incremental_Evaluation.md`；未来界面合并放在 `docs/plans/Post_Refactor_UI_Consolidation_Plan.md`，更长期的模型与游戏规划继续留在各 Roadmap。以后修改入口、目录或 API 边界时，应先同步当前架构文档。
 
 ## 10. 推荐实施顺序
 
@@ -801,7 +804,7 @@ docs/Current_Architecture_and_Runtime.md
 - [x] 为旧嵌套输出提供保留和迁移说明。
 - [x] 分离存档和缓存。
 - [x] GET 查询不再触发清理。
-- [x] 缓存加入代码、配置和 Python 环境指纹；v3 覆盖全部 Seed Explorer 拆分服务模块与精简 Run profile。
+- [x] 缓存加入代码、配置和 Python 环境指纹；v4 覆盖全部 `airport_sim/server/*.py` 服务模块与精简 Run profile。
 - [x] Seed Explorer JSON/缓存写入改为临时文件加原子替换。
 - [x] 完整 Run 通过 staging、行数/表头/列宽/Seed/年份/14区校验和目录改名实现原子正式化。
 - [x] Viewer 发布改为版本目录加 Manifest 切换。
@@ -812,6 +815,8 @@ docs/Current_Architecture_and_Runtime.md
 - [x] 新增统一的一键启动入口。
 - [x] 增加 `python -m airport_ui` 跨平台入口。
 - [x] 提供本地首页。
+- [x] 将五个 HTML 页面归入 `web/pages/`，并将静态资源归入 `web/static/`，保持 HTTP 路由不变。
+- [x] 将正式本地服务归入 `airport_sim/server/app.py`，保留旧动态测试脚本兼容入口。
 - [x] 有效客流预测 Viewer 改为按报告加载。
 - [x] 全球宏观 Viewer 按区域加载宏观、航空需求和运力供给数据。
 - [x] 北京经营 Viewer 将估值数据改为打开估值曲线时加载。
@@ -839,7 +844,7 @@ docs/Current_Architecture_and_Runtime.md
 ### 阶段 4：性能和工程化
 
 - [x] 缓存配置读取并在配置变化后自动失效。
-- [x] 缓存列表复用单次指纹，依赖字节按文件状态缓存，并用 v3 契约覆盖拆分模块。
+- [x] 缓存列表复用单次指纹，依赖字节按文件状态缓存，并用 v4 契约覆盖正式服务模块。
 - [x] 增加结构化日志和可查询任务进度。
 - [x] 增加可选后台 Run Job，同时保留旧同步接口。
 - [x] 改为每 Run 锁，并让缓存清理跳过活动 Run。

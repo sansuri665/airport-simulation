@@ -13,6 +13,7 @@ from unittest import mock
 
 from airport_sim import cli, paths
 from airport_sim.commands import cache as cache_command_module
+from airport_sim.commands import serve as serve_command_module
 from airport_sim.commands._delegate import invoke_module_main
 from airport_sim.commands.validate_config import validate_config_tree
 
@@ -32,6 +33,10 @@ class AirportSimPathTests(unittest.TestCase):
                 self.assertEqual(ROOT_DIR / "saves" / "seed_explorer", paths.SAVE_ROOT)
                 self.assertEqual(ROOT_DIR / "schemas", paths.SCHEMA_ROOT)
                 self.assertEqual(ROOT_DIR / "config", paths.CONFIG_ROOT)
+                self.assertEqual(ROOT_DIR / "web", paths.WEB_ROOT)
+                self.assertEqual(ROOT_DIR / "web" / "pages", paths.WEB_PAGES_ROOT)
+                self.assertEqual(ROOT_DIR / "web" / "static", paths.STATIC_ROOT)
+                self.assertEqual(ROOT_DIR / "airport_sim" / "server", paths.SERVER_ROOT)
             finally:
                 os.chdir(original_cwd)
 
@@ -46,6 +51,11 @@ class AirportSimCliTests(unittest.TestCase):
         with mock.patch.object(cli, "serve_command", return_value=0) as command:
             self.assertEqual(0, cli.main(["serve", "--port", "9000", "--open"]))
         command.assert_called_once_with(["--port", "9000", "--open"])
+
+    def test_serve_delegates_to_formal_server_module(self) -> None:
+        with mock.patch.object(serve_command_module, "invoke_module_main", return_value=0) as invoke:
+            self.assertEqual(0, serve_command_module.serve_command(["--port", "9000"]))
+        invoke.assert_called_once_with("airport_sim.server.app", ["--port", "9000"])
 
     def test_delegate_restores_sys_argv(self) -> None:
         captured: list[str] = []

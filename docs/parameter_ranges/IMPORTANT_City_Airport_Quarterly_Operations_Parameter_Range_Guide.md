@@ -12,7 +12,7 @@
 - `airport/config/city_airport_operations/beijing_airport_system_quarterly_operations_v1.json`
 - `airport/config/city_airport_operations/reference_defaults/china_mainland_quarterly_operations_reference_defaults_v1.json`
 - `airport/config/city_airport_operations/templates/city_airport_quarterly_operations_parameter_schema_v1.json`
-- `airport/beijing_airport_operations_viewer.html`
+- `airport/web/pages/beijing_airport_operations_viewer.html`
 
 当前状态：
 

@@ -7,7 +7,7 @@
 - `airport/macro_layers/city_airport_financial_state_layer_sim.py`
 - `airport/config/city_airport_finance/beijing_airport_group_financial_state_v1.json`
 - `airport/output/city_airport_financial_state/china_mainland/`
-- `airport/beijing_airport_operations_viewer.html`
+- `airport/web/pages/beijing_airport_operations_viewer.html`
 
 贷款系统规划另见：
 

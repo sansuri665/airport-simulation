@@ -15,10 +15,8 @@ from unittest import mock
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SEED_EXPLORER_DIR = ROOT_DIR / "dynamic_tests" / "seed_explorer"
-if str(SEED_EXPLORER_DIR) not in sys.path:
-    sys.path.insert(0, str(SEED_EXPLORER_DIR))
 
-import seed_explorer_server as local_ui
+from airport_sim.server import app as local_ui
 
 
 class QuietAirportHandler(local_ui.SeedExplorerHandler):
@@ -74,6 +72,11 @@ class LocalUIIntegrationTests(unittest.TestCase):
         )
         with urllib.request.urlopen(request, timeout=5) as response:
             return response.status, json.loads(response.read().decode("utf-8"))
+
+    def test_formal_server_uses_canonical_web_tree(self) -> None:
+        self.assertEqual(ROOT_DIR / "web" / "pages" / "airport_home.html", local_ui.HOME_HTML)
+        self.assertEqual(ROOT_DIR / "web" / "pages" / "seed_explorer_viewer.html", local_ui.VIEWER_HTML)
+        self.assertEqual(ROOT_DIR / "web" / "static", local_ui.STATIC_ROOT)
 
     def test_home_and_all_viewer_routes_are_served(self) -> None:
         expected_titles = {

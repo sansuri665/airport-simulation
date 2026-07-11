@@ -7,7 +7,7 @@
 - `airport/macro_layers/city_airport_valuation_forecast_layer_sim.py`
 - `airport/config/city_airport_valuation/beijing_airport_group_valuation_forecast_v1.json`
 - `airport/output/city_airport_valuation/`
-- `airport/beijing_airport_operations_viewer.html`
+- `airport/web/pages/beijing_airport_operations_viewer.html`
 
 ## 核心原则
 

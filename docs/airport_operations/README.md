@@ -9,7 +9,7 @@
 3. `City_Airport_Potential_Passenger_Forecast_System_Plan.md`（有效客流预测，文件名暂未迁移）
 4. `City_Airport_Quarterly_Demand_Distribution_Draft.md`
 5. `Quarterly_Operations_Config_Template.md`
-6. `../../beijing_airport_operations_viewer.html`
+6. `../../web/pages/beijing_airport_operations_viewer.html`
 
 ## 当前定位
 
@@ -42,5 +42,5 @@ macro_layers/city_airport_financial_state_layer_sim.py
 config/city_airport_finance/beijing_airport_group_financial_state_v1.json
 macro_layers/city_airport_valuation_forecast_layer_sim.py
 config/city_airport_valuation/beijing_airport_group_valuation_forecast_v1.json
-beijing_airport_operations_viewer.html
+web/pages/beijing_airport_operations_viewer.html
 ```

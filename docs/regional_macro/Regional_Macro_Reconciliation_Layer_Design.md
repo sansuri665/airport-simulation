@@ -136,7 +136,7 @@ GDP level is reconciled exactly. Inflation, rates, credit, stress, equity and en
 
 ## Viewer 接入
 
-`global_gdp_viewer.html` 读取：
+`web/pages/global_gdp_viewer.html` 读取：
 
 ```text
 airport/output/regional_macro_reconciled/regional_macro_reconciled_viewer_data.js

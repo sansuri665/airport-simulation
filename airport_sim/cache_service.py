@@ -264,11 +264,11 @@ def _is_protected(path: Path, protected_paths: list[Path]) -> bool:
 
 def _current_seed_cache_fingerprint() -> tuple[str | None, str | None]:
     try:
-        from dynamic_tests.seed_explorer import seed_explorer_server
+        from airport_sim.server import app
 
         return (
-            seed_explorer_server.CACHE_FINGERPRINT_VERSION,
-            seed_explorer_server.current_cache_fingerprint(),
+            app.CACHE_FINGERPRINT_VERSION,
+            app.current_cache_fingerprint(),
         )
     except (ImportError, OSError, ValueError):
         return None, None

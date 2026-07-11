@@ -10,6 +10,8 @@ from unittest import mock
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
+PAGES_DIR = ROOT_DIR / "web" / "pages"
+STATIC_DIR = ROOT_DIR / "web" / "static"
 MACRO_DIR = ROOT_DIR / "macro_layers"
 if str(MACRO_DIR) not in sys.path:
     sys.path.insert(0, str(MACRO_DIR))
@@ -140,11 +142,11 @@ class ForecastLazyLoadingTests(unittest.TestCase):
             self.assertEqual(2, len(list((canonical_dir / chunk_dir_name).glob("*.json"))))
 
     def test_forecast_viewer_contains_lazy_loader_and_legacy_fallback(self) -> None:
-        html = (ROOT_DIR / "beijing_potential_passenger_forecast_viewer.html").read_text(encoding="utf-8")
-        bootstrap_script = "./static/js/beijing-forecast/bootstrap.js"
-        bootstrap_js = (ROOT_DIR / bootstrap_script.removeprefix("./")).read_text(encoding="utf-8")
-        page_script = "./static/js/beijing-forecast/page.js"
-        page_js = (ROOT_DIR / page_script.removeprefix("./")).read_text(encoding="utf-8")
+        html = (PAGES_DIR / "beijing_potential_passenger_forecast_viewer.html").read_text(encoding="utf-8")
+        bootstrap_script = "/static/js/beijing-forecast/bootstrap.js"
+        bootstrap_js = (STATIC_DIR / "js" / "beijing-forecast" / "bootstrap.js").read_text(encoding="utf-8")
+        page_script = "/static/js/beijing-forecast/page.js"
+        page_js = (STATIC_DIR / "js" / "beijing-forecast" / "page.js").read_text(encoding="utf-8")
 
         self.assertIn(f'<script src="{bootstrap_script}"></script>', html)
         self.assertIn(f'<script src="{page_script}"></script>', html)

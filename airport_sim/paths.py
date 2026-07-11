@@ -11,8 +11,10 @@ ROOT_DIR = PACKAGE_DIR.parent
 CONFIG_ROOT = ROOT_DIR / "config"
 OUTPUT_ROOT = ROOT_DIR / "output"
 SCHEMA_ROOT = ROOT_DIR / "schemas"
-STATIC_ROOT = ROOT_DIR / "static"
 SAVES_ROOT = ROOT_DIR / "saves"
+WEB_ROOT = ROOT_DIR / "web"
+WEB_PAGES_ROOT = WEB_ROOT / "pages"
+STATIC_ROOT = WEB_ROOT / "static"
 
 # Seed Explorer cache and save roots retain the names already used by the local
 # service so lifecycle code can migrate without changing their meaning.
@@ -24,6 +26,7 @@ VIEWER_RELEASE_ROOT = OUTPUT_ROOT / "viewer_releases"
 MACRO_LAYERS_ROOT = ROOT_DIR / "macro_layers"
 DYNAMIC_TESTS_ROOT = ROOT_DIR / "dynamic_tests"
 SEED_EXPLORER_ROOT = DYNAMIC_TESTS_ROOT / "seed_explorer"
+SERVER_ROOT = PACKAGE_DIR / "server"
 
 CURRENT_VIEWER_MANIFEST_PATH = OUTPUT_ROOT / "current_viewer_manifest.json"
 CURRENT_VIEWER_MANIFEST_JS_PATH = OUTPUT_ROOT / "current_viewer_manifest.js"
@@ -44,4 +47,3 @@ def project_path(*parts: str) -> Path:
     """Return an absolute path below the workspace root."""
 
     return ROOT_DIR.joinpath(*parts)
-

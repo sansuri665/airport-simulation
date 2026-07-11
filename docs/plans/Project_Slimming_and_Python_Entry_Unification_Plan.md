@@ -44,10 +44,13 @@
 
 ```text
 airport/
-  airport_sim/             正式模型与命令入口
-  airport_ui/              本地 8776 服务入口
+  airport_sim/             正式模型、命令入口和本地服务
+    server/                8776 HTTP 服务与 helper
+  airport_ui/              旧模块兼容入口
   config/                  正式配置
-  static/                  前端静态资源
+  web/
+    pages/                 五个 HTML 页面
+    static/                CSS 和 JavaScript
   schemas/                 API 和输出 Schema
   tests/                   自动化测试
   output/                  可再生成结果
@@ -330,5 +333,6 @@ airport-sim serve
 - 已清理 33 个失效缓存、历史测试输出和未引用发布，共释放 624,906,748 字节。
 - 旧 `airport/airport/output/` 已在工作区外压缩备份后删除，工作区不再存在第二套输出根。
 - CI 在 Windows/Linux、Python 3.13 上安装可编辑包，并验证统一模块和控制台入口。
+- 五个页面和静态资源已分别归入 `web/pages/`、`web/static/`，正式 8776 服务已归入 `airport_sim/server/app.py`；旧浏览器地址和动态测试脚本继续兼容。
 
-界面合并仍未进入本轮，实现范围保持在 `Post_Refactor_UI_Consolidation_Plan.md` 中。
+界面合并仍未进入本轮，实现范围保持在 `Post_Refactor_UI_Consolidation_Plan.md` 中。页面归位只整理源码目录，不等于合并页面产品职责。

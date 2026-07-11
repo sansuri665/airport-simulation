@@ -2,7 +2,7 @@
 
 ## 当前定位
 
-宏观叙事层目前实现在 `global_gdp_viewer.html` 内，是一个只读解释层：
+宏观叙事层目前实现在 `web/pages/global_gdp_viewer.html` 内，是一个只读解释层：
 
 ```text
 Macro stack outputs -> narrative scoring -> overview commentary

@@ -10,12 +10,10 @@ from unittest import mock
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SCHEMA_ROOT = ROOT_DIR / "schemas"
 MACRO_DIR = ROOT_DIR / "macro_layers"
-SEED_EXPLORER_DIR = ROOT_DIR / "dynamic_tests" / "seed_explorer"
-for import_dir in (MACRO_DIR, SEED_EXPLORER_DIR):
-    if str(import_dir) not in sys.path:
-        sys.path.insert(0, str(import_dir))
+if str(MACRO_DIR) not in sys.path:
+    sys.path.insert(0, str(MACRO_DIR))
 
-import seed_explorer_server
+from airport_sim.server import app as seed_explorer_server
 try:
     from .schema_support import SchemaValidationError, load_schema_registry, validate_named_schema
     from .test_api_snapshot import build_fixed_seed_api_artifacts

@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from importlib import import_module
 from pathlib import Path
 from typing import Any
 
-_SIBLING_PREFIX = f"{__package__}." if __package__ else ""
-storage = import_module(f"{_SIBLING_PREFIX}seed_explorer_storage")
+from . import storage
 ensure_inside = storage.ensure_inside
 read_json = storage.read_json
 write_json = storage.write_json

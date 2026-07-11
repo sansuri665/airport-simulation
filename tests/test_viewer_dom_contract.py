@@ -7,6 +7,7 @@ from pathlib import Path
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
+PAGES_DIR = ROOT_DIR / "web" / "pages"
 
 
 class IdCollector(HTMLParser):
@@ -24,7 +25,7 @@ class IdCollector(HTMLParser):
 
 class ViewerDomContractTests(unittest.TestCase):
     CONTRACTS = {
-        "airport_home.html": {
+        "web/pages/airport_home.html": {
             "serviceState",
             "serviceStateText",
             "releaseMode",
@@ -34,7 +35,7 @@ class ViewerDomContractTests(unittest.TestCase):
             "cachedRunCount",
             "saveCount",
         },
-        "global_gdp_viewer.html": {
+        "web/pages/global_gdp_viewer.html": {
             "dataStatus",
             "runSelect",
             "variantSelect",
@@ -46,7 +47,7 @@ class ViewerDomContractTests(unittest.TestCase):
             "chart",
             "dataBody",
         },
-        "beijing_airport_operations_viewer.html": {
+        "web/pages/beijing_airport_operations_viewer.html": {
             "statusText",
             "seedSelect",
             "summaryGrid",
@@ -55,7 +56,7 @@ class ViewerDomContractTests(unittest.TestCase):
             "financeMetrics",
             "assetDetailPanel",
         },
-        "beijing_potential_passenger_forecast_viewer.html": {
+        "web/pages/beijing_potential_passenger_forecast_viewer.html": {
             "statusText",
             "seedSelect",
             "summaryGrid",
@@ -65,7 +66,7 @@ class ViewerDomContractTests(unittest.TestCase):
             "componentGrid",
             "forecastTable",
         },
-        "dynamic_tests/seed_explorer/seed_explorer_viewer.html": {
+        "web/pages/seed_explorer_viewer.html": {
             "seedInput",
             "yearsInput",
             "runButton",
@@ -95,7 +96,7 @@ class ViewerDomContractTests(unittest.TestCase):
             self.assertEqual(set(), required_ids - set(parser.ids), relative_path)
 
     def test_seed_explorer_report_charts_belong_to_their_own_panels(self) -> None:
-        viewer = ROOT_DIR / "dynamic_tests" / "seed_explorer" / "seed_explorer_viewer.html"
+        viewer = PAGES_DIR / "seed_explorer_viewer.html"
         html = viewer.read_text(encoding="utf-8")
 
         traffic_panel = html.index('id="trafficCapacityChartPanel"')

@@ -305,7 +305,7 @@ http://127.0.0.1:8776/
 python -m airport_ui
 ```
 
-统一首页可以进入 Seed 动态测试、全球宏观、北京机场经营和有效客流预测。旧的 `dynamic_tests/seed_explorer/start_seed_explorer.bat` 仍可使用，但现在会调用统一服务并直接打开动态测试页。
+统一首页可以进入 Seed 动态测试、全球宏观、北京机场经营和有效客流预测。五个页面与静态资源分别位于 `web/pages/`、`web/static/`，正式本地服务位于 `airport_sim/server/app.py`；这些源码归位不改变浏览器地址。旧的 `dynamic_tests/seed_explorer/start_seed_explorer.bat` 仍可使用，但现在会调用统一服务并直接打开动态测试页。
 
 如果需要了解页面、Python 后端、正式 Run、Viewer 发布、缓存和存档之间的区别，请先阅读 `Current_Architecture_and_Runtime.md`。
 

@@ -10,7 +10,7 @@
 
 ### 北京机场经营 Viewer
 
-`beijing_airport_operations_viewer.html` 是较早形成的只读汇总页面，主要展示：
+`web/pages/beijing_airport_operations_viewer.html` 是较早形成的只读汇总页面，主要展示：
 
 - 经营损益。
 - 客流与容量。
@@ -24,7 +24,7 @@
 
 ### 有效客流预测 Viewer
 
-`beijing_potential_passenger_forecast_viewer.html` 当前独立展示不同预测等级和报告期的潜在客流、航司供给与有效客流预测。
+`web/pages/beijing_potential_passenger_forecast_viewer.html` 当前独立展示不同预测等级和报告期的潜在客流、航司供给与有效客流预测。
 
 它本质上是玩家经营过程中可获得的信息和判断工具，更适合成为动态经营界面中的“预测”部分，而不是长期保持为单独的主入口。
 

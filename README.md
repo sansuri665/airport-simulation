@@ -123,7 +123,7 @@ config/airport_versions.json
 http://127.0.0.1:8776/api/schema
 ```
 
-详细说明见 `docs/API_and_JSON_Schema.md`。
+详细说明见 `docs/architecture/API_and_JSON_Schema.md`。
 
 ## 查看界面
 
@@ -136,6 +136,8 @@ http://127.0.0.1:8776/global-gdp             全球宏观 Viewer
 http://127.0.0.1:8776/beijing-operations     北京机场经营
 http://127.0.0.1:8776/beijing-forecast       有效客流预测
 ```
+
+五个页面源码统一位于 `web/pages/`，页面使用的 CSS 和 JavaScript 位于 `web/static/`。上述浏览器地址和旧的 `*.html` 兼容地址保持不变；正式 HTTP 服务实现位于 `airport_sim/server/app.py`。
 
 旧的 Seed Explorer 启动脚本仍然保留，会调用统一入口并直接打开动态测试页：
 
@@ -200,9 +202,9 @@ orchestrator 默认只归档 run，不覆盖页面数据。需要更新页面数
 
 如果尚未做过新版发布，或者 Manifest 明确为空，三个静态 Viewer 会回退读取上述 canonical 文件。因此现有输出可以继续使用；下一次正常 `--publish-viewer` 后会自动切换到版本化数据包。
 
-有效客流预测 Viewer 已率先改为按报告加载。当前 7,018 行、13 份报告的完整旧数据约 37.9 MB；新版首屏只加载约 14 KB 目录和约 1.71 MB 的默认报告数据，减少约 95.5%。切换报告时再加载对应 JSON 数据块，旧完整 JS 继续作为兼容回退。详见 `docs/Forecast_Viewer_Lazy_Loading.md`。
+有效客流预测 Viewer 已率先改为按报告加载。当前 7,018 行、13 份报告的完整旧数据约 37.9 MB；新版首屏只加载约 14 KB 目录和约 1.71 MB 的默认报告数据，减少约 95.5%。切换报告时再加载对应 JSON 数据块，旧完整 JS 继续作为兼容回退。详见 `docs/architecture/Forecast_Viewer_Lazy_Loading.md`。
 
-全球宏观 Viewer 现按区域加载宏观、航空需求和运力供给；北京经营 Viewer 将季度经营与财务状态保留为核心包，只在打开“估值曲线”时加载估值块。详见 `docs/Global_Viewer_Lazy_Loading.md` 和 `docs/Operations_Viewer_Lazy_Loading.md`。
+全球宏观 Viewer 现按区域加载宏观、航空需求和运力供给；北京经营 Viewer 将季度经营与财务状态保留为核心包，只在打开“估值曲线”时加载估值块。详见 `docs/architecture/Global_Viewer_Lazy_Loading.md` 和 `docs/architecture/Operations_Viewer_Lazy_Loading.md`。
 
 ## 输出结构
 
@@ -259,7 +261,7 @@ regional_air_capacity_supply/sub_saharan_africa/
 
 文档已按层级收拢到 `docs/`：
 
-1. `docs/Game_Overview.md`
+1. `docs/architecture/Game_Overview.md`
 2. `docs/README.md`
 3. `docs/macro/README.md`
 4. `docs/regional_macro/README.md`
@@ -268,7 +270,7 @@ regional_air_capacity_supply/sub_saharan_africa/
 
 建议阅读顺序：
 
-1. `docs/Game_Overview.md`
+1. `docs/architecture/Game_Overview.md`
 2. `docs/macro/Macro_Run_Orchestration.md`
 3. `docs/macro/Global_Macro_Layer_Index.md`
 4. `docs/regional_macro/Regional_Macro_Roadmap.md`
@@ -307,4 +309,4 @@ py -3.13 -B -m unittest discover -s tests -v
 - JSON Schema 2020-12、Schema 安全路由和固定 Seed/真实 Manifest 协议验证。
 - 有效客流预测目录、按报告 JSON 数据块、发布复制、数据等价和旧文件回退。
 
-修整与重构的完整顺序见 `REFACTORING_GUIDE.md`。
+修整与重构的完整顺序见 `docs/refactoring/REFACTORING_GUIDE.md`。

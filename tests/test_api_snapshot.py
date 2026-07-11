@@ -12,13 +12,11 @@ from typing import Any
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 MACRO_DIR = ROOT_DIR / "macro_layers"
-SEED_EXPLORER_DIR = ROOT_DIR / "dynamic_tests" / "seed_explorer"
-for import_dir in (MACRO_DIR, SEED_EXPLORER_DIR):
-    if str(import_dir) not in sys.path:
-        sys.path.insert(0, str(import_dir))
+if str(MACRO_DIR) not in sys.path:
+    sys.path.insert(0, str(MACRO_DIR))
 
 import macro_run_orchestrator_sim as orchestrator
-import seed_explorer_server
+from airport_sim.server import app as seed_explorer_server
 
 
 FIXTURE_PATH = ROOT_DIR / "tests" / "fixtures" / "seed_explorer_api_snapshot_seed_20261324_years_12.json"

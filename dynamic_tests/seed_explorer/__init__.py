@@ -1,1 +1,1 @@
-"""Seed Explorer local API and simulation application."""
+"""Legacy Seed Explorer entrypoints kept for backwards compatibility."""

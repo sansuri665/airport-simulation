@@ -10,6 +10,8 @@ from unittest import mock
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
+PAGES_DIR = ROOT_DIR / "web" / "pages"
+STATIC_DIR = ROOT_DIR / "web" / "static"
 MACRO_DIR = ROOT_DIR / "macro_layers"
 if str(MACRO_DIR) not in sys.path:
     sys.path.insert(0, str(MACRO_DIR))
@@ -82,12 +84,12 @@ class OperationsViewerLazyLoadingTests(unittest.TestCase):
             self.assertTrue((canonical_dir / chunk_name / "d_valuation.json").is_file())
 
     def test_viewer_loads_valuation_on_demand_with_legacy_fallback(self) -> None:
-        html = (ROOT_DIR / "beijing_airport_operations_viewer.html").read_text(encoding="utf-8")
-        bootstrap_script = "./static/js/beijing-operations/bootstrap.js"
-        bootstrap_js = (ROOT_DIR / bootstrap_script.removeprefix("./")).read_text(encoding="utf-8")
-        page_script = "./static/js/beijing-operations/page.js"
-        data_client_script = "./static/js/beijing-operations/data-client.js"
-        data_client_js = (ROOT_DIR / data_client_script.removeprefix("./")).read_text(encoding="utf-8")
+        html = (PAGES_DIR / "beijing_airport_operations_viewer.html").read_text(encoding="utf-8")
+        bootstrap_script = "/static/js/beijing-operations/bootstrap.js"
+        bootstrap_js = (STATIC_DIR / "js" / "beijing-operations" / "bootstrap.js").read_text(encoding="utf-8")
+        page_script = "/static/js/beijing-operations/page.js"
+        data_client_script = "/static/js/beijing-operations/data-client.js"
+        data_client_js = (STATIC_DIR / "js" / "beijing-operations" / "data-client.js").read_text(encoding="utf-8")
 
         self.assertIn(f'<script src="{bootstrap_script}"></script>', html)
         self.assertIn(f'<script src="{data_client_script}"></script>', html)

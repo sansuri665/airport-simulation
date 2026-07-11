@@ -66,9 +66,9 @@ schemas/viewer-release-manifest.schema.json
 
 ## Seed Explorer 当前拆分边界
 
-玩家存档路径、旧存档迁移、读取、清理和摘要已经委托给 `seed_explorer_repository.py` 中的 `SaveRepository`；城市市场的 CAGR、瓶颈和城市结果汇总已经委托给 `seed_explorer_serializers.py`。原服务继续保留兼容调用边界，因此这些机械拆分不会改变现有 API 字段或结果。
+玩家存档路径、旧存档迁移、读取、清理和摘要已经委托给 `airport_sim/server/repository.py` 中的 `SaveRepository`；城市市场的 CAGR、瓶颈和城市结果汇总已经委托给 `airport_sim/server/serializers.py`。旧动态测试服务脚本继续保留兼容调用边界，因此这些机械搬移不会改变现有 API 字段或结果。
 
-HTTP 路由、运行/玩家服务、其余 API 序列化以及项目、合同和融资领域规则仍有一部分位于 `seed_explorer_server.py`；当前事实是“仓储与部分 serializers 已拆出”，不是完整 routes/services/domain 分层已经完成。
+正式 HTTP 服务位于 `airport_sim/server/app.py`，HTTP、后台 jobs、进度、运行锁、存储、存档仓储、序列化和验证 helper 位于同一个 `airport_sim/server/` 包。运行/玩家服务、其余 API 序列化以及项目、合同和融资领域规则仍有一部分集中在 `app.py`；当前事实是“正式服务已经归位且基础 helper 已拆出”，不是完整 routes/services/domain 分层已经完成。
 
 ## 同步 Run 与可选后台 Job
 

@@ -665,7 +665,7 @@ airport/output/macro_runs/<run_id>/<variant>/regional_air_capacity_supply/<regio
 airport/output/regional_air_capacity_supply/
 ```
 
-当前已经接入 `airport/global_gdp_viewer.html` 的“航空需求”视图。14 区都会在总览卡片和年度表格中显示五类旅客供给满足率：
+当前已经接入 `airport/web/pages/global_gdp_viewer.html` 的“航空需求”视图。14 区都会在总览卡片和年度表格中显示五类旅客供给满足率：
 
 ```text
 business_fulfillment_pct

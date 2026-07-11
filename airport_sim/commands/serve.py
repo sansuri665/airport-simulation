@@ -9,7 +9,6 @@ def serve_command(arguments: Sequence[str]) -> int:
     """Start the existing local UI through its package import path."""
 
     return invoke_module_main(
-        "dynamic_tests.seed_explorer.seed_explorer_server",
+        "airport_sim.server.app",
         arguments,
     )
-

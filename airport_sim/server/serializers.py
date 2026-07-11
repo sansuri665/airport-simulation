@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import math
-from importlib import import_module
 from typing import Any
 
-_SIBLING_PREFIX = f"{__package__}." if __package__ else ""
-as_float = import_module(f"{_SIBLING_PREFIX}seed_explorer_validation").as_float
+from .validation import as_float
 
 
 def cagr_pct(start_value: float, end_value: float, years: int) -> float:

@@ -6,14 +6,30 @@
 
 ```text
 docs/
-  Current_Architecture_and_Runtime.md
-    当前真实入口、前后端、Run、Viewer、缓存和存档关系
-  Performance_and_Incremental_Evaluation.md
-    区域/城市并行和玩家增量重算的技术评估与暂缓结论
-  Project_Slimming_and_Python_Entry_Unification_Plan.md
-    输出瘦身、缓存生命周期和 Python 入口统一的实施路径
-  Project_Slimming_Audit_2026-07-11.md
-    本轮实际删除、保护哈希、备份和固定 Seed 对照记录
+  architecture/
+    Current_Architecture_and_Runtime.md
+      当前真实入口、前后端、Run、Viewer、缓存和存档关系
+    Game_Overview.md
+      游戏机制和当前产品边界
+    API_and_JSON_Schema.md
+      本地 API、Schema 和兼容规则
+    Forecast_Viewer_Lazy_Loading.md
+    Global_Viewer_Lazy_Loading.md
+    Operations_Viewer_Lazy_Loading.md
+      三个 Viewer 的现行按需加载边界
+  refactoring/
+    REFACTORING_GUIDE.md
+      修整约束、实施状态和后续顺序
+    Performance_and_Incremental_Evaluation.md
+      区域/城市并行和玩家增量重算的技术评估与暂缓结论
+  plans/
+    Project_Slimming_and_Python_Entry_Unification_Plan.md
+      输出瘦身、缓存生命周期和 Python 入口统一的实施路径
+    Post_Refactor_UI_Consolidation_Plan.md
+      整理完成后的界面合并方向
+  audits/
+    Project_Slimming_Audit_2026-07-11.md
+      本轮实际删除、保护哈希、备份和固定 Seed 对照记录
   macro/
     全球宏观、反馈校准、分岔风险和一键 run 编排
   regional_macro/
@@ -28,14 +44,14 @@ docs/
 
 ## 推荐阅读顺序
 
-1. `Current_Architecture_and_Runtime.md`
-2. `Game_Overview.md`
-3. `API_and_JSON_Schema.md`
-4. `Performance_and_Incremental_Evaluation.md`
-5. `Project_Slimming_and_Python_Entry_Unification_Plan.md`
-6. `Forecast_Viewer_Lazy_Loading.md`
-7. `Global_Viewer_Lazy_Loading.md`
-8. `Operations_Viewer_Lazy_Loading.md`
+1. `architecture/Current_Architecture_and_Runtime.md`
+2. `architecture/Game_Overview.md`
+3. `architecture/API_and_JSON_Schema.md`
+4. `refactoring/Performance_and_Incremental_Evaluation.md`
+5. `plans/Project_Slimming_and_Python_Entry_Unification_Plan.md`
+6. `architecture/Forecast_Viewer_Lazy_Loading.md`
+7. `architecture/Global_Viewer_Lazy_Loading.md`
+8. `architecture/Operations_Viewer_Lazy_Loading.md`
 9. `macro/Macro_Run_Orchestration.md`
 10. `macro/Global_Macro_Layer_Index.md`
 11. `regional_macro/Regional_Macro_Roadmap.md`
@@ -49,7 +65,7 @@ docs/
 19. `parameter_ranges/IMPORTANT_City_Airport_Market_Parameter_Range_Guide.md`
 20. `parameter_ranges/IMPORTANT_City_Airport_Quarterly_Operations_Parameter_Range_Guide.md`
 
-文档边界：`Current_Architecture_and_Runtime.md` 是当前运行事实的唯一入口；`Game_Overview.md` 解释游戏机制；`Performance_and_Incremental_Evaluation.md` 记录已完成的技术评估和暂缓实施结论；`Project_Slimming_and_Python_Entry_Unification_Plan.md` 规划输出瘦身和 Python 入口统一；`Post_Refactor_UI_Consolidation_Plan.md` 只记录整理完成后的界面合并方向，不代表已经实现。
+文档边界：`architecture/Current_Architecture_and_Runtime.md` 是当前运行事实的唯一入口；`architecture/Game_Overview.md` 解释游戏机制；`refactoring/Performance_and_Incremental_Evaluation.md` 记录已完成的技术评估和暂缓实施结论；`plans/Project_Slimming_and_Python_Entry_Unification_Plan.md` 记录输出瘦身和 Python 入口统一路径；`plans/Post_Refactor_UI_Consolidation_Plan.md` 只记录整理完成后的界面合并方向，不代表已经实现。
 
 ## 当前主链条
 
@@ -99,7 +115,8 @@ Global macro
 - 本地 HTTP 服务已限制 2 MiB JSON 请求、检查 Content-Type、区分错误类型，并要求非回环启动显式授权。
 - 缓存列表只计算一次当前指纹，指纹依赖字节按文件状态复用。
 - 完整 Run 校验已扩展到表头、列宽、Seed、年份、`year_index` 和 14 区覆盖。
-- Seed Explorer 已把 storage、progress、run locks、HTTP 和后台 jobs 搬出主服务；项目、合同、融资等领域规则仍在继续整理。
+- 五个 HTML 页面已归入 `web/pages/`，CSS 和 JavaScript 已归入 `web/static/`；既有浏览器地址保持不变。
+- 正式本地服务已归入 `airport_sim/server/app.py`，storage、progress、run locks、HTTP、后台 jobs、repository、serializers 和 validation 位于同一服务包；旧动态测试服务脚本只保留兼容入口。
 - 可选后台 Run Job 已提供提交和查询接口，旧同步 API 保持不变。
 - 前端已拆出 bootstrap、state、data client 与主要 Renderer；Seed Explorer 已按九类职责拆分业务脚本。
 - 统一首页和四个页面已经完成实际浏览器验收。
@@ -118,6 +135,10 @@ Global macro
 
 ## 分区入口
 
+- `architecture/Current_Architecture_and_Runtime.md`
+- `refactoring/REFACTORING_GUIDE.md`
+- `plans/Project_Slimming_and_Python_Entry_Unification_Plan.md`
+- `audits/Project_Slimming_Audit_2026-07-11.md`
 - `macro/README.md`
 - `regional_macro/README.md`
 - `regional_aviation/README.md`

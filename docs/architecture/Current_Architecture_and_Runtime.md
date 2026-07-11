@@ -13,7 +13,7 @@
 - 为什么生成了 Run，页面不一定马上变化。
 - 哪些功能已经是正式计算，哪些仍只是预览或实验功能。
 
-未来的界面合并方向另见 `Post_Refactor_UI_Consolidation_Plan.md`，模型设计和长期游戏规划不写入本文。
+未来的界面合并方向另见 `../plans/Post_Refactor_UI_Consolidation_Plan.md`，模型设计和长期游戏规划不写入本文。
 
 ## 2. 最简单的启动方式
 
@@ -74,7 +74,7 @@ stop_airport_ui.bat
 
 ### 3.1 浏览器页面
 
-HTML 页面负责摆放界面结构，`static/css/` 负责样式，`static/js/` 负责页面状态、请求、图表和交互。
+五个 HTML 页面统一位于 `web/pages/`，负责摆放界面结构；`web/static/css/` 负责样式，`web/static/js/` 负责页面状态、请求、图表和交互。源码目录变化不改变 `/`、`/seed-explorer`、`/global-gdp`、`/beijing-operations` 和 `/beijing-forecast` 等浏览器地址。
 
 页面的主要职责是：
 
@@ -89,11 +89,13 @@ HTML 页面负责摆放界面结构，`static/css/` 负责样式，`static/js/` 
 
 ### 3.2 本地 Python 服务
 
-本地服务入口是：
+本地服务的正式实现是：
 
 ```text
-dynamic_tests/seed_explorer/seed_explorer_server.py
+airport_sim/server/app.py
 ```
+
+公开启动方式仍是 `python -m airport_sim serve`。`dynamic_tests/seed_explorer/seed_explorer_server.py` 只保留旧脚本和旧导入的兼容转发，不再承载正式实现。
 
 它同时负责：
 
@@ -121,19 +123,22 @@ POST /api/player-simulation
 POST /api/sim-save
 ```
 
-服务公共职责已经分离为：
+服务包中的公共职责已经分离为：
 
 ```text
-seed_explorer_storage.py    文件、JSON、配置缓存和原子写入
-seed_explorer_progress.py   结构化日志和任务进度
-seed_explorer_run_locks.py  每 Run 锁和缓存维护预留
-seed_explorer_http.py       JSON 响应、请求体和静态文件响应
-seed_explorer_jobs.py       可选后台 Job 登记与执行
-seed_explorer_repository.py 玩家存档 SaveRepository：路径、迁移、读取、清理和摘要
-seed_explorer_serializers.py 城市结果汇总 serializers
+airport_sim/server/
+  app.py          HTTP 路由、运行/玩家编排和尚未继续拆分的领域规则
+  storage.py      文件、JSON、配置缓存和原子写入
+  progress.py     结构化日志和任务进度
+  run_locks.py    每 Run 锁和缓存维护预留
+  http.py         JSON 响应、请求体和静态文件响应
+  jobs.py         可选后台 Job 登记与执行
+  repository.py   玩家存档 SaveRepository：路径、迁移、读取、清理和摘要
+  serializers.py  城市结果汇总 serializers
+  validation.py   请求与运行结果验证
 ```
 
-HTTP 路由、运行/玩家编排、其余 API 序列化，以及项目、合同和融资领域规则仍有一部分集中在 `seed_explorer_server.py`。上述公共模块、玩家存档仓储和城市结果汇总 serializers 已经拆出，但不能据此声称服务端 routes/services/domain 分层已经全部完成。
+HTTP 路由、运行/玩家编排、其余 API 序列化，以及项目、合同和融资领域规则仍有一部分集中在 `airport_sim/server/app.py`。正式归位消除了“生产服务放在动态测试目录”的职责错位，但不能据此声称 routes/services/domain 分层已经全部完成。
 
 POST 请求只接受 UTF-8 `application/json`，请求体上限为 2 MiB。常见错误分别返回 400、403、404、409、413、415、500、503 或 504，并带稳定的 `errorCode`；服务端记录具体异常，普通 500 响应不会把完整内部异常直接暴露给页面。
 
@@ -348,7 +353,7 @@ py -3 -B -m unittest discover -s tests -v
 - 估值仍是观察和实验输出，不是已经完成的正式游戏定价系统。
 - 动态测试当前仍会把完整季度结果作为 `allQuarters` 返回浏览器，以支持本地季度推进；正式游戏界面未来应只暴露当期允许看到的信息。
 - Viewer release 的历史保留策略、严格 HTTP 缓存头和更细的展示字段裁剪仍待完善。
-- 区域与城市并行、玩家行动增量重算已经完成第一轮技术评估，但实施暂缓。确定性、Windows 进程开销和经营财务路径依赖的判断见 `Performance_and_Incremental_Evaluation.md`。
+- 区域与城市并行、玩家行动增量重算已经完成第一轮技术评估，但实施暂缓。确定性、Windows 进程开销和经营财务路径依赖的判断见 `../refactoring/Performance_and_Incremental_Evaluation.md`。
 
 ## 10. 三个容易混淆的结论
 
@@ -360,10 +365,10 @@ py -3 -B -m unittest discover -s tests -v
 
 - `Game_Overview.md`：游戏机制与当前产品边界。
 - `API_and_JSON_Schema.md`：API 和 JSON Schema。
-- `macro/Macro_Run_Orchestration.md`：完整 Run 和 Viewer 发布细节。
+- `../macro/Macro_Run_Orchestration.md`：完整 Run 和 Viewer 发布细节。
 - `Forecast_Viewer_Lazy_Loading.md`：预测 Viewer 按报告加载。
 - `Global_Viewer_Lazy_Loading.md`：全球 Viewer 按区域加载。
 - `Operations_Viewer_Lazy_Loading.md`：经营 Viewer 估值按需加载。
-- `Performance_and_Incremental_Evaluation.md`：区域/城市并行和玩家增量重算为什么评估完成但暂缓实现。
-- `Project_Slimming_and_Python_Entry_Unification_Plan.md`：输出清理、缓存保留和 Python 入口统一的后续实施路径。
-- `Post_Refactor_UI_Consolidation_Plan.md`：完成当前整理后的界面合并计划。
+- `../refactoring/Performance_and_Incremental_Evaluation.md`：区域/城市并行和玩家增量重算为什么评估完成但暂缓实现。
+- `../plans/Project_Slimming_and_Python_Entry_Unification_Plan.md`：输出清理、缓存保留和 Python 入口统一的实施路径。
+- `../plans/Post_Refactor_UI_Consolidation_Plan.md`：完成当前整理后的界面合并计划。

@@ -6,42 +6,44 @@ from pathlib import Path
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
+PAGES_DIR = ROOT_DIR / "web" / "pages"
+STATIC_DIR = ROOT_DIR / "web" / "static"
 VIEWERS = (
-    ROOT_DIR / "airport_home.html",
-    ROOT_DIR / "global_gdp_viewer.html",
-    ROOT_DIR / "beijing_airport_operations_viewer.html",
-    ROOT_DIR / "beijing_potential_passenger_forecast_viewer.html",
-    ROOT_DIR / "dynamic_tests" / "seed_explorer" / "seed_explorer_viewer.html",
+    PAGES_DIR / "airport_home.html",
+    PAGES_DIR / "global_gdp_viewer.html",
+    PAGES_DIR / "beijing_airport_operations_viewer.html",
+    PAGES_DIR / "beijing_potential_passenger_forecast_viewer.html",
+    PAGES_DIR / "seed_explorer_viewer.html",
 )
 VIEWER_MANIFEST_KEYS = {
-    ROOT_DIR / "global_gdp_viewer.html": "global_gdp_viewer",
-    ROOT_DIR / "beijing_airport_operations_viewer.html": "beijing_airport_operations_viewer",
-    ROOT_DIR / "beijing_potential_passenger_forecast_viewer.html": "beijing_potential_passenger_forecast_viewer",
+    PAGES_DIR / "global_gdp_viewer.html": "global_gdp_viewer",
+    PAGES_DIR / "beijing_airport_operations_viewer.html": "beijing_airport_operations_viewer",
+    PAGES_DIR / "beijing_potential_passenger_forecast_viewer.html": "beijing_potential_passenger_forecast_viewer",
 }
 VIEWER_BOOTSTRAP_SCRIPTS = {
-    ROOT_DIR / "global_gdp_viewer.html": ROOT_DIR / "static" / "js" / "global-gdp" / "bootstrap.js",
-    ROOT_DIR / "beijing_airport_operations_viewer.html": (
-        ROOT_DIR / "static" / "js" / "beijing-operations" / "bootstrap.js"
+    PAGES_DIR / "global_gdp_viewer.html": STATIC_DIR / "js" / "global-gdp" / "bootstrap.js",
+    PAGES_DIR / "beijing_airport_operations_viewer.html": (
+        STATIC_DIR / "js" / "beijing-operations" / "bootstrap.js"
     ),
-    ROOT_DIR / "beijing_potential_passenger_forecast_viewer.html": (
-        ROOT_DIR / "static" / "js" / "beijing-forecast" / "bootstrap.js"
+    PAGES_DIR / "beijing_potential_passenger_forecast_viewer.html": (
+        STATIC_DIR / "js" / "beijing-forecast" / "bootstrap.js"
     ),
 }
 VIEWER_MAIN_SCRIPTS = {
-    ROOT_DIR / "airport_home.html": "./static/js/home/page.js",
-    ROOT_DIR / "global_gdp_viewer.html": "./static/js/global-gdp/page.js",
-    ROOT_DIR / "beijing_airport_operations_viewer.html": "./static/js/beijing-operations/page.js",
-    ROOT_DIR / "beijing_potential_passenger_forecast_viewer.html": "./static/js/beijing-forecast/page.js",
-    ROOT_DIR / "dynamic_tests" / "seed_explorer" / "seed_explorer_viewer.html": (
-        "../../static/js/seed-explorer/page.js"
+    PAGES_DIR / "airport_home.html": "/static/js/home/page.js",
+    PAGES_DIR / "global_gdp_viewer.html": "/static/js/global-gdp/page.js",
+    PAGES_DIR / "beijing_airport_operations_viewer.html": "/static/js/beijing-operations/page.js",
+    PAGES_DIR / "beijing_potential_passenger_forecast_viewer.html": "/static/js/beijing-forecast/page.js",
+    PAGES_DIR / "seed_explorer_viewer.html": (
+        "/static/js/seed-explorer/page.js"
     ),
 }
 VIEWER_STATE_SCRIPTS = {
-    ROOT_DIR / "global_gdp_viewer.html": "./static/js/global-gdp/state.js",
-    ROOT_DIR / "beijing_airport_operations_viewer.html": "./static/js/beijing-operations/state.js",
-    ROOT_DIR / "beijing_potential_passenger_forecast_viewer.html": "./static/js/beijing-forecast/state.js",
-    ROOT_DIR / "dynamic_tests" / "seed_explorer" / "seed_explorer_viewer.html": (
-        "../../static/js/seed-explorer/state.js"
+    PAGES_DIR / "global_gdp_viewer.html": "/static/js/global-gdp/state.js",
+    PAGES_DIR / "beijing_airport_operations_viewer.html": "/static/js/beijing-operations/state.js",
+    PAGES_DIR / "beijing_potential_passenger_forecast_viewer.html": "/static/js/beijing-forecast/state.js",
+    PAGES_DIR / "seed_explorer_viewer.html": (
+        "/static/js/seed-explorer/state.js"
     ),
 }
 SCRIPT_SOURCE_PATTERN = re.compile(r'<script\s+[^>]*src=["\']([^"\']+)["\']', re.IGNORECASE)
@@ -49,6 +51,19 @@ STYLESHEET_SOURCE_PATTERN = re.compile(
     r'<link\s+[^>]*rel=["\']stylesheet["\'][^>]*href=["\']([^"\']+)["\']',
     re.IGNORECASE,
 )
+
+
+def local_resource_path(viewer: Path, source: str) -> Path:
+    """Map the public HTTP resource URL to its workspace file."""
+
+    clean_source = source.split("?", 1)[0].split("#", 1)[0]
+    if clean_source.startswith("/static/"):
+        return STATIC_DIR / clean_source.removeprefix("/static/")
+    if clean_source.startswith("/output/"):
+        return ROOT_DIR / "output" / clean_source.removeprefix("/output/")
+    if clean_source.startswith("./output/"):
+        return ROOT_DIR / clean_source.removeprefix("./")
+    return (viewer.parent / clean_source).resolve()
 
 
 class ViewerResourceSmokeTests(unittest.TestCase):
@@ -65,8 +80,7 @@ class ViewerResourceSmokeTests(unittest.TestCase):
                     continue
                 if source.startswith(("http://", "https://", "//")):
                     continue
-                clean_source = source.split("?", 1)[0].split("#", 1)[0]
-                dependency = (viewer.parent / clean_source).resolve()
+                dependency = local_resource_path(viewer, source)
                 if not dependency.exists():
                     missing.append(str(dependency.relative_to(ROOT_DIR)))
 
@@ -91,16 +105,16 @@ class ViewerResourceSmokeTests(unittest.TestCase):
             self.assertLess(sources.index(state_source), sources.index(main_source), viewer.name)
 
     def test_seed_explorer_uses_shared_api_client(self) -> None:
-        viewer = ROOT_DIR / "dynamic_tests" / "seed_explorer" / "seed_explorer_viewer.html"
+        viewer = PAGES_DIR / "seed_explorer_viewer.html"
         html = viewer.read_text(encoding="utf-8")
         sources = SCRIPT_SOURCE_PATTERN.findall(html)
-        self.assertIn("../../static/js/shared/api-client.js", sources)
+        self.assertIn("/static/js/shared/api-client.js", sources)
         self.assertLess(
-            sources.index("../../static/js/shared/api-client.js"),
-            sources.index("../../static/js/seed-explorer/page.js"),
+            sources.index("/static/js/shared/api-client.js"),
+            sources.index("/static/js/seed-explorer/page.js"),
         )
         scripts = [
-            (viewer.parent / source).resolve()
+            local_resource_path(viewer, source)
             for source in sources
             if "static/js/seed-explorer/" in source
         ]
@@ -109,26 +123,26 @@ class ViewerResourceSmokeTests(unittest.TestCase):
         self.assertNotIn("await fetch(", combined_js)
 
     def test_seed_explorer_scripts_are_split_by_responsibility(self) -> None:
-        viewer = ROOT_DIR / "dynamic_tests" / "seed_explorer" / "seed_explorer_viewer.html"
+        viewer = PAGES_DIR / "seed_explorer_viewer.html"
         sources = SCRIPT_SOURCE_PATTERN.findall(viewer.read_text(encoding="utf-8"))
         expected = [
-            "../../static/js/seed-explorer/core.js",
-            "../../static/js/seed-explorer/operations-financial.js",
-            "../../static/js/seed-explorer/operations-facilities.js",
-            "../../static/js/seed-explorer/operations-debt.js",
-            "../../static/js/seed-explorer/operations-commercial.js",
-            "../../static/js/seed-explorer/operations-actions.js",
-            "../../static/js/seed-explorer/operations-renderer.js",
-            "../../static/js/seed-explorer/city-renderer.js",
-            "../../static/js/seed-explorer/page.js",
+            "/static/js/seed-explorer/core.js",
+            "/static/js/seed-explorer/operations-financial.js",
+            "/static/js/seed-explorer/operations-facilities.js",
+            "/static/js/seed-explorer/operations-debt.js",
+            "/static/js/seed-explorer/operations-commercial.js",
+            "/static/js/seed-explorer/operations-actions.js",
+            "/static/js/seed-explorer/operations-renderer.js",
+            "/static/js/seed-explorer/city-renderer.js",
+            "/static/js/seed-explorer/page.js",
         ]
         positions = [sources.index(source) for source in expected]
         self.assertEqual(sorted(positions), positions)
-        self.assertTrue(all((viewer.parent / source).resolve().is_file() for source in expected))
+        self.assertTrue(all(local_resource_path(viewer, source).is_file() for source in expected))
 
     def test_contract_affairs_uses_full_horizon_when_quarters_advance_locally(self) -> None:
         source = (
-            ROOT_DIR / "static" / "js" / "seed-explorer" / "operations-actions.js"
+            STATIC_DIR / "js" / "seed-explorer" / "operations-actions.js"
         ).read_text(encoding="utf-8")
         self.assertIn("state.operations.allQuarters?.length", source)
         self.assertIn(
@@ -143,33 +157,33 @@ class ViewerResourceSmokeTests(unittest.TestCase):
         self.assertIn("下一期条款将在到期前 4 季开放。", source)
 
     def test_global_viewer_scripts_are_split_by_responsibility(self) -> None:
-        viewer = ROOT_DIR / "global_gdp_viewer.html"
+        viewer = PAGES_DIR / "global_gdp_viewer.html"
         sources = SCRIPT_SOURCE_PATTERN.findall(viewer.read_text(encoding="utf-8"))
         expected = [
-            "./static/js/global-gdp/state.js",
-            "./static/js/global-gdp/data-client.js",
-            "./static/js/global-gdp/formatters.js",
-            "./static/js/global-gdp/preview-model.js",
-            "./static/js/global-gdp/controls.js",
-            "./static/js/global-gdp/renderers.js",
-            "./static/js/global-gdp/page.js",
+            "/static/js/global-gdp/state.js",
+            "/static/js/global-gdp/data-client.js",
+            "/static/js/global-gdp/formatters.js",
+            "/static/js/global-gdp/preview-model.js",
+            "/static/js/global-gdp/controls.js",
+            "/static/js/global-gdp/renderers.js",
+            "/static/js/global-gdp/page.js",
         ]
         positions = [sources.index(source) for source in expected]
         self.assertEqual(sorted(positions), positions)
-        self.assertTrue(all((viewer.parent / source).resolve().is_file() for source in expected))
+        self.assertTrue(all(local_resource_path(viewer, source).is_file() for source in expected))
 
     def test_operations_viewer_scripts_are_split_by_responsibility(self) -> None:
-        viewer = ROOT_DIR / "beijing_airport_operations_viewer.html"
+        viewer = PAGES_DIR / "beijing_airport_operations_viewer.html"
         sources = SCRIPT_SOURCE_PATTERN.findall(viewer.read_text(encoding="utf-8"))
         expected = [
-            "./static/js/beijing-operations/state.js",
-            "./static/js/beijing-operations/data-client.js",
-            "./static/js/beijing-operations/renderers.js",
-            "./static/js/beijing-operations/page.js",
+            "/static/js/beijing-operations/state.js",
+            "/static/js/beijing-operations/data-client.js",
+            "/static/js/beijing-operations/renderers.js",
+            "/static/js/beijing-operations/page.js",
         ]
         positions = [sources.index(source) for source in expected]
         self.assertEqual(sorted(positions), positions)
-        self.assertTrue(all((viewer.parent / source).resolve().is_file() for source in expected))
+        self.assertTrue(all(local_resource_path(viewer, source).is_file() for source in expected))
 
     def test_static_viewers_use_atomic_release_manifest_with_legacy_fallback(self) -> None:
         for viewer, manifest_key in VIEWER_MANIFEST_KEYS.items():

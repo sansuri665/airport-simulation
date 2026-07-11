@@ -1,20 +1,12 @@
 from __future__ import annotations
 
-import sys
 import threading
 import time
 import unittest
-from pathlib import Path
 from unittest import mock
 
-
-ROOT_DIR = Path(__file__).resolve().parents[1]
-SEED_EXPLORER_DIR = ROOT_DIR / "dynamic_tests" / "seed_explorer"
-if str(SEED_EXPLORER_DIR) not in sys.path:
-    sys.path.insert(0, str(SEED_EXPLORER_DIR))
-
-import seed_explorer_jobs as jobs
-import seed_explorer_server as local_ui
+from airport_sim.server import app as local_ui
+from airport_sim.server import jobs
 
 
 class BackgroundJobTests(unittest.TestCase):
