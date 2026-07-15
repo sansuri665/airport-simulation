@@ -108,6 +108,17 @@ class ViewerDomContractTests(unittest.TestCase):
         self.assertLess(traffic_chart, service_panel)
         self.assertLess(service_panel, service_chart)
 
+    def test_city_viewer_labels_city_supply_as_the_operating_constraint(self) -> None:
+        html = (PAGES_DIR / "seed_explorer_viewer.html").read_text(encoding="utf-8")
+        regional_renderer = (ROOT_DIR / "web" / "static" / "js" / "global-gdp" / "renderers.js").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("城市航司供给", html)
+        self.assertIn("城市航司满足率", html)
+        self.assertNotIn("区域未满足", html)
+        self.assertIn("区域参考满足", regional_renderer)
+
 
 if __name__ == "__main__":
     unittest.main()

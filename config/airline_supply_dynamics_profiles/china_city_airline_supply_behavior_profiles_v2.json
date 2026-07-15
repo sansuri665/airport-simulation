@@ -1,0 +1,139 @@
+{
+  "schema_version": "airline-supply-behavior-profile-catalog-v2",
+  "catalog_id": "china-city-airline-supply-behavior-profiles-v2",
+  "base_profiles": {
+    "global_hub_resilient_v2": {
+      "description": "全球枢纽：网络深、供给底线高，扩张和恢复较稳，削减相对克制。",
+      "demand_pull_capture": 0.95,
+      "balanced_adjustment_speed": 0.42,
+      "expansion_adjustment_speed": 0.36,
+      "contraction_adjustment_speed": 0.50,
+      "recovery_adjustment_speed": 0.34,
+      "overexpansion_bias_pct": 5.0,
+      "overcapacity_target_pct": 3.5,
+      "pessimism_bias_pct": 4.5,
+      "expansion_trigger_pct": 2.5,
+      "contraction_trigger_pct": 3.2,
+      "minimum_supply_index": 70.0,
+      "shock_amplitude_pct": 7.0,
+      "phase_persistence": 1.12,
+      "upward_change_limit_pct": 7.0,
+      "downward_change_limit_pct": 9.0
+    },
+    "national_gateway_competitive_v2": {
+      "description": "国家门户：竞争和扩张意愿较强，允许适度过度投放，下行削减也较明显。",
+      "demand_pull_capture": 0.94,
+      "balanced_adjustment_speed": 0.40,
+      "expansion_adjustment_speed": 0.40,
+      "contraction_adjustment_speed": 0.60,
+      "recovery_adjustment_speed": 0.32,
+      "overexpansion_bias_pct": 8.0,
+      "overcapacity_target_pct": 6.5,
+      "pessimism_bias_pct": 7.0,
+      "expansion_trigger_pct": 2.5,
+      "contraction_trigger_pct": 2.8,
+      "minimum_supply_index": 66.0,
+      "shock_amplitude_pct": 9.0,
+      "phase_persistence": 1.05,
+      "upward_change_limit_pct": 9.5,
+      "downward_change_limit_pct": 12.0
+    },
+    "regional_gateway_following_v2": {
+      "description": "区域门户：确认需求后扩张，下行时较快削减，周期强度居中。",
+      "demand_pull_capture": 0.92,
+      "balanced_adjustment_speed": 0.38,
+      "expansion_adjustment_speed": 0.39,
+      "contraction_adjustment_speed": 0.65,
+      "recovery_adjustment_speed": 0.29,
+      "overexpansion_bias_pct": 10.0,
+      "overcapacity_target_pct": 8.5,
+      "pessimism_bias_pct": 9.0,
+      "expansion_trigger_pct": 2.8,
+      "contraction_trigger_pct": 2.5,
+      "minimum_supply_index": 63.0,
+      "shock_amplitude_pct": 10.5,
+      "phase_persistence": 1.00,
+      "upward_change_limit_pct": 11.0,
+      "downward_change_limit_pct": 14.0
+    },
+    "secondary_gateway_selective_v2": {
+      "description": "次级门户：扩张更谨慎，航线退出更集中，低谷和恢复持续更久。",
+      "demand_pull_capture": 0.90,
+      "balanced_adjustment_speed": 0.35,
+      "expansion_adjustment_speed": 0.36,
+      "contraction_adjustment_speed": 0.72,
+      "recovery_adjustment_speed": 0.25,
+      "overexpansion_bias_pct": 12.0,
+      "overcapacity_target_pct": 10.5,
+      "pessimism_bias_pct": 11.0,
+      "expansion_trigger_pct": 3.0,
+      "contraction_trigger_pct": 2.2,
+      "minimum_supply_index": 60.0,
+      "shock_amplitude_pct": 12.0,
+      "phase_persistence": 1.05,
+      "upward_change_limit_pct": 12.5,
+      "downward_change_limit_pct": 16.0
+    }
+  },
+  "modifier_profiles": {
+    "tourism_exposure_v1": {
+      "description": "旅游暴露：乐观期更容易过度投放，悲观期收缩更深，恢复更慢。",
+      "adjustments": {
+        "demand_pull_capture": 0.01,
+        "expansion_adjustment_speed": 0.04,
+        "contraction_adjustment_speed": 0.05,
+        "recovery_adjustment_speed": -0.03,
+        "overexpansion_bias_pct": 4.0,
+        "overcapacity_target_pct": 5.0,
+        "pessimism_bias_pct": 4.0,
+        "expansion_trigger_pct": -0.5,
+        "contraction_trigger_pct": -0.3,
+        "minimum_supply_index": -2.0,
+        "shock_amplitude_pct": 3.0,
+        "phase_persistence": -0.05,
+        "upward_change_limit_pct": 2.5,
+        "downward_change_limit_pct": 3.0
+      }
+    },
+    "strategic_support_v1": {
+      "description": "战略支撑：保留更高供给底线，削减较克制，恢复韧性较强。",
+      "adjustments": {
+        "demand_pull_capture": -0.01,
+        "balanced_adjustment_speed": -0.01,
+        "expansion_adjustment_speed": -0.02,
+        "contraction_adjustment_speed": -0.08,
+        "recovery_adjustment_speed": 0.02,
+        "overexpansion_bias_pct": 1.0,
+        "overcapacity_target_pct": -2.5,
+        "pessimism_bias_pct": -2.5,
+        "expansion_trigger_pct": 0.3,
+        "contraction_trigger_pct": 1.0,
+        "minimum_supply_index": 9.0,
+        "shock_amplitude_pct": -2.0,
+        "phase_persistence": 0.08,
+        "upward_change_limit_pct": -1.0,
+        "downward_change_limit_pct": -3.0
+      }
+    },
+    "plateau_constraint_v1": {
+      "description": "高原约束：扩张和恢复较慢，冲击削减更快且低谷更持久。",
+      "adjustments": {
+        "demand_pull_capture": -0.03,
+        "balanced_adjustment_speed": -0.04,
+        "expansion_adjustment_speed": -0.07,
+        "contraction_adjustment_speed": 0.03,
+        "recovery_adjustment_speed": -0.06,
+        "overexpansion_bias_pct": -2.0,
+        "overcapacity_target_pct": -4.0,
+        "pessimism_bias_pct": 1.5,
+        "expansion_trigger_pct": 1.0,
+        "contraction_trigger_pct": -0.2,
+        "minimum_supply_index": 3.0,
+        "shock_amplitude_pct": 0.5,
+        "phase_persistence": 0.12,
+        "upward_change_limit_pct": -2.0,
+        "downward_change_limit_pct": 1.5
+      }
+    }
+  }
+}

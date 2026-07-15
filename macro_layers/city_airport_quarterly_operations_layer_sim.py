@@ -23,8 +23,8 @@ from statistics import mean
 from typing import Any
 
 
-CITY_AIRPORT_QUARTERLY_OPERATIONS_PARAM_VERSION = "city-airport-quarterly-operations-layer-v0.21"
-CITY_AIRPORT_QUARTERLY_OPERATIONS_INTERFACE_VERSION = "city-airport-quarterly-operations-interface-v0.21"
+CITY_AIRPORT_QUARTERLY_OPERATIONS_PARAM_VERSION = "city-airport-quarterly-operations-layer-v0.22"
+CITY_AIRPORT_QUARTERLY_OPERATIONS_INTERFACE_VERSION = "city-airport-quarterly-operations-interface-v0.22"
 
 AIRPORT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_DIR = AIRPORT_DIR / "config" / "city_airport_operations"
@@ -56,13 +56,19 @@ QUARTERLY_OPERATIONS_FIELDS = [
     "input_equity_valuation_pe",
     "annual_city_potential_passengers_million",
     "annual_city_airline_supply_index",
+    "annual_city_airline_offered_capacity_million",
     "annual_city_airline_supply_passengers_million",
+    "annual_city_airline_serviceable_supply_million",
+    "annual_city_airline_unused_capacity_million",
     "annual_city_airline_supply_fulfillment_pct",
     "annual_city_airline_supply_gap_million",
     "annual_city_airline_supply_volatility_regime",
     "annual_served_passengers_million",
     "quarter_city_potential_passengers_million",
+    "quarter_airline_offered_capacity_million",
     "quarter_airline_supply_passengers_million",
+    "quarter_airline_serviceable_supply_million",
+    "quarter_airline_unused_capacity_million",
     "quarter_airline_supply_fulfillment_pct",
     "quarter_airline_supply_gap_million",
     "quarter_serviceable_demand_million",
@@ -2057,6 +2063,41 @@ def weighted_component_passengers(
     return sum(quarter_components[name] * float(weights.get(name, 0.0)) for name in COMPONENTS)
 
 
+def bounded_component_allocation(
+    demand: dict[str, float],
+    preferred: dict[str, float],
+    total: float,
+) -> dict[str, float]:
+    """Reconcile a component mix to a total without exceeding component demand."""
+
+    clean_demand = {name: max(0.0, demand.get(name, 0.0)) for name in COMPONENTS}
+    allocation = {name: 0.0 for name in COMPONENTS}
+    remaining = min(max(0.0, total), sum(clean_demand.values()))
+    active = {name for name in COMPONENTS if clean_demand[name] > 1e-12}
+    while remaining > 1e-12 and active:
+        weights = {name: max(0.0, preferred.get(name, 0.0)) for name in active}
+        weight_total = sum(weights.values())
+        if weight_total <= 0.0:
+            weights = {name: clean_demand[name] for name in active}
+            weight_total = sum(weights.values()) or float(len(active))
+        proposals = {name: remaining * weights[name] / weight_total for name in active}
+        saturated = [
+            name
+            for name in active
+            if proposals[name] >= clean_demand[name] - allocation[name] - 1e-12
+        ]
+        if not saturated:
+            for name, value in proposals.items():
+                allocation[name] += value
+            break
+        for name in saturated:
+            available = max(0.0, clean_demand[name] - allocation[name])
+            allocation[name] += available
+            remaining -= available
+            active.remove(name)
+    return allocation
+
+
 def blended_propensity(row: dict[str, str], weights: dict[str, float]) -> float:
     return sum(as_float(row, field, 100.0) * float(weight) for field, weight in weights.items())
 
@@ -2632,16 +2673,35 @@ def _simulate_quarterly_operations_impl(
             "city_airline_supply_passengers_million",
             annual_potential,
         )
+        annual_airline_offered_capacity = as_float(
+            annual,
+            "city_airline_offered_capacity_million",
+            annual_airline_supply,
+        )
+        annual_airline_serviceable_supply = as_float(
+            annual,
+            "city_airline_serviceable_supply_million",
+            min(annual_potential, annual_airline_offered_capacity),
+        )
+        annual_airline_serviceable_supply = min(
+            annual_potential,
+            annual_airline_offered_capacity,
+            max(0.0, annual_airline_serviceable_supply),
+        )
+        annual_airline_unused_capacity = max(
+            0.0,
+            annual_airline_offered_capacity - annual_airline_serviceable_supply,
+        )
         annual_airline_supply_index = as_float(annual, "city_airline_supply_index", 100.0)
         annual_airline_supply_fulfillment = as_float(
             annual,
             "city_airline_supply_fulfillment_pct",
-            annual_airline_supply / annual_potential * 100.0 if annual_potential else 100.0,
+            annual_airline_serviceable_supply / annual_potential * 100.0 if annual_potential else 100.0,
         )
         annual_airline_supply_gap = as_float(
             annual,
             "city_airline_supply_gap_million",
-            max(0.0, annual_potential - annual_airline_supply),
+            max(0.0, annual_potential - annual_airline_serviceable_supply),
         )
         annual_airline_supply_volatility_regime = str(
             annual.get("city_airline_supply_volatility_regime") or "normal_airline_supply_cycle"
@@ -2671,17 +2731,15 @@ def _simulate_quarterly_operations_impl(
         if annual_supply_component_total <= 0.0:
             potential_total = sum(annual_potential_components.values())
             annual_airline_supply_components = {
-                name: annual_airline_supply
+                name: annual_airline_serviceable_supply
                 * (annual_potential_components[name] / potential_total if potential_total > 0.0 else 1.0 / len(COMPONENTS))
                 for name in COMPONENTS
             }
-            annual_supply_component_total = sum(annual_airline_supply_components.values())
-        if annual_supply_component_total > 0.0 and annual_airline_supply > 0.0:
-            supply_component_scale = annual_airline_supply / annual_supply_component_total
-            annual_airline_supply_components = {
-                name: annual_airline_supply_components[name] * supply_component_scale
-                for name in COMPONENTS
-            }
+        annual_airline_supply_components = bounded_component_allocation(
+            annual_potential_components,
+            annual_airline_supply_components,
+            annual_airline_serviceable_supply,
+        )
 
         for quarter_index in range(4):
             quarter = f"Q{quarter_index + 1}"
@@ -2821,12 +2879,23 @@ def _simulate_quarterly_operations_impl(
                 for name in COMPONENTS
             }
             quarter_potential = sum(quarter_potential_components.values())
-            quarter_airline_supply = sum(quarter_airline_supply_components.values())
-            quarter_airline_supply_fulfillment = (
-                quarter_airline_supply / quarter_potential * 100.0 if quarter_potential else 100.0
+            quarter_airline_serviceable_supply = sum(quarter_airline_supply_components.values())
+            potential_seasonal_share = quarter_potential / annual_potential if annual_potential else 0.25
+            quarter_airline_unused_capacity = annual_airline_unused_capacity * potential_seasonal_share
+            quarter_airline_offered_capacity = (
+                quarter_airline_serviceable_supply + quarter_airline_unused_capacity
             )
-            quarter_airline_supply_gap = max(0.0, quarter_potential - quarter_airline_supply)
-            quarter_serviceable_demand = min(quarter_potential, quarter_airline_supply)
+            quarter_airline_supply = quarter_airline_offered_capacity
+            quarter_airline_supply_fulfillment = (
+                quarter_airline_serviceable_supply / quarter_potential * 100.0
+                if quarter_potential
+                else 100.0
+            )
+            quarter_airline_supply_gap = max(
+                0.0,
+                quarter_potential - quarter_airline_serviceable_supply,
+            )
+            quarter_serviceable_demand = quarter_airline_serviceable_supply
             has_disruptive_project = bool(active_renovations or active_rebuilds)
             capacity_realization_factor = quarter_capacity_realization_factor(
                 seed,
@@ -2839,9 +2908,13 @@ def _simulate_quarterly_operations_impl(
             quarter_capacity_ceiling = quarter_max_capacity * capacity_realization_factor
             quarter_served = min(quarter_serviceable_demand, quarter_capacity_ceiling)
             quarter_capacity_lost = max(0.0, quarter_serviceable_demand - quarter_served)
-            component_scale = quarter_served / quarter_potential if quarter_potential > 0 else 0.0
+            component_scale = (
+                quarter_served / quarter_serviceable_demand
+                if quarter_serviceable_demand > 0
+                else 0.0
+            )
             quarter_components = {
-                name: quarter_potential_components[name] * component_scale
+                name: quarter_airline_supply_components[name] * component_scale
                 for name in COMPONENTS
             }
             quarter_share_pct = quarter_served / annual_served * 100.0 if annual_served > 0 else 0.0
@@ -3076,13 +3149,19 @@ def _simulate_quarterly_operations_impl(
                         "input_equity_valuation_pe": as_float(annual, "input_equity_valuation_pe", 17.0),
                         "annual_city_potential_passengers_million": annual_potential,
                         "annual_city_airline_supply_index": annual_airline_supply_index,
+                        "annual_city_airline_offered_capacity_million": annual_airline_offered_capacity,
                         "annual_city_airline_supply_passengers_million": annual_airline_supply,
+                        "annual_city_airline_serviceable_supply_million": annual_airline_serviceable_supply,
+                        "annual_city_airline_unused_capacity_million": annual_airline_unused_capacity,
                         "annual_city_airline_supply_fulfillment_pct": annual_airline_supply_fulfillment,
                         "annual_city_airline_supply_gap_million": annual_airline_supply_gap,
                         "annual_city_airline_supply_volatility_regime": annual_airline_supply_volatility_regime,
                         "annual_served_passengers_million": annual_served,
                         "quarter_city_potential_passengers_million": quarter_potential,
+                        "quarter_airline_offered_capacity_million": quarter_airline_offered_capacity,
                         "quarter_airline_supply_passengers_million": quarter_airline_supply,
+                        "quarter_airline_serviceable_supply_million": quarter_airline_serviceable_supply,
+                        "quarter_airline_unused_capacity_million": quarter_airline_unused_capacity,
                         "quarter_airline_supply_fulfillment_pct": quarter_airline_supply_fulfillment,
                         "quarter_airline_supply_gap_million": quarter_airline_supply_gap,
                         "quarter_serviceable_demand_million": quarter_serviceable_demand,

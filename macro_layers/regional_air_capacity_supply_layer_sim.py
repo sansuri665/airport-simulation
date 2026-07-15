@@ -20,8 +20,8 @@ from statistics import mean, pstdev
 from typing import Any, Iterable
 
 
-AIR_SUPPLY_PARAM_VERSION = "regional-air-capacity-supply-layer-v0.2"
-AIR_SUPPLY_INTERFACE_VERSION = "regional-air-capacity-supply-interface-v0.2"
+AIR_SUPPLY_PARAM_VERSION = "regional-air-capacity-supply-layer-v0.3"
+AIR_SUPPLY_INTERFACE_VERSION = "regional-air-capacity-supply-interface-v0.3"
 
 
 AIR_SUPPLY_FIELDS = [
@@ -38,7 +38,9 @@ AIR_SUPPLY_FIELDS = [
     "regional_air_capacity_index",
     "regional_air_capacity_growth_pct",
     "available_seat_capacity_index",
+    "normalized_capacity_pressure_index",
     "capacity_utilization_pct",
+    "target_load_factor_pct",
     "load_factor_pct",
     "capacity_fulfillment_pct",
     "served_passenger_demand_index",
@@ -46,7 +48,12 @@ AIR_SUPPLY_FIELDS = [
     "capacity_fare_pressure_index",
     "supply_regime",
     "potential_passengers_million",
+    "scheduled_seats_million",
+    "operational_availability_pct",
     "available_seats_million",
+    "reference_effective_passenger_capacity_million",
+    "reference_served_passengers_million",
+    "reference_unmet_passengers_million",
     "served_passengers_million",
     "unmet_passengers_million",
     "business_served_index",
@@ -778,39 +785,65 @@ def simulate_region_air_supply(
             )
             capacity_index = previous_capacity * (1.0 + capacity_growth / 100.0)
 
-        utilization = clamp(demand_index / max(1.0, capacity_index) * 100.0, 45.0, 145.0)
-        raw_fulfillment = min(100.0, capacity_index / max(1.0, demand_index) * 100.0)
+        # This normalized pressure ratio remains the regional signal consumed by
+        # fare, regime, and downstream city-supply calculations.  It is not a
+        # literal passenger-to-seat utilization rate.
+        normalized_capacity_pressure = clamp(
+            demand_index / max(1.0, capacity_index) * 100.0,
+            45.0,
+            145.0,
+        )
         operational_drag = max(0.0, pressures["maintenance"] - 70.0) * 0.03 + max(0.0, pressures["crew"] - 76.0) * 0.02
-        fulfillment = clamp(raw_fulfillment - operational_drag, 68.0, 100.0)
-        served_index = demand_index * fulfillment / 100.0
-        unmet_index = max(0.0, demand_index - served_index)
-        load_factor = clamp(
+        target_load_factor = clamp(
             params.baseline_load_factor_pct
-            + (utilization - 100.0) * 0.32
-            - max(0.0, 92.0 - utilization) * 0.06,
+            + (normalized_capacity_pressure - 100.0) * 0.32
+            - max(0.0, 92.0 - normalized_capacity_pressure) * 0.06,
             58.0,
             97.5,
         )
+        potential_passengers = params.baseline_region_passenger_demand_million * demand_index / 100.0
+        scheduled_seats = (
+            params.baseline_region_passenger_demand_million
+            / max(0.01, params.baseline_load_factor_pct / 100.0)
+            * capacity_index
+            / 100.0
+        )
+        operational_availability = clamp(100.0 - operational_drag, 0.0, 100.0)
+        available_seats = scheduled_seats * operational_availability / 100.0
+        reference_effective_capacity = available_seats * target_load_factor / 100.0
+        reference_served_passengers = min(potential_passengers, reference_effective_capacity)
+        reference_unmet_passengers = max(0.0, potential_passengers - reference_served_passengers)
+        fulfillment = clamp(
+            reference_served_passengers / potential_passengers * 100.0 if potential_passengers else 100.0,
+            0.0,
+            100.0,
+        )
+        load_factor = clamp(
+            reference_served_passengers / available_seats * 100.0 if available_seats else 0.0,
+            0.0,
+            100.0,
+        )
+        capacity_utilization = potential_passengers / available_seats * 100.0 if available_seats else 0.0
+        served_index = demand_index * fulfillment / 100.0
+        unmet_index = max(0.0, demand_index - served_index)
         capacity_fare_pressure = clamp(
             50.0
-            + max(0.0, utilization - 94.0) * 0.80
-            + max(0.0, load_factor - 86.0) * 0.64
+            + max(0.0, normalized_capacity_pressure - 94.0) * 0.80
+            + max(0.0, target_load_factor - 86.0) * 0.64
             + (pressures["profit_pressure"] - 50.0) * 0.16
             + (as_float(row, "airfare_pressure_index", 50.0) - 50.0) * 0.20,
             20.0,
             98.0,
         )
         segment = segment_fulfillment(row, params, fulfillment, capacity_fare_pressure)
-        potential_passengers = params.baseline_region_passenger_demand_million * demand_index / 100.0
-        served_passengers = potential_passengers * fulfillment / 100.0
-        unmet_passengers = max(0.0, potential_passengers - served_passengers)
-        available_seats = (
-            params.baseline_region_passenger_demand_million
-            / max(0.01, params.baseline_load_factor_pct / 100.0)
-            * capacity_index
-            / 100.0
+        regime = supply_regime(
+            row,
+            capacity_growth,
+            normalized_capacity_pressure,
+            fulfillment,
+            load_factor,
+            capacity_fare_pressure,
         )
-        regime = supply_regime(row, capacity_growth, utilization, fulfillment, load_factor, capacity_fare_pressure)
 
         item = round_record(
             {
@@ -827,7 +860,9 @@ def simulate_region_air_supply(
                 "regional_air_capacity_index": capacity_index,
                 "regional_air_capacity_growth_pct": capacity_growth,
                 "available_seat_capacity_index": capacity_index,
-                "capacity_utilization_pct": utilization,
+                "normalized_capacity_pressure_index": normalized_capacity_pressure,
+                "capacity_utilization_pct": capacity_utilization,
+                "target_load_factor_pct": target_load_factor,
                 "load_factor_pct": load_factor,
                 "capacity_fulfillment_pct": fulfillment,
                 "served_passenger_demand_index": served_index,
@@ -835,9 +870,16 @@ def simulate_region_air_supply(
                 "capacity_fare_pressure_index": capacity_fare_pressure,
                 "supply_regime": regime,
                 "potential_passengers_million": potential_passengers,
+                "scheduled_seats_million": scheduled_seats,
+                "operational_availability_pct": operational_availability,
                 "available_seats_million": available_seats,
-                "served_passengers_million": served_passengers,
-                "unmet_passengers_million": unmet_passengers,
+                "reference_effective_passenger_capacity_million": reference_effective_capacity,
+                "reference_served_passengers_million": reference_served_passengers,
+                "reference_unmet_passengers_million": reference_unmet_passengers,
+                # Compatibility aliases retained for existing readers.  These
+                # are regional reference estimates, never city hard limits.
+                "served_passengers_million": reference_served_passengers,
+                "unmet_passengers_million": reference_unmet_passengers,
                 "business_served_index": as_float(row, "business_travel_demand_index", 100.0) * segment["business"] / 100.0,
                 "leisure_served_index": as_float(row, "leisure_travel_demand_index", 100.0) * segment["leisure"] / 100.0,
                 "vfr_served_index": as_float(row, "vfr_travel_demand_index", 100.0) * segment["vfr"] / 100.0,

@@ -23,14 +23,17 @@ from statistics import mean
 from typing import Any, Iterable
 
 
-CITY_AIRPORT_DEMAND_PARAM_VERSION = "city-airport-market-demand-layer-v0.18"
-CITY_AIRPORT_DEMAND_INTERFACE_VERSION = "city-airport-market-demand-interface-v0.18"
+CITY_AIRPORT_DEMAND_PARAM_VERSION = "city-airport-market-demand-layer-v0.22"
+CITY_AIRPORT_DEMAND_INTERFACE_VERSION = "city-airport-market-demand-interface-v0.23"
 
 
 AIRPORT_DIR = Path(__file__).resolve().parents[1]
 CITY_AIRPORT_CONFIG_DIR = AIRPORT_DIR / "config" / "city_airport_markets"
 FACILITY_SIZE_CATALOG_DIR = AIRPORT_DIR / "config" / "facility_size_catalogs"
+COMPONENT_ALLOCATION_PROFILE_DIR = AIRPORT_DIR / "config" / "airline_supply_component_allocation_profiles"
+AIRLINE_SUPPLY_DYNAMICS_PROFILE_DIR = AIRPORT_DIR / "config" / "airline_supply_dynamics_profiles"
 DEFAULT_FACILITY_SIZE_CATALOG_ID = "standard_terminal_sizes_v1"
+DEFAULT_COMPONENT_ALLOCATION_PROFILE_ID = "china_balanced_city_v1"
 COMPONENTS = ("business", "leisure", "vfr", "long_haul", "transfer")
 
 
@@ -49,9 +52,16 @@ CITY_AIRPORT_DEMAND_FIELDS = [
     "airport_system",
     "airport_facility_slot_profile_id",
     "facility_size_catalog_id",
+    "airline_supply_dynamics_profile_id",
+    "airline_supply_dynamics_modifier_ids",
+    "airline_component_allocation_profile_id",
+    "airport_capacity_shortage_policy",
     "active_airport_facility_slots",
     "source_regional_air_demand_index",
     "source_regional_air_demand_growth_pct",
+    "source_region_reference_potential_passengers_million",
+    "source_region_reference_served_passengers_million",
+    "source_region_reference_unmet_passengers_million",
     "source_region_potential_passengers_million",
     "source_region_served_passengers_million",
     "source_regional_seed_momentum_label",
@@ -83,15 +93,44 @@ CITY_AIRPORT_DEMAND_FIELDS = [
     "city_airline_supply_demand_pull_pct",
     "city_airline_supply_macro_adjustment_pct",
     "city_airline_supply_constraint_drag_pct",
-    "city_airline_supply_cycle_impulse_pct",
+    "city_airline_supply_fundamental_target_index",
+    "city_airline_supply_market_signal_pct",
+    "city_airline_supply_behavior_phase",
+    "city_airline_supply_phase_age_years",
+    "city_airline_supply_cycle_number",
+    "city_airline_supply_behavior_impulse_pct",
+    "city_airline_supply_overcapacity_target_index",
+    "city_airline_supply_effective_overcapacity_target_pct",
     "city_airline_supply_shock_impulse_pct",
     "city_airline_supply_event_impulse_pct",
     "city_airline_supply_target_index",
+    "city_airline_supply_effective_adjustment_speed",
     "city_airline_supply_lag_adjustment_pct",
     "city_airline_supply_ceiling_index",
     "city_airline_supply_index",
+    "city_airline_supply_deviation_from_fundamental_pct",
+    "city_airline_supply_deviation_from_potential_pct",
+    "city_airline_supply_excess_over_potential_pct",
     "city_airline_supply_volatility_regime",
+    "airline_supply_demand_pull_capture",
+    "airline_supply_balanced_adjustment_speed",
+    "airline_supply_expansion_adjustment_speed",
+    "airline_supply_contraction_adjustment_speed",
+    "airline_supply_recovery_adjustment_speed",
+    "airline_supply_overexpansion_bias_pct",
+    "airline_supply_overcapacity_target_pct",
+    "airline_supply_pessimism_bias_pct",
+    "airline_supply_expansion_trigger_pct",
+    "airline_supply_contraction_trigger_pct",
+    "airline_supply_minimum_supply_index",
+    "airline_supply_shock_amplitude_pct",
+    "airline_supply_phase_persistence",
+    "airline_supply_upward_change_limit_pct",
+    "airline_supply_downward_change_limit_pct",
+    "city_airline_offered_capacity_million",
     "city_airline_supply_passengers_million",
+    "city_airline_serviceable_supply_million",
+    "city_airline_unused_capacity_million",
     "airport_capacity_allocation_ratio_pct",
     "airport_capacity_limited_airline_supply_million",
     "city_effective_service_capacity_million",
@@ -131,6 +170,16 @@ CITY_AIRPORT_DEMAND_FIELDS = [
     "vfr_airline_supply_share_pct",
     "long_haul_airline_supply_share_pct",
     "transfer_airline_supply_share_pct",
+    "business_airline_supply_priority_weight",
+    "leisure_airline_supply_priority_weight",
+    "vfr_airline_supply_priority_weight",
+    "long_haul_airline_supply_priority_weight",
+    "transfer_airline_supply_priority_weight",
+    "business_airline_offered_capacity_million",
+    "leisure_airline_offered_capacity_million",
+    "vfr_airline_offered_capacity_million",
+    "long_haul_airline_offered_capacity_million",
+    "transfer_airline_offered_capacity_million",
     "business_airline_supply_passengers_million",
     "leisure_airline_supply_passengers_million",
     "vfr_airline_supply_passengers_million",
@@ -294,6 +343,181 @@ SLOT_ROLE_ALLOWED_SIZES = FACILITY_SIZE_CATALOGS[DEFAULT_FACILITY_SIZE_CATALOG_I
 
 
 @dataclass(frozen=True)
+class ComponentAllocationProfile:
+    profile_id: str
+    description: str
+    priority_biases: dict[str, float]
+
+
+FALLBACK_COMPONENT_ALLOCATION_PROFILE = ComponentAllocationProfile(
+    profile_id=DEFAULT_COMPONENT_ALLOCATION_PROFILE_ID,
+    description="Built-in balanced fallback used when the JSON profile catalog is unavailable.",
+    priority_biases={component: 1.0 for component in COMPONENTS},
+)
+
+
+def load_component_allocation_profiles(
+    config_dir: Path = COMPONENT_ALLOCATION_PROFILE_DIR,
+) -> dict[str, ComponentAllocationProfile]:
+    if not config_dir.exists():
+        return {}
+
+    profiles: dict[str, ComponentAllocationProfile] = {}
+    for path in sorted(config_dir.rglob("*.json")):
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        if raw.get("schema_version") != "airline-supply-component-allocation-profile-catalog-v1":
+            continue
+        for profile_id, spec in raw.get("profiles", {}).items():
+            priority_biases = {
+                component: float(spec.get("priority_biases", {}).get(component, 1.0))
+                for component in COMPONENTS
+            }
+            if any(value <= 0.0 for value in priority_biases.values()):
+                raise ValueError(f"Component allocation profile {profile_id!r} must use positive priority biases")
+            profiles[str(profile_id)] = ComponentAllocationProfile(
+                profile_id=str(profile_id),
+                description=str(spec.get("description") or ""),
+                priority_biases=priority_biases,
+            )
+    return profiles
+
+
+COMPONENT_ALLOCATION_PROFILES = {
+    FALLBACK_COMPONENT_ALLOCATION_PROFILE.profile_id: FALLBACK_COMPONENT_ALLOCATION_PROFILE,
+}
+COMPONENT_ALLOCATION_PROFILES.update(load_component_allocation_profiles())
+
+
+@dataclass(frozen=True)
+class AirlineSupplyDynamicsProfile:
+    profile_id: str
+    description: str
+    demand_pull_capture: float
+    balanced_adjustment_speed: float
+    expansion_adjustment_speed: float
+    contraction_adjustment_speed: float
+    recovery_adjustment_speed: float
+    overexpansion_bias_pct: float
+    overcapacity_target_pct: float
+    pessimism_bias_pct: float
+    expansion_trigger_pct: float
+    contraction_trigger_pct: float
+    minimum_supply_index: float
+    shock_amplitude_pct: float
+    phase_persistence: float
+    upward_change_limit_pct: float
+    downward_change_limit_pct: float
+
+
+@dataclass(frozen=True)
+class AirlineSupplyDynamicsModifier:
+    modifier_id: str
+    description: str
+    adjustments: dict[str, float]
+
+
+AIRLINE_SUPPLY_BEHAVIOR_FIELDS = (
+    "demand_pull_capture",
+    "balanced_adjustment_speed",
+    "expansion_adjustment_speed",
+    "contraction_adjustment_speed",
+    "recovery_adjustment_speed",
+    "overexpansion_bias_pct",
+    "overcapacity_target_pct",
+    "pessimism_bias_pct",
+    "expansion_trigger_pct",
+    "contraction_trigger_pct",
+    "minimum_supply_index",
+    "shock_amplitude_pct",
+    "phase_persistence",
+    "upward_change_limit_pct",
+    "downward_change_limit_pct",
+)
+
+
+def validate_airline_supply_dynamics_values(profile_id: str, values: dict[str, float]) -> None:
+    bounds = {
+        "demand_pull_capture": (0.50, 1.20),
+        "balanced_adjustment_speed": (0.15, 0.75),
+        "expansion_adjustment_speed": (0.15, 0.75),
+        "contraction_adjustment_speed": (0.20, 0.85),
+        "recovery_adjustment_speed": (0.15, 0.75),
+        "overexpansion_bias_pct": (0.0, 18.0),
+        "overcapacity_target_pct": (0.0, 20.0),
+        "pessimism_bias_pct": (0.0, 18.0),
+        "expansion_trigger_pct": (0.0, 12.0),
+        "contraction_trigger_pct": (0.0, 12.0),
+        "minimum_supply_index": (45.0, 100.0),
+        "shock_amplitude_pct": (0.0, 20.0),
+        "phase_persistence": (0.60, 1.50),
+        "upward_change_limit_pct": (3.0, 20.0),
+        "downward_change_limit_pct": (4.0, 25.0),
+    }
+    for key, (lower, upper) in bounds.items():
+        value = values[key]
+        if not math.isfinite(value) or not lower <= value <= upper:
+            raise ValueError(
+                f"Airline supply dynamics profile {profile_id!r} field {key!r} "
+                f"must stay within {lower} and {upper}; got {value}"
+            )
+
+
+def load_airline_supply_dynamics_profiles(
+    config_dir: Path = AIRLINE_SUPPLY_DYNAMICS_PROFILE_DIR,
+) -> tuple[dict[str, AirlineSupplyDynamicsProfile], dict[str, AirlineSupplyDynamicsModifier]]:
+    if not config_dir.exists():
+        return {}, {}
+
+    profiles: dict[str, AirlineSupplyDynamicsProfile] = {}
+    modifiers: dict[str, AirlineSupplyDynamicsModifier] = {}
+    required = set(AIRLINE_SUPPLY_BEHAVIOR_FIELDS)
+    for path in sorted(config_dir.rglob("*.json")):
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        if raw.get("schema_version") != "airline-supply-behavior-profile-catalog-v2":
+            continue
+        for profile_id, spec in raw.get("base_profiles", {}).items():
+            if str(profile_id) in profiles:
+                raise ValueError(f"Duplicate airline supply dynamics profile id: {profile_id}")
+            missing = sorted(required - set(spec))
+            if missing:
+                raise ValueError(
+                    f"Airline supply dynamics profile {profile_id!r} is missing fields: {', '.join(missing)}"
+                )
+            values = {key: float(spec[key]) for key in required}
+            validate_airline_supply_dynamics_values(str(profile_id), values)
+            profiles[str(profile_id)] = AirlineSupplyDynamicsProfile(
+                profile_id=str(profile_id),
+                description=str(spec.get("description") or ""),
+                **values,
+            )
+        for modifier_id, spec in raw.get("modifier_profiles", {}).items():
+            if str(modifier_id) in modifiers:
+                raise ValueError(f"Duplicate airline supply dynamics modifier id: {modifier_id}")
+            adjustments = spec.get("adjustments", {})
+            if not isinstance(adjustments, dict):
+                raise ValueError(f"Airline supply modifier {modifier_id!r} adjustments must be an object")
+            unknown = sorted(set(adjustments) - required)
+            if unknown:
+                raise ValueError(
+                    f"Airline supply modifier {modifier_id!r} has unknown fields: {', '.join(unknown)}"
+                )
+            parsed = {key: float(value) for key, value in adjustments.items()}
+            if any(not math.isfinite(value) for value in parsed.values()):
+                raise ValueError(f"Airline supply modifier {modifier_id!r} contains non-finite values")
+            modifiers[str(modifier_id)] = AirlineSupplyDynamicsModifier(
+                modifier_id=str(modifier_id),
+                description=str(spec.get("description") or ""),
+                adjustments=parsed,
+            )
+    return profiles, modifiers
+
+
+AIRLINE_SUPPLY_DYNAMICS_PROFILES, AIRLINE_SUPPLY_DYNAMICS_MODIFIERS = (
+    load_airline_supply_dynamics_profiles()
+)
+
+
+@dataclass(frozen=True)
 class CityAirportMarketDemandParams:
     city_airport_market_id: str
     city_name: str
@@ -316,6 +540,26 @@ class CityAirportMarketDemandParams:
     airline_supply_confidence_bias: float
     airline_supply_appetite_bias: float
     airline_supply_constraint_bias: float
+    airline_supply_dynamics_profile_id: str
+    airline_supply_dynamics_modifier_ids: tuple[str, ...]
+    airline_supply_demand_pull_capture: float
+    airline_supply_balanced_adjustment_speed: float
+    airline_supply_expansion_adjustment_speed: float
+    airline_supply_contraction_adjustment_speed: float
+    airline_supply_recovery_adjustment_speed: float
+    airline_supply_overexpansion_bias_pct: float
+    airline_supply_overcapacity_target_pct: float
+    airline_supply_pessimism_bias_pct: float
+    airline_supply_expansion_trigger_pct: float
+    airline_supply_contraction_trigger_pct: float
+    airline_supply_minimum_supply_index: float
+    airline_supply_shock_amplitude_pct: float
+    airline_supply_phase_persistence: float
+    airline_supply_upward_change_limit_pct: float
+    airline_supply_downward_change_limit_pct: float
+    airline_component_allocation_profile_id: str
+    airline_component_priority_biases: dict[str, float]
+    airport_capacity_shortage_policy: str
     business_base_share_pct: float
     leisure_base_share_pct: float
     vfr_base_share_pct: float
@@ -344,11 +588,6 @@ class CityAirportMarketDemandParams:
     seed_potential_regional_correlation_weight: float = 0.25
     seed_potential_multiplier_floor: float = 0.85
     seed_potential_multiplier_ceiling: float = 1.15
-    airline_supply_demand_pull_capture: float = 0.92
-    airline_supply_cycle_amplitude_pct: float = 11.5
-    airline_supply_shock_amplitude_pct: float = 9.0
-    airline_supply_adjustment_speed: float = 0.64
-    airline_supply_volatility_bias: float = 1.0
 
 
 def slots_from_city_config(raw: dict[str, Any]) -> tuple[AirportFacilitySlot, ...]:
@@ -391,6 +630,86 @@ def city_market_params_from_config(raw: dict[str, Any]) -> CityAirportMarketDema
     component_mix = raw["component_mix"]
     component_biases = raw.get("component_biases", {})
     commercial_biases = raw.get("commercial_biases", {})
+    dynamics_profile_id = str(airline_supply_model["dynamics_profile_id"])
+    try:
+        dynamics_profile = AIRLINE_SUPPLY_DYNAMICS_PROFILES[dynamics_profile_id]
+    except KeyError as exc:
+        available = ", ".join(sorted(AIRLINE_SUPPLY_DYNAMICS_PROFILES))
+        raise ValueError(
+            f"Unknown airline supply dynamics profile {dynamics_profile_id!r}; available: {available}"
+        ) from exc
+    dynamics_modifier_ids_raw = airline_supply_model["dynamics_modifier_ids"]
+    if not isinstance(dynamics_modifier_ids_raw, list):
+        raise ValueError(
+            f"Airline supply dynamics modifier ids for {raw['market']['city_airport_market_id']} "
+            "must be an array"
+        )
+    dynamics_modifier_ids = tuple(str(value) for value in dynamics_modifier_ids_raw)
+    if len(set(dynamics_modifier_ids)) != len(dynamics_modifier_ids):
+        raise ValueError(
+            f"Duplicate airline supply dynamics modifier ids for "
+            f"{raw['market']['city_airport_market_id']}"
+        )
+    effective_dynamics = {
+        key: float(getattr(dynamics_profile, key))
+        for key in AIRLINE_SUPPLY_BEHAVIOR_FIELDS
+    }
+    for modifier_id in dynamics_modifier_ids:
+        try:
+            modifier = AIRLINE_SUPPLY_DYNAMICS_MODIFIERS[modifier_id]
+        except KeyError as exc:
+            available = ", ".join(sorted(AIRLINE_SUPPLY_DYNAMICS_MODIFIERS))
+            raise ValueError(
+                f"Unknown airline supply dynamics modifier {modifier_id!r}; available: {available}"
+            ) from exc
+        for key, adjustment in modifier.adjustments.items():
+            effective_dynamics[key] += adjustment
+    dynamics_overrides = airline_supply_model.get("dynamics_overrides", {})
+    if not isinstance(dynamics_overrides, dict):
+        raise ValueError(
+            f"Airline supply dynamics overrides for {raw['market']['city_airport_market_id']} "
+            "must be an object"
+        )
+    unknown_dynamics_overrides = sorted(
+        set(dynamics_overrides) - set(AIRLINE_SUPPLY_BEHAVIOR_FIELDS)
+    )
+    if unknown_dynamics_overrides:
+        raise ValueError(
+            f"Unknown airline supply dynamics overrides for {raw['market']['city_airport_market_id']}: "
+            f"{', '.join(unknown_dynamics_overrides)}"
+        )
+    for key, value in dynamics_overrides.items():
+        effective_dynamics[key] = float(value)
+    effective_profile_id = "+".join((dynamics_profile_id, *dynamics_modifier_ids))
+    validate_airline_supply_dynamics_values(effective_profile_id, effective_dynamics)
+    component_allocation = raw.get("airline_supply_component_allocation", {})
+    allocation_profile_id = str(
+        component_allocation.get("profile_id", DEFAULT_COMPONENT_ALLOCATION_PROFILE_ID)
+    )
+    try:
+        allocation_profile = COMPONENT_ALLOCATION_PROFILES[allocation_profile_id]
+    except KeyError as exc:
+        available = ", ".join(sorted(COMPONENT_ALLOCATION_PROFILES))
+        raise ValueError(
+            f"Unknown airline component allocation profile {allocation_profile_id!r}; available: {available}"
+        ) from exc
+    city_priority_biases = {
+        component: float(component_allocation.get("priority_biases", {}).get(component, 1.0))
+        for component in COMPONENTS
+    }
+    if any(not 0.5 <= value <= 1.5 for value in city_priority_biases.values()):
+        raise ValueError("City airline component priority biases must stay within 0.5 and 1.5")
+    effective_priority_biases = {
+        component: allocation_profile.priority_biases[component] * city_priority_biases[component]
+        for component in COMPONENTS
+    }
+    airport_capacity_shortage_policy = str(
+        facility_model.get("airport_capacity_shortage_policy", "proportional_compression")
+    )
+    if airport_capacity_shortage_policy != "proportional_compression":
+        raise ValueError(
+            f"Unsupported airport capacity shortage policy {airport_capacity_shortage_policy!r}"
+        )
     seed_potential_model = demand_model.get("seed_potential_model", {})
     seed_annual_range = config_range_pair(seed_potential_model.get("annual_growth_bias_range_pct"))
     seed_max_range = config_range_pair(seed_potential_model.get("max_growth_bias_range_pct"))
@@ -417,6 +736,26 @@ def city_market_params_from_config(raw: dict[str, Any]) -> CityAirportMarketDema
         airline_supply_confidence_bias=float(airline_supply_model.get("airline_supply_confidence_bias", 1.0)),
         airline_supply_appetite_bias=float(airline_supply_model.get("airline_supply_appetite_bias", 1.0)),
         airline_supply_constraint_bias=float(airline_supply_model.get("airline_supply_constraint_bias", 1.0)),
+        airline_supply_dynamics_profile_id=dynamics_profile_id,
+        airline_supply_dynamics_modifier_ids=dynamics_modifier_ids,
+        airline_supply_demand_pull_capture=effective_dynamics["demand_pull_capture"],
+        airline_supply_balanced_adjustment_speed=effective_dynamics["balanced_adjustment_speed"],
+        airline_supply_expansion_adjustment_speed=effective_dynamics["expansion_adjustment_speed"],
+        airline_supply_contraction_adjustment_speed=effective_dynamics["contraction_adjustment_speed"],
+        airline_supply_recovery_adjustment_speed=effective_dynamics["recovery_adjustment_speed"],
+        airline_supply_overexpansion_bias_pct=effective_dynamics["overexpansion_bias_pct"],
+        airline_supply_overcapacity_target_pct=effective_dynamics["overcapacity_target_pct"],
+        airline_supply_pessimism_bias_pct=effective_dynamics["pessimism_bias_pct"],
+        airline_supply_expansion_trigger_pct=effective_dynamics["expansion_trigger_pct"],
+        airline_supply_contraction_trigger_pct=effective_dynamics["contraction_trigger_pct"],
+        airline_supply_minimum_supply_index=effective_dynamics["minimum_supply_index"],
+        airline_supply_shock_amplitude_pct=effective_dynamics["shock_amplitude_pct"],
+        airline_supply_phase_persistence=effective_dynamics["phase_persistence"],
+        airline_supply_upward_change_limit_pct=effective_dynamics["upward_change_limit_pct"],
+        airline_supply_downward_change_limit_pct=effective_dynamics["downward_change_limit_pct"],
+        airline_component_allocation_profile_id=allocation_profile_id,
+        airline_component_priority_biases=effective_priority_biases,
+        airport_capacity_shortage_policy=airport_capacity_shortage_policy,
         business_base_share_pct=float(component_mix["business_base_share_pct"]),
         leisure_base_share_pct=float(component_mix["leisure_base_share_pct"]),
         vfr_base_share_pct=float(component_mix["vfr_base_share_pct"]),
@@ -447,11 +786,6 @@ def city_market_params_from_config(raw: dict[str, Any]) -> CityAirportMarketDema
         ),
         seed_potential_multiplier_floor=float(seed_potential_model.get("potential_multiplier_floor", 0.85)),
         seed_potential_multiplier_ceiling=float(seed_potential_model.get("potential_multiplier_ceiling", 1.15)),
-        airline_supply_demand_pull_capture=float(airline_supply_model.get("demand_pull_capture", 0.92)),
-        airline_supply_cycle_amplitude_pct=float(airline_supply_model.get("cycle_amplitude_pct", 11.5)),
-        airline_supply_shock_amplitude_pct=float(airline_supply_model.get("shock_amplitude_pct", 9.0)),
-        airline_supply_adjustment_speed=float(airline_supply_model.get("adjustment_speed", 0.64)),
-        airline_supply_volatility_bias=float(airline_supply_model.get("volatility_bias", 1.0)),
     )
 
 
@@ -467,6 +801,9 @@ def load_city_market_configs(config_dir: Path = CITY_AIRPORT_CONFIG_DIR) -> dict
         params = city_market_params_from_config(raw)
         configs[params.city_airport_market_id] = params
     return configs
+
+
+BEIJING_FALLBACK_DYNAMICS_PROFILE = AIRLINE_SUPPLY_DYNAMICS_PROFILES["global_hub_resilient_v2"]
 
 
 CITY_MARKET_CONFIGS = {
@@ -573,6 +910,32 @@ CITY_MARKET_CONFIGS = {
         airline_supply_confidence_bias=1.0,
         airline_supply_appetite_bias=1.0,
         airline_supply_constraint_bias=1.0,
+        airline_supply_dynamics_profile_id=BEIJING_FALLBACK_DYNAMICS_PROFILE.profile_id,
+        airline_supply_dynamics_modifier_ids=(),
+        airline_supply_demand_pull_capture=BEIJING_FALLBACK_DYNAMICS_PROFILE.demand_pull_capture,
+        airline_supply_balanced_adjustment_speed=BEIJING_FALLBACK_DYNAMICS_PROFILE.balanced_adjustment_speed,
+        airline_supply_expansion_adjustment_speed=BEIJING_FALLBACK_DYNAMICS_PROFILE.expansion_adjustment_speed,
+        airline_supply_contraction_adjustment_speed=BEIJING_FALLBACK_DYNAMICS_PROFILE.contraction_adjustment_speed,
+        airline_supply_recovery_adjustment_speed=BEIJING_FALLBACK_DYNAMICS_PROFILE.recovery_adjustment_speed,
+        airline_supply_overexpansion_bias_pct=BEIJING_FALLBACK_DYNAMICS_PROFILE.overexpansion_bias_pct,
+        airline_supply_overcapacity_target_pct=BEIJING_FALLBACK_DYNAMICS_PROFILE.overcapacity_target_pct,
+        airline_supply_pessimism_bias_pct=BEIJING_FALLBACK_DYNAMICS_PROFILE.pessimism_bias_pct,
+        airline_supply_expansion_trigger_pct=BEIJING_FALLBACK_DYNAMICS_PROFILE.expansion_trigger_pct,
+        airline_supply_contraction_trigger_pct=BEIJING_FALLBACK_DYNAMICS_PROFILE.contraction_trigger_pct,
+        airline_supply_minimum_supply_index=BEIJING_FALLBACK_DYNAMICS_PROFILE.minimum_supply_index,
+        airline_supply_shock_amplitude_pct=BEIJING_FALLBACK_DYNAMICS_PROFILE.shock_amplitude_pct,
+        airline_supply_phase_persistence=BEIJING_FALLBACK_DYNAMICS_PROFILE.phase_persistence,
+        airline_supply_upward_change_limit_pct=BEIJING_FALLBACK_DYNAMICS_PROFILE.upward_change_limit_pct,
+        airline_supply_downward_change_limit_pct=BEIJING_FALLBACK_DYNAMICS_PROFILE.downward_change_limit_pct,
+        airline_component_allocation_profile_id="china_dual_hub_v1",
+        airline_component_priority_biases={
+            "business": 1.0403,
+            "leisure": 0.9702,
+            "vfr": 1.0,
+            "long_haul": 1.0302,
+            "transfer": 1.0302,
+        },
+        airport_capacity_shortage_policy="proportional_compression",
         business_base_share_pct=32.0,
         leisure_base_share_pct=38.0,
         vfr_base_share_pct=13.0,
@@ -897,11 +1260,62 @@ def city_component_passengers(
     return indices, passengers, shares, seed_profile
 
 
-def component_airline_supply_passengers(
+def capped_weighted_allocation(
+    demand: dict[str, float],
+    weights: dict[str, float],
+    capacity: float,
+) -> dict[str, float]:
+    """Allocate capacity by weight without exceeding component demand."""
+
+    clean_demand = {component: max(0.0, demand.get(component, 0.0)) for component in COMPONENTS}
+    allocation = {component: 0.0 for component in COMPONENTS}
+    remaining = min(max(0.0, capacity), sum(clean_demand.values()))
+    active = {
+        component
+        for component in COMPONENTS
+        if clean_demand[component] > 1e-12 and weights.get(component, 0.0) > 0.0
+    }
+
+    while remaining > 1e-12 and active:
+        total_weight = sum(max(0.0, weights.get(component, 0.0)) for component in active)
+        if total_weight <= 0.0:
+            total_weight = float(len(active))
+            active_weights = {component: 1.0 for component in active}
+        else:
+            active_weights = {
+                component: max(0.0, weights.get(component, 0.0))
+                for component in active
+            }
+        proposals = {
+            component: remaining * active_weights[component] / total_weight
+            for component in active
+        }
+        saturated = [
+            component
+            for component in active
+            if proposals[component] >= clean_demand[component] - allocation[component] - 1e-12
+        ]
+        if not saturated:
+            for component, value in proposals.items():
+                allocation[component] += value
+            remaining = 0.0
+            break
+        for component in saturated:
+            available = max(0.0, clean_demand[component] - allocation[component])
+            allocation[component] += available
+            remaining -= available
+            active.remove(component)
+
+    return allocation
+
+
+def component_airline_service_profile(
     row: dict[str, Any],
     component_passengers: dict[str, float],
     airline_supply: float,
-) -> tuple[dict[str, float], dict[str, float], dict[str, float], dict[str, float]]:
+    airport_capacity: float,
+    params: CityAirportMarketDemandParams,
+) -> dict[str, Any]:
     route_gap = as_float(row, "supply_route_growth_appetite_index", 45.0) - 45.0
     fleet_gap = as_float(row, "supply_fleet_expansion_appetite_index", 45.0) - 45.0
     confidence_gap = as_float(row, "supply_airline_capacity_confidence_index", 50.0) - 50.0
@@ -960,8 +1374,15 @@ def component_airline_supply_passengers(
         - 0.0030 * slot_pressure
         - 0.0014 * profit_pressure,
     }
+    priority_multipliers = {
+        component: (
+            clamp(multipliers[component], 0.68, 1.38)
+            * params.airline_component_priority_biases.get(component, 1.0)
+        )
+        for component in COMPONENTS
+    }
     weighted = {
-        component: component_passengers.get(component, 0.0) * clamp(multipliers[component], 0.68, 1.38)
+        component: max(0.0, component_passengers.get(component, 0.0)) * priority_multipliers[component]
         for component in COMPONENTS
     }
     total_weight = sum(weighted.values())
@@ -969,25 +1390,51 @@ def component_airline_supply_passengers(
         weighted = {component: 1.0 for component in COMPONENTS}
         total_weight = float(len(COMPONENTS))
 
-    supply = {
+    offered_capacity = {
         component: airline_supply * weighted[component] / total_weight
         for component in COMPONENTS
     }
+    serviceable_supply = capped_weighted_allocation(
+        component_passengers,
+        weighted,
+        airline_supply,
+    )
+    serviceable_total = sum(serviceable_supply.values())
+    if params.airport_capacity_shortage_policy != "proportional_compression":
+        raise ValueError(
+            f"Unsupported airport capacity shortage policy {params.airport_capacity_shortage_policy!r}"
+        )
+    airport_scale = min(1.0, max(0.0, airport_capacity) / serviceable_total) if serviceable_total else 0.0
+    final_served = {
+        component: serviceable_supply[component] * airport_scale
+        for component in COMPONENTS
+    }
     shares = {
-        component: supply[component] / airline_supply * 100.0 if airline_supply else 0.0
+        component: serviceable_supply[component] / serviceable_total * 100.0 if serviceable_total else 0.0
         for component in COMPONENTS
     }
     fulfillment = {
-        component: supply[component] / component_passengers.get(component, 0.0) * 100.0
+        component: serviceable_supply[component] / component_passengers.get(component, 0.0) * 100.0
         if component_passengers.get(component, 0.0)
         else 100.0
         for component in COMPONENTS
     }
     gaps = {
-        component: max(0.0, component_passengers.get(component, 0.0) - supply[component])
+        component: max(0.0, component_passengers.get(component, 0.0) - serviceable_supply[component])
         for component in COMPONENTS
     }
-    return supply, shares, fulfillment, gaps
+    return {
+        "priority_multipliers": priority_multipliers,
+        "offered_capacity": offered_capacity,
+        "serviceable_supply": serviceable_supply,
+        "serviceable_total": serviceable_total,
+        "unused_capacity": max(0.0, airline_supply - serviceable_total),
+        "supply_shares": shares,
+        "supply_fulfillment": fulfillment,
+        "supply_gaps": gaps,
+        "airport_scale": airport_scale,
+        "final_served": final_served,
+    }
 
 
 def active_facility_slots(year: int, params: CityAirportMarketDemandParams) -> list[AirportFacilitySlot]:
@@ -1110,57 +1557,178 @@ def airline_supply_event_impulse(row: dict[str, Any]) -> float:
     return impulse
 
 
-def city_airline_supply_cycle_impulse(row: dict[str, Any], params: CityAirportMarketDemandParams) -> float:
+@dataclass(frozen=True)
+class AirlineSupplyBehaviorState:
+    supply_index: float
+    phase: str
+    phase_age_years: int
+    cycle_number: int
+
+
+AIRLINE_SUPPLY_PHASE_DURATION_RANGES = {
+    "balanced": (2.0, 5.0),
+    "expansion": (3.0, 6.0),
+    "overexpansion": (2.0, 4.0),
+    "contraction": (2.0, 4.0),
+    "trough": (1.0, 3.0),
+    "recovery": (2.0, 5.0),
+}
+
+
+def airline_supply_phase_duration(
+    params: CityAirportMarketDemandParams,
+    seed: int,
+    phase: str,
+    cycle_number: int,
+) -> int:
+    low, high = AIRLINE_SUPPLY_PHASE_DURATION_RANGES[phase]
+    unit = stable_unit_float(
+        "airline_supply_phase_duration",
+        params.city_airport_market_id,
+        seed,
+        phase,
+        cycle_number,
+    )
+    years = interpolate(low, high, unit) * params.airline_supply_phase_persistence
+    return max(1, int(round(years)))
+
+
+def airline_supply_behavior_phase(
+    row: dict[str, Any],
+    params: CityAirportMarketDemandParams,
+    previous_state: AirlineSupplyBehaviorState | None,
+    market_signal: float,
+    shock_and_event_impulse: float,
+) -> tuple[str, int, int]:
+    if previous_state is None:
+        return "balanced", 0, 0
+
     seed = int(as_float(row, "seed"))
-    year_index = as_float(row, "year_index")
-    volatility = clamp(params.airline_supply_volatility_bias, 0.4, 1.8)
-    amplitude = (
-        params.airline_supply_cycle_amplitude_pct
-        * volatility
-        * interpolate(0.75, 1.35, stable_unit_float("airline_cycle_amplitude", params.city_airport_market_id, seed))
+    phase = previous_state.phase
+    phase_age = previous_state.phase_age_years + 1
+    cycle_number = previous_state.cycle_number
+    duration = airline_supply_phase_duration(params, seed, phase, cycle_number)
+    severe_negative = (
+        shock_and_event_impulse <= -max(4.0, params.airline_supply_contraction_trigger_pct)
+        or market_signal <= -params.airline_supply_contraction_trigger_pct * 1.8
     )
-    period = interpolate(4.0, 8.0, stable_unit_float("airline_cycle_period", params.city_airport_market_id, seed))
-    phase = interpolate(0.0, period, stable_unit_float("airline_cycle_phase", params.city_airport_market_id, seed))
-    short_period = max(2.4, period * 0.47)
-    short_phase = interpolate(0.0, short_period, stable_unit_float("airline_cycle_short_phase", params.city_airport_market_id, seed))
-    regional_investment_bias = first_float(
-        row,
-        (
-            "source_regional_seed_investment_cycle_bias_pct",
-            "supply_source_regional_seed_investment_cycle_bias_pct",
-            "macro_regional_seed_investment_cycle_bias_pct",
+    expansion_signal = market_signal >= params.airline_supply_expansion_trigger_pct
+
+    next_phase = phase
+    if phase == "balanced":
+        if severe_negative:
+            next_phase = "contraction"
+        elif expansion_signal and phase_age >= 1:
+            next_phase = "expansion"
+            cycle_number += 1
+        elif phase_age >= duration:
+            next_phase = "expansion" if market_signal >= -1.0 else "contraction"
+            if next_phase == "expansion":
+                cycle_number += 1
+    elif phase == "expansion":
+        if severe_negative:
+            next_phase = "contraction"
+        elif phase_age >= duration:
+            next_phase = "overexpansion"
+    elif phase == "overexpansion":
+        if severe_negative or phase_age >= duration:
+            next_phase = "contraction"
+    elif phase == "contraction":
+        if phase_age >= duration or (
+            phase_age >= 2 and market_signal >= params.airline_supply_expansion_trigger_pct * 0.5
+        ):
+            next_phase = "trough"
+    elif phase == "trough":
+        if phase_age >= duration:
+            next_phase = "recovery"
+    elif phase == "recovery":
+        if severe_negative:
+            next_phase = "contraction"
+        elif phase_age >= duration:
+            if market_signal >= params.airline_supply_expansion_trigger_pct * 0.5:
+                next_phase = "expansion"
+                cycle_number += 1
+            else:
+                next_phase = "balanced"
+
+    if next_phase != phase:
+        phase_age = 0
+    return next_phase, phase_age, cycle_number
+
+
+def airline_supply_behavior_impulse(
+    row: dict[str, Any],
+    params: CityAirportMarketDemandParams,
+    phase: str,
+    phase_age_years: int,
+    cycle_number: int,
+) -> float:
+    seed = int(as_float(row, "seed"))
+    duration = airline_supply_phase_duration(params, seed, phase, cycle_number)
+    progress = clamp((phase_age_years + 1.0) / max(1.0, duration), 0.0, 1.0)
+    intensity = airline_supply_cycle_intensity(params, seed, cycle_number)
+    optimism = params.airline_supply_overexpansion_bias_pct * intensity
+    pessimism = params.airline_supply_pessimism_bias_pct * intensity
+
+    if phase == "expansion":
+        return optimism * (0.15 + 0.55 * progress)
+    if phase == "overexpansion":
+        return optimism * (1.0 - 0.10 * progress)
+    if phase == "contraction":
+        return -pessimism * (0.55 + 0.45 * progress)
+    if phase == "trough":
+        return -pessimism * (1.0 - 0.12 * progress)
+    if phase == "recovery":
+        return -pessimism * 0.65 * (1.0 - progress) + optimism * 0.08 * progress
+    return 0.0
+
+
+def airline_supply_cycle_intensity(
+    params: CityAirportMarketDemandParams,
+    seed: int,
+    cycle_number: int,
+) -> float:
+    return interpolate(
+        0.82,
+        1.18,
+        stable_unit_float(
+            "airline_supply_cycle_intensity",
+            params.city_airport_market_id,
+            seed,
+            cycle_number,
         ),
-        0.0,
     )
-    investment_tilt = clamp(regional_investment_bias * 0.35, -3.0, 3.0)
-    primary_cycle = math.sin((year_index + phase) / period * math.tau) * amplitude
-    secondary_cycle = math.sin((year_index + short_phase) / short_period * math.tau) * amplitude * 0.36
-    return primary_cycle + secondary_cycle + investment_tilt
 
 
 def city_airline_supply_shock_impulse(row: dict[str, Any], params: CityAirportMarketDemandParams) -> float:
     seed = int(as_float(row, "seed"))
     year_index = as_float(row, "year_index")
-    volatility = clamp(params.airline_supply_volatility_bias, 0.4, 1.8)
     shock = 0.0
-    for slot in range(3):
+    for slot in range(6):
+        activation = stable_unit_float(
+            "airline_supply_shock_activation",
+            params.city_airport_market_id,
+            seed,
+            slot,
+        )
+        if activation >= 0.46:
+            continue
         center = interpolate(
-            5.0,
-            56.0,
+            4.0,
+            58.0,
             stable_unit_float("airline_supply_shock_center", params.city_airport_market_id, seed, slot),
         )
         width = interpolate(
-            1.25,
-            3.75,
+            1.8,
+            4.5,
             stable_unit_float("airline_supply_shock_width", params.city_airport_market_id, seed, slot),
         )
         direction_unit = stable_unit_float("airline_supply_shock_direction", params.city_airport_market_id, seed, slot)
         magnitude = (
             params.airline_supply_shock_amplitude_pct
-            * volatility
-            * interpolate(0.35, 1.0, stable_unit_float("airline_supply_shock_size", params.city_airport_market_id, seed, slot))
+            * interpolate(0.45, 1.10, stable_unit_float("airline_supply_shock_size", params.city_airport_market_id, seed, slot))
         )
-        direction = -1.0 if direction_unit < 0.58 else 0.75
+        direction = -1.0 if direction_unit < 0.64 else 0.65
         distance = (year_index - center) / width
         shock += direction * magnitude * math.exp(-0.5 * distance * distance)
 
@@ -1169,8 +1737,12 @@ def city_airline_supply_shock_impulse(row: dict[str, Any], params: CityAirportMa
     return shock - cut_risk * 0.10 - stress * 0.08
 
 
-def airline_supply_volatility_regime(cycle_impulse: float, shock_impulse: float, event_impulse: float) -> str:
-    pressure = abs(cycle_impulse) + abs(shock_impulse) + abs(event_impulse)
+def airline_supply_volatility_regime(
+    behavior_impulse: float,
+    shock_impulse: float,
+    event_impulse: float,
+) -> str:
+    pressure = abs(behavior_impulse) + abs(shock_impulse) + abs(event_impulse)
     if pressure >= 18.0:
         return "highly_volatile_airline_supply"
     if pressure >= 10.0:
@@ -1182,7 +1754,7 @@ def city_airline_supply_profile(
     row: dict[str, Any],
     params: CityAirportMarketDemandParams,
     city_potential: float,
-    previous_supply_index: float | None = None,
+    previous_state: AirlineSupplyBehaviorState | None = None,
 ) -> dict[str, Any]:
     regional_seat_index = as_float(
         row,
@@ -1225,43 +1797,125 @@ def city_airline_supply_profile(
         155.0,
     )
     macro_adjustment = confidence_adjustment + appetite_adjustment
-    cycle_impulse = city_airline_supply_cycle_impulse(row, params)
     shock_impulse = city_airline_supply_shock_impulse(row, params)
     event_impulse = airline_supply_event_impulse(row)
-    target_index = (
+    fundamental_target_index = (
         trend_index
         + demand_pull_pct
-        + confidence_adjustment
-        + appetite_adjustment
+        + macro_adjustment
         - constraint_drag
-        + cycle_impulse
-        + shock_impulse
-        + event_impulse
     )
-    if previous_supply_index is None:
+    previous_supply_index = (
+        previous_state.supply_index if previous_state is not None else fundamental_target_index
+    )
+    market_signal = clamp(
+        (fundamental_target_index - previous_supply_index) * 0.70
+        + (shock_impulse + event_impulse) * 0.80,
+        -30.0,
+        30.0,
+    )
+    phase, phase_age_years, cycle_number = airline_supply_behavior_phase(
+        row,
+        params,
+        previous_state,
+        market_signal,
+        shock_impulse + event_impulse,
+    )
+    behavior_impulse = airline_supply_behavior_impulse(
+        row,
+        params,
+        phase,
+        phase_age_years,
+        cycle_number,
+    )
+    cycle_intensity = airline_supply_cycle_intensity(
+        params,
+        int(as_float(row, "seed")),
+        cycle_number,
+    )
+    effective_overcapacity_target_pct = (
+        params.airline_supply_overcapacity_target_pct * cycle_intensity
+    )
+    overcapacity_target_index = potential_anchor_index * (
+        1.0 + effective_overcapacity_target_pct / 100.0
+    )
+    behavior_target_index = fundamental_target_index + behavior_impulse
+    if phase == "overexpansion":
+        behavior_target_index = max(
+            behavior_target_index,
+            overcapacity_target_index,
+        )
+    target_index = behavior_target_index + shock_impulse + event_impulse
+    adjustment_speed_by_phase = {
+        "balanced": params.airline_supply_balanced_adjustment_speed,
+        "expansion": params.airline_supply_expansion_adjustment_speed,
+        "overexpansion": params.airline_supply_expansion_adjustment_speed + 0.16,
+        "contraction": params.airline_supply_contraction_adjustment_speed,
+        "trough": params.airline_supply_recovery_adjustment_speed * 0.75,
+        "recovery": params.airline_supply_recovery_adjustment_speed,
+    }
+    adjustment_speed = clamp(adjustment_speed_by_phase[phase], 0.15, 0.85)
+    if previous_state is None:
         lag_adjustment = 0.0
         raw_index = target_index
     else:
-        adjustment_speed = clamp(params.airline_supply_adjustment_speed, 0.25, 0.85)
-        lag_adjustment = (target_index - previous_supply_index) * adjustment_speed
+        lag_adjustment = clamp(
+            (target_index - previous_supply_index) * adjustment_speed,
+            -params.airline_supply_downward_change_limit_pct,
+            params.airline_supply_upward_change_limit_pct,
+        )
         raw_index = previous_supply_index + lag_adjustment
 
     supply_ceiling_index = max(255.0, min(380.0, potential_anchor_index * 1.10))
-    supply_index = clamp(raw_index, 62.0, supply_ceiling_index)
+    supply_index = clamp(
+        raw_index,
+        params.airline_supply_minimum_supply_index,
+        supply_ceiling_index,
+    )
+    state = AirlineSupplyBehaviorState(
+        supply_index=supply_index,
+        phase=phase,
+        phase_age_years=phase_age_years,
+        cycle_number=cycle_number,
+    )
     return {
         "potential_anchor_index": potential_anchor_index,
         "trend_index": trend_index,
         "demand_pull_pct": demand_pull_pct,
         "macro_adjustment_pct": macro_adjustment,
         "constraint_drag_pct": constraint_drag,
-        "cycle_impulse_pct": cycle_impulse,
+        "fundamental_target_index": fundamental_target_index,
+        "market_signal_pct": market_signal,
+        "behavior_phase": phase,
+        "phase_age_years": phase_age_years,
+        "cycle_number": cycle_number,
+        "behavior_impulse_pct": behavior_impulse,
+        "overcapacity_target_index": overcapacity_target_index,
+        "effective_overcapacity_target_pct": effective_overcapacity_target_pct,
         "shock_impulse_pct": shock_impulse,
         "event_impulse_pct": event_impulse,
         "target_index": target_index,
+        "effective_adjustment_speed": adjustment_speed,
         "lag_adjustment_pct": lag_adjustment,
         "ceiling_index": supply_ceiling_index,
         "supply_index": supply_index,
-        "volatility_regime": airline_supply_volatility_regime(cycle_impulse, shock_impulse, event_impulse),
+        "deviation_from_fundamental_pct": supply_index - fundamental_target_index,
+        "deviation_from_potential_pct": (
+            (supply_index / potential_anchor_index - 1.0) * 100.0
+            if potential_anchor_index > 0.0
+            else 0.0
+        ),
+        "excess_over_potential_pct": (
+            max(0.0, (supply_index / potential_anchor_index - 1.0) * 100.0)
+            if potential_anchor_index > 0.0
+            else 0.0
+        ),
+        "volatility_regime": airline_supply_volatility_regime(
+            behavior_impulse,
+            shock_impulse,
+            event_impulse,
+        ),
+        "state": state,
     }
 
 
@@ -1331,16 +1985,28 @@ def simulate_city_airport_demand(
     validate_airport_facility_slots(params)
     output = []
     previous_potential_by_seed: dict[int, float] = {}
-    previous_airline_supply_index_by_seed: dict[int, float] = {}
+    airline_supply_state_by_seed: dict[int, AirlineSupplyBehaviorState] = {}
 
     for row in merged_rows:
         seed = int(as_float(row, "seed"))
         year = int(as_float(row, "year"))
-        region_potential = as_float(row, "supply_potential_passengers_million")
-        region_served = as_float(row, "supply_served_passengers_million", region_potential)
+        # Regional passenger quantities are explanatory reference estimates.
+        # City potential, airline supply, and airport throughput are calculated
+        # independently below and are never capped by these regional amounts.
+        region_reference_potential = as_float(row, "supply_potential_passengers_million")
+        region_reference_served = as_float(
+            row,
+            "supply_reference_served_passengers_million",
+            as_float(row, "supply_served_passengers_million", region_reference_potential),
+        )
+        region_reference_unmet = as_float(
+            row,
+            "supply_reference_unmet_passengers_million",
+            max(0.0, region_reference_potential - region_reference_served),
+        )
         component_indices, component_passengers, component_shares, seed_profile = city_component_passengers(row, params)
         city_potential = sum(component_passengers.values())
-        city_share_pct = city_potential / region_potential * 100.0 if region_potential else 0.0
+        city_share_pct = city_potential / region_reference_potential * 100.0 if region_reference_potential else 0.0
         adjustment = city_share_pct - params.baseline_region_demand_share_pct
         capacity_profile = airport_capacity_profile(year, params)
         design_capacity = float(capacity_profile["design_capacity_million"])
@@ -1350,32 +2016,46 @@ def simulate_city_airport_demand(
             row,
             params,
             city_potential,
-            previous_airline_supply_index_by_seed.get(seed),
+            airline_supply_state_by_seed.get(seed),
         )
         airline_supply_index = float(airline_supply_profile["supply_index"])
-        previous_airline_supply_index_by_seed[seed] = airline_supply_index
+        airline_supply_state_by_seed[seed] = airline_supply_profile["state"]
         airline_supply = params.base_airline_supply_passengers_million * airline_supply_index / 100.0
-        (
-            component_airline_supply,
-            component_airline_supply_shares,
-            component_airline_supply_fulfillment,
-            component_airline_supply_gaps,
-        ) = component_airline_supply_passengers(row, component_passengers, airline_supply)
+        component_service = component_airline_service_profile(
+            row,
+            component_passengers,
+            airline_supply,
+            effective_capacity,
+            params,
+        )
+        component_priority_weights = component_service["priority_multipliers"]
+        component_airline_offered_capacity = component_service["offered_capacity"]
+        component_airline_supply = component_service["serviceable_supply"]
+        component_airline_supply_shares = component_service["supply_shares"]
+        component_airline_supply_fulfillment = component_service["supply_fulfillment"]
+        component_airline_supply_gaps = component_service["supply_gaps"]
+        component_final_served = component_service["final_served"]
+        serviceable_airline_supply = float(component_service["serviceable_total"])
+        unused_airline_capacity = float(component_service["unused_capacity"])
         airport_capacity_allocation_ratio_pct = clamp(
             effective_capacity / airline_supply * 100.0 if airline_supply else 100.0,
             0.0,
             100.0,
         )
         airport_capacity_limited_airline_supply = max(0.0, airline_supply - effective_capacity)
-        effective_service_capacity = min(effective_capacity, airline_supply)
+        effective_service_capacity = min(effective_capacity, serviceable_airline_supply)
         fulfillment_pct = clamp(effective_capacity / city_potential * 100.0 if city_potential else 100.0, 0.0, 100.0)
-        airline_fulfillment_pct = clamp(airline_supply / city_potential * 100.0 if city_potential else 100.0, 0.0, 100.0)
+        airline_fulfillment_pct = clamp(
+            serviceable_airline_supply / city_potential * 100.0 if city_potential else 100.0,
+            0.0,
+            100.0,
+        )
         total_fulfillment_pct = clamp(
             effective_service_capacity / city_potential * 100.0 if city_potential else 100.0,
             0.0,
             100.0,
         )
-        served = min(city_potential, effective_service_capacity)
+        served = sum(component_final_served.values())
         final_service_ratio_pct = clamp(served / city_potential * 100.0 if city_potential else 100.0, 0.0, 100.0)
         unmet = max(0.0, city_potential - served)
         utilization_pct = city_potential / effective_capacity * 100.0 if effective_capacity else 0.0
@@ -1385,7 +2065,7 @@ def simulate_city_airport_demand(
         crowding_index = airport_crowding_index(served, design_capacity, max_capacity)
         airline_utilization_pct = served / airline_supply * 100.0 if airline_supply else 0.0
         unmet_share_pct = unmet / city_potential * 100.0 if city_potential else 0.0
-        airline_supply_gap = max(0.0, city_potential - airline_supply)
+        airline_supply_gap = max(0.0, city_potential - serviceable_airline_supply)
         airport_capacity_gap = max(0.0, city_potential - effective_capacity)
         bottleneck = binding_bottleneck(city_potential, airline_supply, effective_capacity)
         previous_potential = previous_potential_by_seed.get(seed, city_potential)
@@ -1397,12 +2077,11 @@ def simulate_city_airport_demand(
         vfr_passengers = component_passengers["vfr"]
         long_haul_passengers = component_passengers["long_haul"]
         transfer_passengers = component_passengers["transfer"]
-        final_service_ratio = final_service_ratio_pct / 100.0
-        business_served_passengers = business_passengers * final_service_ratio
-        leisure_served_passengers = leisure_passengers * final_service_ratio
-        vfr_served_passengers = vfr_passengers * final_service_ratio
-        long_haul_served_passengers = long_haul_passengers * final_service_ratio
-        transfer_served_passengers = transfer_passengers * final_service_ratio
+        business_served_passengers = component_final_served["business"]
+        leisure_served_passengers = component_final_served["leisure"]
+        vfr_served_passengers = component_final_served["vfr"]
+        long_haul_served_passengers = component_final_served["long_haul"]
+        transfer_served_passengers = component_final_served["transfer"]
         business_share = business_passengers / city_potential * 100.0 if city_potential else 0.0
         leisure_share = leisure_passengers / city_potential * 100.0 if city_potential else 0.0
         vfr_share = vfr_passengers / city_potential * 100.0 if city_potential else 0.0
@@ -1537,11 +2216,21 @@ def simulate_city_airport_demand(
                 "airport_system": params.airport_system,
                 "airport_facility_slot_profile_id": params.airport_facility_slot_profile_id,
                 "facility_size_catalog_id": params.facility_size_catalog_id,
+                "airline_supply_dynamics_profile_id": params.airline_supply_dynamics_profile_id,
+                "airline_supply_dynamics_modifier_ids": ";".join(
+                    params.airline_supply_dynamics_modifier_ids
+                ),
+                "airline_component_allocation_profile_id": params.airline_component_allocation_profile_id,
+                "airport_capacity_shortage_policy": params.airport_capacity_shortage_policy,
                 "active_airport_facility_slots": ";".join(capacity_profile["active_slot_labels"]),
                 "source_regional_air_demand_index": as_float(row, "regional_air_demand_index"),
                 "source_regional_air_demand_growth_pct": as_float(row, "regional_air_demand_growth_pct"),
-                "source_region_potential_passengers_million": region_potential,
-                "source_region_served_passengers_million": region_served,
+                "source_region_reference_potential_passengers_million": region_reference_potential,
+                "source_region_reference_served_passengers_million": region_reference_served,
+                "source_region_reference_unmet_passengers_million": region_reference_unmet,
+                # Compatibility aliases retained for existing exports.
+                "source_region_potential_passengers_million": region_reference_potential,
+                "source_region_served_passengers_million": region_reference_served,
                 "source_regional_seed_momentum_label": regional_seed_label,
                 "source_regional_seed_effective_growth_bias_pct": regional_seed_growth_bias,
                 "source_regional_seed_aviation_propensity_bias_pct": regional_seed_aviation_bias,
@@ -1571,15 +2260,44 @@ def simulate_city_airport_demand(
                 "city_airline_supply_demand_pull_pct": airline_supply_profile["demand_pull_pct"],
                 "city_airline_supply_macro_adjustment_pct": airline_supply_profile["macro_adjustment_pct"],
                 "city_airline_supply_constraint_drag_pct": airline_supply_profile["constraint_drag_pct"],
-                "city_airline_supply_cycle_impulse_pct": airline_supply_profile["cycle_impulse_pct"],
+                "city_airline_supply_fundamental_target_index": airline_supply_profile["fundamental_target_index"],
+                "city_airline_supply_market_signal_pct": airline_supply_profile["market_signal_pct"],
+                "city_airline_supply_behavior_phase": airline_supply_profile["behavior_phase"],
+                "city_airline_supply_phase_age_years": airline_supply_profile["phase_age_years"],
+                "city_airline_supply_cycle_number": airline_supply_profile["cycle_number"],
+                "city_airline_supply_behavior_impulse_pct": airline_supply_profile["behavior_impulse_pct"],
+                "city_airline_supply_overcapacity_target_index": airline_supply_profile["overcapacity_target_index"],
+                "city_airline_supply_effective_overcapacity_target_pct": airline_supply_profile["effective_overcapacity_target_pct"],
                 "city_airline_supply_shock_impulse_pct": airline_supply_profile["shock_impulse_pct"],
                 "city_airline_supply_event_impulse_pct": airline_supply_profile["event_impulse_pct"],
                 "city_airline_supply_target_index": airline_supply_profile["target_index"],
+                "city_airline_supply_effective_adjustment_speed": airline_supply_profile["effective_adjustment_speed"],
                 "city_airline_supply_lag_adjustment_pct": airline_supply_profile["lag_adjustment_pct"],
                 "city_airline_supply_ceiling_index": airline_supply_profile["ceiling_index"],
                 "city_airline_supply_index": airline_supply_index,
+                "city_airline_supply_deviation_from_fundamental_pct": airline_supply_profile["deviation_from_fundamental_pct"],
+                "city_airline_supply_deviation_from_potential_pct": airline_supply_profile["deviation_from_potential_pct"],
+                "city_airline_supply_excess_over_potential_pct": airline_supply_profile["excess_over_potential_pct"],
                 "city_airline_supply_volatility_regime": airline_supply_profile["volatility_regime"],
+                "airline_supply_demand_pull_capture": params.airline_supply_demand_pull_capture,
+                "airline_supply_balanced_adjustment_speed": params.airline_supply_balanced_adjustment_speed,
+                "airline_supply_expansion_adjustment_speed": params.airline_supply_expansion_adjustment_speed,
+                "airline_supply_contraction_adjustment_speed": params.airline_supply_contraction_adjustment_speed,
+                "airline_supply_recovery_adjustment_speed": params.airline_supply_recovery_adjustment_speed,
+                "airline_supply_overexpansion_bias_pct": params.airline_supply_overexpansion_bias_pct,
+                "airline_supply_overcapacity_target_pct": params.airline_supply_overcapacity_target_pct,
+                "airline_supply_pessimism_bias_pct": params.airline_supply_pessimism_bias_pct,
+                "airline_supply_expansion_trigger_pct": params.airline_supply_expansion_trigger_pct,
+                "airline_supply_contraction_trigger_pct": params.airline_supply_contraction_trigger_pct,
+                "airline_supply_minimum_supply_index": params.airline_supply_minimum_supply_index,
+                "airline_supply_shock_amplitude_pct": params.airline_supply_shock_amplitude_pct,
+                "airline_supply_phase_persistence": params.airline_supply_phase_persistence,
+                "airline_supply_upward_change_limit_pct": params.airline_supply_upward_change_limit_pct,
+                "airline_supply_downward_change_limit_pct": params.airline_supply_downward_change_limit_pct,
+                "city_airline_offered_capacity_million": airline_supply,
                 "city_airline_supply_passengers_million": airline_supply,
+                "city_airline_serviceable_supply_million": serviceable_airline_supply,
+                "city_airline_unused_capacity_million": unused_airline_capacity,
                 "airport_capacity_allocation_ratio_pct": airport_capacity_allocation_ratio_pct,
                 "airport_capacity_limited_airline_supply_million": airport_capacity_limited_airline_supply,
                 "city_effective_service_capacity_million": effective_service_capacity,
@@ -1619,6 +2337,16 @@ def simulate_city_airport_demand(
                 "vfr_airline_supply_share_pct": component_airline_supply_shares["vfr"],
                 "long_haul_airline_supply_share_pct": component_airline_supply_shares["long_haul"],
                 "transfer_airline_supply_share_pct": component_airline_supply_shares["transfer"],
+                "business_airline_supply_priority_weight": component_priority_weights["business"],
+                "leisure_airline_supply_priority_weight": component_priority_weights["leisure"],
+                "vfr_airline_supply_priority_weight": component_priority_weights["vfr"],
+                "long_haul_airline_supply_priority_weight": component_priority_weights["long_haul"],
+                "transfer_airline_supply_priority_weight": component_priority_weights["transfer"],
+                "business_airline_offered_capacity_million": component_airline_offered_capacity["business"],
+                "leisure_airline_offered_capacity_million": component_airline_offered_capacity["leisure"],
+                "vfr_airline_offered_capacity_million": component_airline_offered_capacity["vfr"],
+                "long_haul_airline_offered_capacity_million": component_airline_offered_capacity["long_haul"],
+                "transfer_airline_offered_capacity_million": component_airline_offered_capacity["transfer"],
                 "business_airline_supply_passengers_million": component_airline_supply["business"],
                 "leisure_airline_supply_passengers_million": component_airline_supply["leisure"],
                 "vfr_airline_supply_passengers_million": component_airline_supply["vfr"],

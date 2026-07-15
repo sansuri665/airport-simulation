@@ -52,6 +52,10 @@
     "transfer_share_bias": 1.0
   },
   "airline_supply_model": {
+    "dynamics_profile_id": "secondary_gateway_selective_v2",
+    "dynamics_modifier_ids": [
+      "plateau_constraint_v1"
+    ],
     "base_airline_supply_passengers_million": 8.8,
     "regional_airline_capacity_growth_capture": 0.24,
     "annual_local_airline_supply_growth_pct": 0.19,

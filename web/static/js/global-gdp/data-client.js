@@ -249,14 +249,21 @@ const CSV_PATH = "./output/global_gdp/global_gdp_seed_sweep.csv";
       "regional_air_capacity_index",
       "regional_air_capacity_growth_pct",
       "available_seat_capacity_index",
+      "normalized_capacity_pressure_index",
       "capacity_utilization_pct",
+      "target_load_factor_pct",
       "load_factor_pct",
       "capacity_fulfillment_pct",
       "served_passenger_demand_index",
       "unmet_passenger_demand_index",
       "capacity_fare_pressure_index",
       "potential_passengers_million",
+      "scheduled_seats_million",
+      "operational_availability_pct",
       "available_seats_million",
+      "reference_effective_passenger_capacity_million",
+      "reference_served_passengers_million",
+      "reference_unmet_passengers_million",
       "served_passengers_million",
       "unmet_passengers_million",
       "business_served_index",
@@ -900,4 +907,3 @@ const CSV_PATH = "./output/global_gdp/global_gdp_seed_sweep.csv";
         if (token === state.loadToken) el.status.textContent = error.message;
       }
     }
-

@@ -1,6 +1,6 @@
 {
   "schema_version": "city-airport-market-config-v1",
-  "config_version": "beijing-airport-system-v4",
+  "config_version": "beijing-airport-system-v5",
   "market": {
     "city_airport_market_id": "beijing_airport_system",
     "city_name": "北京",
@@ -68,6 +68,8 @@
     "transfer_share_bias": 1.0
   },
   "airline_supply_model": {
+    "dynamics_profile_id": "global_hub_resilient_v2",
+    "dynamics_modifier_ids": [],
     "base_airline_supply_passengers_million": 122.0,
     "regional_airline_capacity_growth_capture": 0.4,
     "annual_local_airline_supply_growth_pct": 0.28,
@@ -75,6 +77,17 @@
     "airline_supply_confidence_bias": 1.0,
     "airline_supply_appetite_bias": 1.0,
     "airline_supply_constraint_bias": 1.0
+  },
+  "airline_supply_component_allocation": {
+    "profile_id": "china_dual_hub_v1",
+    "priority_biases": {
+      "business": 1.01,
+      "leisure": 0.99,
+      "vfr": 1.0,
+      "long_haul": 1.01,
+      "transfer": 1.01
+    },
+    "design_note": "北京在双枢纽通用模板上只做小幅微调；总量守恒、单客群上限和剩余供给再分配由通用算法保证。"
   },
   "commercial_biases": {
     "premium_propensity_bias": 1.18,

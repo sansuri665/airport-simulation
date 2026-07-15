@@ -27,6 +27,9 @@ CI 会在 Windows 和 Linux 上安装当前项目的 editable package，再执�
 |---|---|---|
 | 固定 Seed 数值 | `test_safety_baseline.py` | 九组数值摘要、Python 3.13 浮点口径、IO 细节 |
 | 长期模型 | `test_long_horizon_contract.py` | 60 年情景、14 区、47 城、CSV 表头和玩家融资回放 |
+| 区域与城市权责 | `test_regional_air_supply_boundaries.py` | 区域承接量只作参考，不成为城市客流硬上限 |
+| 客群航司供给 | `test_component_airline_allocation.py` | 总量守恒、单客群上限、商务/休闲差异及年度—季度—预测一致性 |
+| 城市航司周期 | `test_airline_supply_dynamics_profiles.py` | 47 城模板、经营阶段、过剩/波谷分布、年度调节上限和空置运力边界 |
 | 正式 Run | `test_atomic_run.py` | staging、校验、失败清理、版本记录和原子正式化 |
 | API | `test_api_snapshot.py`、`test_local_ui.py` | 固定 Seed JSON、路由、请求边界和服务状态 |
 | Schema | `test_json_schemas.py` | 2020-12 Schema、真实响应与 Manifest |
@@ -77,6 +80,14 @@ py -3.13 -B -m unittest tests.test_cache_service tests.test_atomic_run tests.tes
 ### 模型、参数或随机逻辑
 
 至少运行固定 Seed 数值、60 年契约和完整套件。若变化是有意的模型升级，应先写清版本与迁移计划；不能通过直接更新摘要来掩盖无意漂移。
+
+航空与城市供给相关修改可先运行：
+
+```powershell
+py -3.13 -B -m unittest tests.test_regional_air_supply_boundaries tests.test_component_airline_allocation tests.test_airline_supply_dynamics_profiles -v
+```
+
+城市年度市场是五类客群可承接供给的权威来源。季度经营与预测只能读取或拆分这套结果；过剩投放只能形成 `unused_capacity`，不能增加潜在客流、单客群上限或机场实际承接量。
 
 ## 5. 不改变结果的安全重构规则
 

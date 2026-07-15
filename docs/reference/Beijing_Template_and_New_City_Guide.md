@@ -79,7 +79,8 @@ ID 建议保持稳定：
 - `market`：城市、区域、市场等级、单机场/多机场结构和机场系统名称；
 - `demand_model`：基准年、区域需求份额、城市潜在客流、长期增长偏差和 Seed 势能范围；
 - `component_mix` 与 `component_biases`：商务、休闲、探亲访友、长途、中转五类结构；基础占比合计应为 100%；
-- `airline_supply_model`：当地基础航司供给、区域运力增长捕获和本地供给增长；
+- `airline_supply_model`：当地基础航司供给、区域运力增长捕获、本地供给增长，并用 `dynamics_profile_id` 选择基础门户行为、用 `dynamics_modifier_ids` 叠加旅游/战略/高原等特征；
+- `airline_supply_component_allocation`：选择共享城市类型模板，并只填写该城市相对模板的微调；北京使用 `china_dual_hub_v1`，其它城市不能因为方便而照抄北京微调；
 - `commercial_biases`：高端、免税、精品、电子、餐饮和普通零售倾向；
 - `airports[].slots[]`：真实机场、槽位角色、设施等级、允许等级和启用年；
 - `capacity_reference_profiles` 和文字说明也应改成当地事实，避免配置自相矛盾，即使其中部分字段目前只用于说明或输出元数据。
@@ -87,6 +88,8 @@ ID 建议保持稳定：
 ### 可复用与共享边界
 
 - 中国大陆城市通常可以继续使用 `region_id = china_mainland`、上游 Seed/branch 继承方式和五类客流字段名。
+- [`china_city_airline_supply_behavior_profiles_v2.json`](../../config/airline_supply_dynamics_profiles/china_city_airline_supply_behavior_profiles_v2.json) 是共享总供给行为目录。新城市先在全球/国家/区域/次级门户中选一种基础行为，再按需要叠加旅游暴露、战略支撑或高原约束；特征是总供给行为，不是客群分项。过热目标、单年上调上限和单年下调上限都已显式写在目录中。若确有单城校准依据，可在 `dynamics_overrides` 覆盖最终参数。不要复制整套参数到每个城市，也不要为了单城修改共享模板。
+- [`china_city_component_allocation_profiles_v1.json`](../../config/airline_supply_component_allocation_profiles/china_city_component_allocation_profiles_v1.json) 是共享客群供给模板目录。普通城市默认使用 `china_balanced_city_v1`；只有多个城市确实共享稳定特征时才新增通用模板，北京等单城差异留在城市 JSON。
 - [`standard_terminal_sizes_v1.json`](../../config/facility_size_catalogs/standard_terminal_sizes_v1.json) 是全局设施目录。修改其容量会影响所有引用城市；若当地需要不同等级，新增唯一 `catalog_id` 的目录文件更安全。
 - `facility_model` 中的容量紧缺政策可以复用，但当地槽位数量和角色不能照搬北京的“首都 + 大兴、双机场各五槽位”。
 

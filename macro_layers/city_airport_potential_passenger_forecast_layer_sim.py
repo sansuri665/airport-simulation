@@ -23,8 +23,8 @@ from statistics import mean
 from typing import Any
 
 
-CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_PARAM_VERSION = "city-airport-effective-passenger-forecast-layer-v0.3"
-CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_INTERFACE_VERSION = "city-airport-effective-passenger-forecast-interface-v0.2"
+CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_PARAM_VERSION = "city-airport-effective-passenger-forecast-layer-v0.4"
+CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_INTERFACE_VERSION = "city-airport-effective-passenger-forecast-interface-v0.3"
 FORECAST_VIEWER_LAZY_INDEX_VERSION = "airport-forecast-viewer-lazy-index-v1"
 FORECAST_VIEWER_CHUNK_VERSION = "airport-forecast-viewer-report-chunk-v1"
 
@@ -203,8 +203,17 @@ def row_for_year(row_map: dict[int, dict[str, Any]], year: int) -> dict[str, Any
 
 def market_values(row: dict[str, Any]) -> dict[str, float | str]:
     potential = as_float(row, "city_potential_passengers_million")
-    airline_supply = as_float(row, "city_airline_supply_passengers_million", potential)
-    effective = min(potential, airline_supply)
+    airline_supply = as_float(
+        row,
+        "city_airline_offered_capacity_million",
+        as_float(row, "city_airline_supply_passengers_million", potential),
+    )
+    effective = as_float(
+        row,
+        "city_airline_serviceable_supply_million",
+        min(potential, airline_supply),
+    )
+    effective = min(potential, airline_supply, max(0.0, effective))
     if potential <= 0.0 and airline_supply <= 0.0:
         bottleneck = "unknown"
     elif potential <= airline_supply:
@@ -220,26 +229,29 @@ def market_values(row: dict[str, Any]) -> dict[str, float | str]:
 
 
 def component_market_values(row: dict[str, Any]) -> dict[str, dict[str, float]]:
-    values = market_values(row)
-    potential_total = float(values["potential"])
-    airline_supply_total = float(values["airline_supply"])
-    effective_total = float(values["effective"])
-    bottleneck = str(values["bottleneck"])
     output: dict[str, dict[str, float]] = {}
     for component in COMPONENTS:
         potential = as_float(row, f"{component}_passengers_million")
-        airline_supply = as_float(row, f"{component}_airline_supply_passengers_million", potential)
-        if bottleneck == "airline_supply_limited":
-            share = safe_divide(airline_supply, airline_supply_total, 1.0 / len(COMPONENTS))
-        else:
-            share = safe_divide(potential, potential_total, 1.0 / len(COMPONENTS))
-        effective = effective_total * share
+        airline_supply = min(
+            potential,
+            max(
+                0.0,
+                as_float(row, f"{component}_airline_supply_passengers_million", potential),
+            ),
+        )
         output[component] = {
             "potential": potential,
             "airline_supply": airline_supply,
-            "effective": effective,
-            "effective_share_pct": share * 100.0,
+            "effective": airline_supply,
+            "effective_share_pct": 0.0,
         }
+    effective_total = sum(item["effective"] for item in output.values())
+    for component in COMPONENTS:
+        output[component]["effective_share_pct"] = safe_divide(
+            output[component]["effective"],
+            effective_total,
+            1.0 / len(COMPONENTS),
+        ) * 100.0
     return output
 
 

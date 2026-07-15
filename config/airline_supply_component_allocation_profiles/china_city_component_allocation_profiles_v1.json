@@ -1,0 +1,27 @@
+{
+  "schema_version": "airline-supply-component-allocation-profile-catalog-v1",
+  "catalog_id": "china-city-component-allocation-profiles-v1",
+  "default_profile_id": "china_balanced_city_v1",
+  "profiles": {
+    "china_balanced_city_v1": {
+      "description": "中国城市机场默认均衡模板；动态宏观和航司压力仍由模型公式决定。",
+      "priority_biases": {
+        "business": 1.0,
+        "leisure": 1.0,
+        "vfr": 1.0,
+        "long_haul": 1.0,
+        "transfer": 1.0
+      }
+    },
+    "china_dual_hub_v1": {
+      "description": "双机场大型枢纽模板；适度保护商务、长航程和中转供给，休闲客流承担略多的供给压缩。",
+      "priority_biases": {
+        "business": 1.03,
+        "leisure": 0.98,
+        "vfr": 1.0,
+        "long_haul": 1.02,
+        "transfer": 1.02
+      }
+    }
+  }
+}

@@ -1008,7 +1008,7 @@
 
     function airSupplyStats(row) {
       if (!hasAirSupply(row)) return [];
-      const sub = `总满足 ${fmtLevelPct(row.capacity_fulfillment_pct)} / ${row.supply_regime || "supply"}`;
+      const sub = `区域参考满足 ${fmtLevelPct(row.capacity_fulfillment_pct)} / ${row.supply_regime || "supply"}`;
       return [
         makeStat("商务满足率", fmtLevelPct(row.business_fulfillment_pct), sub, fulfillmentTone(row.business_fulfillment_pct)),
         makeStat("休闲满足率", fmtLevelPct(row.leisure_fulfillment_pct), sub, fulfillmentTone(row.leisure_fulfillment_pct)),
@@ -1768,4 +1768,3 @@
         });
       });
     }
-
