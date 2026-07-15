@@ -67,8 +67,9 @@ def local_resource_path(viewer: Path, source: str) -> Path:
 
 
 class ViewerResourceSmokeTests(unittest.TestCase):
-    def test_viewers_and_local_script_dependencies_exist(self) -> None:
+    def test_viewers_and_tracked_local_dependencies_exist(self) -> None:
         missing: list[str] = []
+        output_dir = (ROOT_DIR / "output").resolve()
         for viewer in VIEWERS:
             if not viewer.exists():
                 missing.append(str(viewer.relative_to(ROOT_DIR)))
@@ -81,6 +82,14 @@ class ViewerResourceSmokeTests(unittest.TestCase):
                 if source.startswith(("http://", "https://", "//")):
                     continue
                 dependency = local_resource_path(viewer, source)
+                clean_source = source.split("?", 1)[0].split("#", 1)[0]
+                if clean_source.startswith(("/output/", "./output/")):
+                    resolved_dependency = dependency.resolve()
+                    self.assertTrue(
+                        resolved_dependency.is_relative_to(output_dir),
+                        f"Generated Viewer resource escapes output/: {source}",
+                    )
+                    continue
                 if not dependency.exists():
                     missing.append(str(dependency.relative_to(ROOT_DIR)))
 

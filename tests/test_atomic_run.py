@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import errno
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -125,7 +126,10 @@ class AtomicMacroRunTests(unittest.TestCase):
 
             stored = json.loads((final_run / "manifest.json").read_text(encoding="utf-8"))
             self.assertEqual("complete", stored["run_state"])
-            self.assertEqual(str(final_run.as_posix()), stored["output_dir"])
+            self.assertTrue(
+                os.path.samefile(final_run, stored["output_dir"]),
+                f"Stored output directory does not identify {final_run}: {stored['output_dir']}",
+            )
             self.assertEqual(1, stored["run_index"]["run_count"])
 
     def test_build_failure_leaves_no_formal_or_staging_run(self) -> None:
