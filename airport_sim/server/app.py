@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import functools
 import hashlib
 import ipaddress
 import json
@@ -1235,15 +1234,10 @@ def cache_dependency_files() -> list[Path]:
     return sorted(files, key=lambda path: path.as_posix())
 
 
-@functools.lru_cache(maxsize=256)
-def _cached_dependency_bytes(path_text: str, modified_ns: int, size: int) -> bytes:
-    del modified_ns, size
-    return Path(path_text).read_bytes()
-
-
 def dependency_bytes(path: Path) -> bytes:
-    stat = path.stat()
-    return _cached_dependency_bytes(str(path.resolve()), stat.st_mtime_ns, stat.st_size)
+    """Read current dependency content for a correctness-first cache fingerprint."""
+
+    return path.read_bytes()
 
 
 def current_cache_fingerprint() -> str:

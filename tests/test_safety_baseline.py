@@ -263,12 +263,19 @@ class RuntimeSafetyTests(unittest.TestCase):
             temporary_root = Path(temporary_dir)
             dependency = temporary_root / "model.py"
             dependency.write_text("VERSION = 1\n", encoding="utf-8")
+            original_stat = dependency.stat()
             with (
                 mock.patch.object(seed_explorer_server, "ROOT_DIR", temporary_root),
                 mock.patch.object(seed_explorer_server, "cache_dependency_files", return_value=[dependency]),
             ):
                 before = seed_explorer_server.current_cache_fingerprint()
                 dependency.write_text("VERSION = 2\n", encoding="utf-8")
+                os.utime(
+                    dependency,
+                    ns=(original_stat.st_atime_ns, original_stat.st_mtime_ns),
+                )
+                self.assertEqual(original_stat.st_size, dependency.stat().st_size)
+                self.assertEqual(original_stat.st_mtime_ns, dependency.stat().st_mtime_ns)
                 after = seed_explorer_server.current_cache_fingerprint()
 
         self.assertNotEqual(before, after)
