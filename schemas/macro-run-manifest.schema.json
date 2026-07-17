@@ -12,9 +12,9 @@
   ],
   "properties": {
     "schema_version": { "const": "airport-macro-run-manifest-v1" },
-    "model_version": { "const": "airport-model-v0.5" },
+    "model_version": { "const": "airport-model-v0.8" },
     "output_schema_version": { "const": "airport-model-output-v1" },
-    "orchestrator_version": { "const": "macro-run-orchestrator-v0.5" },
+    "orchestrator_version": { "const": "macro-run-orchestrator-v0.6" },
     "python_version": { "type": "string", "minLength": 1 },
     "python_implementation": { "type": "string", "minLength": 1 },
     "run_id": { "type": "string", "minLength": 1 },

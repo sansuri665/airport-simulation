@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>城市航空市场总览</title>
+  <link rel="stylesheet" href="/static/css/city_market_viewer.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">China Mainland City Markets</p>
+        <div class="title-line">
+          <h1>城市航空市场总览</h1>
+          <span class="status" id="statusText" role="status">正在读取数据…</span>
+        </div>
+        <p class="subtitle">查看单城市潜在客流、航司座位投放、有效供给与供给约束后需求；本页不计算 47 城合计。</p>
+      </div>
+      <nav class="topnav" aria-label="主导航">
+        <a href="/">工作台</a>
+        <a href="/global-gdp">宏观 Viewer</a>
+        <a href="/seed-explorer">动态测试</a>
+        <a href="/beijing-forecast">有效客流预测</a>
+      </nav>
+    </header>
+
+    <section class="toolbar panel" aria-label="城市市场筛选">
+      <div class="release-copy">
+        <strong id="releaseMeta">—</strong>
+        <span id="yearLabel">—</span>
+      </div>
+      <label class="year-control">查看年份
+        <input id="yearRange" type="range" min="0" max="0" value="0">
+      </label>
+      <label>排序口径
+        <select id="sortSelect">
+          <option value="serviceable">供给约束后需求</option>
+          <option value="potential">潜在客流</option>
+          <option value="airlineSupply">城市航司供给</option>
+          <option value="supplyGap">航司供给缺口</option>
+          <option value="supplyFulfillmentPct">供给满足率</option>
+        </select>
+      </label>
+      <label>筛选城市
+        <input id="searchInput" type="search" placeholder="输入城市名">
+      </label>
+    </section>
+
+    <main class="workspace">
+      <aside class="city-sidebar panel" aria-label="城市排名">
+        <div class="panel-heading compact">
+          <div>
+            <p class="section-kicker">Selected-year ranking</p>
+            <h2>城市列表</h2>
+          </div>
+          <span id="cityCount">—</span>
+        </div>
+        <div class="city-list" id="cityList"></div>
+      </aside>
+
+      <div class="city-detail">
+        <section class="panel city-heading">
+          <div>
+            <p class="section-kicker">Selected city</p>
+            <h2 id="cityTitle">请选择城市</h2>
+            <p id="cityMeta">—</p>
+            <div class="market-scope-tabs" id="marketScopeTabs" aria-label="客流口径">
+              <button type="button" data-market-scope="total" aria-pressed="true">总客流</button>
+              <button type="button" data-market-scope="business" aria-pressed="false">商务</button>
+              <button type="button" data-market-scope="leisure" aria-pressed="false">休闲</button>
+              <button type="button" data-market-scope="vfr" aria-pressed="false">探亲访友</button>
+              <button type="button" data-market-scope="long_haul" aria-pressed="false">长途</button>
+              <button type="button" data-market-scope="transfer" aria-pressed="false">中转</button>
+            </div>
+          </div>
+          <div class="scope-note">
+            <strong>口径提示</strong>
+            <span>本页只分析城市潜在需求与城市航司供给；北京机场经营结果统一在 Seed 动态测试中查看。</span>
+          </div>
+        </section>
+
+        <section class="summary-grid" id="summaryGrid" aria-label="所选城市年度摘要"></section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Long-term trajectory</p>
+              <h2 id="trajectoryTitle">城市市场长期轨迹</h2>
+            </div>
+            <div class="legend" id="trajectoryLegend" aria-label="图例"></div>
+          </div>
+          <div class="chart-wrap" id="marketChart" aria-label="城市市场长期轨迹图"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Airline supply state</p>
+              <h2 id="supplyStatusTitle">航司供给状态</h2>
+            </div>
+            <span class="panel-note">描述所选年份的供给周期、偏离与供需关系，不改变模型结果。</span>
+          </div>
+          <div class="state-grid" id="supplyStatusGrid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Annual records</p>
+              <h2 id="annualTitle">年度明细</h2>
+            </div>
+            <span class="panel-note">完整显示当前发布期；高亮行为当前选择年份。</span>
+          </div>
+          <div class="table-wrap annual-table">
+            <table>
+              <thead id="annualTableHead"></thead>
+              <tbody id="annualTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="./output/current_viewer_manifest.js"></script>
+  <script src="/static/js/city-markets/bootstrap.js"></script>
+  <script src="/static/js/city-markets/state.js"></script>
+  <script src="/static/js/city-markets/data-client.js"></script>
+  <script src="/static/js/city-markets/renderers.js"></script>
+  <script src="/static/js/city-markets/page.js"></script>
+</body>
+</html>

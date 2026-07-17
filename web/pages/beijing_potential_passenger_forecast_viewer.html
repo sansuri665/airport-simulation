@@ -3,30 +3,87 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>北京有效客流预测测试</title>
+  <title>北京客流预测报告</title>
   <link rel="stylesheet" href="/static/css/beijing_potential_passenger_forecast_viewer.css">
 </head>
 <body>
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <h1>北京有效客流预测测试</h1>
+        <h1>北京航空市场预测报告</h1>
         <span class="status" id="statusText">loading</span>
       </div>
       <div class="controls">
-        <a class="nav-link" href="/beijing-operations">运营面板</a>
+        <a class="nav-link" href="/city-markets">城市市场</a>
         <a class="nav-link" href="/global-gdp">宏观 viewer</a>
         <label class="control">Seed <select id="seedSelect"></select></label>
+        <label class="control">视图
+          <select id="modeSelect">
+            <option value="player">报告视图</option>
+            <option value="audit">开发审计</option>
+          </select>
+        </label>
       </div>
     </header>
 
     <main>
       <section class="summary-grid" id="summaryGrid" aria-label="预测测试摘要"></section>
 
+      <section class="panel candidate-lab" id="candidateLab" hidden>
+        <div class="panel-head">
+          <div>
+            <h2>候选报告实验室</h2>
+            <small>仅限开发审计；临时生成，不写入正式 Viewer、玩家报告或存档</small>
+          </div>
+          <span class="candidate-state" id="candidateState">等待生成</span>
+        </div>
+        <div class="panel-body">
+          <div class="candidate-controls">
+            <label class="control">等级
+              <select id="candidateTier"></select>
+            </label>
+            <label class="control">基础风格
+              <select id="candidateStyle"></select>
+            </label>
+            <label class="control">标签模式
+              <select id="candidateModifierMode">
+                <option value="auto">自动（0–2个）</option>
+                <option value="pure">纯风格</option>
+                <option value="manual">手动选择</option>
+              </select>
+            </label>
+            <label class="control score-control">目标实际评分
+              <span><input id="candidateScoreMin" type="number" min="0" max="92" step="1" value="70" aria-label="目标实际评分下限" />–<input id="candidateScoreMax" type="number" min="8" max="100" step="1" value="80" aria-label="目标实际评分上限" /></span>
+            </label>
+            <button type="button" class="candidate-action" id="generateCandidate">生成候选报告</button>
+            <button type="button" class="candidate-action secondary" id="nextCandidate" disabled>换一份</button>
+            <button type="button" class="candidate-action ghost" id="leaveCandidate" hidden>返回正式报告</button>
+          </div>
+          <div class="candidate-modifiers" id="candidateModifiers" hidden></div>
+          <div class="candidate-note" id="candidateAvailability">进入开发审计后加载候选生成配置。</div>
+          <div class="candidate-result" id="candidateResult" hidden></div>
+        </div>
+      </section>
+
+      <section class="panel narrative-panel">
+        <div class="panel-head">
+          <div>
+            <h2 id="narrativeTitle">报告观点</h2>
+            <small id="narrativeStyle">研究风格</small>
+            <div class="narrative-tags" id="narrativeTags" aria-label="报告修饰标签"></div>
+          </div>
+          <div class="narrative-metrics">
+            <span class="conviction" id="narrativeConviction">信心 -</span>
+            <span class="actual-score" id="actualScore" aria-live="polite" hidden></span>
+          </div>
+        </div>
+        <div class="panel-body narrative-body" id="narrativeSummary"></div>
+      </section>
+
       <section class="panel">
         <div class="panel-head">
           <div>
-            <h2>预测曲线</h2>
+            <h2>客流预测路径</h2>
             <small id="asOfLabel">发布年份</small>
           </div>
           <div class="legend" id="forecastLegend"></div>
@@ -36,6 +93,14 @@
             <label class="control">发布年份 <input id="asOfRange" type="range" min="0" max="0" value="0" /></label>
             <label class="control">报告 <select id="reportSelect"></select></label>
           </div>
+          <div class="scope-tabs" id="scopeTabs" aria-label="客流口径">
+            <button type="button" data-scope="total" class="active">总客流</button>
+            <button type="button" data-scope="business">商务</button>
+            <button type="button" data-scope="leisure">休闲</button>
+            <button type="button" data-scope="vfr">探亲访友</button>
+            <button type="button" data-scope="long_haul">长途</button>
+            <button type="button" data-scope="transfer">中转</button>
+          </div>
           <div class="chart" id="forecastChart"></div>
         </div>
       </section>
@@ -43,10 +108,9 @@
       <section class="panel" style="margin-top: 14px;">
         <div class="panel-head">
           <div>
-            <h2>分项预测</h2>
-            <small id="componentCaption">五类有效客流结构</small>
+            <h2>报告依据与复盘</h2>
+            <small id="componentCaption">玩家视图不提前接收隐藏未来</small>
           </div>
-          <label class="control">目标年 <select id="componentYearSelect"></select></label>
         </div>
         <div class="panel-body">
           <div class="score-card-grid" id="componentGrid"></div>
@@ -56,30 +120,14 @@
       <section class="panel" style="margin-top: 14px;">
         <div class="panel-head">
           <div>
-            <h2>当前报告明细</h2>
+            <h2>逐年预测明细</h2>
             <small id="tableCaption">当前 as-of 年份</small>
           </div>
         </div>
         <div class="panel-body">
           <div class="table-wrap">
             <table>
-              <thead>
-                <tr>
-                  <th>目标年</th>
-                  <th>审计分</th>
-                  <th>生成分</th>
-                  <th>方向</th>
-                  <th>置信</th>
-                  <th>有效预测</th>
-                  <th>潜在/供给</th>
-                  <th>预测区间</th>
-                  <th>真实有效</th>
-                  <th>真实潜在/供给</th>
-                  <th>瓶颈</th>
-                  <th>中值偏差</th>
-                  <th>命中</th>
-                </tr>
-              </thead>
+              <thead id="forecastTableHead"></thead>
               <tbody id="forecastTable"></tbody>
             </table>
           </div>
@@ -88,12 +136,11 @@
     </main>
   </div>
 
-  <template id="legacyBeijingForecastDataScripts">
-  <script src="./output/city_airport_potential_passenger_forecast/china_mainland/beijing_airport_system_potential_passenger_forecast_viewer_data.js"></script>
-  </template>
   <script src="./output/current_viewer_manifest.js"></script>
   <script src="/static/js/beijing-forecast/bootstrap.js"></script>
   <script src="/static/js/beijing-forecast/state.js"></script>
+  <script src="/static/js/beijing-forecast/data-client.js"></script>
+  <script src="/static/js/beijing-forecast/renderers.js"></script>
   <script src="/static/js/beijing-forecast/page.js"></script>
 </body>
 </html>

@@ -2,5 +2,8 @@ window.AirportForecastViewerState = {
   seed: null,
   asOfIndex: 0,
   reportId: "public_consensus",
-  componentYear: null,
+  mode: "player",
+  scope: "total",
+  candidateNonce: 0,
+  candidateResult: null,
 };

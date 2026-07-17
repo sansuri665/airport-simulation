@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/forecast-narrative-catalog.schema.json",
+  "title": "Forecast narrative profile and modifier catalog",
+  "type": "object",
+  "required": ["schema_version", "catalog_version", "profiles", "modifiers"],
+  "properties": {
+    "schema_version": { "const": "forecast-narrative-profile-catalog-v1" },
+    "catalog_version": { "type": "string", "minLength": 1 },
+    "profiles": {
+      "type": "array", "minItems": 1,
+      "items": { "$ref": "#/$defs/profile" }
+    },
+    "modifiers": {
+      "type": "array", "minItems": 1,
+      "items": { "$ref": "#/$defs/modifier" }
+    }
+  },
+  "$defs": {
+    "narrativeParameters": {
+      "type": "object",
+      "properties": {
+        "narrative_demand_signal_weight": { "type": "number" },
+        "narrative_supply_signal_weight": { "type": "number" },
+        "narrative_trend_extrapolation": { "type": "number" },
+        "narrative_mean_reversion": { "type": "number" },
+        "narrative_turn_sensitivity": { "type": "number" },
+        "narrative_thesis_persistence": { "type": "number" },
+        "narrative_revision_speed": { "type": "number" },
+        "narrative_growth_bias_pct": { "type": "number" },
+        "narrative_supply_bias_pct": { "type": "number" },
+        "component_signal_quality": { "type": "number" },
+        "narrative_interval_multiplier": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "profile": {
+      "type": "object",
+      "required": [
+        "forecast_narrative_profile_id", "narrative_style_label",
+        "narrative_style_summary", "narrative_style_method",
+        "narrative_style_blind_spot", "narrative_demand_signal_weight",
+        "narrative_supply_signal_weight", "narrative_trend_extrapolation",
+        "narrative_mean_reversion", "narrative_turn_sensitivity",
+        "narrative_thesis_persistence", "narrative_revision_speed",
+        "narrative_growth_bias_pct", "narrative_supply_bias_pct",
+        "narrative_interval_multiplier"
+      ],
+      "properties": {
+        "forecast_narrative_profile_id": { "type": "string", "minLength": 1 },
+        "narrative_style_label": { "type": "string", "minLength": 1 },
+        "narrative_style_summary": { "type": "string", "minLength": 1 },
+        "narrative_style_method": { "type": "string", "minLength": 1 },
+        "narrative_style_blind_spot": { "type": "string", "minLength": 1 },
+        "narrative_demand_signal_weight": { "type": "number", "minimum": 0, "maximum": 1 },
+        "narrative_supply_signal_weight": { "type": "number", "minimum": 0, "maximum": 1 },
+        "narrative_trend_extrapolation": { "type": "number", "minimum": 0, "maximum": 1 },
+        "narrative_mean_reversion": { "type": "number", "minimum": 0, "maximum": 1 },
+        "narrative_turn_sensitivity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "narrative_thesis_persistence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "narrative_revision_speed": { "type": "number", "minimum": 0, "maximum": 1 },
+        "narrative_growth_bias_pct": { "type": "number" },
+        "narrative_supply_bias_pct": { "type": "number" },
+        "narrative_interval_multiplier": { "type": "number", "minimum": 0 },
+        "candidate_modifier_ids": {
+          "type": "array", "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "additionalProperties": false
+    },
+    "modifier": {
+      "type": "object",
+      "required": [
+        "forecast_narrative_modifier_id", "modifier_label", "modifier_group",
+        "modifier_description", "modifier_tradeoff"
+      ],
+      "properties": {
+        "forecast_narrative_modifier_id": { "type": "string", "minLength": 1 },
+        "modifier_label": { "type": "string", "minLength": 1 },
+        "modifier_group": { "enum": ["position", "method_focus", "revision_behavior", "uncertainty"] },
+        "modifier_description": { "type": "string", "minLength": 1 },
+        "modifier_tradeoff": { "type": "string", "minLength": 1 },
+        "parameter_deltas": { "$ref": "#/$defs/narrativeParameters" },
+        "parameter_multipliers": { "$ref": "#/$defs/narrativeParameters" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

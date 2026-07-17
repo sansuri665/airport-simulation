@@ -47,22 +47,40 @@ class ViewerDomContractTests(unittest.TestCase):
             "chart",
             "dataBody",
         },
-        "web/pages/beijing_airport_operations_viewer.html": {
+        "web/pages/city_market_viewer.html": {
             "statusText",
-            "seedSelect",
+            "yearRange",
+            "yearLabel",
+            "sortSelect",
+            "searchInput",
+            "cityList",
+            "cityTitle",
+            "marketScopeTabs",
             "summaryGrid",
-            "chartModeSwitch",
-            "financeChart",
-            "financeMetrics",
-            "assetDetailPanel",
+            "marketChart",
+            "supplyStatusGrid",
+            "annualTableHead",
+            "annualTableBody",
         },
         "web/pages/beijing_potential_passenger_forecast_viewer.html": {
             "statusText",
             "seedSelect",
             "summaryGrid",
             "asOfRange",
-            "reportSelect",
-            "forecastChart",
+              "reportSelect",
+              "narrativeTags",
+              "actualScore",
+              "candidateLab",
+              "candidateTier",
+              "candidateStyle",
+              "candidateModifierMode",
+              "candidateScoreMin",
+              "candidateScoreMax",
+              "generateCandidate",
+              "nextCandidate",
+              "leaveCandidate",
+              "candidateResult",
+              "forecastChart",
             "componentGrid",
             "forecastTable",
         },
@@ -118,6 +136,21 @@ class ViewerDomContractTests(unittest.TestCase):
         self.assertIn("城市航司满足率", html)
         self.assertNotIn("区域未满足", html)
         self.assertIn("区域参考满足", regional_renderer)
+
+    def test_city_market_viewer_stops_at_airline_supply(self) -> None:
+        html = (PAGES_DIR / "city_market_viewer.html").read_text(encoding="utf-8")
+        renderer = (
+            ROOT_DIR / "web" / "static" / "js" / "city-markets" / "renderers.js"
+        ).read_text(encoding="utf-8")
+        combined = html + renderer
+
+        self.assertIn("供给约束后需求", combined)
+        self.assertIn("航司供给缺口", combined)
+        self.assertNotIn("机场实际承接", combined)
+        self.assertNotIn("机场最大容量", combined)
+        self.assertNotIn("机场容量缺口", combined)
+        self.assertNotIn("五类客群需求与航司供给", html)
+        self.assertEqual(6, html.count("data-market-scope="))
 
 
 if __name__ == "__main__":

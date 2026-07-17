@@ -4,12 +4,13 @@
   "title": "Effective passenger forecast Viewer lazy index",
   "type": "object",
   "required": [
-    "schemaVersion", "chunkSchemaVersion", "config", "totalRows", "seeds",
+    "schemaVersion", "chunkSchemaVersion", "dataMode", "config", "totalRows", "seeds",
     "defaultReportId", "chunkBase", "reports"
   ],
   "properties": {
-    "schemaVersion": { "const": "airport-forecast-viewer-lazy-index-v1" },
-    "chunkSchemaVersion": { "const": "airport-forecast-viewer-report-chunk-v1" },
+    "schemaVersion": { "const": "airport-forecast-viewer-lazy-index-v2" },
+    "chunkSchemaVersion": { "const": "airport-forecast-viewer-report-chunk-v2" },
+    "dataMode": { "enum": ["player", "audit"] },
     "config": {
       "type": "object",
       "required": [
@@ -22,6 +23,7 @@
     "seeds": { "type": "array", "items": { "type": "integer" } },
     "defaultReportId": { "type": "string" },
     "chunkBase": { "type": "string", "minLength": 1 },
+    "auditIndexFile": { "type": "string", "pattern": "forecast_audit_index\\.js$" },
     "baseUrl": { "type": "string", "minLength": 1 },
     "reports": {
       "type": "array",

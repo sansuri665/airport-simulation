@@ -37,7 +37,7 @@
         "saveRoot": { "type": "string", "minLength": 1 },
         "pages": {
           "type": "object",
-          "required": ["home", "seedExplorer", "globalGdp", "beijingOperations", "beijingForecast"],
+          "required": ["home", "seedExplorer", "globalGdp", "cityMarkets", "beijingForecast"],
           "additionalProperties": { "type": "string", "pattern": "^/" }
         }
       }

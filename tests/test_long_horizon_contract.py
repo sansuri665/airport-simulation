@@ -4,6 +4,7 @@ import argparse
 import csv
 import hashlib
 import json
+import math
 import sys
 import tempfile
 import unittest
@@ -232,6 +233,82 @@ class LongHorizonModelContractTests(unittest.TestCase):
             },
         )
         self.assertEqual(46, len(self.regional["city_airport_downstream_skips"]))
+
+    def test_long_horizon_forecasts_remain_finite_smooth_and_revision_bounded(self) -> None:
+        rows = self.regional["potential_passenger_forecast_rows_by_market"][
+            "beijing_airport_system"
+        ]
+        numeric_fields = (
+            "forecast_effective_passengers_mid_million",
+            "forecast_potential_passengers_mid_million",
+            "forecast_airline_supply_passengers_mid_million",
+            "forecast_effective_passengers_low_million",
+            "forecast_effective_passengers_high_million",
+            "forecast_revision_pct",
+        )
+        for row in rows:
+            for field in numeric_fields:
+                self.assertTrue(
+                    math.isfinite(float(row[field])),
+                    msg=f"{field} is not finite for {row['forecast_report_id']} "
+                    f"{row['as_of_year']}->{row['forecast_year']}",
+                )
+            self.assertLess(
+                float(row["forecast_effective_passengers_mid_million"]),
+                1000.0,
+            )
+
+        routine_revisions = [
+            abs(float(row["forecast_revision_pct"]))
+            for row in rows
+            if row["forecast_revision_reason"] == "routine_inherited_update"
+            and row["forecast_previous_mid_million"] is not None
+        ]
+        self.assertTrue(routine_revisions)
+        self.assertLessEqual(max(routine_revisions), 10.5)
+
+        grouped: dict[tuple[object, object], list[dict[str, Any]]] = {}
+        for row in rows:
+            if row["future_peek_mode"] == "true":
+                continue
+            grouped.setdefault(
+                (row["forecast_report_id"], row["as_of_year"]),
+                [],
+            ).append(row)
+        for report_rows in grouped.values():
+            report_rows.sort(key=lambda row: int(row["forecast_year"]))
+            for metric, current_field in (
+                (
+                    "forecast_potential_passengers_mid_million",
+                    "current_potential_passengers_million",
+                ),
+                (
+                    "forecast_airline_supply_passengers_mid_million",
+                    "current_airline_supply_passengers_million",
+                ),
+            ):
+                previous = float(report_rows[0][current_field])
+                growth_rates: list[float] = []
+                for row in report_rows:
+                    value = float(row[metric])
+                    growth_rates.append(
+                        ((value / previous) - 1.0) * 100.0 if previous else 0.0
+                    )
+                    previous = value
+                changes = [
+                    right - left
+                    for left, right in zip(growth_rates, growth_rates[1:])
+                ]
+                directions = [
+                    1 if change > 0.35 else -1 if change < -0.35 else 0
+                    for change in changes
+                ]
+                directions = [direction for direction in directions if direction]
+                inflections = sum(
+                    left != right
+                    for left, right in zip(directions, directions[1:])
+                )
+                self.assertLessEqual(inflections, 2)
 
     def test_key_csv_headers_are_stable(self) -> None:
         csv_specs = {

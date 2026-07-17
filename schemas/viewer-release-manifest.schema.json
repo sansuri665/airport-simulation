@@ -22,7 +22,7 @@
     "release_path": { "type": "string", "minLength": 1 },
     "scripts": {
       "type": "object",
-      "required": ["global_gdp_viewer", "beijing_airport_operations_viewer", "beijing_potential_passenger_forecast_viewer"],
+      "required": ["global_gdp_viewer", "city_market_viewer", "beijing_potential_passenger_forecast_viewer"],
       "additionalProperties": { "type": "string", "minLength": 1 }
     },
     "bundle_sha256": {

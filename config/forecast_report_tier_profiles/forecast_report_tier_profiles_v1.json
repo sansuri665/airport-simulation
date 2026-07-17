@@ -1,0 +1,150 @@
+{
+  "schema_version": "forecast-report-tier-profile-catalog-v1",
+  "catalog_version": "forecast-report-tier-profiles-v1",
+  "profiles": [
+    {
+      "forecast_report_tier_profile_id": "initial_v1",
+      "signal_observation_quality": 0.30,
+      "signal_miss_rate": 0.28,
+      "signal_misclassification_rate": 0.20,
+      "turn_window_error_years": 3,
+      "component_signal_quality": 0.28,
+      "max_annual_growth_change_pp": 2.4,
+      "max_unexplained_inflections": 2,
+      "base_revision_speed": 0.24,
+      "base_reversal_threshold": 0.72,
+      "candidate_generation": {
+        "tier_id": "initial",
+        "tier_label": "初级",
+        "natural_horizon_years": 6,
+        "quality_min_score": 8,
+        "quality_max_score": 50,
+        "signal_capture_min_pct": 12,
+        "signal_capture_max_pct": 52,
+        "bias_cap_at_score_0_pct": 24.0,
+        "bias_cap_at_score_70_pct": 6.0,
+        "consensus_herding_bias_cap_pct": 3.0,
+        "reported_confidence_base_pct": 78.0,
+        "reported_confidence_horizon_decay_pct": 1.25,
+        "reported_confidence_noise_pct": 3.5,
+        "reported_error_band_points": [
+          {"horizon_years": 1, "value": 4.0},
+          {"horizon_years": 3, "value": 6.5},
+          {"horizon_years": 6, "value": 11.0}
+        ]
+      }
+    },
+    {
+      "forecast_report_tier_profile_id": "middle_v1",
+      "signal_observation_quality": 0.48,
+      "signal_miss_rate": 0.18,
+      "signal_misclassification_rate": 0.13,
+      "turn_window_error_years": 2,
+      "component_signal_quality": 0.46,
+      "max_annual_growth_change_pp": 2.0,
+      "max_unexplained_inflections": 2,
+      "base_revision_speed": 0.34,
+      "base_reversal_threshold": 0.62,
+      "candidate_generation": {
+        "tier_id": "middle",
+        "tier_label": "中级",
+        "natural_horizon_years": 8,
+        "quality_min_score": 20,
+        "quality_max_score": 60,
+        "signal_capture_min_pct": 25,
+        "signal_capture_max_pct": 60,
+        "bias_cap_at_score_0_pct": 16.0,
+        "bias_cap_at_score_70_pct": 4.5,
+        "consensus_herding_bias_cap_pct": 2.0,
+        "reported_confidence_base_pct": 75.0,
+        "reported_confidence_horizon_decay_pct": 1.1,
+        "reported_confidence_noise_pct": 3.0,
+        "reported_error_band_points": [
+          {"horizon_years": 1, "value": 3.8},
+          {"horizon_years": 3, "value": 6.0},
+          {"horizon_years": 6, "value": 10.5},
+          {"horizon_years": 8, "value": 14.0}
+        ]
+      }
+    },
+    {
+      "forecast_report_tier_profile_id": "high_v1",
+      "signal_observation_quality": 0.68,
+      "signal_miss_rate": 0.10,
+      "signal_misclassification_rate": 0.08,
+      "turn_window_error_years": 1,
+      "component_signal_quality": 0.66,
+      "max_annual_growth_change_pp": 1.7,
+      "max_unexplained_inflections": 2,
+      "base_revision_speed": 0.43,
+      "base_reversal_threshold": 0.54,
+      "candidate_generation": {
+        "tier_id": "high",
+        "tier_label": "高级",
+        "natural_horizon_years": 10,
+        "quality_min_score": 32,
+        "quality_max_score": 68,
+        "signal_capture_min_pct": 40,
+        "signal_capture_max_pct": 67,
+        "bias_cap_at_score_0_pct": 11.0,
+        "bias_cap_at_score_70_pct": 3.2,
+        "consensus_herding_bias_cap_pct": 1.2,
+        "reported_confidence_base_pct": 72.0,
+        "reported_confidence_horizon_decay_pct": 1.0,
+        "reported_confidence_noise_pct": 2.5,
+        "reported_error_band_points": [
+          {"horizon_years": 1, "value": 3.4},
+          {"horizon_years": 3, "value": 5.5},
+          {"horizon_years": 6, "value": 9.0},
+          {"horizon_years": 10, "value": 14.0}
+        ]
+      }
+    },
+    {
+      "forecast_report_tier_profile_id": "professional_v1",
+      "signal_observation_quality": 0.84,
+      "signal_miss_rate": 0.05,
+      "signal_misclassification_rate": 0.04,
+      "turn_window_error_years": 1,
+      "component_signal_quality": 0.82,
+      "max_annual_growth_change_pp": 1.45,
+      "max_unexplained_inflections": 2,
+      "base_revision_speed": 0.50,
+      "base_reversal_threshold": 0.46,
+      "candidate_generation": {
+        "tier_id": "professional",
+        "tier_label": "专业级",
+        "natural_horizon_years": 12,
+        "quality_min_score": 45,
+        "quality_max_score": 70,
+        "signal_capture_min_pct": 55,
+        "signal_capture_max_pct": 70,
+        "bias_cap_at_score_0_pct": 8.0,
+        "bias_cap_at_score_70_pct": 2.5,
+        "consensus_herding_bias_cap_pct": 0.8,
+        "reported_confidence_base_pct": 70.0,
+        "reported_confidence_horizon_decay_pct": 0.9,
+        "reported_confidence_noise_pct": 2.0,
+        "reported_error_band_points": [
+          {"horizon_years": 1, "value": 3.0},
+          {"horizon_years": 3, "value": 5.0},
+          {"horizon_years": 6, "value": 8.5},
+          {"horizon_years": 10, "value": 13.0},
+          {"horizon_years": 12, "value": 16.0}
+        ]
+      }
+    },
+    {
+      "forecast_report_tier_profile_id": "god_v1",
+      "signal_observation_quality": 1.0,
+      "signal_miss_rate": 0.0,
+      "signal_misclassification_rate": 0.0,
+      "turn_window_error_years": 0,
+      "component_signal_quality": 1.0,
+      "max_annual_growth_change_pp": 99.0,
+      "max_unexplained_inflections": 99,
+      "base_revision_speed": 1.0,
+      "base_reversal_threshold": 0.0
+    }
+  ]
+}

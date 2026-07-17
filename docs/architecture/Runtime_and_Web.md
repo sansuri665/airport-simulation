@@ -25,10 +25,10 @@ py -3.13 -m airport_sim serve --host 127.0.0.1 --port 8776
 | `/` | `web/pages/airport_home.html` | 工作台首页 |
 | `/seed-explorer` | `web/pages/seed_explorer_viewer.html` | 动态测试与玩家经营 |
 | `/global-gdp` | `web/pages/global_gdp_viewer.html` | 全球/区域宏观与航空 Viewer |
-| `/beijing-operations` | `web/pages/beijing_airport_operations_viewer.html` | 北京经营只读 Viewer |
-| `/beijing-forecast` | `web/pages/beijing_potential_passenger_forecast_viewer.html` | 有效客流预测 Viewer |
+| `/city-markets` | `web/pages/city_market_viewer.html` | 中国大陆城市航空市场 Viewer |
+| `/beijing-forecast` | `web/pages/beijing_potential_passenger_forecast_viewer.html` | 叙事化客流预测报告与开发审计 |
 
-旧的 `airport_home.html` 和四个 Viewer `*.html` 地址仍映射到同一批页面；正式地址末尾多出的 `/` 会重定向到无斜杠地址。物理目录 `web/pages/` 不通过 `/web/...` 暴露。
+旧的 `/beijing-operations` 与 `beijing_airport_operations_viewer.html` 重定向到 `/city-markets`；其它兼容地址仍映射到对应页面。正式地址末尾多出的 `/` 会重定向到无斜杠地址。
 
 页面必须通过 8776 服务访问，不建议双击 HTML 使用 `file://`。页面依赖 `/static/`、`/output/` 和 `/api/`，脱离服务后这些路径不能保持相同含义。
 
@@ -44,7 +44,7 @@ web/
       home/              首页
       seed-explorer/     动态测试与经营模块
       global-gdp/        全球 Viewer
-      beijing-operations/北京经营 Viewer
+      city-markets/      城市市场 Viewer
       beijing-forecast/  预测 Viewer
 ```
 
@@ -101,7 +101,7 @@ output/current_viewer_manifest.js
 output/viewer_releases/<release_id>/
 ```
 
-若没有有效版本化发布，再回退到 `output/` 下的 canonical 兼容数据。它们不会因为 Seed Explorer 新建了临时缓存而自动切换。
+全球和预测 Viewer 在没有有效 Manifest 时可读取 `output/` 下的 canonical 当前索引；预测 canonical 仍是同一套轻量索引与按报告分块，不存在完整预测 JS 回退。城市市场 Viewer 只读取同一版本化 release 内的城市索引与分块，避免混用不同发布。它们不会因为 Seed Explorer 新建了临时缓存而自动切换。
 
 ### 全球浏览器预览
 

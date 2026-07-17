@@ -199,7 +199,44 @@
 
 模型同时输出 `demand_limited`、`airline_bottleneck`、`airport_bottleneck` 或双重瓶颈，以及潜在、航司供给、设计容量、极限容量、承接和未满足客流。这些字段是后续季度经营和玩家扩建决策的输入。
 
-季度经营读取同一年度五类可承接供给并按季节权重拆分；有效客流预测的客群隐藏真值和客群结构也读取同一结果。两条下游不再各自重建一套分客群供给。
+季度经营读取同一年度五类可承接供给并按季节权重拆分；客流预测的审计真值也读取同一结果。两条下游不再各自重建一套分客群供给。
+
+## 客流预测报告
+
+客流预测是城市市场之后的信息层，不反向修改城市真实路径、航司真实供给或季度经营。普通报告在某个 `as-of` 年份只能使用：
+
+- 截至该年的公开历史、近期趋势和城市结构；
+- 当前航司供给状态；
+- 从隐藏未来压缩得到的方向、强弱、周期和模糊拐点窗口；
+- 报告等级、研究风格、修饰标签和上一期观点。
+
+普通报告不读取目标年份的真实数值。隐藏未来先被分类为 `strong_decline`、`decline`、`stable`、`moderate_growth` 或 `strong_growth` 等信号，再按报告等级发生遗漏、错分和时间窗口扰动。两条精确未来若得到相同信号包，普通报告会生成相同的预测路径；神级开发审计报告除外。
+
+每期报告一次联合生成完整潜在需求路径与航司供给路径，并继续保持：
+
+```text
+预测有效客流
+  = min(预测潜在客流, 预测航司供给)
+```
+
+整条路径使用同一组持续偏向、研究叙事和拐点判断，相邻年度增速变化受等级模板约束，不再为每个目标年独立混入隐藏真实值。五类预测分别生成潜在需求占比路径和航司优先权重路径，再复用城市市场的封顶分配函数；由此得到每类初始计划投放、再分配后的有效供给、满足率和未满足需求。五类初始计划投放合计等于总计划投放；某类需求提前封顶后，余下运力会按权重重新分给其他客群，因此单类有效供给可以高于该类初始计划投放，但不会超过该类潜在需求，五类有效供给合计仍等于总预测有效客流。
+
+分项预测只观察由隐藏未来压缩得到的结构方向，不能读取未来精确客群值。`客群敏感` 会提高需求结构和航司分配两类信号的辨识能力，`供给敏感` 主要改善航司分配判断。分项区间同时吸收总量误差和客群份额误差，因此属于单客群边际区间，五类上限不具备可加性。
+
+同一报告 ID 的下一期报告会继承上一期尚未到期的预测路径。实际结果、需求信号、供给信号或拐点窗口变化时，报告按自己的修订速度调整，并记录修订原因；缺少新证据时，例行更新幅度受到限制。
+
+事后评价采用 `narrative-passenger-realized-score-v1.2`：
+
+- **总量结果**：中值 30%、趋势 12%、形状 8%、瓶颈 5%、总量区间 15%；
+- **分项结果**：潜在需求结构 4%、航司有效供给结构 5%、供给满足率差异 3%、分项区间 3%；
+- **预测结果分**：总量结果 70% 与分项结果 15% 合并后归一化到 0～100；
+- **实际评分**：结果分占 85%，另加入拐点判断 8% 和修订纪律 7%，修订纪律内部按总量 80%、分项 20% 合成。
+
+报告等级不直接加分。初级报告如果路径准确、区间诚实且修订合理，同样可以取得高分。
+
+玩家报告分块不含隐藏真值、未到期评分和神级报告。开发审计使用独立索引与分块，额外携带真实路径、信号原始分类和完整评分。
+
+普通报告共享 8 种基础分析方法；同一方法可以通过能力等级、立场、方法侧重、修订行为和不确定性标签形成不同机构。报告输出同时携带中文风格说明、分析方法、典型盲点、标签名称、分类、作用和代价，供玩家界面解释。共享等级、风格和标签参数见[客流预测报告参数](../reference/Forecast_Parameters.md)。
 
 ## 输出位置
 
@@ -209,6 +246,7 @@
 output/macro_runs/<run_id>/<variant>/regional_aviation_demand/<region_id>/
 output/macro_runs/<run_id>/<variant>/regional_air_capacity_supply/<region_id>/
 output/macro_runs/<run_id>/<variant>/city_airport_market_demand/<region_id>/
+output/macro_runs/<run_id>/<variant>/city_airport_potential_passenger_forecast/<region_id>/
 ```
 
 每层都有逐年 CSV 和摘要 JSON；`full` 产物模式还会生成 Viewer 数据。主要数量与单位：
@@ -242,10 +280,15 @@ output/macro_runs/<run_id>/<variant>/city_airport_market_demand/<region_id>/
 - 47 个城市 JSON：[`config/city_airport_markets/china_mainland/`](../../config/city_airport_markets/china_mainland/)
 - 城市航司供给行为模板：[`china_city_airline_supply_behavior_profiles_v2.json`](../../config/airline_supply_dynamics_profiles/china_city_airline_supply_behavior_profiles_v2.json)
 - 五类客群供给分配模板：[`china_city_component_allocation_profiles_v1.json`](../../config/airline_supply_component_allocation_profiles/china_city_component_allocation_profiles_v1.json)
+- 客流预测等级模板：[`forecast_report_tier_profiles_v1.json`](../../config/forecast_report_tier_profiles/forecast_report_tier_profiles_v1.json)
+- 客流预测叙事模板：[`forecast_narrative_profiles_v2.json`](../../config/forecast_narrative_profiles/forecast_narrative_profiles_v2.json)
+- 北京预测报告配置：[`beijing_airport_system_potential_passenger_forecast_v1.json`](../../config/city_airport_potential_passenger_forecast/beijing_airport_system_potential_passenger_forecast_v1.json)
+- 客流预测实现：[`city_airport_potential_passenger_forecast_layer_sim.py`](../../macro_layers/city_airport_potential_passenger_forecast_layer_sim.py)
 - 航站楼规格：[`standard_terminal_sizes_v1.json`](../../config/facility_size_catalogs/standard_terminal_sizes_v1.json)
 - 一键串联和输出：[`macro_run_orchestrator_sim.py`](../../macro_layers/macro_run_orchestrator_sim.py)
 - 14 区、47 城和 60 年数量契约：[`test_long_horizon_contract.py`](../../tests/test_long_horizon_contract.py)
 - 固定 seed 数值基线：[`test_safety_baseline.py`](../../tests/test_safety_baseline.py)
+- 预测叙事与信息边界：[`test_forecast_narrative_model.py`](../../tests/test_forecast_narrative_model.py)
 
 ## 当前限制
 

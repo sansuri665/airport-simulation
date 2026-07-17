@@ -29,7 +29,7 @@ JSON 响应会附加当前协议与运行环境：
 ```json
 {
   "apiSchemaVersion": "seed-explorer-api-v1",
-  "modelVersion": "airport-model-v0.5",
+  "modelVersion": "airport-model-v0.8",
   "outputSchemaVersion": "airport-model-output-v1",
   "pythonVersion": "3.13.x",
   "schemaCatalog": "/api/schema"
@@ -125,6 +125,31 @@ POST /api/sim-save
 
 `POST /api/sim-save-slot` 是旧名称兼容入口，使用同一处理逻辑。存档接口目前只共享 API 公共元数据，尚无独立响应 Schema。
 
+### 4.5 开发审计候选报告
+
+```text
+GET  /api/forecast-candidate-catalog
+POST /api/forecast-candidate
+```
+
+目录接口返回 4 个正式等级、8 种普通基础风格、15 个修饰标签、矛盾标签组合、最低分数区间宽度，以及当前正式 Viewer 发布的 Seed 和数据终点。生成接口最小请求示例：
+
+```json
+{
+  "seed": 424242,
+  "asOfYear": 2030,
+  "tierProfileId": "initial_v1",
+  "narrativeProfileId": "public_consensus_v2",
+  "modifierMode": "auto",
+  "modifierIds": [],
+  "scoreMin": 70,
+  "scoreMax": 80,
+  "generationNonce": 0
+}
+```
+
+接口只读取 `current_viewer_manifest.json` 指向的正式城市市场数据，Seed 不一致或自然预测期越过数据终点会拒绝请求。v2 生成器使用与正式报告相同的总量和五类客群预测链路；响应携带完整审计行、实际评分、总量结果分、分项结果分、四个分项子分、是否命中目标范围和搜索次数，但不执行任何文件写入。Schema：`forecast-candidate-catalog-response.schema.json` 与 `forecast-candidate-response.schema.json`。
+
 ## 5. Schema 清单
 
 ### 版本、Run 与发布
@@ -145,6 +170,8 @@ POST /api/sim-save
 - `seed-explorer-run-response.schema.json`
 - `beijing-operations-response.schema.json`
 - `player-simulation-response.schema.json`
+- `forecast-candidate-catalog-response.schema.json`
+- `forecast-candidate-response.schema.json`
 
 ### Viewer 按需加载
 
@@ -154,6 +181,14 @@ POST /api/sim-save
 - `global-viewer-region-chunk.schema.json`
 - `operations-viewer-lazy-index.schema.json`
 - `operations-viewer-chunk.schema.json`
+- `city-market-viewer-lazy-index.schema.json`
+- `city-market-viewer-chunk.schema.json`
+
+### 预测配置目录
+
+- `forecast-config.schema.json`
+- `forecast-tier-catalog.schema.json`
+- `forecast-narrative-catalog.schema.json`
 
 `/api/schema` 映射核心 API 和服务启动所需的 Schema；`schemas/` 中的 Viewer 分块 Schema 也由测试直接验证，即使它们不是独立 HTTP API 响应。
 
@@ -165,9 +200,22 @@ POST /api/sim-save
 - 给出默认项与稳定顺序；
 - 记录相对文件名、行数、字节数和 SHA-256；
 - 让页面在加载块后校验身份与数量；
-- 保持旧完整数据回退，直到兼容窗口明确结束。
+- 缺少必需索引或数据块时明确失败，不静默切换到另一份整包数据。
 
 发布时必须先准备数据块，最后切换索引或 Manifest 指针，不能让浏览器短暂读取一个指向缺失块的新目录。
+
+### 客流预测的玩家与审计边界
+
+客流预测使用同一套 v2 索引和分块 Schema，但按 `dataMode` 分成两个独立发布入口：
+
+| 数据模式 | 索引 | 内容 |
+| --- | --- | --- |
+| `player` | `<market_id>_forecast_index.js` | 12 份普通报告的叙事、总量与客群预测路径、区间和修订 |
+| `audit` | `<market_id>_forecast_audit_index.js` | 13 份报告的隐藏真值、神级报告、原始信号和评分拆解 |
+
+玩家块不包含 `debug_*`、`realized_*`、旧隐藏曲线字段或生成器内部能力分。玩家报告会包含基础风格的中文名称、方法说明和典型盲点，以及修饰标签的 ID、中文名称、分类、作用和代价；还会携带五类潜在需求、计划投放、有效供给、满足率、缺口和边际区间。前端不需要维护另一套标签翻译表。预测页面默认只加载玩家索引；用户显式切换“开发审计”后才加载审计索引和对应报告块。审计块使用独立白名单加入隐藏真值、信号和评分；旧 `forecast_lag_years` 与 `lagged_hidden_curve_*` 只暂留 CSV 兼容协议，不进入浏览器。完整预测 JS 已退出生成、发布和页面加载链。
+
+候选报告 API 不属于 Viewer 发布块。页面只在开发审计模式加载候选目录和调用生成接口，候选行保存在浏览器内存中；退出候选、刷新页面或离开审计模式即丢弃，不会进入玩家索引和审计静态分块。
 
 ## 7. 错误响应
 

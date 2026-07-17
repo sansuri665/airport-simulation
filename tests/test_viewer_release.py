@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import json
 import sys
 import tempfile
@@ -19,6 +20,39 @@ import macro_run_orchestrator_sim as orchestrator
 def write_script(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content.rstrip() + "\n", encoding="utf-8")
+
+
+def write_city_market_csv(path: Path, market_id: str = "beijing_airport_system", name: str = "北京") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fields = [
+        "city_airport_market_id", "city_name", "region_id", "region_name", "market_tier",
+        "market_type", "year", "seed", "city_potential_passengers_million",
+        "city_airline_supply_passengers_million", "city_served_passengers_million",
+        "city_unmet_passengers_million", "city_airline_supply_gap_million",
+        "city_airline_supply_fulfillment_pct", "city_total_fulfillment_pct",
+        "city_binding_bottleneck",
+    ]
+    rows = [
+        {
+            "city_airport_market_id": market_id, "city_name": name, "region_id": "china_mainland",
+            "region_name": "中国大陆", "market_tier": "global_hub", "market_type": "test",
+            "year": year, "seed": 7, "city_potential_passengers_million": potential,
+            "city_airline_supply_passengers_million": supply, "city_served_passengers_million": served,
+            "city_unmet_passengers_million": potential - served,
+            "city_airline_supply_gap_million": max(0, potential - supply),
+            "city_airline_supply_fulfillment_pct": min(100, supply / potential * 100),
+            "city_total_fulfillment_pct": served / potential * 100,
+            "city_binding_bottleneck": bottleneck,
+        }
+        for year, potential, supply, served, bottleneck in (
+            (2025, 100.0, 95.0, 90.0, "airline_supply_limited"),
+            (2026, 110.0, 108.0, 100.0, "airport_capacity_limited"),
+        )
+    ]
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
 
 
 def build_minimal_variant(root: Path) -> Path:
@@ -74,8 +108,14 @@ def build_minimal_variant(root: Path) -> Path:
         variant
         / "city_airport_potential_passenger_forecast"
         / "china_mainland"
-        / "beijing_airport_system_potential_passenger_forecast_viewer_data.js",
-        'window.CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_DATA = {"config": {}, "rows": [{"seed": 7}]};',
+        / "beijing_airport_system_forecast_index.js",
+        "window.AIRPORT_FORECAST_LAZY_INDEX = {reports: []};",
+    )
+    write_city_market_csv(
+        variant
+        / "city_airport_market_demand"
+        / "china_mainland"
+        / "beijing_airport_system_city_airport_demand_seed_sweep.csv"
     )
     return variant
 
@@ -111,6 +151,21 @@ class AtomicViewerReleaseTests(unittest.TestCase):
             self.assertIn("GLOBAL_MACRO_FEEDBACK_DATA", global_content)
             self.assertIn('REGIONAL_MACRO_DATASETS["china_mainland"]', global_content)
             self.assertIn(result["release_id"], (viewer_root / "current_viewer_manifest.js").read_text(encoding="utf-8"))
+
+            city_bundle = temporary_root / manifest["scripts"]["city_market_viewer"].removeprefix("./")
+            city_content = city_bundle.read_text(encoding="utf-8")
+            self.assertIn("AIRPORT_CITY_MARKET_VIEWER_INDEX", city_content)
+            self.assertNotIn("CITY_AIRPORT_FINANCIAL_STATE_DATA", city_content)
+
+            forecast_bundle = temporary_root / manifest["scripts"][
+                "beijing_potential_passenger_forecast_viewer"
+            ].removeprefix("./")
+            forecast_content = forecast_bundle.read_text(encoding="utf-8")
+            self.assertIn("AIRPORT_FORECAST_LAZY_INDEX", forecast_content)
+            self.assertNotIn(
+                "CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_DATA",
+                forecast_content,
+            )
 
             self.assertTrue(
                 (

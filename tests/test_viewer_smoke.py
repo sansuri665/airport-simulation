@@ -11,19 +11,19 @@ STATIC_DIR = ROOT_DIR / "web" / "static"
 VIEWERS = (
     PAGES_DIR / "airport_home.html",
     PAGES_DIR / "global_gdp_viewer.html",
-    PAGES_DIR / "beijing_airport_operations_viewer.html",
+    PAGES_DIR / "city_market_viewer.html",
     PAGES_DIR / "beijing_potential_passenger_forecast_viewer.html",
     PAGES_DIR / "seed_explorer_viewer.html",
 )
 VIEWER_MANIFEST_KEYS = {
     PAGES_DIR / "global_gdp_viewer.html": "global_gdp_viewer",
-    PAGES_DIR / "beijing_airport_operations_viewer.html": "beijing_airport_operations_viewer",
+    PAGES_DIR / "city_market_viewer.html": "city_market_viewer",
     PAGES_DIR / "beijing_potential_passenger_forecast_viewer.html": "beijing_potential_passenger_forecast_viewer",
 }
 VIEWER_BOOTSTRAP_SCRIPTS = {
     PAGES_DIR / "global_gdp_viewer.html": STATIC_DIR / "js" / "global-gdp" / "bootstrap.js",
-    PAGES_DIR / "beijing_airport_operations_viewer.html": (
-        STATIC_DIR / "js" / "beijing-operations" / "bootstrap.js"
+    PAGES_DIR / "city_market_viewer.html": (
+        STATIC_DIR / "js" / "city-markets" / "bootstrap.js"
     ),
     PAGES_DIR / "beijing_potential_passenger_forecast_viewer.html": (
         STATIC_DIR / "js" / "beijing-forecast" / "bootstrap.js"
@@ -32,7 +32,7 @@ VIEWER_BOOTSTRAP_SCRIPTS = {
 VIEWER_MAIN_SCRIPTS = {
     PAGES_DIR / "airport_home.html": "/static/js/home/page.js",
     PAGES_DIR / "global_gdp_viewer.html": "/static/js/global-gdp/page.js",
-    PAGES_DIR / "beijing_airport_operations_viewer.html": "/static/js/beijing-operations/page.js",
+    PAGES_DIR / "city_market_viewer.html": "/static/js/city-markets/page.js",
     PAGES_DIR / "beijing_potential_passenger_forecast_viewer.html": "/static/js/beijing-forecast/page.js",
     PAGES_DIR / "seed_explorer_viewer.html": (
         "/static/js/seed-explorer/page.js"
@@ -40,7 +40,7 @@ VIEWER_MAIN_SCRIPTS = {
 }
 VIEWER_STATE_SCRIPTS = {
     PAGES_DIR / "global_gdp_viewer.html": "/static/js/global-gdp/state.js",
-    PAGES_DIR / "beijing_airport_operations_viewer.html": "/static/js/beijing-operations/state.js",
+    PAGES_DIR / "city_market_viewer.html": "/static/js/city-markets/state.js",
     PAGES_DIR / "beijing_potential_passenger_forecast_viewer.html": "/static/js/beijing-forecast/state.js",
     PAGES_DIR / "seed_explorer_viewer.html": (
         "/static/js/seed-explorer/state.js"
@@ -181,26 +181,27 @@ class ViewerResourceSmokeTests(unittest.TestCase):
         self.assertEqual(sorted(positions), positions)
         self.assertTrue(all(local_resource_path(viewer, source).is_file() for source in expected))
 
-    def test_operations_viewer_scripts_are_split_by_responsibility(self) -> None:
-        viewer = PAGES_DIR / "beijing_airport_operations_viewer.html"
+    def test_city_market_viewer_scripts_are_split_by_responsibility(self) -> None:
+        viewer = PAGES_DIR / "city_market_viewer.html"
         sources = SCRIPT_SOURCE_PATTERN.findall(viewer.read_text(encoding="utf-8"))
         expected = [
-            "/static/js/beijing-operations/state.js",
-            "/static/js/beijing-operations/data-client.js",
-            "/static/js/beijing-operations/renderers.js",
-            "/static/js/beijing-operations/page.js",
+            "/static/js/city-markets/state.js",
+            "/static/js/city-markets/data-client.js",
+            "/static/js/city-markets/renderers.js",
+            "/static/js/city-markets/page.js",
         ]
         positions = [sources.index(source) for source in expected]
         self.assertEqual(sorted(positions), positions)
         self.assertTrue(all(local_resource_path(viewer, source).is_file() for source in expected))
 
-    def test_static_viewers_use_atomic_release_manifest_with_legacy_fallback(self) -> None:
+    def test_static_viewers_use_atomic_release_manifest(self) -> None:
         for viewer, manifest_key in VIEWER_MANIFEST_KEYS.items():
             html = viewer.read_text(encoding="utf-8")
             bootstrap = VIEWER_BOOTSTRAP_SCRIPTS[viewer].read_text(encoding="utf-8")
             self.assertIn("./output/current_viewer_manifest.js", html, viewer.name)
             self.assertIn(f"scripts?.{manifest_key}", bootstrap, viewer.name)
-            self.assertIn("legacy", html.lower(), viewer.name)
+        city_html = (PAGES_DIR / "city_market_viewer.html").read_text(encoding="utf-8")
+        self.assertNotIn("legacy", city_html.lower())
 
 
 if __name__ == "__main__":

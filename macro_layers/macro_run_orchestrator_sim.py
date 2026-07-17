@@ -14,6 +14,8 @@ from importlib import import_module
 from pathlib import Path
 from typing import Any
 
+from airport_sim.server.serializers import summarize_city
+
 _SIBLING_PREFIX = f"{__package__}." if __package__ else ""
 
 
@@ -52,7 +54,6 @@ POTENTIAL_PASSENGER_FORECAST_FIELDS = potential_forecast_layer.POTENTIAL_PASSENG
 load_potential_passenger_forecast_config = potential_forecast_layer.load_config
 simulate_potential_passenger_forecast = potential_forecast_layer.simulate_potential_passenger_forecast
 summarize_potential_passenger_forecast = potential_forecast_layer.summarize
-write_potential_passenger_forecast_viewer_data_js = potential_forecast_layer.write_viewer_data_js
 write_potential_passenger_forecast_lazy_assets = potential_forecast_layer.write_viewer_lazy_assets
 
 QUARTERLY_OPERATIONS_CONFIG_DIR = quarterly_operations_layer.DEFAULT_CONFIG_DIR
@@ -109,17 +110,19 @@ clamp = simulation_utils.clamp
 round_record = simulation_utils.round_record
 
 
-ORCHESTRATOR_VERSION = "macro-run-orchestrator-v0.5"
+ORCHESTRATOR_VERSION = "macro-run-orchestrator-v0.6"
 RUN_INDEX_VERSION = "macro-run-index-v0.5"
 RUN_MANIFEST_SCHEMA_VERSION = "airport-macro-run-manifest-v1"
 OUTPUT_SCHEMA_VERSION = "airport-model-output-v1"
-MODEL_VERSION = "airport-model-v0.5"
+MODEL_VERSION = "airport-model-v0.8"
 AIRPORT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = AIRPORT_DIR / "output" / "macro_runs"
 DEFAULT_VIEWER_OUTPUT_ROOT = AIRPORT_DIR / "output"
 VIEWER_RELEASE_MANIFEST_VERSION = "airport-viewer-release-manifest-v1"
 GLOBAL_VIEWER_LAZY_INDEX_VERSION = "airport-global-viewer-lazy-index-v1"
 GLOBAL_VIEWER_REGION_CHUNK_VERSION = "airport-global-viewer-region-chunk-v1"
+CITY_MARKET_VIEWER_LAZY_INDEX_VERSION = "airport-city-market-viewer-lazy-index-v2"
+CITY_MARKET_VIEWER_CHUNK_VERSION = "airport-city-market-viewer-chunk-v2"
 OPERATIONS_VIEWER_LAZY_INDEX_VERSION = "airport-operations-viewer-lazy-index-v1"
 OPERATIONS_VIEWER_CHUNK_VERSION = "airport-operations-viewer-chunk-v1"
 
@@ -793,6 +796,181 @@ def write_operations_viewer_lazy_assets(
         "chunkDir": str(chunk_dir.as_posix()),
         "valuationRows": len(valuation_rows),
         "chunkBytes": len(raw),
+    }
+
+
+def write_city_market_viewer_lazy_assets(
+    market_dir: Path,
+    output_dir: Path,
+) -> dict[str, Any]:
+    """Publish city demand/airline supply points without airport operations fields."""
+    csv_paths = sorted(market_dir.glob("*_city_airport_demand_seed_sweep.csv"))
+    if not csv_paths:
+        raise FileNotFoundError(f"missing city market CSV files: {market_dir}")
+
+    chunk_dir_name = "city_market_viewer_chunks"
+    chunk_dir = output_dir / chunk_dir_name
+    chunk_dir.mkdir(parents=True, exist_ok=True)
+    cities: list[dict[str, Any]] = []
+    seeds: set[int] = set()
+    start_years: set[int] = set()
+    final_years: set[int] = set()
+
+    for csv_path in csv_paths:
+        with csv_path.open("r", encoding="utf-8-sig", newline="") as handle:
+            rows = list(csv.DictReader(handle))
+        if not rows:
+            continue
+        summary = summarize_city(rows)
+        market_id = str(summary["id"])
+        if not market_id or not market_id.replace("_", "").isalnum():
+            raise ValueError(f"unsafe city market id in {csv_path}: {market_id!r}")
+        seeds.update(int(to_float(row.get("seed"))) for row in rows)
+        start_years.add(int(summary["startYear"]))
+        final_years.add(int(summary["finalYear"]))
+
+        city_points = []
+        for point in summary["points"]:
+            components = {
+                component_id: {
+                    key: component[key]
+                    for key in (
+                        "potential",
+                        "offeredCapacity",
+                        "airlineSupply",
+                        "supplyGap",
+                        "supplyFulfillmentPct",
+                        "potentialSharePct",
+                        "supplySharePct",
+                        "priorityWeight",
+                    )
+                }
+                for component_id, component in point["components"].items()
+            }
+            city_points.append(
+                {
+                    key: point[key]
+                    for key in (
+                        "year",
+                        "potential",
+                        "airlineOffered",
+                        "airlineSupply",
+                        "serviceable",
+                        "unusedAirlineCapacity",
+                        "supplyGap",
+                        "supplyFulfillmentPct",
+                        "supplyRegime",
+                        "supplyVolatilityRegime",
+                        "supplyBehaviorPhase",
+                        "supplyPhaseAgeYears",
+                        "supplyCycleNumber",
+                        "supplyDeviationFromFundamentalPct",
+                        "supplyDeviationFromPotentialPct",
+                        "supplyExcessOverPotentialPct",
+                        "supplyEventImpulsePct",
+                        "supplyShockImpulsePct",
+                    )
+                }
+                | {"components": components}
+            )
+        viewer_city = {
+            key: summary[key]
+            for key in (
+                "id",
+                "name",
+                "region",
+                "marketTier",
+                "marketType",
+                "startYear",
+                "finalYear",
+                "finalPotential",
+                "finalAirlineSupply",
+                "finalEffective",
+                "finalSupplyGap",
+                "effectiveCagrPct",
+                "peakEffective",
+            )
+        } | {"points": city_points}
+
+        filename = f"c_{market_id}.json"
+        chunk_payload = {
+            "schemaVersion": CITY_MARKET_VIEWER_CHUNK_VERSION,
+            "marketId": market_id,
+            "rowCount": len(rows),
+            "city": viewer_city,
+        }
+        raw = json.dumps(chunk_payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        atomic_write_text_file(chunk_dir / filename, raw.decode("utf-8"))
+        ranking_points = [
+            {
+                "year": point["year"],
+                "potential": point["potential"],
+                "airlineSupply": point["airlineSupply"],
+                "serviceable": point["serviceable"],
+                "supplyGap": point["supplyGap"],
+                "supplyFulfillmentPct": point["supplyFulfillmentPct"],
+                "unusedAirlineCapacity": point["unusedAirlineCapacity"],
+            }
+            for point in city_points
+        ]
+        cities.append(
+            {
+                key: summary[key]
+                for key in (
+                    "id",
+                    "name",
+                    "region",
+                    "marketTier",
+                    "marketType",
+                    "startYear",
+                    "finalYear",
+                    "finalPotential",
+                    "finalAirlineSupply",
+                    "finalEffective",
+                    "finalSupplyGap",
+                    "effectiveCagrPct",
+                    "peakEffective",
+                )
+            }
+            | {
+                "rowCount": len(rows),
+                "file": filename,
+                "sha256": hashlib.sha256(raw).hexdigest(),
+                "bytes": len(raw),
+                "rankingPoints": ranking_points,
+            }
+        )
+
+    if not cities:
+        raise ValueError(f"city market CSV files contain no rows: {market_dir}")
+    if len(start_years) != 1 or len(final_years) != 1:
+        raise ValueError("city market Viewer requires a shared year range")
+
+    cities.sort(key=lambda city: (-float(city["finalEffective"]), str(city["id"])))
+    index = {
+        "schemaVersion": CITY_MARKET_VIEWER_LAZY_INDEX_VERSION,
+        "chunkSchemaVersion": CITY_MARKET_VIEWER_CHUNK_VERSION,
+        "chunkBase": f"./{chunk_dir_name}/",
+        "seed": next(iter(seeds)) if len(seeds) == 1 else None,
+        "startYear": next(iter(start_years)),
+        "finalYear": next(iter(final_years)),
+        "cityCount": len(cities),
+        "cities": cities,
+    }
+    index_json = json.dumps(index, ensure_ascii=False, separators=(",", ":"))
+    index_script = (
+        "(() => { const index = "
+        + index_json
+        + "; index.baseUrl = new URL(index.chunkBase, document.currentScript.src).href; "
+        + "window.AIRPORT_CITY_MARKET_VIEWER_INDEX = index; })();\n"
+    )
+    index_path = output_dir / "city_market_viewer_index.js"
+    atomic_write_text_file(index_path, index_script)
+    return {
+        "index": index_path,
+        "chunkDir": chunk_dir,
+        "cityCount": len(cities),
+        "chunkBytes": sum(int(city["bytes"]) for city in cities),
     }
 
 
@@ -1792,11 +1970,6 @@ def write_variant_outputs(
                 POTENTIAL_PASSENGER_FORECAST_CONFIG_DIR,
                 load_potential_passenger_forecast_config,
             ).get(market_id, {})
-            write_potential_passenger_forecast_viewer_data_js(
-                region_dir / f"{market_id}_potential_passenger_forecast_viewer_data.js",
-                rows,
-                potential_forecast_config,
-            )
             write_potential_passenger_forecast_lazy_assets(
                 region_dir,
                 rows,
@@ -1936,6 +2109,27 @@ def copy_tree_files(source_dir: Path, target_dir: Path) -> list[str]:
     return copied
 
 
+def copy_tree_files_exact(source_dir: Path, target_dir: Path) -> list[str]:
+    """Copy a generated tree and remove files absent from the new source tree."""
+    expected = {
+        source.relative_to(source_dir)
+        for source in source_dir.rglob("*")
+        if source.is_file()
+    }
+    copied = copy_tree_files(source_dir, target_dir)
+    if not target_dir.is_dir():
+        return copied
+    target_root = target_dir.resolve()
+    for target in sorted(target_dir.rglob("*"), reverse=True):
+        if not target.is_file() or target.relative_to(target_dir) in expected:
+            continue
+        resolved = target.resolve()
+        if target_root not in resolved.parents:
+            raise ValueError(f"refusing to prune file outside Viewer tree: {target}")
+        target.unlink()
+    return copied
+
+
 def copy_variant_to_legacy_viewer(variant_dir: Path, viewer_output_root: Path) -> list[str]:
     copied: list[str] = []
     global_source = variant_dir / "global_macro"
@@ -1989,6 +2183,12 @@ def copy_variant_to_legacy_viewer(variant_dir: Path, viewer_output_root: Path) -
         for region_dir in sorted(potential_forecast_source.glob("*")):
             if region_dir.is_dir():
                 target_region_dir = potential_forecast_target / region_dir.name
+                obsolete_full_js = (
+                    target_region_dir
+                    / "beijing_airport_system_potential_passenger_forecast_viewer_data.js"
+                )
+                if obsolete_full_js.is_file():
+                    obsolete_full_js.unlink()
                 index_files = sorted(region_dir.glob("*_forecast_index.js"))
                 for source in sorted(region_dir.glob("*")):
                     if source.is_file() and source not in index_files:
@@ -1997,7 +2197,12 @@ def copy_variant_to_legacy_viewer(variant_dir: Path, viewer_output_root: Path) -
                         shutil.copy2(source, target)
                         copied.append(str(target.as_posix()))
                     elif source.is_dir() and source.name.endswith("_forecast_chunks"):
-                        copied.extend(copy_tree_files(source, target_region_dir / source.name))
+                        copied.extend(
+                            copy_tree_files_exact(
+                                source,
+                                target_region_dir / source.name,
+                            )
+                        )
                 # The lightweight index is the compatibility pointer and is copied last.
                 for source in index_files:
                     target = target_region_dir / source.name
@@ -2168,42 +2373,14 @@ def build_global_viewer_bundle(variant_dir: Path, release_id: str) -> str:
     return "".join(parts)
 
 
-def build_beijing_operations_viewer_bundle(variant_dir: Path, release_id: str) -> str:
-    operations_dir = (
-        variant_dir
-        / "city_airport_quarterly_operations"
-        / "china_mainland"
+def build_city_market_viewer_bundle(index_path: Path, variant_dir: Path, release_id: str) -> str:
+    return "".join(
+        [
+            f"/* Atomic airport Viewer release: {release_id} */\n",
+            viewer_script_source(index_path, "window.AIRPORT_CITY_MARKET_VIEWER_INDEX = null;"),
+            viewer_release_info_script(release_id, variant_dir),
+        ]
     )
-    lazy_index = operations_dir / "beijing_airport_system_operations_index.js"
-    parts = [
-        f"/* Atomic airport Viewer release: {release_id} */\n",
-        viewer_script_source(
-            operations_dir
-            / "beijing_airport_system_quarterly_operations_viewer_data.js",
-            "window.CITY_AIRPORT_QUARTERLY_OPERATIONS_DATA = {rows: []};",
-        ),
-        viewer_script_source(
-            variant_dir
-            / "city_airport_financial_state"
-            / "china_mainland"
-            / "beijing_airport_system_financial_state_viewer_data.js",
-            "window.CITY_AIRPORT_FINANCIAL_STATE_DATA = {rows: [], initial_assets: [], general_loans: []};",
-        ),
-    ]
-    if lazy_index.exists():
-        parts.append(viewer_script_source(lazy_index, "window.AIRPORT_OPERATIONS_VIEWER_LAZY_INDEX = null;"))
-    else:
-        parts.append(
-            viewer_script_source(
-                variant_dir
-                / "city_airport_valuation"
-                / "china_mainland"
-                / "beijing_airport_system_valuation_forecast_viewer_data.js",
-                "window.CITY_AIRPORT_VALUATION_FORECAST_DATA = {rows: []};",
-            )
-        )
-    parts.append(viewer_release_info_script(release_id, variant_dir))
-    return "".join(parts)
 
 
 def build_beijing_forecast_viewer_bundle(variant_dir: Path, release_id: str) -> str:
@@ -2213,16 +2390,14 @@ def build_beijing_forecast_viewer_bundle(variant_dir: Path, release_id: str) -> 
         / "china_mainland"
     )
     lazy_index = forecast_dir / "beijing_airport_system_forecast_index.js"
-    if lazy_index.exists():
-        data_script = viewer_script_source(
-            lazy_index,
-            "window.AIRPORT_FORECAST_LAZY_INDEX = null;",
+    if not lazy_index.is_file():
+        raise FileNotFoundError(
+            f"missing Beijing forecast lazy index: {lazy_index}"
         )
-    else:
-        data_script = viewer_script_source(
-            forecast_dir / "beijing_airport_system_potential_passenger_forecast_viewer_data.js",
-            "window.CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_DATA = {config: {}, rows: []};",
-        )
+    data_script = viewer_script_source(
+        lazy_index,
+        "window.AIRPORT_FORECAST_LAZY_INDEX = null;",
+    )
     return "".join(
         [
             f"/* Atomic airport Viewer release: {release_id} */\n",
@@ -2237,14 +2412,12 @@ def write_viewer_release_bundles(variant_dir: Path, release_dir: Path, release_i
     if global_chunk_dir.is_dir():
         copy_tree_files(global_chunk_dir, release_dir / global_chunk_dir.name)
 
-    operations_chunk_root = (
+    city_market_assets = write_city_market_viewer_lazy_assets(
         variant_dir
-        / "city_airport_quarterly_operations"
-        / "china_mainland"
+        / "city_airport_market_demand"
+        / "china_mainland",
+        release_dir,
     )
-    for chunk_dir in sorted(operations_chunk_root.glob("*_operations_chunks")):
-        if chunk_dir.is_dir():
-            copy_tree_files(chunk_dir, release_dir / chunk_dir.name)
 
     forecast_dir = (
         variant_dir
@@ -2254,12 +2427,16 @@ def write_viewer_release_bundles(variant_dir: Path, release_dir: Path, release_i
     for chunk_dir in sorted(forecast_dir.glob("*_forecast_chunks")):
         if chunk_dir.is_dir():
             copy_tree_files(chunk_dir, release_dir / chunk_dir.name)
+    for audit_index in sorted(forecast_dir.glob("*_forecast_audit_index.js")):
+        shutil.copy2(audit_index, release_dir / audit_index.name)
 
     bundles = {
         "global_gdp_viewer": ("global_gdp_viewer_bundle.js", build_global_viewer_bundle(variant_dir, release_id)),
-        "beijing_airport_operations_viewer": (
-            "beijing_airport_operations_viewer_bundle.js",
-            build_beijing_operations_viewer_bundle(variant_dir, release_id),
+        "city_market_viewer": (
+            "city_market_viewer_bundle.js",
+            build_city_market_viewer_bundle(
+                Path(city_market_assets["index"]), variant_dir, release_id
+            ),
         ),
         "beijing_potential_passenger_forecast_viewer": (
             "beijing_potential_passenger_forecast_viewer_bundle.js",
@@ -2272,6 +2449,9 @@ def write_viewer_release_bundles(variant_dir: Path, release_dir: Path, release_i
             raise ValueError(f"empty Viewer bundle for {viewer_id}")
         atomic_write_text_file(release_dir / filename, content)
         filenames[viewer_id] = filename
+    # The city index is embedded in the atomic bundle so that its base URL is
+    # tied to the same release. Keep only the bundle, not a duplicate index file.
+    Path(city_market_assets["index"]).unlink(missing_ok=True)
     return filenames
 
 

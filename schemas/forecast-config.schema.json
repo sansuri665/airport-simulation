@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/forecast-config.schema.json",
+  "title": "City airport narrative passenger forecast configuration",
+  "type": "object",
+  "required": [
+    "schema_version", "config_version", "city_airport_market_id",
+    "city_name", "region_id", "forecast_report_tier_catalog",
+    "forecast_narrative_catalog", "timeline", "forecast", "forecast_reports"
+  ],
+  "properties": {
+    "schema_version": { "const": "city-airport-potential-passenger-forecast-config-v1" },
+    "config_version": { "type": "string", "minLength": 1 },
+    "city_airport_market_id": { "type": "string", "minLength": 1 },
+    "city_name": { "type": "string", "minLength": 1 },
+    "region_id": { "type": "string", "minLength": 1 },
+    "region_name": { "type": "string", "minLength": 1 },
+    "design_note": { "type": "string" },
+    "forecast_report_tier_catalog": { "type": "string", "minLength": 1 },
+    "forecast_narrative_catalog": { "type": "string", "minLength": 1 },
+    "timeline": {
+      "type": "object",
+      "required": ["simulation_start_year", "player_decision_start_year"],
+      "properties": {
+        "simulation_start_year": { "type": "integer" },
+        "player_decision_start_year": { "type": "integer" }
+      },
+      "additionalProperties": false
+    },
+    "forecast": {
+      "type": "object",
+      "required": [
+        "forecast_model_version", "as_of_frequency_years",
+        "forecast_horizon_min_years", "forecast_horizon_max_years",
+        "forecast_horizon_step_years", "naive_history_years",
+        "naive_long_term_growth_pct", "naive_trend_fade_years",
+        "naive_growth_floor_pct", "naive_growth_cap_pct"
+      ],
+      "properties": {
+        "forecast_model_version": { "type": "string", "minLength": 1 },
+        "as_of_frequency_years": { "type": "integer", "minimum": 1 },
+        "forecast_horizon_min_years": { "type": "integer", "minimum": 1 },
+        "forecast_horizon_max_years": { "type": "integer", "minimum": 1 },
+        "forecast_horizon_step_years": { "type": "integer", "minimum": 1 },
+        "naive_history_years": { "type": "integer", "minimum": 1 },
+        "naive_long_term_growth_pct": { "type": "number" },
+        "naive_trend_fade_years": { "type": "number", "minimum": 0 },
+        "naive_growth_floor_pct": { "type": "number" },
+        "naive_growth_cap_pct": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "forecast_reports": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/report" }
+    }
+  },
+  "$defs": {
+    "bandPoint": {
+      "type": "object",
+      "required": ["horizon_years", "value"],
+      "properties": {
+        "horizon_years": { "type": "integer", "minimum": 1 },
+        "value": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "dynamicQuality": {
+      "type": "object",
+      "required": ["enabled", "min_score", "max_score", "scope"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "min_score": { "type": "number" },
+        "max_score": { "type": "number" },
+        "scope": { "enum": ["as_of", "as_of_and_horizon"] }
+      },
+      "additionalProperties": false
+    },
+    "report": {
+      "type": "object",
+      "required": [
+        "forecast_report_id", "forecast_report_tier_profile_id",
+        "forecast_narrative_profile_id", "forecast_narrative_modifier_ids",
+        "forecast_report_display_name", "forecast_report_tier",
+        "forecast_report_source", "reported_confidence_style",
+        "forecast_bias_direction", "forecast_quality_score", "calibration_score",
+        "future_peek_mode", "forecast_horizon_max_years",
+        "consensus_herding_bias_cap_pct"
+      ],
+      "properties": {
+        "forecast_report_id": { "type": "string", "minLength": 1 },
+        "forecast_report_tier_profile_id": { "type": "string", "minLength": 1 },
+        "forecast_narrative_profile_id": { "type": "string", "minLength": 1 },
+        "forecast_narrative_modifier_ids": {
+          "type": "array", "maxItems": 2, "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "forecast_report_display_name": { "type": "string", "minLength": 1 },
+        "forecast_report_tier": { "enum": ["initial", "middle", "high", "professional", "god"] },
+        "forecast_report_source": { "type": "string", "minLength": 1 },
+        "reported_confidence_style": { "type": "string", "minLength": 1 },
+        "forecast_bias_direction": { "enum": ["mixed", "mostly_optimistic", "mostly_pessimistic", "exact"] },
+        "forecast_quality_score": { "type": "number", "minimum": 0, "maximum": 100 },
+        "dynamic_quality": { "$ref": "#/$defs/dynamicQuality" },
+        "calibration_score": { "type": "number", "minimum": 0, "maximum": 100 },
+        "future_peek_mode": { "type": "boolean" },
+        "forecast_horizon_max_years": { "type": "integer", "minimum": 1 },
+        "derive_seed_signal_from_quality": { "type": "boolean" },
+        "seed_signal_min_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "seed_signal_max_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "seed_signal_capture_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "derive_bias_cap_from_quality": { "type": "boolean" },
+        "bias_cap_at_score_0_pct": { "type": "number", "minimum": 0 },
+        "bias_cap_at_score_70_pct": { "type": "number", "minimum": 0 },
+        "deterministic_bias_cap_pct": { "type": "number", "minimum": 0 },
+        "consensus_herding_bias_cap_pct": { "type": "number", "minimum": 0 },
+        "reported_confidence_base_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "reported_confidence_horizon_decay_pct": { "type": "number", "minimum": 0 },
+        "reported_confidence_noise_pct": { "type": "number", "minimum": 0 },
+        "default_reported_error_band_pct": { "type": "number", "minimum": 0 },
+        "reported_error_band_points": {
+          "type": "array", "minItems": 1,
+          "items": { "$ref": "#/$defs/bandPoint" }
+        },
+        "default_error_band_pct": { "type": "number", "minimum": 0 },
+        "error_band_points": {
+          "type": "array", "minItems": 1,
+          "items": { "$ref": "#/$defs/bandPoint" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

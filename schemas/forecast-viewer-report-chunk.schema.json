@@ -3,9 +3,10 @@
   "$id": "https://airport.local/schemas/forecast-viewer-report-chunk.schema.json",
   "title": "Effective passenger forecast Viewer report chunk",
   "type": "object",
-  "required": ["schemaVersion", "reportId", "rowCount", "rows"],
+  "required": ["schemaVersion", "dataMode", "reportId", "rowCount", "rows"],
   "properties": {
-    "schemaVersion": { "const": "airport-forecast-viewer-report-chunk-v1" },
+    "schemaVersion": { "const": "airport-forecast-viewer-report-chunk-v2" },
+    "dataMode": { "enum": ["player", "audit"] },
     "reportId": { "type": "string", "minLength": 1 },
     "rowCount": { "type": "integer", "minimum": 0 },
     "rows": {

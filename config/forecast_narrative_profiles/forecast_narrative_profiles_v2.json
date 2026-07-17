@@ -1,0 +1,332 @@
+{
+  "schema_version": "forecast-narrative-profile-catalog-v1",
+  "catalog_version": "forecast-narrative-profiles-v2",
+  "profiles": [
+    {
+      "forecast_narrative_profile_id": "public_consensus_v2",
+      "narrative_style_label": "公开共识",
+      "narrative_style_summary": "汇总公开数据与市场平均判断，强调近期已经形成的共同预期。",
+      "narrative_style_method": "公开资料、近期趋势与市场共识",
+      "narrative_style_blind_spot": "对非共识拐点反应较慢，容易在市场转向后才修订。",
+      "narrative_demand_signal_weight": 0.42,
+      "narrative_supply_signal_weight": 0.34,
+      "narrative_trend_extrapolation": 0.72,
+      "narrative_mean_reversion": 0.18,
+      "narrative_turn_sensitivity": 0.38,
+      "narrative_thesis_persistence": 0.82,
+      "narrative_revision_speed": 0.22,
+      "narrative_growth_bias_pct": 0.0,
+      "narrative_supply_bias_pct": 0.0,
+      "narrative_interval_multiplier": 0.92,
+      "candidate_modifier_ids": ["consensus_herding_v2", "sticky_thesis_v2", "slow_revision_v2", "trend_following_v2", "overconfident_v2", "wide_uncertainty_v2"]
+    },
+    {
+      "forecast_narrative_profile_id": "hot_growth_story_v2",
+      "narrative_style_label": "增长叙事",
+      "narrative_style_summary": "把近期增长、城市吸引力和扩张故事视为主要线索。",
+      "narrative_style_method": "近期增长外推与上行故事",
+      "narrative_style_blind_spot": "容易低估供给约束、成熟市场回落和周期反转。",
+      "narrative_demand_signal_weight": 0.30,
+      "narrative_supply_signal_weight": 0.18,
+      "narrative_trend_extrapolation": 0.94,
+      "narrative_mean_reversion": 0.04,
+      "narrative_turn_sensitivity": 0.18,
+      "narrative_thesis_persistence": 0.86,
+      "narrative_revision_speed": 0.20,
+      "narrative_growth_bias_pct": 0.85,
+      "narrative_supply_bias_pct": 0.45,
+      "narrative_interval_multiplier": 0.72,
+      "candidate_modifier_ids": ["optimistic_v2", "trend_following_v2", "sticky_thesis_v2", "fast_revision_v2", "overconfident_v2"]
+    },
+    {
+      "forecast_narrative_profile_id": "fundamental_research_v2",
+      "narrative_style_label": "基本面研究",
+      "narrative_style_summary": "从城市需求结构、长期增长基础和成熟市场均值回归出发。",
+      "narrative_style_method": "城市基本面、需求结构与长期锚",
+      "narrative_style_blind_spot": "对短期情绪、突发供给周期和非线性转向不够敏感。",
+      "narrative_demand_signal_weight": 0.58,
+      "narrative_supply_signal_weight": 0.42,
+      "narrative_trend_extrapolation": 0.46,
+      "narrative_mean_reversion": 0.46,
+      "narrative_turn_sensitivity": 0.46,
+      "narrative_thesis_persistence": 0.74,
+      "narrative_revision_speed": 0.32,
+      "narrative_growth_bias_pct": -0.15,
+      "narrative_supply_bias_pct": -0.05,
+      "narrative_interval_multiplier": 1.02,
+      "candidate_modifier_ids": ["mean_reverting_v2", "optimistic_v2", "pessimistic_v2", "component_sensitive_v2", "slow_revision_v2", "wide_uncertainty_v2"]
+    },
+    {
+      "forecast_narrative_profile_id": "balanced_benchmark_v2",
+      "narrative_style_label": "平衡基准",
+      "narrative_style_summary": "综合需求、供给与长期趋势，形成中性且可比较的基准路径。",
+      "narrative_style_method": "多因素综合与情景权衡",
+      "narrative_style_blind_spot": "观点通常较折中，可能错过需要提前强烈下注的转向。",
+      "narrative_demand_signal_weight": 0.58,
+      "narrative_supply_signal_weight": 0.56,
+      "narrative_trend_extrapolation": 0.48,
+      "narrative_mean_reversion": 0.40,
+      "narrative_turn_sensitivity": 0.58,
+      "narrative_thesis_persistence": 0.64,
+      "narrative_revision_speed": 0.40,
+      "narrative_growth_bias_pct": 0.0,
+      "narrative_supply_bias_pct": 0.0,
+      "narrative_interval_multiplier": 1.0,
+      "candidate_modifier_ids": ["supply_sensitive_v2", "macro_sensitive_v2", "component_sensitive_v2", "risk_sensitive_v2", "wide_uncertainty_v2"]
+    },
+    {
+      "forecast_narrative_profile_id": "quantitative_cycle_model_v2",
+      "narrative_style_label": "定量周期模型",
+      "narrative_style_summary": "重点识别航司供给惯性、扩张过度、收缩和恢复阶段。",
+      "narrative_style_method": "供给周期、惯性和拐点识别",
+      "narrative_style_blind_spot": "可能低估难以量化的政策、组织行为与结构性事件。",
+      "narrative_demand_signal_weight": 0.64,
+      "narrative_supply_signal_weight": 0.82,
+      "narrative_trend_extrapolation": 0.42,
+      "narrative_mean_reversion": 0.42,
+      "narrative_turn_sensitivity": 0.84,
+      "narrative_thesis_persistence": 0.48,
+      "narrative_revision_speed": 0.62,
+      "narrative_growth_bias_pct": 0.0,
+      "narrative_supply_bias_pct": 0.0,
+      "narrative_interval_multiplier": 0.90,
+      "candidate_modifier_ids": ["supply_sensitive_v2", "turn_sensitive_v2", "component_sensitive_v2", "fast_revision_v2", "overconfident_v2"]
+    },
+    {
+      "forecast_narrative_profile_id": "conservative_scenario_v2",
+      "narrative_style_label": "保守情景",
+      "narrative_style_summary": "主动寻找下行风险、约束和恢复不及预期的可能路径。",
+      "narrative_style_method": "下行情景、约束压力与风险缓冲",
+      "narrative_style_blind_spot": "容易过早预测低谷，长期低估结构性增长与韧性。",
+      "narrative_demand_signal_weight": 0.62,
+      "narrative_supply_signal_weight": 0.68,
+      "narrative_trend_extrapolation": 0.30,
+      "narrative_mean_reversion": 0.52,
+      "narrative_turn_sensitivity": 0.72,
+      "narrative_thesis_persistence": 0.72,
+      "narrative_revision_speed": 0.34,
+      "narrative_growth_bias_pct": -0.50,
+      "narrative_supply_bias_pct": -0.62,
+      "narrative_interval_multiplier": 1.12,
+      "candidate_modifier_ids": ["pessimistic_v2", "risk_sensitive_v2", "mean_reverting_v2", "slow_revision_v2", "wide_uncertainty_v2"]
+    },
+    {
+      "forecast_narrative_profile_id": "macro_aviation_research_v2",
+      "narrative_style_label": "宏观航研",
+      "narrative_style_summary": "从经济周期、航空景气与区域金融环境解释城市航空市场。",
+      "narrative_style_method": "宏观周期、航空景气与区域传导",
+      "narrative_style_blind_spot": "可能忽视城市自身需求结构和本地航司策略的独立变化。",
+      "narrative_demand_signal_weight": 0.76,
+      "narrative_supply_signal_weight": 0.70,
+      "narrative_trend_extrapolation": 0.34,
+      "narrative_mean_reversion": 0.54,
+      "narrative_turn_sensitivity": 0.72,
+      "narrative_thesis_persistence": 0.76,
+      "narrative_revision_speed": 0.34,
+      "narrative_growth_bias_pct": -0.12,
+      "narrative_supply_bias_pct": -0.18,
+      "narrative_interval_multiplier": 1.04,
+      "candidate_modifier_ids": ["macro_sensitive_v2", "supply_sensitive_v2", "risk_sensitive_v2", "slow_revision_v2", "wide_uncertainty_v2"]
+    },
+    {
+      "forecast_narrative_profile_id": "contrarian_research_v2",
+      "narrative_style_label": "逆向研究",
+      "narrative_style_summary": "主动质疑市场共识，寻找被忽略的供需错配和周期转向。",
+      "narrative_style_method": "反共识验证与拐点搜索",
+      "narrative_style_blind_spot": "可能为了挑战共识而过早逆势，承担较长时间的方向错误。",
+      "narrative_demand_signal_weight": 0.74,
+      "narrative_supply_signal_weight": 0.78,
+      "narrative_trend_extrapolation": 0.30,
+      "narrative_mean_reversion": 0.46,
+      "narrative_turn_sensitivity": 0.94,
+      "narrative_thesis_persistence": 0.68,
+      "narrative_revision_speed": 0.48,
+      "narrative_growth_bias_pct": 0.15,
+      "narrative_supply_bias_pct": 0.08,
+      "narrative_interval_multiplier": 0.96,
+      "candidate_modifier_ids": ["turn_sensitive_v2", "mean_reverting_v2", "risk_sensitive_v2", "optimistic_v2", "pessimistic_v2", "sticky_thesis_v2"]
+    },
+    {
+      "forecast_narrative_profile_id": "future_truth_v2",
+      "narrative_style_label": "真实路径",
+      "narrative_style_summary": "直接读取隐藏真实未来，仅用于开发审计。",
+      "narrative_style_method": "隐藏真实路径",
+      "narrative_style_blind_spot": "不是可购买研究能力，不参与普通报告平衡。",
+      "narrative_demand_signal_weight": 1.0,
+      "narrative_supply_signal_weight": 1.0,
+      "narrative_trend_extrapolation": 0.0,
+      "narrative_mean_reversion": 0.0,
+      "narrative_turn_sensitivity": 1.0,
+      "narrative_thesis_persistence": 1.0,
+      "narrative_revision_speed": 1.0,
+      "narrative_growth_bias_pct": 0.0,
+      "narrative_supply_bias_pct": 0.0,
+      "narrative_interval_multiplier": 0.0
+    }
+  ],
+  "modifiers": [
+    {
+      "forecast_narrative_modifier_id": "optimistic_v2",
+      "modifier_label": "偏乐观",
+      "modifier_group": "position",
+      "modifier_description": "对需求兑现和供给扩张给予更高权重。",
+      "modifier_tradeoff": "上行阶段更敏锐，但容易高估成熟期增长。",
+      "parameter_deltas": {
+        "narrative_growth_bias_pct": 0.38,
+        "narrative_supply_bias_pct": 0.22
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "pessimistic_v2",
+      "modifier_label": "偏谨慎",
+      "modifier_group": "position",
+      "modifier_description": "主动下调需求和供给兑现假设。",
+      "modifier_tradeoff": "下行保护更强，但容易长期低估增长。",
+      "parameter_deltas": {
+        "narrative_growth_bias_pct": -0.35,
+        "narrative_supply_bias_pct": -0.35
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "trend_following_v2",
+      "modifier_label": "趋势追随",
+      "modifier_group": "method_focus",
+      "modifier_description": "更相信近期增速会延续一段时间。",
+      "modifier_tradeoff": "顺势阶段有效，拐点附近反应偏慢。",
+      "parameter_deltas": {
+        "narrative_trend_extrapolation": 0.10,
+        "narrative_mean_reversion": -0.08
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "mean_reverting_v2",
+      "modifier_label": "均值回归",
+      "modifier_group": "method_focus",
+      "modifier_description": "更相信长期成熟增速会重新占主导。",
+      "modifier_tradeoff": "抑制过度外推，但可能低估结构性跃升。",
+      "parameter_deltas": {
+        "narrative_mean_reversion": 0.10,
+        "narrative_trend_extrapolation": -0.06
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "supply_sensitive_v2",
+      "modifier_label": "供给敏感",
+      "modifier_group": "method_focus",
+      "modifier_description": "更重视航司扩张、收缩和恢复周期。",
+      "modifier_tradeoff": "能更早识别供给瓶颈，但可能低估需求自身变化。",
+      "parameter_deltas": {
+        "narrative_supply_signal_weight": 0.10,
+        "narrative_turn_sensitivity": 0.06
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "macro_sensitive_v2",
+      "modifier_label": "宏观敏感",
+      "modifier_group": "method_focus",
+      "modifier_description": "提高经济周期与区域航空景气信号权重。",
+      "modifier_tradeoff": "宏观转向时更有效，但可能忽略城市特有结构。",
+      "parameter_deltas": {
+        "narrative_demand_signal_weight": 0.06,
+        "narrative_supply_signal_weight": 0.04
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "component_sensitive_v2",
+      "modifier_label": "客群敏感",
+      "modifier_group": "method_focus",
+      "modifier_description": "更重视商务、休闲、探亲、长途和中转结构变化。",
+      "modifier_tradeoff": "结构判断更细，但总量优势不一定同步提高。",
+      "parameter_deltas": {
+        "component_signal_quality": 0.10
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "risk_sensitive_v2",
+      "modifier_label": "风险敏感",
+      "modifier_group": "method_focus",
+      "modifier_description": "更重视约束恶化、下行尾部和拐点风险。",
+      "modifier_tradeoff": "下行情景更完整，但容易提前转向保守。",
+      "parameter_deltas": {
+        "narrative_turn_sensitivity": 0.08,
+        "narrative_growth_bias_pct": -0.18,
+        "narrative_supply_bias_pct": -0.22
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "turn_sensitive_v2",
+      "modifier_label": "拐点敏感",
+      "modifier_group": "method_focus",
+      "modifier_description": "对周期加速、减速和反转窗口反应更快。",
+      "modifier_tradeoff": "更容易提前发现转向，也更容易把噪声误判成拐点。",
+      "parameter_deltas": {
+        "narrative_turn_sensitivity": 0.10,
+        "narrative_revision_speed": 0.04
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "consensus_herding_v2",
+      "modifier_label": "共识跟随",
+      "modifier_group": "revision_behavior",
+      "modifier_description": "倾向等市场观点形成一致后再调整。",
+      "modifier_tradeoff": "减少孤立误判，但通常错过最早的转向阶段。",
+      "parameter_deltas": {
+        "narrative_thesis_persistence": 0.06,
+        "narrative_revision_speed": -0.04
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "sticky_thesis_v2",
+      "modifier_label": "观点粘性",
+      "modifier_group": "revision_behavior",
+      "modifier_description": "没有充分证据时坚持上一期核心判断。",
+      "modifier_tradeoff": "报告更连贯，但错误观点可能延续过久。",
+      "parameter_deltas": {
+        "narrative_thesis_persistence": 0.08,
+        "narrative_revision_speed": -0.06
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "slow_revision_v2",
+      "modifier_label": "慢速修订",
+      "modifier_group": "revision_behavior",
+      "modifier_description": "新信息出现后分多期逐步调整路径。",
+      "modifier_tradeoff": "避免剧烈改口，但面对突发变化时落后。",
+      "parameter_deltas": {
+        "narrative_thesis_persistence": 0.05,
+        "narrative_revision_speed": -0.08
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "fast_revision_v2",
+      "modifier_label": "快速修订",
+      "modifier_group": "revision_behavior",
+      "modifier_description": "新证据出现后更快重估整条预测路径。",
+      "modifier_tradeoff": "适应变化更快，也可能对短期噪声反应过度。",
+      "parameter_deltas": {
+        "narrative_thesis_persistence": -0.06,
+        "narrative_revision_speed": 0.10
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "overconfident_v2",
+      "modifier_label": "区间偏窄",
+      "modifier_group": "uncertainty",
+      "modifier_description": "以较窄区间表达较强确定性。",
+      "modifier_tradeoff": "观点更鲜明，但区间失准风险更高。",
+      "parameter_multipliers": {
+        "narrative_interval_multiplier": 0.82
+      }
+    },
+    {
+      "forecast_narrative_modifier_id": "wide_uncertainty_v2",
+      "modifier_label": "宽幅区间",
+      "modifier_group": "uncertainty",
+      "modifier_description": "主动扩大区间以覆盖更多可能路径。",
+      "modifier_tradeoff": "命中率更高，但决策指向性较弱。",
+      "parameter_multipliers": {
+        "narrative_interval_multiplier": 1.12
+      }
+    }
+  ]
+}

@@ -35,6 +35,11 @@ def sample_config() -> dict[str, object]:
         "forecast_reports": [
             {"forecast_report_id": "public_consensus", "forecast_report_display_name": "初级预测"},
             {"forecast_report_id": "basic_research", "forecast_report_display_name": "中级预测"},
+            {
+                "forecast_report_id": "god_future_peek",
+                "forecast_report_display_name": "神级审计",
+                "future_peek_mode": True,
+            },
         ],
     }
 
@@ -47,6 +52,10 @@ def sample_rows() -> list[dict[str, object]]:
             "forecast_report_id": "public_consensus",
             "forecast_year": 2031,
             "forecast_effective_passengers_mid_million": 101.5,
+            "debug_hidden_true_effective_passengers_million": 103.0,
+            "realized_report_quality_score": 82.0,
+            "forecast_lag_years": 4,
+            "lagged_hidden_curve_effective_million": 99.0,
         },
         {
             "seed": 7,
@@ -54,6 +63,8 @@ def sample_rows() -> list[dict[str, object]]:
             "forecast_report_id": "basic_research",
             "forecast_year": 2031,
             "forecast_effective_passengers_mid_million": 102.5,
+            "debug_hidden_true_effective_passengers_million": 103.0,
+            "realized_report_quality_score": 88.0,
         },
         {
             "seed": 7,
@@ -61,6 +72,18 @@ def sample_rows() -> list[dict[str, object]]:
             "forecast_report_id": "public_consensus",
             "forecast_year": 2032,
             "forecast_effective_passengers_mid_million": 103.5,
+            "debug_hidden_true_effective_passengers_million": 104.0,
+            "realized_report_quality_score": 82.0,
+        },
+        {
+            "seed": 7,
+            "as_of_year": 2030,
+            "forecast_report_id": "god_future_peek",
+            "future_peek_mode": "true",
+            "forecast_year": 2031,
+            "forecast_effective_passengers_mid_million": 103.0,
+            "debug_hidden_true_effective_passengers_million": 103.0,
+            "realized_report_quality_score": 100.0,
         },
     ]
 
@@ -83,8 +106,10 @@ class ForecastLazyLoadingTests(unittest.TestCase):
             index_path = Path(result["index"])
             index = read_index_script(index_path)
 
-            self.assertEqual(len(rows), index["totalRows"])
+            self.assertEqual(3, index["totalRows"])
             self.assertEqual(2, result["reportCount"])
+            self.assertEqual(3, result["auditReportCount"])
+            self.assertEqual("player", index["dataMode"])
             self.assertEqual(
                 ["public_consensus", "basic_research"],
                 [report["reportId"] for report in index["reports"]],
@@ -99,6 +124,14 @@ class ForecastLazyLoadingTests(unittest.TestCase):
                 chunk = json.loads(raw)
                 self.assertEqual(report["sha256"], hashlib.sha256(raw).hexdigest())
                 self.assertEqual(report["rowCount"], len(chunk["rows"]))
+                self.assertEqual("player", chunk["dataMode"])
+                self.assertTrue(
+                    all(
+                        "debug_hidden_true_effective_passengers_million" not in row
+                        and "realized_report_quality_score" not in row
+                        for row in chunk["rows"]
+                    )
+                )
                 validate_named_schema(
                     chunk,
                     "forecast-viewer-report-chunk.schema.json",
@@ -107,12 +140,49 @@ class ForecastLazyLoadingTests(unittest.TestCase):
                 reconstructed.extend(chunk["rows"])
 
             expected = [
-                row
+                forecast_layer.forecast_player_row(row)
                 for report_id in ("public_consensus", "basic_research")
                 for row in rows
                 if row["forecast_report_id"] == report_id
             ]
             self.assertEqual(expected, reconstructed)
+
+            audit_index = read_index_script(Path(result["auditIndex"]))
+            self.assertEqual("audit", audit_index["dataMode"])
+            self.assertEqual(len(rows), audit_index["totalRows"])
+            self.assertEqual(
+                ["public_consensus", "basic_research", "god_future_peek"],
+                [report["reportId"] for report in audit_index["reports"]],
+            )
+            audit_reconstructed: list[dict[str, object]] = []
+            for report in audit_index["reports"]:
+                chunk_path = output_dir / audit_index["chunkBase"] / report["file"]
+                chunk = json.loads(chunk_path.read_bytes())
+                self.assertEqual("audit", chunk["dataMode"])
+                validate_named_schema(
+                    chunk,
+                    "forecast-viewer-report-chunk.schema.json",
+                    SCHEMA_REGISTRY,
+                )
+                audit_reconstructed.extend(chunk["rows"])
+            audit_expected = [
+                forecast_layer.forecast_audit_row(row)
+                for report_id in (
+                    "public_consensus",
+                    "basic_research",
+                    "god_future_peek",
+                )
+                for row in rows
+                if row["forecast_report_id"] == report_id
+            ]
+            self.assertEqual(audit_expected, audit_reconstructed)
+            self.assertTrue(
+                all(
+                    "forecast_lag_years" not in row
+                    and "lagged_hidden_curve_effective_million" not in row
+                    for row in audit_reconstructed
+                )
+            )
 
     def test_atomic_viewer_release_uses_lazy_index_and_copies_chunks(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
@@ -121,6 +191,20 @@ class ForecastLazyLoadingTests(unittest.TestCase):
             forecast_dir = variant / "city_airport_potential_passenger_forecast" / "china_mainland"
             forecast_layer.write_viewer_lazy_assets(forecast_dir, sample_rows(), sample_config())
             viewer_root = temporary_root / "output"
+            stale_chunk = (
+                viewer_root
+                / "city_airport_potential_passenger_forecast"
+                / "china_mainland"
+                / "beijing_airport_system_forecast_chunks"
+                / "r_god_future_peek.json"
+            )
+            stale_chunk.parent.mkdir(parents=True, exist_ok=True)
+            stale_chunk.write_text("{}", encoding="utf-8")
+            obsolete_full_js = (
+                stale_chunk.parents[1]
+                / "beijing_airport_system_potential_passenger_forecast_viewer_data.js"
+            )
+            obsolete_full_js.write_text("obsolete", encoding="utf-8")
 
             with mock.patch.object(orchestrator, "AIRPORT_DIR", temporary_root):
                 result = orchestrator.publish_variant_to_viewer(variant, viewer_root)
@@ -135,28 +219,80 @@ class ForecastLazyLoadingTests(unittest.TestCase):
 
             chunk_dir_name = "beijing_airport_system_forecast_chunks"
             self.assertEqual(2, len(list((release_dir / chunk_dir_name).glob("*.json"))))
+            audit_chunk_dir_name = "beijing_airport_system_audit_forecast_chunks"
+            self.assertEqual(
+                3,
+                len(list((release_dir / audit_chunk_dir_name).glob("*.json"))),
+            )
+            self.assertTrue(
+                (
+                    release_dir
+                    / "beijing_airport_system_forecast_audit_index.js"
+                ).is_file()
+            )
             canonical_dir = viewer_root / "city_airport_potential_passenger_forecast" / "china_mainland"
             self.assertTrue(
                 (canonical_dir / "beijing_airport_system_forecast_index.js").is_file()
             )
             self.assertEqual(2, len(list((canonical_dir / chunk_dir_name).glob("*.json"))))
+            self.assertEqual(
+                3,
+                len(list((canonical_dir / audit_chunk_dir_name).glob("*.json"))),
+            )
+            self.assertFalse(stale_chunk.exists())
+            self.assertFalse(obsolete_full_js.exists())
 
-    def test_forecast_viewer_contains_lazy_loader_and_legacy_fallback(self) -> None:
+    def test_forecast_viewer_requires_lazy_loader_without_full_data_fallback(self) -> None:
         html = (PAGES_DIR / "beijing_potential_passenger_forecast_viewer.html").read_text(encoding="utf-8")
         bootstrap_script = "/static/js/beijing-forecast/bootstrap.js"
         bootstrap_js = (STATIC_DIR / "js" / "beijing-forecast" / "bootstrap.js").read_text(encoding="utf-8")
         page_script = "/static/js/beijing-forecast/page.js"
         page_js = (STATIC_DIR / "js" / "beijing-forecast" / "page.js").read_text(encoding="utf-8")
+        renderers_js = (STATIC_DIR / "js" / "beijing-forecast" / "renderers.js").read_text(encoding="utf-8")
 
         self.assertIn(f'<script src="{bootstrap_script}"></script>', html)
         self.assertIn(f'<script src="{page_script}"></script>', html)
+        self.assertIn('<select id="modeSelect">', html)
+        self.assertIn("/static/js/beijing-forecast/data-client.js", html)
+        self.assertIn("/static/js/beijing-forecast/renderers.js", html)
         self.assertIn("AIRPORT_FORECAST_DATA_READY", bootstrap_js)
-        self.assertIn("legacyBeijingForecastDataScripts", html)
         self.assertIn("beijing_airport_system_forecast_index.js", bootstrap_js)
-        self.assertIn("potential_passenger_forecast_viewer_data.js", html)
+        self.assertNotIn("legacyBeijingForecastDataScripts", html)
+        self.assertNotIn("potential_passenger_forecast_viewer_data.js", html)
+        self.assertNotIn("potential_passenger_forecast_viewer_data.js", bootstrap_js)
         self.assertIn("async function ensureReportLoaded(", page_js)
         self.assertIn("window.AIRPORT_FORECAST_LAZY_INDEX", page_js)
-        self.assertIn("window.CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_DATA", page_js)
+        self.assertNotIn("legacyPayload", page_js)
+        self.assertNotIn("window.CITY_AIRPORT_POTENTIAL_PASSENGER_FORECAST_DATA", page_js)
+        self.assertIn("loadAuditIndex", page_js)
+        self.assertIn("forecast_narrative_modifier_labels", page_js)
+        self.assertIn("MODIFIER_GROUP_LABELS", page_js)
+        self.assertIn("modifier-tag", page_js)
+        self.assertEqual(6, html.count("data-scope="))
+        self.assertIn("forecast_airline_supply_fulfillment_pct", page_js)
+        self.assertIn("forecast_airline_supply_gap_million", page_js)
+        self.assertIn("realized_component_result_quality_score", page_js)
+        self.assertIn("realized_component_potential_structure_score", page_js)
+        self.assertIn("realized_component_supply_structure_score", page_js)
+        self.assertIn("realized_component_fulfillment_score", page_js)
+        self.assertIn("realized_component_interval_calibration_score", page_js)
+        self.assertIn("candidate.componentResultScore", page_js)
+        self.assertIn(
+            "TIER_LABELS[meta.forecast_report_tier] || meta.forecast_report_tier",
+            page_js,
+        )
+        self.assertIn(
+            "TIER_LABELS[first.forecast_report_tier] || first.forecast_report_tier",
+            page_js,
+        )
+        self.assertIn('class="true-point"', renderers_js)
+        self.assertIn("真实值 ${fmt(truth)} 百万人", renderers_js)
+        self.assertIn("预测值 ${fmt(predicted)} 百万人", renderers_js)
+        self.assertNotIn('class="audit-gap-line"', renderers_js)
+        self.assertIn('el.actualScore.textContent = "审计基准 · 不参与评分"', page_js)
+        self.assertIn("realized_report_process_quality_score", page_js)
+        self.assertIn('`实际评分 ${fmt(score)} / 100`', page_js)
+        self.assertIn('"actual-score-low"', page_js)
 
 
 if __name__ == "__main__":

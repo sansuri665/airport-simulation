@@ -117,19 +117,21 @@ output/current_viewer_manifest.js
 
 Manifest 记录 release、Run、变体、Seed、起始年、年数、模型与输出 Schema 版本、生成时间，以及三个 Viewer 数据包的路径、数量和哈希。首页通过 `/api/workspace-status` 展示这些信息。
 
-## 6. 版本化发布与 canonical 回退
+## 6. 版本化发布与 canonical 指针
 
-三个 Viewer 的读取顺序是：
+全球与预测 Viewer 的读取顺序是：
 
 ```text
 有效 current_viewer_manifest
   -> 版本化 release 数据
-  -> 若不存在或不适用，再读取 canonical 兼容数据
+  -> 若 Manifest 不存在，再读取 canonical 的当前索引
 ```
 
-canonical 目录包括 `output/global_macro/`、`output/city_airport_quarterly_operations/`、`output/city_airport_potential_passenger_forecast/` 等。它们用于旧页面、旧归档和外部工具兼容，不代表又有一套正式模型。
+canonical 目录包括 `output/global_macro/`、`output/city_airport_quarterly_operations/`、`output/city_airport_potential_passenger_forecast/` 等。它们是当前发布的兼容指针，不代表又有一套正式模型。有效客流预测的 canonical 入口也是轻量索引；不再生成或读取完整预测 JS。
 
-在兼容窗口结束前，不应只删除旧完整 JS。必须先确认当前页面、旧归档和外部工具都已切换到轻量协议，并由自动化测试保护回退移除。
+城市市场 Viewer 不使用跨 release 回退。当前 release 在索引中保存 47 城各年的轻量排名点，只在用户选择城市时读取 `city_market_viewer_chunks/c_<market_id>.json` 的完整客群与供给状态。页面不生成 47 城合计。
+
+预测发布缺少玩家轻量索引时视为不完整，release 构建会失败；页面也会明确报错，不能静默混用旧整包数据。
 
 ## 7. 三个 Viewer 的按需加载边界
 
@@ -139,10 +141,12 @@ canonical 目录包括 `output/global_macro/`、`output/city_airport_quarterly_o
 <market_id>_forecast_index.js
 <market_id>_forecast_chunks/
   r_<report_id>.json
-<market_id>_potential_passenger_forecast_viewer_data.js  # 旧完整回退
+<market_id>_forecast_audit_index.js
+<market_id>_audit_forecast_chunks/
+  r_<report_id>.json
 ```
 
-页面先加载报告目录，只在选择报告时读取对应 JSON 块。目录记录默认报告、报告顺序、行数、字节数和 SHA-256；切换报告时释放上一份解析结果。canonical 发布先复制数据块，最后复制目录指针，避免索引指向尚未就绪的文件。
+页面默认只加载玩家目录，其中包含 12 份普通报告的叙事、预测路径、区间和修订，不包含隐藏真值、完整评分和神级报告。选择报告时只读取对应玩家块。显式切换“开发审计”后，页面才加载独立审计索引和审计块；审计共 13 份报告，并包含真实路径与评分拆解。审计字段也使用显式白名单，旧滞后曲线等 CSV 兼容列不会进入浏览器。两个目录都记录默认报告、稳定顺序、行数、字节数和 SHA-256。canonical 与 release 先复制两组数据块和审计索引，最后切换玩家索引或 Manifest 指针。
 
 ### 7.2 全球宏观：按区域
 
@@ -154,7 +158,17 @@ global_viewer_chunks/
 
 首屏只载入全球主链、区域协调结果和轻量区域目录。切换区域时，一个数据块同时提供区域宏观、航空需求和运力供给；同一页面会话再次访问会复用内存数据。release 与 canonical 都先准备 14 个区域块，再切换索引；旧目录不存在时回退逐脚本加载。
 
-### 7.3 北京经营：经营/财务为核心，估值延迟
+### 7.3 城市市场：按城市
+
+```text
+city_market_viewer_bundle.js
+city_market_viewer_chunks/
+  c_<market_id>.json
+```
+
+索引包含按所选年份排序所需的需求与航司供给口径；城市块包含完整 60 年潜在客流、航司供给、供给约束后需求、五类客群分配与航司供给状态。页面在城市标题下提供“总客流 + 五客群”六个口径，摘要、轨迹、供给解读和年度表共用同一选择。机场容量和最终经营承接不进入该 Viewer 协议。切换城市时按需读取并在当前页面会话中复用。
+
+### 7.4 北京经营：经营/财务为核心，估值延迟
 
 ```text
 <market_id>_operations_index.js

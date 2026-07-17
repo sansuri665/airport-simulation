@@ -12,6 +12,7 @@ import subprocess
 import sys
 import time
 import webbrowser
+from importlib import import_module
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -66,8 +67,8 @@ VIEWER_ROUTES = {
     "/seed_explorer_viewer.html": VIEWER_HTML,
     "/global-gdp": WEB_PAGES_ROOT / "global_gdp_viewer.html",
     "/global_gdp_viewer.html": WEB_PAGES_ROOT / "global_gdp_viewer.html",
-    "/beijing-operations": WEB_PAGES_ROOT / "beijing_airport_operations_viewer.html",
-    "/beijing_airport_operations_viewer.html": WEB_PAGES_ROOT / "beijing_airport_operations_viewer.html",
+    "/city-markets": WEB_PAGES_ROOT / "city_market_viewer.html",
+    "/city_market_viewer.html": WEB_PAGES_ROOT / "city_market_viewer.html",
     "/beijing-forecast": WEB_PAGES_ROOT / "beijing_potential_passenger_forecast_viewer.html",
     "/beijing_potential_passenger_forecast_viewer.html": (
         WEB_PAGES_ROOT / "beijing_potential_passenger_forecast_viewer.html"
@@ -76,7 +77,10 @@ VIEWER_ROUTES = {
 VIEWER_REDIRECTS = {
     "/seed-explorer/": "/seed-explorer",
     "/global-gdp/": "/global-gdp",
-    "/beijing-operations/": "/beijing-operations",
+    "/city-markets/": "/city-markets",
+    "/beijing-operations": "/city-markets",
+    "/beijing-operations/": "/city-markets",
+    "/beijing_airport_operations_viewer.html": "/city-markets",
     "/beijing-forecast/": "/beijing-forecast",
 }
 STATIC_CONTENT_TYPES = {
@@ -102,6 +106,13 @@ SCHEMA_FILES = {
     "playerSimulation": "player-simulation-response.schema.json",
     "forecastLazyIndex": "forecast-viewer-lazy-index.schema.json",
     "forecastReportChunk": "forecast-viewer-report-chunk.schema.json",
+    "forecastConfig": "forecast-config.schema.json",
+    "forecastTierCatalog": "forecast-tier-catalog.schema.json",
+    "forecastNarrativeCatalog": "forecast-narrative-catalog.schema.json",
+    "forecastCandidateCatalog": "forecast-candidate-catalog-response.schema.json",
+    "forecastCandidate": "forecast-candidate-response.schema.json",
+    "cityMarketLazyIndex": "city-market-viewer-lazy-index.schema.json",
+    "cityMarketChunk": "city-market-viewer-chunk.schema.json",
     "randomSeed": "random-seed-response.schema.json",
     "taskProgress": "task-progress-response.schema.json",
     "backgroundJob": "background-job-response.schema.json",
@@ -121,6 +132,16 @@ BEIJING_FINANCIAL_RELATIVE_CSV = Path(
 BEIJING_CITY_DEMAND_RELATIVE_CSV = Path(
     "baseline/city_airport_market_demand/china_mainland/"
     "beijing_airport_system_city_airport_demand_seed_sweep.csv"
+)
+BEIJING_FORECAST_CONFIG = (
+    CONFIG_ROOT
+    / "city_airport_potential_passenger_forecast"
+    / "beijing_airport_system_potential_passenger_forecast_v1.json"
+)
+if str(MACRO_LAYERS_ROOT) not in sys.path:
+    sys.path.insert(0, str(MACRO_LAYERS_ROOT))
+forecast_candidate_layer = import_module(
+    "city_airport_potential_passenger_forecast_layer_sim"
 )
 SIMULATION_DIR_NAME = "simulation_default"
 SIMULATION_CITY_DEMAND_RELATIVE_CSV = Path(
@@ -2266,6 +2287,93 @@ def current_viewer_release_status() -> dict[str, Any]:
     }
 
 
+def forecast_candidate_release_context() -> tuple[dict[str, Any], list[dict[str, str]]]:
+    manifest_path = OUTPUT_ROOT / "current_viewer_manifest.json"
+    if not manifest_path.is_file():
+        raise FileNotFoundError("当前没有可用于候选报告的正式 Viewer 发布")
+    manifest = read_json(manifest_path)
+    if not isinstance(manifest, dict) or not str(manifest.get("release_id") or "").strip():
+        raise ValueError("当前 Viewer 发布清单无效")
+    source_value = str(manifest.get("source_variant") or "").strip()
+    if not source_value:
+        raise ValueError("当前 Viewer 发布没有记录正式数据来源")
+    source_path = Path(source_value)
+    if not source_path.is_absolute():
+        source_path = ROOT_DIR / source_path
+    source_path = ensure_inside(OUTPUT_ROOT, source_path)
+    city_path = source_path / Path(
+        "city_airport_market_demand/china_mainland/"
+        "beijing_airport_system_city_airport_demand_seed_sweep.csv"
+    )
+    if not city_path.is_file():
+        raise FileNotFoundError("当前 Viewer 发布缺少北京城市航空市场数据")
+    rows = read_csv(city_path)
+    if not rows:
+        raise ValueError("当前 Viewer 发布的北京城市航空市场数据为空")
+    release_seed = int(as_float(manifest.get("seed"), -1))
+    row_seeds = {int(as_float(row.get("seed"), -2)) for row in rows}
+    if row_seeds != {release_seed}:
+        raise ValueError("当前 Viewer 发布 Seed 与城市市场数据不一致")
+    return manifest, rows
+
+
+def forecast_candidate_catalog_payload() -> dict[str, Any]:
+    manifest, rows = forecast_candidate_release_context()
+    catalog = forecast_candidate_layer.forecast_candidate_catalog(
+        BEIJING_FORECAST_CONFIG
+    )
+    data_years = sorted(int(as_float(row.get("year"), 0)) for row in rows)
+    final_year = data_years[-1]
+    for tier in catalog.get("tiers", []):
+        tier["maxFullAsOfYear"] = final_year - int(tier["naturalHorizonYears"])
+    return {
+        "catalog": catalog,
+        "release": {
+            "releaseId": manifest.get("release_id"),
+            "runId": manifest.get("run_id"),
+            "seed": manifest.get("seed"),
+            "startYear": data_years[0],
+            "finalYear": final_year,
+            "modelVersion": manifest.get("model_version"),
+        },
+    }
+
+
+def generate_forecast_candidate_payload(body: dict[str, Any]) -> dict[str, Any]:
+    manifest, rows = forecast_candidate_release_context()
+    seed = clean_seed(body.get("seed"))
+    if seed != int(as_float(manifest.get("seed"), -1)):
+        raise ValueError("候选报告 Seed 必须与当前正式 Viewer 发布一致")
+    modifier_values = body.get("modifierIds", [])
+    if not isinstance(modifier_values, list):
+        raise ValueError("modifierIds must be an array")
+    try:
+        as_of_year = int(body.get("asOfYear"))
+        score_min = float(body.get("scoreMin"))
+        score_max = float(body.get("scoreMax"))
+        generation_nonce = int(body.get("generationNonce", 0))
+    except (TypeError, ValueError) as error:
+        raise ValueError("候选报告年份、分数范围或候选编号无效") from error
+    result = forecast_candidate_layer.generate_forecast_candidate(
+        rows,
+        config_path=BEIJING_FORECAST_CONFIG,
+        seed=seed,
+        as_of_year=as_of_year,
+        tier_profile_id=str(body.get("tierProfileId") or "").strip(),
+        narrative_profile_id=str(body.get("narrativeProfileId") or "").strip(),
+        modifier_mode=str(body.get("modifierMode") or "auto").strip(),
+        modifier_ids=[str(value).strip() for value in modifier_values],
+        score_min=score_min,
+        score_max=score_max,
+        generation_nonce=generation_nonce,
+    )
+    return {
+        "releaseId": manifest.get("release_id"),
+        "runId": manifest.get("run_id"),
+        **result,
+    }
+
+
 def workspace_status() -> dict[str, Any]:
     cached_runs = list_cached_runs()
     save_count = sum(1 for path in SAVE_ROOT.glob("**/dynamic_test_save.json") if path.is_file())
@@ -2282,7 +2390,7 @@ def workspace_status() -> dict[str, Any]:
             "home": "/",
             "seedExplorer": "/seed-explorer",
             "globalGdp": "/global-gdp",
-            "beijingOperations": "/beijing-operations",
+            "cityMarkets": "/city-markets",
             "beijingForecast": "/beijing-forecast",
         },
     }
@@ -2372,12 +2480,14 @@ def api_schema_catalog() -> dict[str, Any]:
             "GET /api/health": "/schemas/health-response.schema.json",
             "GET /api/workspace-status": "/schemas/workspace-status-response.schema.json",
             "GET /api/random-seed": "/schemas/random-seed-response.schema.json",
+            "GET /api/forecast-candidate-catalog": "/schemas/forecast-candidate-catalog-response.schema.json",
             "GET /api/task-status": "/schemas/task-progress-response.schema.json",
             "POST /api/run-job": "/schemas/background-job-response.schema.json",
             "GET /api/jobs/<jobId>": "/schemas/background-job-response.schema.json",
             "POST /api/run": "/schemas/seed-explorer-run-response.schema.json",
             "POST /api/beijing-operations": "/schemas/beijing-operations-response.schema.json",
             "POST /api/player-simulation": "/schemas/player-simulation-response.schema.json",
+            "POST /api/forecast-candidate": "/schemas/forecast-candidate-response.schema.json",
             "error": "/schemas/api-error-response.schema.json",
         },
     }
@@ -2486,6 +2596,18 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
                 },
             )
             return
+        if path == "/api/forecast-candidate-catalog":
+            try:
+                json_response(
+                    self,
+                    200,
+                    {"ok": True, **forecast_candidate_catalog_payload()},
+                )
+            except FileNotFoundError as exc:
+                api_error_response(self, 404, "resource_not_found", str(exc))
+            except ValueError as exc:
+                api_error_response(self, 409, "candidate_catalog_unavailable", str(exc))
+            return
         if path == "/api/task-status":
             query = parse_qs(parsed_url.query)
             try:
@@ -2546,6 +2668,7 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
             "/api/run-job",
             "/api/beijing-operations",
             "/api/player-simulation",
+            "/api/forecast-candidate",
             "/api/sim-save",
             "/api/sim-save-slot",
         }:
@@ -2553,6 +2676,13 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
             return
         try:
             body = read_json_request(self)
+            if path == "/api/forecast-candidate":
+                json_response(
+                    self,
+                    200,
+                    {"ok": True, **generate_forecast_candidate_payload(body)},
+                )
+                return
             if path == "/api/run-job":
                 seed = clean_seed(body.get("seed"))
                 years = clean_years(body.get("years", 60))

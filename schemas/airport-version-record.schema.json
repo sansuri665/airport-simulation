@@ -9,8 +9,8 @@
   ],
   "properties": {
     "schema_version": { "const": "airport-version-record-v1" },
-    "model_version": { "const": "airport-model-v0.5" },
-    "orchestrator_version": { "const": "macro-run-orchestrator-v0.5" },
+    "model_version": { "const": "airport-model-v0.8" },
+    "orchestrator_version": { "const": "macro-run-orchestrator-v0.6" },
     "output_schema_version": { "const": "airport-model-output-v1" },
     "run_manifest_schema_version": { "const": "airport-macro-run-manifest-v1" },
     "seed_explorer_api_schema_version": { "const": "seed-explorer-api-v1" },

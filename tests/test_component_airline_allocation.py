@@ -186,6 +186,66 @@ class ComponentAirlineAllocationTests(unittest.TestCase):
                 share_total += row[f"{component}_debug_hidden_true_effective_share_pct"]
             self.assertAlmostEqual(100.0, share_total, delta=TOLERANCE)
 
+    def test_forecast_uses_capped_component_allocation_for_ordinary_reports(self) -> None:
+        constrained_rows = []
+        for row in self.forecast_rows:
+            if str(row["future_peek_mode"]).lower() == "true":
+                continue
+            potential_total = sum(
+                row[f"{component}_forecast_potential_passengers_mid_million"]
+                for component in COMPONENTS
+            )
+            offered_total = sum(
+                row[f"{component}_forecast_airline_offered_capacity_million"]
+                for component in COMPONENTS
+            )
+            serviceable_total = sum(
+                row[f"{component}_forecast_airline_supply_passengers_mid_million"]
+                for component in COMPONENTS
+            )
+            self.assertAlmostEqual(
+                row["forecast_potential_passengers_mid_million"],
+                potential_total,
+                delta=TOLERANCE,
+            )
+            self.assertAlmostEqual(
+                row["forecast_airline_supply_passengers_mid_million"],
+                offered_total,
+                delta=TOLERANCE,
+            )
+            self.assertAlmostEqual(
+                row["forecast_effective_passengers_mid_million"],
+                serviceable_total,
+                delta=TOLERANCE,
+            )
+            for component in COMPONENTS:
+                self.assertLessEqual(
+                    row[f"{component}_forecast_airline_supply_passengers_mid_million"],
+                    row[f"{component}_forecast_potential_passengers_mid_million"]
+                    + TOLERANCE,
+                )
+            if (
+                row["forecast_airline_supply_passengers_mid_million"]
+                < row["forecast_potential_passengers_mid_million"]
+            ):
+                constrained_rows.append(row)
+
+        self.assertTrue(constrained_rows)
+        self.assertTrue(
+            any(
+                max(
+                    row[f"{component}_forecast_airline_supply_fulfillment_pct"]
+                    for component in COMPONENTS
+                )
+                - min(
+                    row[f"{component}_forecast_airline_supply_fulfillment_pct"]
+                    for component in COMPONENTS
+                )
+                > 0.1
+                for row in constrained_rows
+            )
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

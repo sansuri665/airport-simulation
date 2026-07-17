@@ -84,7 +84,8 @@ class LocalUIIntegrationTests(unittest.TestCase):
             "/seed-explorer": "Seed",
             "/seed-explorer/": "Seed",
             "/global-gdp": "GDP",
-            "/beijing-operations": "北京",
+            "/city-markets": "城市航空市场",
+            "/beijing-operations": "城市航空市场",
             "/beijing-forecast": "预测",
         }
         for path, marker in expected_titles.items():
@@ -105,6 +106,7 @@ class LocalUIIntegrationTests(unittest.TestCase):
         self.assertIn("pythonVersion", payload)
         self.assertIn(payload["viewerRelease"]["mode"], {"legacy_canonical", "versioned_release"})
         self.assertEqual("/seed-explorer", payload["pages"]["seedExplorer"])
+        self.assertEqual("/city-markets", payload["pages"]["cityMarkets"])
         self.assertGreaterEqual(payload["cachedRunCount"], 0)
         self.assertGreaterEqual(payload["saveCount"], 0)
 
@@ -116,6 +118,58 @@ class LocalUIIntegrationTests(unittest.TestCase):
         self.assertEqual("python-secrets", payload["source"])
         self.assertGreaterEqual(payload["seed"], 20_260_000)
         self.assertLessEqual(payload["seed"], 20_261_999)
+
+    def test_forecast_candidate_endpoints_are_audit_only_services(self) -> None:
+        catalog_payload = {
+            "catalog": {
+                "generatorVersion": "audit-forecast-candidate-generator-v2",
+                "tiers": [],
+                "styles": [],
+                "modifiers": [],
+            },
+            "release": {"releaseId": "release-test", "seed": 424242},
+        }
+        with mock.patch.object(
+            local_ui,
+            "forecast_candidate_catalog_payload",
+            return_value=catalog_payload,
+        ):
+            status, content_type, body = self.get("/api/forecast-candidate-catalog")
+        payload = json.loads(body)
+        self.assertEqual(200, status)
+        self.assertEqual("application/json", content_type)
+        self.assertTrue(payload["ok"])
+        self.assertEqual("release-test", payload["release"]["releaseId"])
+
+        candidate_payload = {
+            "releaseId": "release-test",
+            "generatorVersion": "audit-forecast-candidate-generator-v2",
+            "candidate": {"candidateId": "audit_candidate_0123456789abcdef", "rows": []},
+        }
+        request = {
+            "seed": 424242,
+            "asOfYear": 2030,
+            "tierProfileId": "initial_v1",
+            "narrativeProfileId": "public_consensus_v2",
+            "modifierMode": "pure",
+            "modifierIds": [],
+            "scoreMin": 70,
+            "scoreMax": 80,
+            "generationNonce": 0,
+        }
+        with mock.patch.object(
+            local_ui,
+            "generate_forecast_candidate_payload",
+            return_value=candidate_payload,
+        ) as generate:
+            status, payload = self.post("/api/forecast-candidate", request)
+        self.assertEqual(200, status)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(
+            "audit_candidate_0123456789abcdef",
+            payload["candidate"]["candidateId"],
+        )
+        generate.assert_called_once_with(request)
 
     def test_player_simulation_expands_short_run_to_full_horizon(self) -> None:
         expected = {"seed": 77, "years": local_ui.PLAYER_SIMULATION_MIN_YEARS}

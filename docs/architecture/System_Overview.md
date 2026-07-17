@@ -115,7 +115,7 @@ py -3.13 -m airport_sim run --seed 20261324 --publish-viewer baseline
 - 全球 Viewer 的浏览器预览只用于快速观察；正式世界线来自 Python。
 - Seed Explorer 为本地调试和经营原型返回完整 `allQuarters`，因此浏览器当前拥有未来季度数据；成为正式游戏界面前需要收紧可见范围。
 - 估值仍是实验观察输出，不是成熟定价系统。
-- Viewer 仍保留 canonical 旧数据回退，换取兼容性的同时也保留了一部分重复文件。
+- Viewer 仍保留 canonical 当前索引以兼容无 Manifest 的本地入口；有效客流预测已经取消重复的完整 JS，只保留玩家/审计索引与报告分块。
 - 区域并行和玩家行动增量重算尚未实施；当前优先保证固定 Seed 与长期账本一致。
 
 运行与前后端细节见 [运行与 Web 架构](Runtime_and_Web.md)，数据生命周期见 [Run、缓存、存档与 Viewer](Data_Cache_Save_and_Viewer.md)。

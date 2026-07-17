@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/forecast-candidate-response.schema.json",
+  "title": "Generated forecast candidate audit response",
+  "type": "object",
+  "required": [
+    "ok", "releaseId", "runId", "generatorVersion", "scoreMethodVersion",
+    "request", "matchStatus", "attemptsEvaluated", "naturalHorizonYears",
+    "dataFinalYear", "firstPublication", "candidate", "apiSchemaVersion",
+    "modelVersion", "outputSchemaVersion", "pythonVersion", "schemaCatalog"
+  ],
+  "properties": {
+    "ok": { "const": true },
+    "generatorVersion": { "const": "audit-forecast-candidate-generator-v2" },
+    "scoreMethodVersion": { "const": "narrative-passenger-realized-score-v1.2" },
+    "matchStatus": { "enum": ["matched", "nearest"] },
+    "attemptsEvaluated": { "type": "integer", "minimum": 1, "maximum": 48 },
+    "naturalHorizonYears": { "enum": [6, 8, 10, 12] },
+    "dataFinalYear": { "type": "integer" },
+    "firstPublication": { "const": true },
+    "request": {
+      "type": "object",
+      "required": [
+        "seed", "asOfYear", "tierProfileId", "narrativeProfileId",
+        "modifierMode", "modifierIds", "scoreMin", "scoreMax", "generationNonce"
+      ],
+      "properties": {
+        "seed": { "type": "integer", "minimum": 0 },
+        "asOfYear": { "type": "integer" },
+        "tierProfileId": { "type": "string", "minLength": 1 },
+        "narrativeProfileId": { "type": "string", "minLength": 1 },
+        "modifierMode": { "enum": ["auto", "pure", "manual"] },
+        "modifierIds": {
+          "type": "array",
+          "maxItems": 2,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "scoreMin": { "type": "number", "minimum": 0, "maximum": 100 },
+        "scoreMax": { "type": "number", "minimum": 0, "maximum": 100 },
+        "generationNonce": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "candidate": {
+      "type": "object",
+      "required": [
+        "candidateId", "attempt", "configuredQualityScore", "modifierIds",
+        "modifierLabels", "actualScore", "resultScore", "totalResultScore",
+        "componentResultScore", "componentPotentialStructureScore",
+        "componentSupplyStructureScore", "componentFulfillmentScore",
+        "componentIntervalScore", "turnTimingScore",
+        "revisionDisciplineScore", "weightedAbsErrorPct", "intervalHitRatePct",
+        "scoreDistanceToTarget", "reportMeta", "rows"
+      ],
+      "properties": {
+        "candidateId": { "type": "string", "pattern": "^audit_candidate_[0-9a-f]{16}$" },
+        "actualScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "resultScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "totalResultScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "componentResultScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "componentPotentialStructureScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "componentSupplyStructureScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "componentFulfillmentScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "componentIntervalScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "turnTimingScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "revisionDisciplineScore": { "const": 92.0 },
+        "rows": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "required": [
+              "seed", "as_of_year", "forecast_report_id", "forecast_year",
+              "realized_report_process_quality_score"
+            ],
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "apiSchemaVersion": { "type": "string", "minLength": 1 },
+    "modelVersion": { "type": "string", "minLength": 1 },
+    "outputSchemaVersion": { "type": "string", "minLength": 1 },
+    "pythonVersion": { "type": "string", "minLength": 1 },
+    "schemaCatalog": { "const": "/api/schema" }
+  },
+  "additionalProperties": true
+}

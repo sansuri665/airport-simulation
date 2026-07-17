@@ -44,10 +44,10 @@ py -3.13 -m airport_sim serve
 | `http://127.0.0.1:8776/` | 统一首页和运行状态 |
 | `http://127.0.0.1:8776/seed-explorer` | 城市市场与北京机场动态测试 |
 | `http://127.0.0.1:8776/global-gdp` | 全球和区域宏观 Viewer |
-| `http://127.0.0.1:8776/beijing-operations` | 北京机场经营 Viewer |
-| `http://127.0.0.1:8776/beijing-forecast` | 北京有效客流预测 Viewer |
+| `http://127.0.0.1:8776/city-markets` | 中国大陆城市航空市场 Viewer |
+| `http://127.0.0.1:8776/beijing-forecast` | 北京叙事化客流预测报告与开发审计 |
 
-旧的 `*.html` 地址和 Seed Explorer 启动脚本仍保留兼容，但正式入口以上表为准。
+旧的 `/beijing-operations` 会重定向到城市市场；Seed Explorer 启动脚本仍保留兼容，但正式入口以上表为准。
 
 ## 模型主链
 
@@ -62,7 +62,7 @@ py -3.13 -m airport_sim serve
   -> 财务、税务、贷款、合同、项目与估值观察
 ```
 
-有效客流预测是玩家的信息层：它根据真实城市市场结果生成带误差和审计分的预测报告，但不会反过来改变真实客流。
+客流预测是玩家的信息层：普通报告只读取方向、周期和模糊拐点等有限信号，形成可继承、可修订的叙事路径；隐藏真值和完整评分只在独立开发审计数据中提供。预测不会反过来改变真实客流。
 
 完整关系见 [模型主链](docs/models/Model_Pipeline.md)。
 

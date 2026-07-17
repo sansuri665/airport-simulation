@@ -1,22 +1,29 @@
 {
   "snapshotSchemaVersion": "seed-explorer-api-snapshot-v1",
   "apiSchemaVersion": "seed-explorer-api-v1",
-  "modelVersion": "airport-model-v0.5",
+  "modelVersion": "airport-model-v0.8",
   "outputSchemaVersion": "airport-model-output-v1",
   "schemaCatalog": "/api/schema",
   "seed": 20261324,
   "years": 12,
   "cityMarket": {
-    "sha256": "df9f532cac4fae81f80099350919d8d85eeff8f818d16ff2dceaf8441f1bba8f",
+    "sha256": "00013a6d9b10997ee68735756ac4ad5efc4f0878f93ae5e75af78d08681ccf81",
     "cityCount": 47,
     "cityKeys": [
       "id", "name", "region", "marketTier", "marketType", "startYear", "finalYear",
-      "finalPotential", "finalAirlineSupply", "finalEffective", "finalSupplyGap",
+      "finalPotential", "finalAirlineSupply", "finalEffective", "finalServed", "finalSupplyGap",
       "effectiveCagrPct", "peakEffective", "finalBottleneck", "bottleneckYears", "points"
     ],
     "pointKeys": [
-      "year", "potential", "airlineSupply", "effective", "served", "supplyGap",
-      "supplyFulfillmentPct", "bindingBottleneck", "supplyRegime", "supplyVolatilityRegime"
+      "year", "potential", "airlineOffered", "airlineSupply", "effective", "serviceable",
+      "served", "unmet", "unusedAirlineCapacity", "supplyGap", "supplyFulfillmentPct",
+      "capacityFulfillmentPct", "totalFulfillmentPct", "airportCapacityGap",
+      "designCapacity", "maxCapacity", "designUtilizationPct", "maxUtilizationPct",
+      "bindingBottleneck", "supplyRegime", "supplyVolatilityRegime",
+      "supplyBehaviorPhase", "supplyPhaseAgeYears", "supplyCycleNumber",
+      "supplyDeviationFromFundamentalPct", "supplyDeviationFromPotentialPct",
+      "supplyExcessOverPotentialPct", "supplyEventImpulsePct", "supplyShockImpulsePct",
+      "components"
     ],
     "leader": {
       "id": "shanghai_airport_system",

@@ -90,6 +90,7 @@
 | [Macro_Regional_Aviation_Parameters.md](reference/Macro_Regional_Aviation_Parameters.md) | 全球、区域和航空参数来源、单位与约束 |
 | [Airport_Operations_Parameters.md](reference/Airport_Operations_Parameters.md) | 城市市场、季度需求、容量、服务和商业经营参数 |
 | [Finance_and_Valuation_Parameters.md](reference/Finance_and_Valuation_Parameters.md) | 财务、贷款、税务和估值参数 |
+| [Forecast_Parameters.md](reference/Forecast_Parameters.md) | 客流预测等级、叙事、修饰标签与北京 13 份报告映射 |
 
 ### `development/`
 
@@ -103,7 +104,7 @@
 
 | 文档 | 说明 |
 | --- | --- |
-| [Roadmap.md](plans/Roadmap.md) | 唯一的未来工作清单；正式说明不混入待办事项 |
+| [Roadmap.md](plans/Roadmap.md) | 未来工作优先级和计划索引；正式说明不混入待办事项 |
 
 ## 当前事实由什么决定
 
@@ -115,7 +116,7 @@
 | JSON 字段和兼容约束 | `schemas/` 与 API 实现 |
 | 页面结构和交互 | `web/pages/`、`web/static/` |
 | 回归保护 | `tests/` |
-| 未来方向 | `plans/Roadmap.md` |
+| 未来方向 | `plans/Roadmap.md` 及其引用的实施计划 |
 
 文档负责解释这些事实，但不替代它们。
 

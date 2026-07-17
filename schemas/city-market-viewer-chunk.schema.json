@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/city-market-viewer-chunk.schema.json",
+  "title": "City market Viewer city detail chunk",
+  "type": "object",
+  "required": ["schemaVersion", "marketId", "rowCount", "city"],
+  "properties": {
+    "schemaVersion": { "const": "airport-city-market-viewer-chunk-v2" },
+    "marketId": { "type": "string", "minLength": 1 },
+    "rowCount": { "type": "integer", "minimum": 1 },
+    "city": {
+      "type": "object",
+      "required": ["id", "name", "startYear", "finalYear", "points"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "startYear": { "type": "integer" },
+        "finalYear": { "type": "integer" },
+        "points": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "year", "potential", "airlineSupply", "serviceable", "components"
+            ],
+            "properties": {
+              "year": { "type": "integer" },
+              "potential": { "type": "number" },
+              "airlineSupply": { "type": "number" },
+              "serviceable": { "type": "number" },
+              "components": { "type": "object" }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

@@ -55,6 +55,55 @@ class JsonSchemaContractTests(unittest.TestCase):
         payload = json.loads((ROOT_DIR / "config" / "airport_versions.json").read_text(encoding="utf-8"))
         validate_named_schema(payload, "airport-version-record.schema.json", self.registry)
 
+    def test_forecast_configuration_catalogs_match_schemas(self) -> None:
+        forecast_config = json.loads(
+            (
+                ROOT_DIR
+                / "config"
+                / "city_airport_potential_passenger_forecast"
+                / "beijing_airport_system_potential_passenger_forecast_v1.json"
+            ).read_text(encoding="utf-8")
+        )
+        tier_catalog = json.loads(
+            (
+                ROOT_DIR
+                / "config"
+                / "forecast_report_tier_profiles"
+                / "forecast_report_tier_profiles_v1.json"
+            ).read_text(encoding="utf-8")
+        )
+        narrative_catalog = json.loads(
+            (
+                ROOT_DIR
+                / "config"
+                / "forecast_narrative_profiles"
+                / "forecast_narrative_profiles_v2.json"
+            ).read_text(encoding="utf-8")
+        )
+        validate_named_schema(
+            forecast_config,
+            "forecast-config.schema.json",
+            self.registry,
+        )
+        validate_named_schema(
+            tier_catalog,
+            "forecast-tier-catalog.schema.json",
+            self.registry,
+        )
+        validate_named_schema(
+            narrative_catalog,
+            "forecast-narrative-catalog.schema.json",
+            self.registry,
+        )
+
+        forecast_config["forecast_reports"][0]["forecast_lag_years"] = 4
+        with self.assertRaisesRegex(SchemaValidationError, "unexpected keys"):
+            validate_named_schema(
+                forecast_config,
+                "forecast-config.schema.json",
+                self.registry,
+            )
+
     def test_fixed_seed_api_payloads_match_response_schemas(self) -> None:
         validate_named_schema(
             self.run_response,
