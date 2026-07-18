@@ -149,6 +149,27 @@ class ViewerResourceSmokeTests(unittest.TestCase):
         self.assertEqual(sorted(positions), positions)
         self.assertTrue(all(local_resource_path(viewer, source).is_file() for source in expected))
 
+    def test_seed_explorer_cash_flow_and_debt_chart_contract(self) -> None:
+        html = (PAGES_DIR / "seed_explorer_viewer.html").read_text(encoding="utf-8")
+        financial = (
+            STATIC_DIR / "js" / "seed-explorer" / "operations-financial.js"
+        ).read_text(encoding="utf-8")
+        debt = (
+            STATIC_DIR / "js" / "seed-explorer" / "operations-debt.js"
+        ).read_text(encoding="utf-8")
+        renderer = (
+            STATIC_DIR / "js" / "seed-explorer" / "operations-renderer.js"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('data-financial-metric="freeCashFlow"', html)
+        self.assertIn("现金流分析", html)
+        self.assertIn("function aggregateCashFlowPeriod", financial)
+        self.assertIn('escapeHtml(quarter.quarter || "")', financial)
+        self.assertIn('quarter: financialPeriodLabel("", endQuarterNo, scope).trim()', debt)
+        self.assertIn('axis: "left"', renderer)
+        self.assertIn("本期现金净变化", renderer)
+        self.assertIn("经营现金流（简化）", renderer)
+
     def test_contract_affairs_uses_full_horizon_when_quarters_advance_locally(self) -> None:
         source = (
             STATIC_DIR / "js" / "seed-explorer" / "operations-actions.js"

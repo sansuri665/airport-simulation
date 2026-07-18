@@ -93,6 +93,8 @@ class ViewerDomContractTests(unittest.TestCase):
             "cityView",
             "operationsView",
             "opsSummaryGrid",
+            "financialCashFlowSummary",
+            "financialHeaderRow",
             "trafficCapacityChartPanel",
             "trafficCapacityMetricChart",
             "serviceQualityChartPanel",

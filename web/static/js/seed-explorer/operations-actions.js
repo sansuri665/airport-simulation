@@ -381,8 +381,20 @@
         incomeTaxExpense: round4(incomeTaxAfter),
         cashTaxPaid: round4(cashTaxAfter),
         accountingProfit: round4(finiteNumber(workingFinance.accountingProfit) + accountingProfitDelta),
+        operatingCashFlow: round4(
+          finiteNumber(
+            workingFinance.operatingCashFlow,
+            finiteNumber(workingOps.operatingProfit) - cashTaxBefore,
+          ) + cashDelta
+        ),
         freeCashFlowBeforeFinancing: round4(finiteNumber(workingFinance.freeCashFlowBeforeFinancing) + cashDelta),
         endCash: round4(endCashAfter),
+        cashNetChange: round4(
+          finiteNumber(
+            workingFinance.cashNetChange,
+            finiteNumber(workingFinance.endCash) - finiteNumber(workingFinance.beginCash),
+          ) + cashDelta
+        ),
         totalAssets: round4(totalAssetsAfter),
         netDebt: round4(finiteNumber(workingFinance.grossDebt) - endCashAfter),
         totalEquity: round4(finiteNumber(workingFinance.totalEquity) + accountingProfitDelta),

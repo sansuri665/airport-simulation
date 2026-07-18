@@ -210,6 +210,7 @@ def summarize_beijing_quarter(
     quarter = as_text(ops, "quarter")
     total_assets = rounded(finance, "total_assets_million_cny")
     total_liabilities = rounded(finance, "total_liabilities_million_cny")
+    begin_cash = rounded(finance, "period_begin_cash_million_cny")
     end_cash = rounded(finance, "period_end_cash_million_cny")
     liability_ratio_pct = (total_liabilities / total_assets * 100.0) if total_assets > 0 else 0.0
     capex = (
@@ -218,6 +219,15 @@ def summarize_beijing_quarter(
         + rounded(ops, "construction_quarter_capex_outlay_million_cny")
         + rounded(ops, "rebuild_quarter_capex_outlay_million_cny")
     )
+    operating_profit = rounded(ops, "quarter_operating_profit_million_cny")
+    cash_tax_paid = rounded(finance, "period_cash_tax_paid_million_cny")
+    rebuild_demolition_expense = rounded(
+        finance,
+        "period_rebuild_demolition_expense_million_cny",
+    )
+    operating_cash_flow = round(operating_profit - cash_tax_paid, 4)
+    investing_cash_flow = round(-capex - rebuild_demolition_expense, 4)
+    cash_net_change = round(end_cash - begin_cash, 4)
     return {
         "index": index,
         "year": year,
@@ -347,7 +357,7 @@ def summarize_beijing_quarter(
             ),
             "totalRevenue": rounded(ops, "total_operating_revenue_million_cny"),
             "totalCost": rounded(ops, "total_operating_cost_million_cny"),
-            "operatingProfit": rounded(ops, "quarter_operating_profit_million_cny"),
+            "operatingProfit": operating_profit,
             "operatingMarginPct": rounded(ops, "operating_margin_pct"),
             "slotFixedCost": rounded(ops, "quarter_slot_fixed_operating_cost_million_cny"),
             "passengerVariableCost": rounded(ops, "quarter_passenger_variable_cost_million_cny"),
@@ -356,7 +366,7 @@ def summarize_beijing_quarter(
             "costPerPassengerCny": rounded(ops, "total_cost_per_passenger_cny"),
         },
         "finance": {
-            "beginCash": rounded(finance, "period_begin_cash_million_cny"),
+            "beginCash": begin_cash,
             "endCash": end_cash,
             "totalAssets": total_assets,
             "totalLiabilities": total_liabilities,
@@ -364,18 +374,18 @@ def summarize_beijing_quarter(
             "interestExpense": rounded(finance, "period_interest_expense_million_cny"),
             "pretaxProfit": rounded(finance, "period_pretax_accounting_profit_million_cny"),
             "incomeTaxExpense": rounded(finance, "period_income_tax_expense_million_cny"),
-            "cashTaxPaid": rounded(finance, "period_cash_tax_paid_million_cny"),
+            "cashTaxPaid": cash_tax_paid,
             "accountingProfit": rounded(finance, "period_accounting_profit_million_cny"),
+            "operatingCashFlow": operating_cash_flow,
+            "investingCashFlow": investing_cash_flow,
             "freeCashFlowBeforeFinancing": rounded(finance, "period_free_cash_flow_before_financing_million_cny"),
             "loanDrawdown": rounded(finance, "period_loan_drawdown_million_cny"),
             "principalRepayment": rounded(finance, "period_principal_repayment_million_cny"),
             "debtService": rounded(finance, "period_debt_service_million_cny"),
             "financingCashFlow": rounded(finance, "period_financing_cash_flow_million_cny"),
+            "cashNetChange": cash_net_change,
             "capexOutlay": round(capex, 4),
-            "rebuildDemolitionExpense": rounded(
-                finance,
-                "period_rebuild_demolition_expense_million_cny",
-            ),
+            "rebuildDemolitionExpense": rebuild_demolition_expense,
             "rebuildOldAssetWriteoff": rounded(
                 finance,
                 "period_rebuild_old_asset_writeoff_million_cny",

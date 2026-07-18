@@ -300,6 +300,7 @@
           ...aggregate,
           index: endQuarter.index,
           year,
+          quarter: financialPeriodLabel("", endQuarterNo, scope).trim(),
           label: financialPeriodLabel(year, endQuarterNo, scope),
           scope: financialScopeLabel(scope),
           endQuarterNo,
@@ -769,4 +770,3 @@
         renderLoanLedger();
       }
     }
-

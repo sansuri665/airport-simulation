@@ -232,7 +232,7 @@ class CopyUtilityTests(unittest.TestCase):
 
 
 class LegacyCanonicalCopyTests(unittest.TestCase):
-    def test_chunks_are_copied_before_global_forecast_and_operations_indexes(self) -> None:
+    def test_chunks_are_copied_before_global_and_forecast_indexes(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
             variant = root / "variant"
@@ -293,7 +293,88 @@ class LegacyCanonicalCopyTests(unittest.TestCase):
             self.assertFalse(obsolete.exists())
             self.assertLess(events.index("global_viewer_chunks"), events.index("global_viewer_index.js"))
             self.assertLess(events.index("beijing_forecast_chunks"), events.index("beijing_forecast_index.js"))
-            self.assertLess(events.index("beijing_operations_chunks"), events.index("beijing_operations_index.js"))
+            self.assertFalse(
+                (
+                    viewer
+                    / "city_airport_potential_passenger_forecast"
+                    / "china_mainland"
+                    / "data.js"
+                ).exists()
+            )
+            self.assertFalse(
+                (
+                    viewer
+                    / "city_airport_quarterly_operations"
+                    / "china_mainland"
+                    / "beijing_operations_index.js"
+                ).exists()
+            )
+
+    def test_only_runtime_fallbacks_and_standalone_cli_inputs_are_copied(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            variant = root / "variant"
+            viewer = root / "viewer"
+            fixtures = {
+                "global_macro/global_macro_feedback_seed_sweep.csv": True,
+                "global_macro/global_macro_feedback_viewer_data.js": True,
+                "global_macro/global_macro_feedback_seed_sweep.json": False,
+                "regional_macro/r1/r1_regional_macro_seed_sweep.csv": True,
+                "regional_macro/r1/r1_regional_macro_viewer_data.js": False,
+                "regional_macro_reconciled/regional_macro_reconciled_seed_sweep.csv": True,
+                "regional_macro_reconciled/regional_macro_reconciled_viewer_data.js": True,
+                "regional_macro_reconciled/regional_macro_reconciled_summary.json": False,
+                "regional_aviation_demand/r1/r1_aviation_demand_seed_sweep.csv": True,
+                "regional_aviation_demand/r1/r1_aviation_demand_viewer_data.js": False,
+                "regional_air_capacity_supply/r1/r1_air_capacity_supply_seed_sweep.csv": True,
+                "regional_air_capacity_supply/r1/r1_air_capacity_supply_viewer_data.js": False,
+                "city_airport_market_demand/r1/c1_city_airport_demand_seed_sweep.csv": True,
+                "city_airport_market_demand/r1/c1_city_airport_demand_viewer_data.js": False,
+                "city_airport_quarterly_operations/r1/c1_quarterly_operations_seed_sweep.csv": True,
+                "city_airport_quarterly_operations/r1/c1_quarterly_operations_viewer_data.js": False,
+                "city_airport_financial_state/r1/c1_financial_state_seed_sweep.csv": True,
+                "city_airport_financial_state/r1/c1_financial_state_viewer_data.js": False,
+                "city_airport_valuation/r1/c1_valuation_forecast_seed_sweep.csv": False,
+            }
+            for relative in fixtures:
+                write_text(variant / relative, relative)
+
+            viewer_assets.copy_variant_to_legacy_viewer(
+                variant,
+                viewer,
+                copy_file=shutil.copy2,
+                copy_files=lambda source, target, pattern="*": viewer_assets.copy_files(
+                    source,
+                    target,
+                    pattern,
+                    copy_file=shutil.copy2,
+                ),
+                copy_tree_files=lambda source, target: viewer_assets.copy_tree_files(
+                    source,
+                    target,
+                    copy_file=shutil.copy2,
+                ),
+                copy_tree_files_exact=lambda source, target: viewer_assets.copy_tree_files_exact(
+                    source,
+                    target,
+                    copy_tree_files=lambda src, dst: viewer_assets.copy_tree_files(
+                        src,
+                        dst,
+                        copy_file=shutil.copy2,
+                    ),
+                    resolve_path=lambda path: path.resolve(),
+                ),
+            )
+
+            for relative, expected in fixtures.items():
+                target_relative = Path(relative)
+                if target_relative.parts[0] in {
+                    "regional_macro",
+                    "regional_aviation_demand",
+                    "regional_air_capacity_supply",
+                }:
+                    target_relative = Path(target_relative.parts[0]) / target_relative.name
+                self.assertEqual(expected, (viewer / target_relative).is_file(), relative)
 
 
 class BundleContentTests(unittest.TestCase):

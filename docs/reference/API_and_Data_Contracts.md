@@ -32,7 +32,7 @@ JSON 响应会附加当前协议与运行环境：
 
 ```json
 {
-  "apiSchemaVersion": "seed-explorer-api-v1",
+  "apiSchemaVersion": "seed-explorer-api-v1.1",
   "modelVersion": "airport-model-v0.8",
   "outputSchemaVersion": "airport-model-output-v1",
   "pythonVersion": "3.13.x",
@@ -96,6 +96,13 @@ POST /api/beijing-operations
 ```
 
 当前 `mode` 的正式只读值是 `replay`。响应包含季度经营、财务、项目、合同和展示所需摘要。Schema：`beijing-operations-response.schema.json`。
+
+`quarters[].finance` 中的现金流展示字段均以百万元人民币计：`operatingCashFlow` 是“经营利润减现金税”的简化经营现金流，`investingCashFlow` 是资本开支与重建拆除支出的负数，`freeCashFlowBeforeFinancing` 是融资前自由现金流，`financingCashFlow` 是贷款提款减本金偿还，`cashNetChange` 是期末现金减期初现金。利息仍由正值字段 `interestExpense` 表示，现金勾稽为：
+
+```text
+cashNetChange
+  = freeCashFlowBeforeFinancing + financingCashFlow - interestExpense
+```
 
 ### 4.3 玩家模拟运营
 

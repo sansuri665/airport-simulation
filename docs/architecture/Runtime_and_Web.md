@@ -163,7 +163,7 @@ output/current_viewer_manifest.js
 output/viewer_releases/<release_id>/
 ```
 
-全球和预测 Viewer 在没有有效 Manifest 时可读取 `output/` 下的 canonical 当前索引；两者的 canonical 入口仍是轻量索引和按需分块，不存在完整数据或逐脚本回退。城市市场 Viewer 只读取同一版本化 release 内的城市索引与分块，避免混用不同发布。三个 Viewer 缺少必需索引时都会显示发布数据不可用，而不会静默拼接旧数据。它们不会因为 Seed Explorer 新建了临时缓存而自动切换。
+全球和预测 Viewer 在没有有效 Manifest 时可读取 `output/` 下的 canonical 当前索引；两者的 canonical 入口仍是轻量索引和按需分块，不存在完整数据或逐脚本回退。发布器不会再把无浏览器消费者的城市、经营、财务、估值 Viewer 脚本或摘要文件复制到 canonical。城市市场 Viewer 只读取同一版本化 release 内的城市索引与分块，避免混用不同发布。三个 Viewer 缺少必需索引时都会显示发布数据不可用，而不会静默拼接旧数据。它们不会因为 Seed Explorer 新建了临时缓存而自动切换。
 
 ### 全球浏览器预览
 

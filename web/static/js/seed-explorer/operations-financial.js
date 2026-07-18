@@ -171,7 +171,7 @@
           ...absoluteMoneyGrowth,
         },
         freeCashFlow: {
-          label: "自由现金流",
+          label: "现金流分析",
           value: (quarters) => sum(quarters, (quarter) => quarter.finance.freeCashFlowBeforeFinancing),
           valueFormat: fmtMoney,
           leftFormat: fmtMoney,
@@ -287,6 +287,96 @@
       return rows;
     }
 
+    function aggregateCashFlowPeriod(quarters) {
+      if (!quarters.length) {
+        return {
+          operatingCashFlow: 0,
+          investingCashFlow: 0,
+          freeCashFlowBeforeFinancing: 0,
+          loanDrawdown: 0,
+          principalRepayment: 0,
+          financingCashFlow: 0,
+          interestPayment: 0,
+          beginCash: 0,
+          endCash: 0,
+          cashNetChange: 0,
+          reconciliationDifference: 0,
+        };
+      }
+      const sum = (getter) => quarters.reduce((total, quarter) => total + finiteNumber(getter(quarter)), 0);
+      const first = quarters[0];
+      const last = quarters[quarters.length - 1];
+      const operatingCashFlow = sum((quarter) => (
+        finiteNumber(quarter.operations?.operatingProfit) - finiteNumber(quarter.finance?.cashTaxPaid)
+      ));
+      const investingCashFlow = sum((quarter) => (
+        -finiteNumber(quarter.finance?.capexOutlay) - finiteNumber(quarter.finance?.rebuildDemolitionExpense)
+      ));
+      const freeCashFlowBeforeFinancing = sum((quarter) => quarter.finance?.freeCashFlowBeforeFinancing);
+      const loanDrawdown = sum((quarter) => quarter.finance?.loanDrawdown);
+      const principalRepayment = sum((quarter) => quarter.finance?.principalRepayment);
+      const financingCashFlow = sum((quarter) => (
+        quarter.finance?.financingCashFlow ?? (
+          finiteNumber(quarter.finance?.loanDrawdown) - finiteNumber(quarter.finance?.principalRepayment)
+        )
+      ));
+      const rawInterestPayment = -sum((quarter) => quarter.finance?.interestExpense);
+      const interestPayment = Math.abs(rawInterestPayment) < 1e-9 ? 0 : rawInterestPayment;
+      const beginCash = finiteNumber(first.finance?.beginCash);
+      const endCash = finiteNumber(last.finance?.endCash);
+      const cashNetChange = endCash - beginCash;
+      return {
+        operatingCashFlow,
+        investingCashFlow,
+        freeCashFlowBeforeFinancing,
+        loanDrawdown,
+        principalRepayment,
+        financingCashFlow,
+        interestPayment,
+        beginCash,
+        endCash,
+        cashNetChange,
+        reconciliationDifference: cashNetChange - (
+          freeCashFlowBeforeFinancing + financingCashFlow + interestPayment
+        ),
+      };
+    }
+
+    function cashFlowPeriodsAll(scope = state.financialReportScope) {
+      if (!state.operations || !state.operations.quarters.length) return [];
+      const quarters = state.operations.quarters;
+      const playerStartIndex = state.operations.playerStartIndex ?? 0;
+      const currentIndex = state.operationsQuarterIndex ?? playerStartIndex;
+      const currentQuarter = quarters[currentIndex];
+      if (!currentQuarter) return [];
+      const startYear = Number(quarters[0]?.year || quarters[playerStartIndex]?.year || currentQuarter.year);
+      const currentYear = Number(currentQuarter.year);
+      const currentQuarterNo = quarterNumber(currentQuarter) || 4;
+      const rows = [];
+      for (let year = startYear; year <= currentYear; year += 1) {
+        const endQuarterNo = scope === "latest" && year < currentYear
+          ? 4
+          : financialScopeQuarterNo(scope, currentQuarterNo);
+        if (year === currentYear && endQuarterNo > currentQuarterNo) continue;
+        const periodQuarters = quarters.filter((quarter) => (
+          Number(quarter.year) === year
+          && quarterNumber(quarter) <= endQuarterNo
+        ));
+        if (!periodQuarters.length) continue;
+        const endQuarter = periodQuarters[periodQuarters.length - 1];
+        rows.push({
+          ...aggregateCashFlowPeriod(periodQuarters),
+          index: endQuarter.index,
+          year,
+          quarter: financialPeriodLabel("", endQuarterNo, scope).trim(),
+          label: financialPeriodLabel(year, endQuarterNo, scope),
+          scope: financialScopeLabel(scope),
+          endQuarterNo,
+        });
+      }
+      return rows;
+    }
+
     function netProfitVisiblePeriods(rows) {
       if (!rows.length) return [];
       const maxStart = Math.max(0, rows.length - NET_PROFIT_WINDOW_SIZE);
@@ -357,7 +447,8 @@
         : Math.max(4, Math.min(16, (groupWidth - 12) / barSeries.length - innerGap));
       const leftRange = stacked ? stackedMetricRange(rows, barSeries) : metricRange(rows, barSeries);
       const line = config.line;
-      const rightRange = line ? lineRange(rows, line) : { min: 0, max: 1 };
+      const lineUsesLeftAxis = line?.axis === "left";
+      const rightRange = line && !lineUsesLeftAxis ? lineRange(rows, line) : { min: 0, max: 1 };
       const xCenter = (index) => pad.left + groupWidth * index + groupWidth / 2;
       const yLeft = (value) => {
         const unit = (value - leftRange.min) / Math.max(1, leftRange.max - leftRange.min);
@@ -367,6 +458,7 @@
         const unit = (value - rightRange.min) / Math.max(1, rightRange.max - rightRange.min);
         return pad.top + plotHeight - unit * plotHeight;
       };
+      const yLine = (value) => lineUsesLeftAxis ? yLeft(value) : yRight(value);
       const zeroY = yLeft(0);
       const yTicks = leftRange.min < 0
         ? [leftRange.min, 0, leftRange.max]
@@ -375,7 +467,7 @@
         <line x1="${pad.left}" y1="${yLeft(value)}" x2="${width - pad.right}" y2="${yLeft(value)}" stroke="${gridColor}"/>
         <text x="${pad.left - 8}" y="${yLeft(value) + 4}" text-anchor="end" font-size="10" fill="${muted}">${config.leftFormat(value)}</text>
       `).join("");
-      const rightLabels = line ? [rightRange.min, (rightRange.min + rightRange.max) / 2, rightRange.max].map((value) => `
+      const rightLabels = line && !lineUsesLeftAxis ? [rightRange.min, (rightRange.min + rightRange.max) / 2, rightRange.max].map((value) => `
         <text x="${width - pad.right + 8}" y="${yRight(value) + 4}" text-anchor="start" font-size="10" fill="${muted}">${line.format(value)}</text>
       `).join("") : "";
       const bars = stacked ? rows.map((quarter, rowIndex) => {
@@ -412,18 +504,18 @@
       }).join("");
       const linePath = line ? rows.map((quarter, index) => {
         const command = index ? "L" : "M";
-        return `${command} ${xCenter(index).toFixed(2)} ${yRight(Number(line.value(quarter)) || 0).toFixed(2)}`;
+        return `${command} ${xCenter(index).toFixed(2)} ${yLine(Number(line.value(quarter)) || 0).toFixed(2)}`;
       }).join(" ") : "";
       const lineNodes = line ? `
         <path d="${linePath}" fill="none" stroke="${line.color}" stroke-width="2.4"/>
         ${rows.map((quarter, index) => {
           const selected = quarter.index === state.operationsQuarterIndex;
-          return `<circle cx="${xCenter(index)}" cy="${yRight(Number(line.value(quarter)) || 0)}" r="${selected ? 4 : 3}" fill="${line.color}"/>`;
+          return `<circle cx="${xCenter(index)}" cy="${yLine(Number(line.value(quarter)) || 0)}" r="${selected ? 4 : 3}" fill="${line.color}"/>`;
         }).join("")}
       ` : "";
       const xLabels = rows.map((quarter, index) => `
-        <text x="${xCenter(index)}" y="${height - 20}" text-anchor="middle" font-size="10" fill="${muted}">${quarter.year}</text>
-        <text x="${xCenter(index)}" y="${height - 7}" text-anchor="middle" font-size="10" fill="${muted}">${quarter.quarter}</text>
+        <text x="${xCenter(index)}" y="${height - 20}" text-anchor="middle" font-size="10" fill="${muted}">${escapeHtml(quarter.year ?? "")}</text>
+        <text x="${xCenter(index)}" y="${height - 7}" text-anchor="middle" font-size="10" fill="${muted}">${escapeHtml(quarter.quarter || "")}</text>
       `).join("");
       const hitZones = rows.map((quarter, index) => `
         <rect class="chart-hit" data-quarter-index="${quarter.index}" x="${pad.left + groupWidth * index}" y="${pad.top}" width="${groupWidth}" height="${plotHeight}" fill="transparent">
@@ -749,4 +841,3 @@
         </tr>
       `).join("");
     }
-

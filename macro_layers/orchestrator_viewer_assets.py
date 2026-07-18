@@ -7,6 +7,12 @@ from pathlib import Path
 from typing import Any
 
 
+GLOBAL_CANONICAL_FILES = (
+    "global_macro_feedback_seed_sweep.csv",
+    "global_macro_feedback_viewer_data.js",
+)
+
+
 def copy_files(
     source_dir: Path,
     target_dir: Path,
@@ -86,45 +92,77 @@ def copy_variant_to_legacy_viewer(
     global_source = variant_dir / "global_macro"
     global_target = viewer_output_root / "global_macro"
     global_index = global_source / "global_viewer_index.js"
-    for source in sorted(global_source.glob("*")):
-        if source.is_file() and source != global_index:
+    for name in GLOBAL_CANONICAL_FILES:
+        source = global_source / name
+        if source.is_file():
             target = global_target / source.name
             target.parent.mkdir(parents=True, exist_ok=True)
             copy_file(source, target)
             copied.append(str(target.as_posix()))
-        elif source.is_dir() and source.name == "global_viewer_chunks":
-            copied.extend(copy_tree_files(source, global_target / source.name))
+    global_chunks = global_source / "global_viewer_chunks"
+    if global_chunks.is_dir():
+        copied.extend(
+            copy_tree_files(global_chunks, global_target / global_chunks.name)
+        )
     # The index is the compatibility pointer and must become visible after its chunks.
     if global_index.is_file():
         target = global_target / global_index.name
         target.parent.mkdir(parents=True, exist_ok=True)
         copy_file(global_index, target)
         copied.append(str(target.as_posix()))
+    reconciled_source = variant_dir / "regional_macro_reconciled"
+    reconciled_target = viewer_output_root / "regional_macro_reconciled"
     copied.extend(
         copy_files(
-            variant_dir / "regional_macro_reconciled",
-            viewer_output_root / "regional_macro_reconciled",
+            reconciled_source,
+            reconciled_target,
+            "regional_macro_reconciled_seed_sweep.csv",
+        )
+    )
+    copied.extend(
+        copy_files(
+            reconciled_source,
+            reconciled_target,
+            "regional_macro_reconciled_viewer_data.js",
         )
     )
 
     regional_target = viewer_output_root / "regional_macro"
     for region_dir in sorted((variant_dir / "regional_macro").glob("*")):
         if region_dir.is_dir():
-            copied.extend(copy_files(region_dir, regional_target))
+            copied.extend(
+                copy_files(
+                    region_dir,
+                    regional_target,
+                    "*_regional_macro_seed_sweep.csv",
+                )
+            )
 
     aviation_target = viewer_output_root / "regional_aviation_demand"
     aviation_source = variant_dir / "regional_aviation_demand"
     if aviation_source.exists():
         for region_dir in sorted(aviation_source.glob("*")):
             if region_dir.is_dir():
-                copied.extend(copy_files(region_dir, aviation_target))
+                copied.extend(
+                    copy_files(
+                        region_dir,
+                        aviation_target,
+                        "*_aviation_demand_seed_sweep.csv",
+                    )
+                )
 
     supply_target = viewer_output_root / "regional_air_capacity_supply"
     supply_source = variant_dir / "regional_air_capacity_supply"
     if supply_source.exists():
         for region_dir in sorted(supply_source.glob("*")):
             if region_dir.is_dir():
-                copied.extend(copy_files(region_dir, supply_target))
+                copied.extend(
+                    copy_files(
+                        region_dir,
+                        supply_target,
+                        "*_air_capacity_supply_seed_sweep.csv",
+                    )
+                )
 
     city_airport_target = viewer_output_root / "city_airport_market_demand"
     city_airport_source = variant_dir / "city_airport_market_demand"
@@ -135,6 +173,7 @@ def copy_variant_to_legacy_viewer(
                     copy_files(
                         region_dir,
                         city_airport_target / region_dir.name,
+                        "*_city_airport_demand_seed_sweep.csv",
                     )
                 )
 
@@ -156,12 +195,7 @@ def copy_variant_to_legacy_viewer(
                     obsolete_full_js.unlink()
                 index_files = sorted(region_dir.glob("*_forecast_index.js"))
                 for source in sorted(region_dir.glob("*")):
-                    if source.is_file() and source not in index_files:
-                        target = target_region_dir / source.name
-                        target.parent.mkdir(parents=True, exist_ok=True)
-                        copy_file(source, target)
-                        copied.append(str(target.as_posix()))
-                    elif source.is_dir() and source.name.endswith(
+                    if source.is_dir() and source.name.endswith(
                         "_forecast_chunks"
                     ):
                         copied.extend(
@@ -187,28 +221,13 @@ def copy_variant_to_legacy_viewer(
         for region_dir in sorted(quarterly_operations_source.glob("*")):
             if region_dir.is_dir():
                 target_region_dir = quarterly_operations_target / region_dir.name
-                index_files = sorted(region_dir.glob("*_operations_index.js"))
-                for source in sorted(region_dir.glob("*")):
-                    if source.is_file() and source not in index_files:
-                        target = target_region_dir / source.name
-                        target.parent.mkdir(parents=True, exist_ok=True)
-                        copy_file(source, target)
-                        copied.append(str(target.as_posix()))
-                    elif source.is_dir() and source.name.endswith(
-                        "_operations_chunks"
-                    ):
-                        copied.extend(
-                            copy_tree_files(
-                                source,
-                                target_region_dir / source.name,
-                            )
-                        )
-                # Publish deferred datasets before switching the lightweight index pointer.
-                for source in index_files:
-                    target = target_region_dir / source.name
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    copy_file(source, target)
-                    copied.append(str(target.as_posix()))
+                copied.extend(
+                    copy_files(
+                        region_dir,
+                        target_region_dir,
+                        "*_quarterly_operations_seed_sweep.csv",
+                    )
+                )
 
     financial_state_target = viewer_output_root / "city_airport_financial_state"
     financial_state_source = variant_dir / "city_airport_financial_state"
@@ -219,18 +238,7 @@ def copy_variant_to_legacy_viewer(
                     copy_files(
                         region_dir,
                         financial_state_target / region_dir.name,
-                    )
-                )
-
-    valuation_target = viewer_output_root / "city_airport_valuation"
-    valuation_source = variant_dir / "city_airport_valuation"
-    if valuation_source.exists():
-        for region_dir in sorted(valuation_source.glob("*")):
-            if region_dir.is_dir():
-                copied.extend(
-                    copy_files(
-                        region_dir,
-                        valuation_target / region_dir.name,
+                        "*_financial_state_seed_sweep.csv",
                     )
                 )
 

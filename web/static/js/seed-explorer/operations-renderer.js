@@ -60,18 +60,109 @@
       });
     }
 
+    function renderCashFlowAnalysis() {
+      const allRows = cashFlowPeriodsAll();
+      const rows = netProfitVisiblePeriods(allRows);
+      const maxStart = Math.max(0, allRows.length - NET_PROFIT_WINDOW_SIZE);
+      el.financialMetricTitle.textContent = "现金流分析";
+      el.financialHeaderRow.closest("table")?.classList.add("cash-flow-table");
+      el.financialHeaderRow.innerHTML = `
+        <th>期间</th>
+        <th>经营现金流</th>
+        <th>投资现金流</th>
+        <th>融资前自由现金流</th>
+        <th>贷款提款</th>
+        <th>本金偿还</th>
+        <th>利息支付</th>
+        <th>现金净变化</th>
+        <th>期末现金</th>
+      `;
+      el.netProfitRangeInput.min = "0";
+      el.netProfitRangeInput.max = String(maxStart);
+      el.netProfitRangeInput.value = String(state.netProfitWindowStart || 0);
+      el.netProfitRangeInput.disabled = maxStart === 0;
+      el.netProfitTicks.style.gridTemplateColumns = allRows.length
+        ? `repeat(${Math.min(allRows.length, NET_PROFIT_WINDOW_SIZE)}, minmax(0, 1fr))`
+        : "1fr";
+      el.netProfitTicks.innerHTML = rows.map((row) => `<span class="financial-tick">${escapeHtml(row.year)}</span>`).join("");
+      if (!allRows.length || !rows.length) {
+        el.financialCashFlowSummary.hidden = true;
+        el.financialCashFlowSummary.innerHTML = "";
+        el.netProfitCaption.textContent = "堆叠柱：经营/投资/融资/利息；线：本期现金净变化（同轴）";
+        el.netProfitChart.innerHTML = `<div class="empty">加载运营后显示现金流构成与本期现金净变化。</div>`;
+        el.netProfitRows.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted)">暂无数据</td></tr>`;
+        el.netProfitWindowLabel.textContent = "年度轴";
+        el.netProfitWindowHint.textContent = "暂无历史";
+        return;
+      }
+      const first = rows[0];
+      const last = rows[rows.length - 1];
+      const scopeLabel = financialScopeLabel(state.financialReportScope);
+      el.financialCashFlowSummary.hidden = false;
+      el.financialCashFlowSummary.innerHTML = [
+        metric("融资前自由现金流", fmtMoney(last.freeCashFlowBeforeFinancing), `${last.label}；经营现金流 + 投资现金流`),
+        metric("净融资现金流", fmtMoney(last.financingCashFlow), `提款 ${fmtMoney(last.loanDrawdown)} / 还本 ${fmtMoney(last.principalRepayment)}`),
+        metric("利息支付", fmtMoney(last.interestPayment), "现金流出以负数显示"),
+        metric("本期现金净变化", fmtMoney(last.cashNetChange), `期末现金 ${fmtMoney(last.endCash)}`),
+      ].join("");
+      el.netProfitCaption.textContent = `${first.label} - ${last.label}；${scopeLabel}；简化经营现金流 = 经营利润 - 现金税；折线与柱形共用金额轴`;
+      el.netProfitWindowLabel.textContent = `${first.label} - ${last.label}`;
+      el.netProfitWindowHint.textContent = maxStart > 0 ? "拖动查看历史年份" : "当前口径历史已全部显示";
+      const styles = getComputedStyle(document.documentElement);
+      renderComboChart(el.netProfitChart, rows, {
+        title: "现金流分析",
+        leftFormat: fmtMoney,
+        stackedBars: [
+          { label: "经营现金流", color: styles.getPropertyValue("--green").trim() || "#35d392", value: (row) => row.operatingCashFlow, format: fmtMoney },
+          { label: "投资现金流", color: styles.getPropertyValue("--amber").trim() || "#f7b84b", value: (row) => row.investingCashFlow, format: fmtMoney },
+          { label: "净融资现金流", color: "#a78bfa", value: (row) => row.financingCashFlow, format: fmtMoney },
+          { label: "利息支付", color: styles.getPropertyValue("--red").trim() || "#fb7185", value: (row) => row.interestPayment, format: fmtMoney },
+        ],
+        line: {
+          label: "本期现金净变化",
+          color: styles.getPropertyValue("--blue").trim() || "#62a8ff",
+          value: (row) => row.cashNetChange,
+          format: fmtMoney,
+          axis: "left",
+        },
+      });
+      el.netProfitRows.innerHTML = rows.slice().reverse().map((row) => `
+        <tr>
+          <td>${escapeHtml(row.label)}</td>
+          <td>${fmtMoney(row.operatingCashFlow)}</td>
+          <td>${fmtMoney(row.investingCashFlow)}</td>
+          <td>${fmtMoney(row.freeCashFlowBeforeFinancing)}</td>
+          <td>${fmtMoney(row.loanDrawdown)}</td>
+          <td>${fmtMoney(row.principalRepayment)}</td>
+          <td>${fmtMoney(row.interestPayment)}</td>
+          <td>${fmtMoney(row.cashNetChange)}</td>
+          <td>${fmtMoney(row.endCash)}</td>
+        </tr>
+      `).join("");
+    }
+
     function renderFinancialAnalysis() {
+      el.financialMetricButtons.forEach((button) => {
+        button.setAttribute("aria-selected", String(button.getAttribute("data-financial-metric") === state.financialMetric));
+      });
+      el.financialScopeSelect.value = state.financialReportScope;
+      if (state.financialMetric === "freeCashFlow") {
+        renderCashFlowAnalysis();
+        return;
+      }
       const metricConfig = financialMetricConfig();
       const allRows = netProfitPeriodsAll();
       const rows = netProfitVisiblePeriods(allRows);
       const maxStart = Math.max(0, allRows.length - NET_PROFIT_WINDOW_SIZE);
-      el.financialMetricButtons.forEach((button) => {
-        button.setAttribute("aria-selected", String(button.getAttribute("data-financial-metric") === state.financialMetric));
-      });
+      el.financialCashFlowSummary.hidden = true;
+      el.financialCashFlowSummary.innerHTML = "";
+      el.financialHeaderRow.closest("table")?.classList.remove("cash-flow-table");
+      el.financialHeaderRow.innerHTML = `
+        <th>期间</th>
+        <th>${escapeHtml(metricConfig.label)}</th>
+        <th>${escapeHtml(metricConfig.growthLabel)}</th>
+      `;
       el.financialMetricTitle.textContent = metricConfig.label;
-      el.financialValueHeader.textContent = metricConfig.label;
-      el.financialGrowthHeader.textContent = metricConfig.growthLabel;
-      el.financialScopeSelect.value = state.financialReportScope;
       el.netProfitRangeInput.min = "0";
       el.netProfitRangeInput.max = String(maxStart);
       el.netProfitRangeInput.value = String(state.netProfitWindowStart || 0);
@@ -130,23 +221,7 @@
         el.opsTitle.textContent = "北京运营模拟";
         el.opsCaption.textContent = "使用当前 seed 的北京季度经营和财务输出；第一版先按季度推进查看报表。";
         el.opsQuarterCaption.textContent = "尚未加载";
-        const metricConfig = financialMetricConfig();
-        el.financialMetricTitle.textContent = metricConfig.label;
-        el.financialValueHeader.textContent = metricConfig.label;
-        el.financialGrowthHeader.textContent = metricConfig.growthLabel;
-        el.financialMetricButtons.forEach((button) => {
-          button.setAttribute("aria-selected", String(button.getAttribute("data-financial-metric") === state.financialMetric));
-        });
-        el.netProfitCaption.textContent = `柱：${metricConfig.label} / 线：${metricConfig.growthLabel}`;
-        el.netProfitChart.innerHTML = `<div class="empty">加载运营后显示${metricConfig.label}与${metricConfig.growthLabel}。</div>`;
-        el.netProfitRangeInput.min = "0";
-        el.netProfitRangeInput.max = "0";
-        el.netProfitRangeInput.value = "0";
-        el.netProfitRangeInput.disabled = true;
-        el.netProfitTicks.innerHTML = "";
-        el.netProfitWindowLabel.textContent = "年度轴";
-        el.netProfitWindowHint.textContent = "暂无历史";
-        el.netProfitRows.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--muted)">暂无数据</td></tr>`;
+        renderFinancialAnalysis();
         el.opsSummaryGrid.innerHTML = "";
         renderTrafficCapacityAnalysis();
         renderServiceQualityAnalysis();
@@ -174,6 +249,7 @@
       const capacity = quarter.capacity;
       const operations = quarter.operations;
       const finance = quarter.finance;
+      const cashFlow = aggregateCashFlowPeriod([quarter]);
       const projects = quarter.projects;
       const playerStartIndex = state.operations.playerStartIndex ?? 0;
       const playerQuarterIndex = index - playerStartIndex + 1;
@@ -192,7 +268,7 @@
       el.opsSummaryGrid.innerHTML = [
         metric("本季承接客流", fmtPassenger(demand.quarterServed), `瓶颈 ${bottleneckLabel(demand.bindingBottleneck)}`),
         metric("经营利润", fmtMoney(operations.operatingProfit), `利润率 ${fmtPct(operations.operatingMarginPct)}`),
-        metric("期末现金", fmtMoney(finance.endCash), `自由现金流 ${fmtMoney(finance.freeCashFlowBeforeFinancing)}`),
+        metric("期末现金", fmtMoney(finance.endCash), `本期净变化 ${fmtMoney(cashFlow.cashNetChange)}；融资前 ${fmtMoney(cashFlow.freeCashFlowBeforeFinancing)}`),
         metric("资产负债率", fmtPct(finance.liabilityRatioPct), `负债 ${fmtMoney(finance.totalLiabilities)}`),
       ].join("");
       renderFinancialAnalysis();
@@ -229,6 +305,11 @@
         reportBlock("财务", [
           reportRow("期初现金", fmtMoney(finance.beginCash)),
           reportRow("期末现金", fmtMoney(finance.endCash)),
+          reportRow("经营现金流（简化）", fmtMoney(cashFlow.operatingCashFlow)),
+          reportRow("投资现金流", fmtMoney(cashFlow.investingCashFlow)),
+          reportRow("融资前自由现金流", fmtMoney(cashFlow.freeCashFlowBeforeFinancing)),
+          reportRow("净融资现金流", fmtMoney(cashFlow.financingCashFlow)),
+          reportRow("本期现金净变化", fmtMoney(cashFlow.cashNetChange)),
           reportRow("折旧", fmtMoney(finance.accountingDepreciation)),
           reportRow("利息", fmtMoney(finance.interestExpense)),
           reportRow("现金税", fmtMoney(finance.cashTaxPaid)),

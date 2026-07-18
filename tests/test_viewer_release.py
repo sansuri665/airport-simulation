@@ -181,7 +181,7 @@ class AtomicViewerReleaseTests(unittest.TestCase):
                 forecast_content,
             )
 
-            self.assertTrue(
+            self.assertFalse(
                 (
                     viewer_root
                     / "city_airport_quarterly_operations"

@@ -920,6 +920,12 @@
     .financial-toolbar .financial-metric-tabs {
       margin-bottom: 0;
     }
+    .financial-cash-flow-summary {
+      margin-bottom: 16px;
+    }
+    .financial-cash-flow-summary[hidden] {
+      display: none;
+    }
     .financial-scope {
       min-width: 136px;
     }
@@ -1137,6 +1143,9 @@
       border-collapse: collapse;
       min-width: 780px;
       font-size: 13px;
+    }
+    .cash-flow-table {
+      min-width: 1120px;
     }
     th, td {
       padding: 10px 12px;

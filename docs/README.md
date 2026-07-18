@@ -105,7 +105,7 @@
 | 文档 | 说明 |
 | --- | --- |
 | [Roadmap.md](plans/Roadmap.md) | 未来工作优先级和计划索引；正式说明不混入待办事项 |
-| [Refactoring_Working_Draft.md](plans/Refactoring_Working_Draft.md) | Preview2 的提交边界、已完成技术债和未合并说明 |
+| [Refactoring_Working_Draft.md](plans/Refactoring_Working_Draft.md) | v0719 Preview 的提交边界、已完成技术债和未合并说明 |
 
 ## 当前事实由什么决定
 

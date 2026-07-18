@@ -159,7 +159,7 @@
                 <button type="button" data-financial-metric="debtService" aria-selected="false">债务服务</button>
                 <button type="button" data-financial-metric="liabilityRatio" aria-selected="false">资产负债率</button>
                 <button type="button" data-financial-metric="capexOutlay" aria-selected="false">资本开支</button>
-                <button type="button" data-financial-metric="freeCashFlow" aria-selected="false">自由现金流</button>
+                <button type="button" data-financial-metric="freeCashFlow" aria-selected="false">现金流分析</button>
                 <button type="button" data-financial-metric="roe" aria-selected="false">ROE</button>
                 <button type="button" data-financial-metric="roa" aria-selected="false">ROA</button>
               </div>
@@ -173,6 +173,7 @@
                 </select>
               </label>
             </div>
+            <div class="summary-grid financial-cash-flow-summary" id="financialCashFlowSummary" hidden></div>
             <section class="chart-panel">
               <div class="chart-head">
                 <h2 id="financialMetricTitle">净利润</h2>
@@ -191,10 +192,10 @@
             <section class="detail-table">
               <table>
                 <thead>
-                  <tr>
+                  <tr id="financialHeaderRow">
                     <th>期间</th>
-                    <th id="financialValueHeader">净利润</th>
-                    <th id="financialGrowthHeader">同比增幅</th>
+                    <th>净利润</th>
+                    <th>同比增幅</th>
                   </tr>
                 </thead>
                 <tbody id="netProfitRows">

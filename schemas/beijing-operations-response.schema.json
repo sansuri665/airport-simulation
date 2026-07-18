@@ -79,7 +79,9 @@
           "type": "object",
           "required": [
             "beginCash", "endCash", "totalAssets", "totalLiabilities", "accountingProfit",
-            "freeCashFlowBeforeFinancing", "grossDebt", "netDebt", "totalEquity", "liabilityRatioPct"
+            "operatingCashFlow", "investingCashFlow", "freeCashFlowBeforeFinancing",
+            "financingCashFlow", "cashNetChange", "grossDebt", "netDebt", "totalEquity",
+            "liabilityRatioPct"
           ],
           "additionalProperties": true
         },

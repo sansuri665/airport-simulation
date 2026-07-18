@@ -1,6 +1,6 @@
 {
   "snapshotSchemaVersion": "seed-explorer-api-snapshot-v1",
-  "apiSchemaVersion": "seed-explorer-api-v1",
+  "apiSchemaVersion": "seed-explorer-api-v1.1",
   "modelVersion": "airport-model-v0.8",
   "outputSchemaVersion": "airport-model-output-v1",
   "schemaCatalog": "/api/schema",
@@ -45,19 +45,19 @@
     }
   },
   "beijingOperations": {
-    "sha256": "b8cbeff07ba201896497065ecd24806ac11203ae0ecac88fe5ae6cdcb9611b1a",
+    "sha256": "1b2bed4be8c0d3004b685b910ad1813a4a4463035b64a06fa1472765509725d5",
     "periodCount": 52,
     "playerStartIndex": 20,
     "quarterKeys": [
       "index", "year", "quarter", "label", "gamePhase", "playerDecisionEnabled",
       "demand", "capacity", "operations", "finance", "projects", "warnings"
     ],
-    "nestedKeysSha256": "369e5c734b44d460ea2fea2d645720c2ea847d1b232ced4789cf1563c55c6d4e",
+    "nestedKeysSha256": "26b6f63ce6dfdd2250c937218cee794e9518fb511f847a9bf6bcd515c5503fa6",
     "nestedKeyCounts": {
       "demand": 11,
       "capacity": 15,
       "operations": 62,
-      "finance": 46,
+      "finance": 49,
       "projects": 41
     },
     "firstQuarter": {

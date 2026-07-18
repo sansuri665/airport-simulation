@@ -214,6 +214,47 @@ class BeijingQuarterContractTests(unittest.TestCase):
 
         self.assertEqual(2.25, quarter["finance"]["capexOutlay"])
 
+    def test_cash_flow_summary_fields_reconcile_to_cash_change(self) -> None:
+        quarter = beijing_operations.summarize_beijing_quarter(
+            0,
+            {
+                "year": "2030",
+                "quarter": "Q1",
+                "quarter_operating_profit_million_cny": "120",
+            },
+            {
+                "period_begin_cash_million_cny": "100",
+                "period_end_cash_million_cny": "146",
+                "period_cash_tax_paid_million_cny": "20",
+                "period_total_capex_outlay_million_cny": "25",
+                "period_rebuild_demolition_expense_million_cny": "5",
+                "period_free_cash_flow_before_financing_million_cny": "70",
+                "period_loan_drawdown_million_cny": "15",
+                "period_principal_repayment_million_cny": "4",
+                "period_financing_cash_flow_million_cny": "11",
+                "period_interest_expense_million_cny": "35",
+            },
+            as_float=local_ui.as_float,
+            as_bool=local_ui.as_bool,
+            as_text=local_ui.as_text,
+            rounded=local_ui.rounded,
+            non_empty_ids=beijing_operations.non_empty_ids,
+            quarter_warnings=lambda ops, finance: [],
+        )
+
+        finance = quarter["finance"]
+        self.assertEqual(100.0, finance["operatingCashFlow"])
+        self.assertEqual(-30.0, finance["investingCashFlow"])
+        self.assertEqual(70.0, finance["freeCashFlowBeforeFinancing"])
+        self.assertEqual(11.0, finance["financingCashFlow"])
+        self.assertEqual(46.0, finance["cashNetChange"])
+        self.assertEqual(
+            finance["cashNetChange"],
+            finance["freeCashFlowBeforeFinancing"]
+            + finance["financingCashFlow"]
+            - finance["interestExpense"],
+        )
+
 
 class BeijingAggregationTests(unittest.TestCase):
     def test_aggregate_pairs_finance_by_quarter_and_defaults_missing_rows(self) -> None:

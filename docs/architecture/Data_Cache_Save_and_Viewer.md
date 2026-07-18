@@ -159,7 +159,9 @@ Manifest 记录 release、Run、变体、Seed、起始年、年数、模型与�
   -> 若 Manifest 不存在，再读取 canonical 的当前索引
 ```
 
-canonical 目录包括 `output/global_macro/`、`output/city_airport_quarterly_operations/`、`output/city_airport_potential_passenger_forecast/` 等。它们是当前发布的兼容指针，不代表又有一套正式模型。有效客流预测的 canonical 入口也是轻量索引；不再生成或读取完整预测 JS。
+canonical 目录包括 `output/global_macro/`、`output/city_airport_quarterly_operations/`、`output/city_airport_potential_passenger_forecast/` 等。它们不是第二套正式模型。发布器只复制两类有消费者的文件：全球/预测 Viewer 在无 Manifest 时需要的索引、分块与主数据脚本，以及独立模型命令会继续读取的下游 CSV。Release 已经取代的城市、经营、财务与估值 Viewer 脚本，摘要 JSON、诊断副本、SVG 和完整预测 CSV 不再复制到 canonical。
+
+城市市场 Viewer 不使用 canonical；经营、财务和估值 canonical 只保留独立命令串联需要的 CSV。有效客流预测的 canonical 入口仍是轻量玩家/审计索引和报告分块，不生成完整预测 JS。发布器内的白名单是兼容协议的一部分，新增 canonical 文件必须先指出真实消费者并补契约测试。
 
 城市市场 Viewer 不使用跨 release 回退。当前 release 在索引中保存 47 城各年的轻量排名点，只在用户选择城市时读取 `city_market_viewer_chunks/c_<market_id>.json` 的完整客群与供给状态。页面不生成 47 城合计。
 
