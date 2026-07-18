@@ -359,23 +359,11 @@ def parse_run_id(run_id: str) -> tuple[int | None, int | None]:
 
 
 def save_repository() -> repositories.SaveRepository:
-    return repositories.SaveRepository(ROOT_DIR, RUN_ROOT, SAVE_ROOT, SIMULATION_DIR_NAME)
-
-
-def legacy_sim_save_path(seed: int, years: int) -> Path:
-    return save_repository().legacy_path(seed, years)
+    return repositories.SaveRepository(ROOT_DIR, SAVE_ROOT)
 
 
 def sim_save_path(seed: int, years: int) -> Path:
     return save_repository().save_path(seed, years)
-
-
-def migrate_legacy_sim_save(seed: int, years: int) -> Path | None:
-    return save_repository().migrate_legacy(seed, years)
-
-
-def migrate_all_legacy_sim_saves() -> int:
-    return save_repository().migrate_all_legacy()
 
 
 def sim_save_summary(seed: int, years: int, payload: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -501,8 +489,6 @@ def prune_cached_runs() -> None:
         current_fingerprint=current_cache_fingerprint,
         load_cached=load_cached,
         try_lock_for_run=try_lock_for_run,
-        parse_run_id=parse_run_id,
-        migrate_legacy_sim_save=migrate_legacy_sim_save,
         ensure_inside=ensure_inside,
     )
 
@@ -516,7 +502,6 @@ def run_orchestrator(seed: int, years: int, run_dir: Path, force: bool) -> tuple
         root_dir=ROOT_DIR,
         run_root=RUN_ROOT,
         orchestrator=ORCHESTRATOR,
-        migrate_legacy_save=migrate_legacy_sim_save,
         ensure_inside=ensure_inside,
         structured_log=structured_log,
         executable=sys.executable,
@@ -952,9 +937,6 @@ def main() -> None:
     ]
     if missing_schemas:
         raise FileNotFoundError(f"missing API Schema files: {', '.join(missing_schemas)}")
-    migrated_saves = migrate_all_legacy_sim_saves()
-    if migrated_saves:
-        print(f"Migrated {migrated_saves} legacy dynamic-test save(s) to {SAVE_ROOT.relative_to(ROOT_DIR).as_posix()}.")
     server = ThreadingHTTPServer((args.host, args.port), SeedExplorerHandler)
     server.allow_non_loopback = bool(args.allow_non_loopback)
     base_url = f"http://{args.host}:{args.port}"

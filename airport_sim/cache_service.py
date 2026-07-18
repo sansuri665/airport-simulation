@@ -17,7 +17,6 @@ from .paths import OUTPUT_ROOT, ROOT_DIR, RUN_ROOT, SAVE_ROOT, VIEWER_RELEASE_RO
 CACHE_INVENTORY_SCHEMA_VERSION = "airport-cache-inventory-v1"
 CACHE_POLICY_SCHEMA_VERSION = "airport-cache-policy-v1"
 CACHE_POLICY_PATH = SAVE_ROOT.parent / "cache_policy.json"
-LEGACY_OUTPUT_ROOT = ROOT_DIR / "airport" / "output"
 DEFAULT_MAX_CACHED_RUNS = 2
 DEFAULT_MAX_VIEWER_RELEASES = 2
 SERVICE_HEALTH_URL = "http://127.0.0.1:8776/api/health"
@@ -444,16 +443,7 @@ def list_cache() -> dict[str, Any]:
                     )
                 )
 
-    legacy_status = "review" if LEGACY_OUTPUT_ROOT.exists() else "absent"
-    entries.append(
-        _entry(
-            LEGACY_OUTPUT_ROOT,
-            "legacy_nested_output",
-            legacy_status,
-            "one-time manifest audit required before removal" if LEGACY_OUTPUT_ROOT.exists() else "legacy path already removed",
-        )
-    )
-    total_bytes = sum(item["bytes"] for item in entries if item["category"] != "legacy_nested_output")
+    total_bytes = sum(item["bytes"] for item in entries)
     return {
         "ok": True,
         "schemaVersion": CACHE_INVENTORY_SCHEMA_VERSION,

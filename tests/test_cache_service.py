@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from contextlib import ExitStack, contextmanager
 from pathlib import Path
 from unittest import mock
 
@@ -11,28 +12,31 @@ from airport_sim import cache_service
 
 
 class CacheServiceTests(unittest.TestCase):
+    @contextmanager
     def roots(self, temporary_root: Path):
         output_root = temporary_root / "output"
         run_root = output_root / "seed_explorer_runs"
         save_root = temporary_root / "saves" / "seed_explorer"
         release_root = output_root / "viewer_releases"
-        return (
+        patches = (
             mock.patch.object(cache_service, "ROOT_DIR", temporary_root),
             mock.patch.object(cache_service, "OUTPUT_ROOT", output_root),
             mock.patch.object(cache_service, "RUN_ROOT", run_root),
             mock.patch.object(cache_service, "SAVE_ROOT", save_root),
             mock.patch.object(cache_service, "VIEWER_RELEASE_ROOT", release_root),
             mock.patch.object(cache_service, "CACHE_POLICY_PATH", save_root.parent / "cache_policy.json"),
-            mock.patch.object(cache_service, "LEGACY_OUTPUT_ROOT", temporary_root / "airport" / "output"),
             mock.patch.object(cache_service, "_service_state", return_value={"port": 8776, "status": "stopped"}),
             mock.patch.object(cache_service, "_current_seed_cache_fingerprint", return_value=("test-v1", "fixed")),
         )
+        with ExitStack() as stack:
+            for patcher in patches:
+                stack.enter_context(patcher)
+            yield
 
     def test_plan_keeps_newest_two_and_never_targets_saves(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
-            patches = self.roots(root)
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+            with self.roots(root):
                 for index in range(4):
                     run = cache_service.RUN_ROOT / f"seed_{index}_years_60"
                     run.mkdir(parents=True)
@@ -62,8 +66,7 @@ class CacheServiceTests(unittest.TestCase):
     def test_pin_survives_plan_and_policy_is_outside_model_config(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
-            patches = self.roots(root)
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+            with self.roots(root):
                 run = cache_service.RUN_ROOT / "seed_7_years_60"
                 run.mkdir(parents=True)
                 result = cache_service.pin_cache(run.name)
@@ -76,8 +79,7 @@ class CacheServiceTests(unittest.TestCase):
     def test_retention_is_persisted_outside_output(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
-            patches = self.roots(root)
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+            with self.roots(root):
                 result = cache_service.set_retention(3)
                 self.assertEqual(3, result["maxCachedRuns"])
                 self.assertEqual(3, cache_service.load_policy()["maxCachedRuns"])
@@ -89,8 +91,7 @@ class CacheServiceTests(unittest.TestCase):
     def test_viewer_retention_defaults_to_two_and_is_persisted_outside_output(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
-            patches = self.roots(root)
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+            with self.roots(root):
                 self.assertEqual(2, cache_service.load_policy()["maxViewerReleases"])
                 result = cache_service.set_viewer_retention(3)
                 self.assertEqual(3, result["maxViewerReleases"])
@@ -105,8 +106,7 @@ class CacheServiceTests(unittest.TestCase):
     def test_plan_preserves_current_and_newest_viewer_backup(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
-            patches = self.roots(root)
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+            with self.roots(root):
                 releases = {
                     name: cache_service.VIEWER_RELEASE_ROOT / name
                     for name in ("current", "backup_new", "backup_old")
@@ -141,8 +141,7 @@ class CacheServiceTests(unittest.TestCase):
     def test_viewer_backup_selection_is_deterministic_and_staging_does_not_consume_a_slot(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
-            patches = self.roots(root)
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+            with self.roots(root):
                 for name in ("current", "backup_a", "backup_b", ".staging_publish"):
                     release = cache_service.VIEWER_RELEASE_ROOT / name
                     release.mkdir(parents=True)
@@ -166,8 +165,7 @@ class CacheServiceTests(unittest.TestCase):
     def test_cleanup_refuses_while_8776_is_active(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
-            patches = self.roots(root)
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6]:
+            with self.roots(root):
                 candidate = cache_service.OUTPUT_ROOT / "old_smoke_output"
                 candidate.mkdir(parents=True)
                 with mock.patch.object(
@@ -182,8 +180,7 @@ class CacheServiceTests(unittest.TestCase):
     def test_confirmed_cleanup_stays_inside_output_and_preserves_current_release(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
-            patches = self.roots(root)
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+            with self.roots(root):
                 current_release = cache_service.VIEWER_RELEASE_ROOT / "current"
                 backup_release = cache_service.VIEWER_RELEASE_ROOT / "backup"
                 old_release = cache_service.VIEWER_RELEASE_ROOT / "old"
@@ -226,8 +223,7 @@ class CacheServiceTests(unittest.TestCase):
     def test_plan_is_read_only(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
-            patches = self.roots(root)
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+            with self.roots(root):
                 run = cache_service.RUN_ROOT / "seed_1_years_60"
                 run.mkdir(parents=True)
                 cache_file = run / "seed_explorer_city_market_cache.json"
@@ -253,8 +249,7 @@ class CacheServiceTests(unittest.TestCase):
     def test_invalid_manifest_fails_closed_for_runs_and_releases(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
-            patches = self.roots(root)
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+            with self.roots(root):
                 macro_run = cache_service.OUTPUT_ROOT / "macro_runs" / "old_validation"
                 release = cache_service.VIEWER_RELEASE_ROOT / "old"
                 macro_run.mkdir(parents=True)
@@ -277,8 +272,7 @@ class CacheServiceTests(unittest.TestCase):
     def test_cleanup_reports_one_failure_and_continues(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
-            patches = self.roots(root)
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+            with self.roots(root):
                 first = cache_service.OUTPUT_ROOT / "first_test"
                 second = cache_service.OUTPUT_ROOT / "second_test"
                 first.mkdir(parents=True)
@@ -300,8 +294,7 @@ class CacheServiceTests(unittest.TestCase):
     def test_cleanup_refreshes_run_index_after_macro_run_removal(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
-            patches = self.roots(root)
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+            with self.roots(root):
                 macro_run = cache_service.OUTPUT_ROOT / "macro_runs" / "old_validation"
                 macro_run.mkdir(parents=True)
                 current_release = cache_service.VIEWER_RELEASE_ROOT / "current"

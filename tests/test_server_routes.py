@@ -19,21 +19,13 @@ class ServerRouteContractTests(unittest.TestCase):
         actual = {(entry.method, entry.path) for entry in routes.route_contract()}
         expected = {
             ("GET", "/"),
-            ("GET", "/airport_home.html"),
             ("GET", "/seed-explorer"),
-            ("GET", "/seed_explorer_viewer.html"),
             ("GET", "/global-gdp"),
-            ("GET", "/global_gdp_viewer.html"),
             ("GET", "/city-markets"),
-            ("GET", "/city_market_viewer.html"),
             ("GET", "/beijing-forecast"),
-            ("GET", "/beijing_potential_passenger_forecast_viewer.html"),
             ("GET", "/seed-explorer/"),
             ("GET", "/global-gdp/"),
             ("GET", "/city-markets/"),
-            ("GET", "/beijing-operations"),
-            ("GET", "/beijing-operations/"),
-            ("GET", "/beijing_airport_operations_viewer.html"),
             ("GET", "/beijing-forecast/"),
             ("GET", "/output/<path>"),
             ("GET", "/schemas/<name>.schema.json"),
@@ -46,14 +38,12 @@ class ServerRouteContractTests(unittest.TestCase):
             ("GET", "/api/jobs/<jobId>"),
             ("GET", "/api/schema"),
             ("GET", "/api/cached-runs"),
-            ("GET", "/api/sim-save-slots"),
             ("POST", "/api/run"),
             ("POST", "/api/run-job"),
             ("POST", "/api/beijing-operations"),
             ("POST", "/api/player-simulation"),
             ("POST", "/api/forecast-candidate"),
             ("POST", "/api/sim-save"),
-            ("POST", "/api/sim-save-slot"),
         }
 
         self.assertEqual(expected, actual)

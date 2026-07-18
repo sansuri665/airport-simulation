@@ -236,7 +236,6 @@ class RunServiceSequenceTests(unittest.TestCase):
                 root_dir=root,
                 run_root=run_root,
                 orchestrator=root / "macro.py",
-                migrate_legacy_save=lambda seed, years: None,
                 ensure_inside=lambda expected_root, path: path,
                 structured_log=lambda event, **fields: logs.append(event),
                 executable="python-test",

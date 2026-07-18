@@ -66,7 +66,7 @@
 | 文档 | 说明 |
 | --- | --- |
 | [System_Overview.md](architecture/System_Overview.md) | 代码目录、模块职责和调用关系 |
-| [Runtime_and_Web.md](architecture/Runtime_and_Web.md) | 8776 服务、页面路由、前后端和兼容入口 |
+| [Runtime_and_Web.md](architecture/Runtime_and_Web.md) | 8776 服务、正式页面路由和前后端边界 |
 | [Data_Cache_Save_and_Viewer.md](architecture/Data_Cache_Save_and_Viewer.md) | 输出生命周期、原子写入、缓存、存档和 Viewer 发布 |
 
 ### `models/`
@@ -105,13 +105,19 @@
 | 文档 | 说明 |
 | --- | --- |
 | [Roadmap.md](plans/Roadmap.md) | 未来工作优先级和计划索引；正式说明不混入待办事项 |
-| [Refactoring_Working_Draft.md](plans/Refactoring_Working_Draft.md) | v0719 Preview 的提交边界、已完成技术债和未合并说明 |
+
+### `releases/`
+
+| 文档 | 说明 |
+| --- | --- |
+| [v0719-preview2.md](releases/v0719-preview2.md) | v0719 Preview2 的兼容边界退役、API v2、Git 分支和验收说明 |
+| [v0719-preview.md](releases/v0719-preview.md) | v0719 Preview 的提交边界、已完成技术债和未合并说明 |
 
 ## 当前事实由什么决定
 
 | 事实类型 | 首要来源 |
 | --- | --- |
-| 命令和运行入口 | `airport_sim/`、`airport_ui/`、根目录 BAT |
+| 命令和运行入口 | `airport_sim/` 与根目录 BAT |
 | 模型计算 | `macro_layers/` |
 | 参数与版本 | `config/` |
 | JSON 字段和兼容约束 | `schemas/` 与 API 实现 |

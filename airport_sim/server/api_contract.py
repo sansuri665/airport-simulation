@@ -31,7 +31,6 @@ SCHEMA_FILES = {
     "cachedRuns": "cached-runs-response.schema.json",
     "simulationSave": "simulation-save.schema.json",
     "simSave": "sim-save-response.schema.json",
-    "simSaveSlots": "sim-save-slots-response.schema.json",
 }
 ENDPOINT_SCHEMAS = {
     "GET /api/health": "/schemas/health-response.schema.json",
@@ -42,13 +41,11 @@ ENDPOINT_SCHEMAS = {
     "POST /api/run-job": "/schemas/background-job-response.schema.json",
     "GET /api/jobs/<jobId>": "/schemas/background-job-response.schema.json",
     "GET /api/cached-runs": "/schemas/cached-runs-response.schema.json",
-    "GET /api/sim-save-slots": "/schemas/sim-save-slots-response.schema.json",
     "POST /api/run": "/schemas/seed-explorer-run-response.schema.json",
     "POST /api/beijing-operations": "/schemas/beijing-operations-response.schema.json",
     "POST /api/player-simulation": "/schemas/player-simulation-response.schema.json",
     "POST /api/forecast-candidate": "/schemas/forecast-candidate-response.schema.json",
     "POST /api/sim-save": "/schemas/sim-save-response.schema.json",
-    "POST /api/sim-save-slot": "/schemas/sim-save-response.schema.json",
     "error": "/schemas/api-error-response.schema.json",
 }
 

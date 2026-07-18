@@ -12,17 +12,16 @@ dependencies = []
 
 [project.scripts]
 airport-sim = "airport_sim.cli:main"
-airport-ui = "airport_ui.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["airport_sim*", "airport_ui*", "macro_layers*", "dynamic_tests*"]
+include = ["airport_sim*", "macro_layers*"]
 namespaces = true
 
 [tool.ruff]
 target-version = "py313"
 line-length = 120
-extend-exclude = ["output", "saves", "airport"]
+extend-exclude = ["output", "saves"]
 
 [tool.ruff.lint]
 # Start with correctness-only rules. Broader style normalization can be enabled
@@ -31,5 +30,5 @@ select = ["E9", "F63", "F7", "F82"]
 
 [tool.coverage.run]
 branch = true
-source = ["airport_sim", "macro_layers", "dynamic_tests"]
+source = ["airport_sim", "macro_layers"]
 omit = ["output/*", "saves/*"]

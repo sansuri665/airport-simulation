@@ -4,6 +4,6 @@
   "orchestrator_version": "macro-run-orchestrator-v0.6",
   "output_schema_version": "airport-model-output-v1",
   "run_manifest_schema_version": "airport-macro-run-manifest-v1",
-  "seed_explorer_api_schema_version": "seed-explorer-api-v1.1",
+  "seed_explorer_api_schema_version": "seed-explorer-api-v2",
   "minimum_python_version": "3.13"
 }

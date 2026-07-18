@@ -32,7 +32,7 @@ JSON 响应会附加当前协议与运行环境：
 
 ```json
 {
-  "apiSchemaVersion": "seed-explorer-api-v1.1",
+  "apiSchemaVersion": "seed-explorer-api-v2",
   "modelVersion": "airport-model-v0.8",
   "outputSchemaVersion": "airport-model-output-v1",
   "pythonVersion": "3.13.x",
@@ -53,7 +53,6 @@ JSON 响应会附加当前协议与运行环境：
 | `GET /api/jobs/<jobId>` | 后台任务状态与完成结果 | `background-job-response.schema.json` |
 | `GET /api/schema` | Schema 目录及关键 API 映射 | 目录自身带版本 |
 | `GET /api/cached-runs` | Seed 缓存清单与保留信息 | `cached-runs-response.schema.json` |
-| `GET /api/sim-save-slots` | 已弃用的多槽位兼容响应 | `sim-save-slots-response.schema.json`；始终提示使用 `/api/sim-save` |
 
 后台 Job 状态为 `queued`、`running`、`complete` 或 `failed`。相同 Seed、年数和 `force` 语义的活动任务会复用同一个 Job；普通请求和强制重算不会错误去重。队列与运行中任务合计最多 16 个，执行 worker 为 2。
 
@@ -135,7 +134,7 @@ POST /api/sim-save
 - `save`：写入当前季度和玩家行动；
 - `clear`：清除当前 Seed 的单一存档。
 
-`POST /api/sim-save-slot` 是旧名称兼容入口，使用同一处理逻辑和 `sim-save-response.schema.json`。`status` 在没有存档时保留 `save: null`，`clear` 响应不含 `save`；Schema 有意描述这两个历史形态，不在协议补齐时改写响应。实际写入的 `seed-explorer-simulation-save-v0.3` 对象由 `simulation-save.schema.json` 固定字段和类型。
+`status` 在没有存档时返回 `save: null`，`clear` 响应不含 `save`；两种当前响应形态都由 `sim-save-response.schema.json` 描述。实际写入的 `seed-explorer-simulation-save-v0.3` 对象由 `simulation-save.schema.json` 固定字段和类型。
 
 ### 4.5 开发审计候选报告
 
@@ -185,7 +184,6 @@ POST /api/forecast-candidate
 - `player-simulation-response.schema.json`
 - `simulation-save.schema.json`
 - `sim-save-response.schema.json`
-- `sim-save-slots-response.schema.json`
 - `forecast-candidate-catalog-response.schema.json`
 - `forecast-candidate-response.schema.json`
 

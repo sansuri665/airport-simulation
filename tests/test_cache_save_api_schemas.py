@@ -4,6 +4,7 @@ import json
 import tempfile
 import threading
 import unittest
+import urllib.error
 import urllib.request
 from http.server import ThreadingHTTPServer
 from pathlib import Path
@@ -133,12 +134,11 @@ class CacheSaveApiSchemaTests(unittest.TestCase):
             self.assertEqual(200, response.status)
             return json.loads(response.read().decode("utf-8"))
 
-    def test_catalog_registers_cache_save_schemas_and_both_post_aliases(self) -> None:
+    def test_catalog_registers_current_cache_and_save_schemas(self) -> None:
         expected_schemas = {
             "cachedRuns": "cached-runs-response.schema.json",
             "simulationSave": "simulation-save.schema.json",
             "simSave": "sim-save-response.schema.json",
-            "simSaveSlots": "sim-save-slots-response.schema.json",
         }
         for schema_id, filename in expected_schemas.items():
             self.assertEqual(filename, api_contract.SCHEMA_FILES[schema_id])
@@ -146,9 +146,7 @@ class CacheSaveApiSchemaTests(unittest.TestCase):
 
         expected_endpoints = {
             "GET /api/cached-runs": "/schemas/cached-runs-response.schema.json",
-            "GET /api/sim-save-slots": "/schemas/sim-save-slots-response.schema.json",
             "POST /api/sim-save": "/schemas/sim-save-response.schema.json",
-            "POST /api/sim-save-slot": "/schemas/sim-save-response.schema.json",
         }
         for endpoint, schema_url in expected_endpoints.items():
             self.assertEqual(schema_url, api_contract.ENDPOINT_SCHEMAS[endpoint])
@@ -232,7 +230,7 @@ class CacheSaveApiSchemaTests(unittest.TestCase):
 
         validate_named_schema(payload, "cached-runs-response.schema.json", self.registry)
 
-    def test_real_sim_save_routes_cover_status_save_load_clear_and_alias(self) -> None:
+    def test_real_sim_save_route_covers_status_save_load_and_clear(self) -> None:
         saved = simulation_save()
         occupied = save_summary(occupied=True)
         empty = save_summary(occupied=False)
@@ -250,8 +248,8 @@ class CacheSaveApiSchemaTests(unittest.TestCase):
         ):
             responses.append(self.post_json("/api/sim-save", {"action": "status", "seed": 7, "years": 12}))
             responses.append(self.post_json("/api/sim-save", {"action": "save", "seed": 7, "years": 12}))
-            responses.append(self.post_json("/api/sim-save-slot", {"action": "load", "seed": 7, "years": 12}))
-            responses.append(self.post_json("/api/sim-save-slot", {"action": "clear", "seed": 7, "years": 12}))
+            responses.append(self.post_json("/api/sim-save", {"action": "load", "seed": 7, "years": 12}))
+            responses.append(self.post_json("/api/sim-save", {"action": "clear", "seed": 7, "years": 12}))
 
         for payload in responses:
             validate_named_schema(payload, "sim-save-response.schema.json", self.registry)
@@ -259,12 +257,20 @@ class CacheSaveApiSchemaTests(unittest.TestCase):
         save.assert_called_once()
         clear.assert_called_once_with(7, 12)
 
-    def test_real_deprecated_slots_route_matches_empty_slots_schema(self) -> None:
-        payload = self.get_json("/api/sim-save-slots")
+    def test_retired_save_routes_return_not_found(self) -> None:
+        with self.assertRaises(urllib.error.HTTPError) as get_context:
+            urllib.request.urlopen(f"{self.base_url}/api/sim-save-slots", timeout=5)
+        self.assertEqual(404, get_context.exception.code)
 
-        validate_named_schema(payload, "sim-save-slots-response.schema.json", self.registry)
-        self.assertTrue(payload["deprecated"])
-        self.assertEqual([], payload["slots"])
+        request = urllib.request.Request(
+            f"{self.base_url}/api/sim-save-slot",
+            data=b'{}',
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with self.assertRaises(urllib.error.HTTPError) as post_context:
+            urllib.request.urlopen(request, timeout=5)
+        self.assertEqual(404, post_context.exception.code)
 
     def test_schemas_reject_missing_contract_fields_and_wrong_types(self) -> None:
         invalid_cache = local_ui.api_envelope(
@@ -287,16 +293,11 @@ class CacheSaveApiSchemaTests(unittest.TestCase):
                 "summary": save_summary(occupied=True),
             }
         )
-        invalid_slots = local_ui.api_envelope(
-            {"ok": True, "deprecated": True, "message": "legacy", "slots": [{}]}
-        )
-
         cases = (
             (invalid_cache, "cached-runs-response.schema.json"),
             (invalid_save, "simulation-save.schema.json"),
             (invalid_response, "sim-save-response.schema.json"),
             (invalid_nested_response, "sim-save-response.schema.json"),
-            (invalid_slots, "sim-save-slots-response.schema.json"),
         )
         for payload, schema_name in cases:
             with self.subTest(schema=schema_name):

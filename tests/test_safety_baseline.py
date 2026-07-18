@@ -289,10 +289,6 @@ class RuntimeSafetyTests(unittest.TestCase):
         }
         self.assertTrue(expected)
         self.assertTrue(expected.issubset(dependencies))
-        self.assertNotIn(
-            (ROOT_DIR / "dynamic_tests" / "seed_explorer" / "seed_explorer_server.py").resolve(),
-            dependencies,
-        )
 
     def test_cached_run_listing_computes_fingerprint_once(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
@@ -324,26 +320,6 @@ class RuntimeSafetyTests(unittest.TestCase):
         self.assertEqual(3, len(entries))
         self.assertTrue(all(entry["cacheStatus"] == "valid" for entry in entries))
         current_fingerprint.assert_called_once_with()
-
-    def test_legacy_save_is_migrated_outside_cache(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_dir:
-            temporary_root = Path(temporary_dir)
-            run_root = temporary_root / "cache"
-            save_root = temporary_root / "saves"
-            with (
-                mock.patch.object(seed_explorer_server, "RUN_ROOT", run_root),
-                mock.patch.object(seed_explorer_server, "SAVE_ROOT", save_root),
-            ):
-                legacy = seed_explorer_server.legacy_sim_save_path(7, 12)
-                payload = {"schemaVersion": "test", "seed": 7, "years": 12, "playerActions": []}
-                seed_explorer_server.write_json(legacy, payload)
-
-                migrated = seed_explorer_server.migrate_legacy_sim_save(7, 12)
-
-                self.assertEqual(seed_explorer_server.sim_save_path(7, 12), migrated)
-                self.assertTrue(migrated and migrated.exists())
-                self.assertTrue(legacy.exists())
-                self.assertEqual(payload, seed_explorer_server.read_json(migrated))
 
     def test_listing_cache_does_not_prune_and_pruning_preserves_save(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:

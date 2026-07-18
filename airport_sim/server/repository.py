@@ -27,44 +27,11 @@ def parse_run_id(run_id: str) -> tuple[int | None, int | None]:
 @dataclass(frozen=True)
 class SaveRepository:
     workspace_root: Path
-    run_root: Path
     save_root: Path
-    simulation_dir_name: str
-
-    def legacy_path(self, seed: int, years: int) -> Path:
-        run_dir = self.run_root / run_id_for(seed, years)
-        return ensure_inside(
-            run_dir,
-            run_dir / self.simulation_dir_name / "dynamic_test_save.json",
-        )
 
     def save_path(self, seed: int, years: int) -> Path:
         save_dir = self.save_root / run_id_for(seed, years)
         return ensure_inside(self.save_root, save_dir / "dynamic_test_save.json")
-
-    def migrate_legacy(self, seed: int, years: int) -> Path | None:
-        target = self.save_path(seed, years)
-        if target.exists():
-            return target
-        legacy = self.legacy_path(seed, years)
-        if not legacy.exists():
-            return None
-        write_json(target, read_json(legacy))
-        return target
-
-    def migrate_all_legacy(self) -> int:
-        if not self.run_root.exists():
-            return 0
-        migrated = 0
-        for run_dir in sorted(path for path in self.run_root.iterdir() if path.is_dir()):
-            seed, years = parse_run_id(run_dir.name)
-            if seed is None or years is None:
-                continue
-            target = self.save_path(seed, years)
-            existed = target.exists()
-            if self.migrate_legacy(seed, years) is not None and not existed:
-                migrated += 1
-        return migrated
 
     def summary(
         self,
@@ -107,8 +74,8 @@ class SaveRepository:
         }
 
     def read(self, seed: int, years: int) -> dict[str, Any] | None:
-        path = self.migrate_legacy(seed, years)
-        if path is None:
+        path = self.save_path(seed, years)
+        if not path.exists():
             return None
         payload = read_json(path)
         payload["seed"] = seed
@@ -117,6 +84,6 @@ class SaveRepository:
         return payload
 
     def clear(self, seed: int, years: int) -> None:
-        for path in (self.save_path(seed, years), self.legacy_path(seed, years)):
-            if path.exists():
-                path.unlink()
+        path = self.save_path(seed, years)
+        if path.exists():
+            path.unlink()

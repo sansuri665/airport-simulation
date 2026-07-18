@@ -104,9 +104,9 @@ saves/seed_explorer/<seed_and_years>/dynamic_test_save.json
 
 存档主要保存当前季度和行动日志，而不是复制一整套季度报表。读取时，服务按同一 Seed、年数和行动重新取得经营结果；对应缓存不存在或已失效时可以重算。
 
-存档路径和迁移由 `server/repository.py` 管理；请求校验、行动日志清洗后的存档序列化，以及玩家模拟的配置生成、模型命令顺序和季度响应装配由 `server/player_service.py` 管理。经营/财务 CSV 到北京季度 JSON 的字段映射、财务行配对、警告和读取模式由 `server/beijing_operations.py` 管理。`server/app.py` 保留原函数入口，旧路由和测试调用方式不变。
+存档路径和读写由 `server/repository.py` 管理；请求校验、行动日志清洗后的存档序列化，以及玩家模拟的配置生成、模型命令顺序和季度响应装配由 `server/player_service.py` 管理。经营/财务 CSV 到北京季度 JSON 的字段映射、财务行配对、警告和读取模式由 `server/beijing_operations.py` 管理。
 
-磁盘上的 `seed-explorer-simulation-save-v0.3` 由 `simulation-save.schema.json` 描述；`POST /api/sim-save` 及旧别名 `/api/sim-save-slot` 共用 `sim-save-response.schema.json`；已弃用的 `GET /api/sim-save-slots` 使用只允许空 slots 的兼容 Schema。`status` 无存档时的 `save: null` 和 `clear` 不返回 `save` 的差异继续保留。
+磁盘上的 `seed-explorer-simulation-save-v0.3` 由 `simulation-save.schema.json` 描述；唯一存档接口 `POST /api/sim-save` 使用 `sim-save-response.schema.json`。`status` 无存档时的 `save: null` 和 `clear` 不返回 `save` 的差异继续保留。
 
 玩家模拟产物仍位于对应 Seed 缓存的 `simulation_default/` 下，`action_cache_manifest.json` 仍只保存一个 SHA-256 指纹。指纹来源继续包括行动日志、经营/财务配置、两层模型脚本和服务实现；服务实现摘要按稳定文件名与内容计算，不包含工作区绝对路径。`app.py`、`beijing_operations.py` 及所有 `player_*.py` 服务/领域模块都属于依赖，因此这些实现变化后已有行动缓存会在下一次真正请求玩家模拟时安全重建一次，但缓存目录、Manifest 格式和模型结果不变。Seed Run 缓存本身继续自动覆盖全部 `server/*.py`，因此新模块也进入其既有指纹协议。
 
@@ -116,8 +116,6 @@ saves/seed_explorer/<seed_and_years>/dynamic_test_save.json
 - 普通缓存清理不会删除存档；
 - 删除 `output/seed_explorer_runs/` 不等于删除玩家进度；
 - 直接删除 `saves/` 会丢失玩家数据，不能当作“清缓存”。
-
-服务启动时会识别旧缓存目录中的 `dynamic_test_save.json`，将其复制迁移到独立存档目录，并暂时保留旧文件供兼容。
 
 ## 5. Viewer 发布
 

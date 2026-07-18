@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import gzip
 import json
-import subprocess
-import sys
 import tempfile
 import threading
 import time
@@ -16,7 +14,6 @@ from unittest import mock
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-SEED_EXPLORER_DIR = ROOT_DIR / "dynamic_tests" / "seed_explorer"
 
 from airport_sim.server import app as local_ui
 
@@ -87,7 +84,6 @@ class LocalUIIntegrationTests(unittest.TestCase):
             "/seed-explorer/": "Seed",
             "/global-gdp": "GDP",
             "/city-markets": "城市航空市场",
-            "/beijing-operations": "城市航空市场",
             "/beijing-forecast": "预测",
         }
         for path, marker in expected_titles.items():
@@ -95,6 +91,23 @@ class LocalUIIntegrationTests(unittest.TestCase):
             self.assertEqual(200, status, path)
             self.assertEqual("text/html", content_type, path)
             self.assertIn(marker, body, path)
+
+    def test_retired_page_aliases_return_not_found(self) -> None:
+        retired = (
+            "/airport_home.html",
+            "/seed_explorer_viewer.html",
+            "/global_gdp_viewer.html",
+            "/city_market_viewer.html",
+            "/beijing_potential_passenger_forecast_viewer.html",
+            "/beijing-operations",
+            "/beijing-operations/",
+            "/beijing_airport_operations_viewer.html",
+        )
+        for path in retired:
+            with self.subTest(path=path):
+                with self.assertRaises(urllib.error.HTTPError) as context:
+                    urllib.request.urlopen(f"{self.base_url}{path}", timeout=5)
+                self.assertEqual(404, context.exception.code)
 
     def test_workspace_status_identifies_service_and_data_mode(self) -> None:
         status, content_type, body = self.get("/api/workspace-status")
@@ -381,29 +394,14 @@ class LocalUIIntegrationTests(unittest.TestCase):
 
     def test_start_scripts_do_not_kill_an_unknown_port_owner(self) -> None:
         root_start = (ROOT_DIR / "start_airport_ui.bat").read_text(encoding="utf-8")
-        legacy_start = (SEED_EXPLORER_DIR / "start_seed_explorer.bat").read_text(encoding="utf-8")
         self.assertNotIn("Stop-Process", root_start)
-        self.assertNotIn("Stop-Process", legacy_start)
         self.assertIn(local_ui.LOCAL_UI_SERVICE_ID, root_start)
         self.assertIn("-m airport_sim serve", root_start)
-        self.assertIn("start_airport_ui.bat", legacy_start)
         root_stop = (ROOT_DIR / "stop_airport_ui.bat").read_text(encoding="utf-8")
-        self.assertIn("seed_explorer_server\\.py", root_stop)
-        self.assertIn("airport_ui", root_stop)
+        self.assertNotIn("seed_explorer_server", root_stop)
+        self.assertNotIn("airport_ui", root_stop)
         self.assertIn("airport_sim\\s+serve", root_stop)
         self.assertIn("--port\\s+8776", root_stop)
-
-    def test_cross_platform_module_entrypoint(self) -> None:
-        completed = subprocess.run(
-            [sys.executable, "-m", "airport_ui", "--help"],
-            cwd=ROOT_DIR,
-            capture_output=True,
-            text=True,
-            timeout=10,
-            check=False,
-        )
-        self.assertEqual(0, completed.returncode, completed.stderr)
-        self.assertIn("Airport local UI", completed.stdout)
 
 
 if __name__ == "__main__":

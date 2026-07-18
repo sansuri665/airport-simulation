@@ -30,7 +30,7 @@ py -3.13 -m airport_sim serve --host 127.0.0.1 --port 8776
 | `/city-markets` | `web/pages/city_market_viewer.html` | 中国大陆城市航空市场 Viewer |
 | `/beijing-forecast` | `web/pages/beijing_potential_passenger_forecast_viewer.html` | 叙事化客流预测报告与开发审计 |
 
-旧的 `/beijing-operations` 与 `beijing_airport_operations_viewer.html` 重定向到 `/city-markets`；其它兼容地址仍映射到对应页面。正式地址末尾多出的 `/` 会重定向到无斜杠地址。
+物理 HTML 文件名不属于公开 URL；正式地址末尾多出的 `/` 会重定向到无斜杠地址。
 
 页面必须通过 8776 服务访问，不建议双击 HTML 使用 `file://`。页面依赖 `/static/`、`/output/` 和 `/api/`，脱离服务后这些路径不能保持相同含义。
 
@@ -139,8 +139,8 @@ Seed Run 的固定调用顺序是：
 
 | 路由族 | 处理职责 | 响应 | 缓存 |
 |---|---|---|---|
-| 首页与 Viewer 正式/兼容地址 | `routes.py` 页面映射 | HTML 文件 | `no-cache` |
-| 尾斜杠和旧北京经营地址 | `routes.py` 重定向映射 | 302 空响应 | `no-store` |
+| 首页与 Viewer 正式地址 | `routes.py` 页面映射 | HTML 文件 | `no-cache` |
+| 正式地址尾斜杠 | `routes.py` 重定向映射 | 302 空响应 | `no-store` |
 | `/static/<path>` | 固定 Web 根、安全路径和扩展名 | 静态文件 | `no-cache` |
 | `/schemas/<name>.schema.json` | 单层 Schema 白名单路径 | JSON Schema | `no-cache` |
 | `/output/<path>` | 固定输出根、安全路径和扩展名 | Viewer 文件 | 当前资源 `no-cache`；版本化 Release 可 `immutable` |
@@ -209,14 +209,6 @@ py -3.13 -m airport_sim serve --host 0.0.0.0 --port 8776 --allow-non-loopback
 
 这会放宽本机来源检查，不是推荐的日常方式，也不等同于经过鉴权的公网服务。
 
-## 8. 兼容入口的定位
+## 8. 唯一运行入口
 
-以下入口仍可调用同一正式服务：
-
-```text
-py -3.13 -m airport_ui
-dynamic_tests/seed_explorer/start_seed_explorer.bat
-dynamic_tests/seed_explorer/seed_explorer_server.py
-```
-
-它们的作用只是兼容旧习惯。新增命令、路由和服务逻辑应写入 `airport_sim`，不要在旧入口再建立第二套实现。
+Python 命令和 8776 服务只通过 `airport_sim` 暴露；Windows 用户可以继续使用根目录的启动与停止 BAT。旧 `airport_ui`、`dynamic_tests`、直接 HTML URL 和存档别名不再属于公开契约。

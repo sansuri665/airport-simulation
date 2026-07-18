@@ -187,8 +187,6 @@ def prune_cached_runs(
     current_fingerprint: Callable[[], str],
     load_cached: Callable[[Path, str | None], dict[str, Any] | None],
     try_lock_for_run: Callable[[str], ContextManager[bool]],
-    parse_run_id: Callable[[str], tuple[int | None, int | None]],
-    migrate_legacy_sim_save: Callable[[int, int], Path | None],
     ensure_inside: Callable[[Path, Path], Path],
 ) -> None:
     if not run_root.exists():
@@ -224,8 +222,5 @@ def prune_cached_runs(
         with try_lock_for_run(path.name) as reserved:
             if not reserved or not path.exists():
                 continue
-            seed, years = parse_run_id(path.name)
-            if seed is not None and years is not None:
-                migrate_legacy_sim_save(seed, years)
             resolved = ensure_inside(run_root, path)
             shutil.rmtree(resolved)

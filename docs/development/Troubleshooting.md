@@ -134,7 +134,7 @@ py -3.13 -m airport_sim cache clean --confirm
 
 ```powershell
 py -3.13 --version
-py -3.13 -m compileall -q airport_sim airport_ui macro_layers dynamic_tests tests
+py -3.13 -m compileall -q airport_sim macro_layers tests
 py -3.13 -B -m unittest discover -s tests -v
 ```
 

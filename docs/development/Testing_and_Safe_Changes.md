@@ -13,7 +13,7 @@ py -3.13 --version
 ## 2. 完整验收命令
 
 ```powershell
-py -3.13 -m compileall -q airport_sim airport_ui macro_layers dynamic_tests tests
+py -3.13 -m compileall -q airport_sim macro_layers tests
 py -3.13 tools/check_markdown_links.py
 py -3.13 tools/check_javascript_syntax.py
 py -3.13 -m airport_sim validate-config
@@ -37,15 +37,15 @@ CI 会在 Windows 和 Linux 上安装当前项目的 editable package，再执�
 | 城市航司周期 | `test_airline_supply_dynamics_profiles.py` | 47 城模板、经营阶段、过剩/波谷分布、年度调节上限和空置运力边界 |
 | 正式 Run、生命周期、变体产物与 staged 校验 | `test_atomic_run.py`、`test_orchestrator_run_lifecycle_service.py`、`test_orchestrator_variant_outputs_service.py`、`test_orchestrator_run_validation_service.py` | 参数拒绝、index-only、Run/staging 命名、重复拒绝、失败清理边界、发布/索引/Manifest 顺序、11 类 CSV 字段/路径和 full/seed-cache 写入顺序、摘要/skip、CSV 校验与原子正式化 |
 | 编排器发布、资产与索引 | `test_orchestrator_release_index_services.py`、`test_orchestrator_viewer_assets_service.py`、`test_viewer_release.py` | 高层正式化/canonical/Manifest 指针顺序、资产复制与裁剪边界、块先于索引、bundle 回退、URL/SHA-256/确定性 gzip，以及 Run 索引排序/过滤/标签和 JSON→JS 写入 |
-| API 与文件协议 | `test_api_snapshot.py`、`test_local_ui.py`、`test_server_routes.py`、`test_http_file_response.py`、`test_cache_save_api_schemas.py` | 固定 Seed JSON、36 个公开路由、缓存清单、存档四动作与兼容别名、请求边界、流式响应、ETag/304、缓存分层和 gzip 协商 |
+| API 与文件协议 | `test_api_snapshot.py`、`test_local_ui.py`、`test_server_routes.py`、`test_http_file_response.py`、`test_cache_save_api_schemas.py` | 固定 Seed JSON、26 个公开路由、缓存清单、存档四动作、已退役路由的 404、请求边界、流式响应、ETag/304、缓存分层和 gzip 协商 |
 | 预测候选与工作区 | `test_forecast_workspace_services.py`、`test_forecast_candidate_generator.py` | 正式 Release/Seed 校验、CSV 行序、候选请求默认值与错误顺序、Manifest 映射、缓存/存档计数和相对路径 |
 | Schema 与配置 | `test_json_schemas.py`、`test_cache_save_api_schemas.py`、`test_config_validation.py` | 2020-12 Schema、真实响应/Manifest、缓存与存档对象/响应，以及 59 份配置的结构、范围、引用、守恒和曲线契约 |
-| Run、缓存、北京经营、玩家服务与存档 | `test_run_cache_service.py`、`test_beijing_operations_service.py`、`test_player_simulation_service.py`、`test_player_action_domains.py`、`test_cache_service.py`、`test_safety_baseline.py` | 缓存命中/锁内复查/执行顺序、北京字段/舍入/空值/财务配对/警告、replay 重试、玩家存档序列化、行动顺序/覆盖/拒绝、项目冷却和冻结配置、两层命令、失败 Manifest、指纹协议、保留和旧存档迁移 |
+| Run、缓存、北京经营、玩家服务与存档 | `test_run_cache_service.py`、`test_beijing_operations_service.py`、`test_player_simulation_service.py`、`test_player_action_domains.py`、`test_cache_service.py`、`test_safety_baseline.py` | 缓存命中/锁内复查/执行顺序、北京字段/舍入/空值/财务配对/警告、replay 重试、玩家存档序列化、行动顺序/覆盖/拒绝、项目冷却和冻结配置、两层命令、失败 Manifest、指纹协议和保留 |
 | 后台任务 | `test_background_jobs.py` | 去重、状态、活动上限和错误裁剪 |
 | Viewer 发布 | `test_viewer_release.py` | 数据包哈希、gzip 旁车、兼容复制、失败时不切换指针 |
 | 按需加载 | 三个 `test_*_lazy_loading.py` | 报告/区域/估值分块、哈希、玩家/审计隔离与必需索引 |
 | 前端结构 | `test_viewer_smoke.py`、`test_viewer_dom_contract.py` | 资源存在、脚本顺序、关键 DOM `id` 唯一 |
-| 包与命令 | `test_airport_sim_cli.py`、`test_package_imports.py` | 统一入口、兼容包装和任意工作目录导入 |
+| 包与命令 | `test_airport_sim_cli.py`、`test_package_imports.py` | 唯一统一入口和任意工作目录导入 |
 
 DOM 契约不检查颜色、尺寸、布局和图表视觉效果。涉及页面布局、图表或交互的修改仍要做真实浏览器验收。
 
@@ -115,7 +115,7 @@ py -3.13 -B -m unittest tests.test_forecast_narrative_model tests.test_forecast_
 7. 写 Run、缓存、存档和 Viewer 指针时保留 staging/临时文件加原子替换。
 8. 缓存清理与玩家存档删除永远分开授权。
 9. API 保持向后兼容时只增加可选字段；不兼容变更必须升级版本。
-10. 旧入口先变为薄包装并通过兼容测试，再考虑移除。
+10. 已声明退役的入口必须从代码、包配置、Schema、测试和文档同时删除。
 
 ## 6. 配置修改
 
@@ -146,10 +146,10 @@ py -3.13 -m airport_sim serve --host 127.0.0.1 --port 8776
 3. 北京运营的“加载历史”和“模拟运营”含义没有互换。
 4. 经营报告受影响的图表、表格和季度切换正常。
 5. `/global-gdp` 能切换全球/区域/航空视图，区域块按需加载。
-6. `/city-markets` 能筛选城市、切换年份，并按需加载需求/航司供给三口径趋势、客群与供给状态；页面不显示机场容量和最终经营承接；`/beijing-operations` 正确重定向到该页。
+6. `/city-markets` 能筛选城市、切换年份，并按需加载需求/航司供给三口径趋势、客群与供给状态；页面不显示机场容量和最终经营承接。
 7. `/beijing-forecast` 默认只加载玩家报告，能切换 12 份报告、发布年份和六种客流口径；切换开发审计后再加载独立审计索引、真实曲线和神级报告。
 8. 浏览器控制台没有新的 error，服务终端没有未处理异常。
-9. 旧 `*.html` 地址仍可访问，除非本次变更明确结束兼容并有迁移方案。
+9. 旧 `*.html`、`/beijing-operations` 和旧存档 API 地址返回 404，不重新引入第二套路由。
 
 ## 8. 交付前检查
 

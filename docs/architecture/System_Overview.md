@@ -55,8 +55,6 @@ Seed 与运行参数
 | `output/` | 可重算的缓存、正式 Run 与 Viewer 发布 | 生成物，不是源码 |
 | `saves/` | 玩家存档与缓存保留策略 | 持久用户数据 |
 | `docs/` | 面向用户和开发者的解释 | 应与上述事实来源保持一致 |
-| `airport_ui/` | `airport_sim serve` 的兼容包装 | 否 |
-| `dynamic_tests/` | 旧 Seed Explorer 启动与导入兼容包装 | 否 |
 | `start_airport_ui.bat` | Windows 一键启动 | 正式用户入口 |
 | `stop_airport_ui.bat` | 安全停止已确认身份的 8776 服务 | 正式用户入口 |
 
@@ -73,7 +71,7 @@ py -3.13 -m airport_sim validate-config
 py -3.13 -m airport_sim cache plan
 ```
 
-`airport_ui` 和 `dynamic_tests/seed_explorer/seed_explorer_server.py` 只为旧命令与旧导入保留。新增功能不应继续写进兼容包装。
+旧的 `airport_ui` 和 `dynamic_tests` 包装已经退役；`airport_sim` 是唯一 Python 命令和服务入口。
 
 ## 5. 一次页面操作如何到达模型
 

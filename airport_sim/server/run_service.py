@@ -70,7 +70,6 @@ def run_orchestrator(
     root_dir: Path,
     run_root: Path,
     orchestrator: Path,
-    migrate_legacy_save: Callable[[int, int], Path | None],
     ensure_inside: Callable[[Path, Path], Path],
     structured_log: Callable[..., None],
     executable: str,
@@ -78,7 +77,6 @@ def run_orchestrator(
     clock: Callable[[], float] = time.perf_counter,
 ) -> tuple[float, str]:
     if run_dir.exists():
-        migrate_legacy_save(seed, years)
         resolved = ensure_inside(run_root, run_dir)
         shutil.rmtree(resolved)
     run_root.mkdir(parents=True, exist_ok=True)

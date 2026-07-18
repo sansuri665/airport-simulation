@@ -162,10 +162,12 @@ class AirportSimCliTests(unittest.TestCase):
         self.assertIn("seed_1_years_5", rendered)
         self.assertNotIn("cacheMetadata", rendered)
 
-    def test_pyproject_exposes_new_console_entry_without_removing_old_one(self) -> None:
+    def test_pyproject_exposes_only_the_unified_console_entry(self) -> None:
         content = (ROOT_DIR / "pyproject.toml").read_text(encoding="utf-8")
         self.assertIn('airport-sim = "airport_sim.cli:main"', content)
-        self.assertIn('airport-ui = "airport_ui.__main__:main"', content)
+        self.assertNotIn("airport-ui", content)
+        self.assertNotIn("airport_ui", content)
+        self.assertNotIn("dynamic_tests", content)
 
 
 if __name__ == "__main__":

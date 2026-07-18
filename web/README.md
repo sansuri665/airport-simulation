@@ -16,6 +16,6 @@ web/
 - `/city-markets`
 - `/beijing-forecast`
 
-`/beijing-operations` 是指向 `/city-markets` 的迁移重定向。`/static/...` 由服务安全映射到 `web/static/`；模型和 Viewer 数据继续通过 `/output/...` 读取。
+物理 HTML 文件名和旧 `/beijing-operations` 不再作为公开地址。`/static/...` 由服务安全映射到 `web/static/`；模型和 Viewer 数据继续通过 `/output/...` 读取。
 
-页面路由、服务端职责和兼容入口见 [运行与 Web 架构](../docs/architecture/Runtime_and_Web.md)。
+页面路由和服务端职责见 [运行与 Web 架构](../docs/architecture/Runtime_and_Web.md)。

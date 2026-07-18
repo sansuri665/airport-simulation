@@ -16,21 +16,17 @@ WEB_ROOT = ROOT_DIR / "web"
 WEB_PAGES_ROOT = WEB_ROOT / "pages"
 STATIC_ROOT = WEB_ROOT / "static"
 
-# Seed Explorer cache and save roots retain the names already used by the local
-# service so lifecycle code can migrate without changing their meaning.
+# Seed Explorer cache and save roots are distinct generated-data lifecycles.
 RUN_ROOT = OUTPUT_ROOT / "seed_explorer_runs"
 SAVE_ROOT = SAVES_ROOT / "seed_explorer"
 MACRO_RUN_ROOT = OUTPUT_ROOT / "macro_runs"
 VIEWER_RELEASE_ROOT = OUTPUT_ROOT / "viewer_releases"
 
 MACRO_LAYERS_ROOT = ROOT_DIR / "macro_layers"
-DYNAMIC_TESTS_ROOT = ROOT_DIR / "dynamic_tests"
-SEED_EXPLORER_ROOT = DYNAMIC_TESTS_ROOT / "seed_explorer"
 SERVER_ROOT = PACKAGE_DIR / "server"
 
 CURRENT_VIEWER_MANIFEST_PATH = OUTPUT_ROOT / "current_viewer_manifest.json"
 CURRENT_VIEWER_MANIFEST_JS_PATH = OUTPUT_ROOT / "current_viewer_manifest.js"
-LEGACY_NESTED_OUTPUT_ROOT = ROOT_DIR / "airport" / "output"
 
 # Descriptive aliases make new callers readable while preserving the concise
 # constants expected by the cache lifecycle layer.

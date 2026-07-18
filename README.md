@@ -47,7 +47,7 @@ py -3.13 -m airport_sim serve
 | `http://127.0.0.1:8776/city-markets` | 中国大陆城市航空市场 Viewer |
 | `http://127.0.0.1:8776/beijing-forecast` | 北京叙事化客流预测报告与开发审计 |
 
-旧的 `/beijing-operations` 会重定向到城市市场；Seed Explorer 启动脚本仍保留兼容，但正式入口以上表为准。
+页面只使用以上正式地址；旧 HTML 文件地址和 `/beijing-operations` 已退出公开路由。
 
 ## 模型主链
 
@@ -115,8 +115,6 @@ py -3.13 -m unittest discover -s tests -q
 | `output/` | 可重新生成的 Run、缓存和 Viewer 数据 |
 | `saves/` | 玩家主动保存的动态经营进度 |
 | `docs/` | 当前项目说明 |
-| `dynamic_tests/` | 动态测试兼容入口；正式服务不在这里 |
-| `airport_ui/` | 统一 UI 兼容入口 |
 
 `output/` 可以按规则清理和重建；`saves/` 是独立玩家存档，不应当作普通缓存删除。
 

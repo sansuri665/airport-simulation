@@ -22,23 +22,14 @@ VIEWER_HTML = WEB_PAGES_ROOT / "seed_explorer_viewer.html"
 HOME_HTML = WEB_PAGES_ROOT / "airport_home.html"
 VIEWER_ROUTES = {
     "/seed-explorer": VIEWER_HTML,
-    "/seed_explorer_viewer.html": VIEWER_HTML,
     "/global-gdp": WEB_PAGES_ROOT / "global_gdp_viewer.html",
-    "/global_gdp_viewer.html": WEB_PAGES_ROOT / "global_gdp_viewer.html",
     "/city-markets": WEB_PAGES_ROOT / "city_market_viewer.html",
-    "/city_market_viewer.html": WEB_PAGES_ROOT / "city_market_viewer.html",
     "/beijing-forecast": WEB_PAGES_ROOT / "beijing_potential_passenger_forecast_viewer.html",
-    "/beijing_potential_passenger_forecast_viewer.html": (
-        WEB_PAGES_ROOT / "beijing_potential_passenger_forecast_viewer.html"
-    ),
 }
 VIEWER_REDIRECTS = {
     "/seed-explorer/": "/seed-explorer",
     "/global-gdp/": "/global-gdp",
     "/city-markets/": "/city-markets",
-    "/beijing-operations": "/city-markets",
-    "/beijing-operations/": "/city-markets",
-    "/beijing_airport_operations_viewer.html": "/city-markets",
     "/beijing-forecast/": "/beijing-forecast",
 }
 STATIC_CONTENT_TYPES = {
@@ -59,7 +50,6 @@ GET_API_ROUTES = (
     "/api/jobs/<jobId>",
     "/api/schema",
     "/api/cached-runs",
-    "/api/sim-save-slots",
 )
 POST_API_ROUTES = frozenset(
     {
@@ -69,7 +59,6 @@ POST_API_ROUTES = frozenset(
         "/api/player-simulation",
         "/api/forecast-candidate",
         "/api/sim-save",
-        "/api/sim-save-slot",
     }
 )
 
@@ -85,7 +74,6 @@ class RouteContract:
 def route_contract() -> tuple[RouteContract, ...]:
     routes = [
         RouteContract("GET", "/", "html", "no-cache"),
-        RouteContract("GET", "/airport_home.html", "html", "no-cache"),
     ]
     routes.extend(
         RouteContract("GET", path, "html", "no-cache")
@@ -183,7 +171,7 @@ def _services() -> ModuleType:
 
 
 class SeedExplorerHandler(BaseHTTPRequestHandler):
-    server_version = "AirportLocalUI/1.0"
+    server_version = "AirportLocalUI/2.0"
 
     def log_message(self, format: str, *args: Any) -> None:
         sys.stderr.write(
@@ -203,7 +191,7 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
             return
         parsed_url = urlparse(self.path)
         path = parsed_url.path
-        if path in {"/", "/airport_home.html"}:
+        if path == "/":
             services.file_response(self, services.HOME_HTML, "text/html; charset=utf-8")
             return
         redirect_target = services.VIEWER_REDIRECTS.get(path)
@@ -337,18 +325,6 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
                 },
             )
             return
-        if path == "/api/sim-save-slots":
-            services.json_response(
-                self,
-                200,
-                {
-                    "ok": True,
-                    "deprecated": True,
-                    "message": "seed-bound single save is available through POST /api/sim-save",
-                    "slots": [],
-                },
-            )
-            return
         services.json_response(self, 404, {"ok": False, "error": "not found"})
 
     def do_POST(self) -> None:
@@ -384,7 +360,7 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
                     services.submit_run_job(seed, years, force),
                 )
                 return
-            if path in {"/api/sim-save", "/api/sim-save-slot"}:
+            if path == "/api/sim-save":
                 seed = services.clean_seed(body.get("seed"))
                 years = services.clean_years(body.get("years", 60))
                 action = str(body.get("action") or "load").strip().lower()
