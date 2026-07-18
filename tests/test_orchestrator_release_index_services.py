@@ -119,7 +119,7 @@ class OrchestratorCompatibilityTests(unittest.TestCase):
 class ViewerReleaseLifecycleTests(unittest.TestCase):
     def test_release_sequence_and_manifest_protocol_are_preserved(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
-            root = Path(temporary_dir)
+            root = Path(temporary_dir).resolve()
             variant = root / "output" / "macro_runs" / "run_1" / "baseline"
             variant.mkdir(parents=True)
             viewer_root = root / "output"
