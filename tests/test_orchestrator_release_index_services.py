@@ -134,7 +134,7 @@ class ViewerReleaseLifecycleTests(unittest.TestCase):
 
             def write_bundles(source: Path, staging: Path, release_id: str) -> dict[str, str]:
                 events.append("bundles")
-                self.assertEqual(variant, source)
+                self.assertTrue(source.samefile(variant))
                 self.assertTrue(staging.name.startswith(".staging_"))
                 (staging / "global.js").write_text("global", encoding="utf-8")
                 (staging / "city.json").write_text("city", encoding="utf-8")
