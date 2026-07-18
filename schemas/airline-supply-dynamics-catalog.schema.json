@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/airline-supply-dynamics-catalog.schema.json",
+  "title": "Airline supply dynamics profile catalog",
+  "type": "object",
+  "required": ["schema_version", "catalog_id", "base_profiles", "modifier_profiles"],
+  "properties": {
+    "schema_version": { "const": "airline-supply-behavior-profile-catalog-v2" },
+    "catalog_id": { "type": "string", "minLength": 1 },
+    "base_profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/baseProfile" }
+    },
+    "modifier_profiles": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/modifier" }
+    }
+  },
+  "$defs": {
+    "baseProfile": {
+      "type": "object",
+      "required": [
+        "description", "demand_pull_capture", "balanced_adjustment_speed",
+        "expansion_adjustment_speed", "contraction_adjustment_speed",
+        "recovery_adjustment_speed", "overexpansion_bias_pct",
+        "overcapacity_target_pct", "pessimism_bias_pct", "expansion_trigger_pct",
+        "contraction_trigger_pct", "minimum_supply_index", "shock_amplitude_pct",
+        "phase_persistence", "upward_change_limit_pct", "downward_change_limit_pct"
+      ],
+      "properties": {
+        "description": { "type": "string", "minLength": 1 },
+        "demand_pull_capture": { "type": "number", "minimum": 0.5, "maximum": 1.2 },
+        "balanced_adjustment_speed": { "type": "number", "minimum": 0.15, "maximum": 0.75 },
+        "expansion_adjustment_speed": { "type": "number", "minimum": 0.15, "maximum": 0.75 },
+        "contraction_adjustment_speed": { "type": "number", "minimum": 0.2, "maximum": 0.85 },
+        "recovery_adjustment_speed": { "type": "number", "minimum": 0.15, "maximum": 0.75 },
+        "overexpansion_bias_pct": { "type": "number", "minimum": 0, "maximum": 18 },
+        "overcapacity_target_pct": { "type": "number", "minimum": 0, "maximum": 20 },
+        "pessimism_bias_pct": { "type": "number", "minimum": 0, "maximum": 18 },
+        "expansion_trigger_pct": { "type": "number", "minimum": 0, "maximum": 12 },
+        "contraction_trigger_pct": { "type": "number", "minimum": 0, "maximum": 12 },
+        "minimum_supply_index": { "type": "number", "minimum": 45, "maximum": 100 },
+        "shock_amplitude_pct": { "type": "number", "minimum": 0, "maximum": 20 },
+        "phase_persistence": { "type": "number", "minimum": 0.6, "maximum": 1.5 },
+        "upward_change_limit_pct": { "type": "number", "minimum": 3, "maximum": 20 },
+        "downward_change_limit_pct": { "type": "number", "minimum": 4, "maximum": 25 }
+      },
+      "additionalProperties": false
+    },
+    "modifier": {
+      "type": "object",
+      "required": ["description", "adjustments"],
+      "properties": {
+        "description": { "type": "string", "minLength": 1 },
+        "adjustments": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "number" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -92,6 +92,7 @@ class AirportSimCliTests(unittest.TestCase):
             pin_cache=mock.Mock(return_value={"pinned": "run-a"}),
             unpin_cache=mock.Mock(return_value={"unpinned": "run-a"}),
             set_retention=mock.Mock(return_value={"maxCachedRuns": 3}),
+            set_viewer_retention=mock.Mock(return_value={"maxViewerReleases": 2}),
         )
         output = io.StringIO()
         with mock.patch.object(cache_command_module, "_cache_service", return_value=service):
@@ -101,12 +102,14 @@ class AirportSimCliTests(unittest.TestCase):
                 self.assertEqual(0, cli.main(["cache", "pin", "run-a", "--json"]))
                 self.assertEqual(0, cli.main(["cache", "unpin", "run-a", "--json"]))
                 self.assertEqual(0, cli.main(["cache", "retention", "3", "--json"]))
+                self.assertEqual(0, cli.main(["cache", "viewer-retention", "2", "--json"]))
         service.list_cache.assert_called_once_with()
         service.plan_cache.assert_called_once_with()
         service.clean_cache.assert_called_once_with(confirm=True)
         service.pin_cache.assert_called_once_with("run-a")
         service.unpin_cache.assert_called_once_with("run-a")
         service.set_retention.assert_called_once_with(3)
+        service.set_viewer_retention.assert_called_once_with(2)
 
     def test_noninteractive_clean_only_returns_plan(self) -> None:
         service = SimpleNamespace(

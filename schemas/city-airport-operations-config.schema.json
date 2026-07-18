@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/city-airport-operations-config.schema.json",
+  "title": "City airport quarterly operations configuration",
+  "type": "object",
+  "required": [
+    "schema_version", "config_version", "parameter_schema", "reference_defaults",
+    "city_airport_market_id", "city_name", "currency", "amount_unit", "design_note",
+    "game_timeline", "quarter_component_weights",
+    "facility_fixed_operating_cost_million_cny_per_year", "slot_fixed_operating_cost_model",
+    "facility_renovation_model", "facility_construction_model", "facility_rebuild_model",
+    "facility_renovation_events", "facility_construction_events", "facility_rebuild_events",
+    "aeronautical_revenue", "passenger_variable_cost", "congestion_cost", "commercial"
+  ],
+  "properties": {
+    "schema_version": { "const": "city-airport-quarterly-operations-config-v1" },
+    "config_version": { "$ref": "#/$defs/nonEmptyString" },
+    "parameter_schema": { "$ref": "#/$defs/nonEmptyString" },
+    "reference_defaults": { "$ref": "#/$defs/nonEmptyString" },
+    "city_airport_market_id": { "$ref": "#/$defs/nonEmptyString" },
+    "city_name": { "$ref": "#/$defs/nonEmptyString" },
+    "currency": { "$ref": "#/$defs/nonEmptyString" },
+    "amount_unit": { "$ref": "#/$defs/nonEmptyString" },
+    "design_note": { "type": "string" },
+    "game_timeline": { "$ref": "#/$defs/gameTimeline" },
+    "quarter_component_weights": { "$ref": "#/$defs/quarterComponentWeights" },
+    "facility_fixed_operating_cost_million_cny_per_year": { "$ref": "#/$defs/facilityNumberMap" },
+    "slot_fixed_operating_cost_model": { "$ref": "#/$defs/modelObject" },
+    "facility_renovation_model": { "$ref": "#/$defs/modelObject" },
+    "facility_construction_model": { "$ref": "#/$defs/modelObject" },
+    "facility_rebuild_model": { "$ref": "#/$defs/modelObject" },
+    "facility_renovation_events": { "$ref": "#/$defs/eventList" },
+    "facility_construction_events": { "$ref": "#/$defs/eventList" },
+    "facility_rebuild_events": { "$ref": "#/$defs/eventList" },
+    "aeronautical_revenue": { "$ref": "#/$defs/modelObject" },
+    "passenger_variable_cost": { "$ref": "#/$defs/modelObject" },
+    "congestion_cost": { "$ref": "#/$defs/modelObject" },
+    "commercial": { "$ref": "#/$defs/modelObject" }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "gameTimeline": {
+      "type": "object",
+      "required": ["simulation_start_year", "startup_operating_history_years", "player_decision_start_year"],
+      "properties": {
+        "simulation_start_year": { "type": "integer", "minimum": 1900 },
+        "startup_operating_history_years": { "type": "integer", "minimum": 0 },
+        "player_decision_start_year": { "type": "integer", "minimum": 1900 },
+        "design_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "quarterWeights": {
+      "type": "array", "minItems": 4, "maxItems": 4,
+      "items": { "type": "number", "minimum": 0, "maximum": 1 }
+    },
+    "quarterComponentWeights": {
+      "type": "object",
+      "required": ["business", "leisure", "vfr", "long_haul", "transfer"],
+      "properties": {
+        "business": { "$ref": "#/$defs/quarterWeights" },
+        "leisure": { "$ref": "#/$defs/quarterWeights" },
+        "vfr": { "$ref": "#/$defs/quarterWeights" },
+        "long_haul": { "$ref": "#/$defs/quarterWeights" },
+        "transfer": { "$ref": "#/$defs/quarterWeights" }
+      },
+      "additionalProperties": false
+    },
+    "facilityNumberMap": {
+      "type": "object",
+      "required": ["empty", "small", "medium", "large", "extra_large", "giant"],
+      "properties": {
+        "empty": { "type": "number", "minimum": 0 },
+        "small": { "type": "number", "minimum": 0 },
+        "medium": { "type": "number", "minimum": 0 },
+        "large": { "type": "number", "minimum": 0 },
+        "extra_large": { "type": "number", "minimum": 0 },
+        "giant": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "modelObject": { "type": "object", "minProperties": 1 },
+    "eventList": {
+      "type": "array",
+      "items": { "type": "object", "minProperties": 1 }
+    }
+  },
+  "additionalProperties": false
+}

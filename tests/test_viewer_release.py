@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import gzip
 import json
 import sys
 import tempfile
@@ -125,6 +126,9 @@ class AtomicViewerReleaseTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary_dir:
             temporary_root = Path(temporary_dir)
             variant = build_minimal_variant(temporary_root)
+            large_chunk = variant / "global_macro" / "global_viewer_chunks" / "r_test.json"
+            large_chunk.parent.mkdir(parents=True, exist_ok=True)
+            large_chunk.write_text(json.dumps({"data": "compressible" * 2_000}), encoding="utf-8")
             viewer_root = temporary_root / "output"
             with mock.patch.object(orchestrator, "AIRPORT_DIR", temporary_root):
                 result = orchestrator.publish_variant_to_viewer(variant, viewer_root)
@@ -138,7 +142,17 @@ class AtomicViewerReleaseTests(unittest.TestCase):
             self.assertEqual(orchestrator.OUTPUT_SCHEMA_VERSION, manifest["output_schema_version"])
             self.assertEqual(3, manifest["bundle_count"])
             self.assertEqual(3, result["bundle_count"])
+            self.assertGreater(manifest["gzip_file_count"], 0)
+            self.assertGreater(manifest["gzip_raw_bytes"], manifest["gzip_bytes"])
+            self.assertEqual(manifest["gzip_file_count"], result["gzip_file_count"])
             self.assertFalse(any(path.name.startswith(".staging_") for path in (viewer_root / "viewer_releases").iterdir()))
+
+            release_dir = viewer_root / "viewer_releases" / result["release_id"]
+            compressed_files = sorted(release_dir.rglob("*.gz"))
+            self.assertEqual(manifest["gzip_file_count"], len(compressed_files))
+            for compressed_path in compressed_files:
+                raw_path = Path(str(compressed_path).removesuffix(".gz"))
+                self.assertEqual(raw_path.read_bytes(), gzip.decompress(compressed_path.read_bytes()))
 
             for viewer_id, script_url in manifest["scripts"].items():
                 self.assertTrue(script_url.startswith("./output/viewer_releases/"), viewer_id)
@@ -201,6 +215,33 @@ class AtomicViewerReleaseTests(unittest.TestCase):
                 pointer.read_text(encoding="utf-8"),
             )
             self.assertFalse(any(path.name.startswith(".staging_") for path in (viewer_root / "viewer_releases").iterdir()))
+
+    def test_compression_failure_leaves_manifest_and_release_directory_unchanged(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            temporary_root = Path(temporary_dir)
+            variant = build_minimal_variant(temporary_root)
+            viewer_root = temporary_root / "output"
+            pointer = viewer_root / "current_viewer_manifest.js"
+            pointer.parent.mkdir(parents=True, exist_ok=True)
+            pointer.write_text("window.AIRPORT_VIEWER_MANIFEST = {old: true};\n", encoding="utf-8")
+
+            with (
+                mock.patch.object(orchestrator, "AIRPORT_DIR", temporary_root),
+                mock.patch.object(
+                    orchestrator,
+                    "write_viewer_release_gzip_sidecars",
+                    side_effect=OSError("compression failed"),
+                ),
+            ):
+                with self.assertRaisesRegex(OSError, "compression failed"):
+                    orchestrator.publish_variant_to_viewer(variant, viewer_root)
+
+            self.assertEqual(
+                "window.AIRPORT_VIEWER_MANIFEST = {old: true};\n",
+                pointer.read_text(encoding="utf-8"),
+            )
+            release_root = viewer_root / "viewer_releases"
+            self.assertFalse(release_root.exists() and any(release_root.iterdir()))
 
 
 if __name__ == "__main__":

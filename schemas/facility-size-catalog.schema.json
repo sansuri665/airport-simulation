@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/facility-size-catalog.schema.json",
+  "title": "Airport facility size catalog",
+  "type": "object",
+  "required": [
+    "schema_version", "catalog_id", "description", "facility_sizes",
+    "slot_role_allowed_sizes", "slot_count_role_templates", "capacity_policy"
+  ],
+  "properties": {
+    "schema_version": { "const": "facility-size-catalog-v1" },
+    "catalog_id": { "type": "string", "minLength": 1 },
+    "description": { "type": "string", "minLength": 1 },
+    "facility_sizes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/facilitySize" }
+    },
+    "slot_role_allowed_sizes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "uniqueItems": true,
+        "items": { "type": "string", "minLength": 1 }
+      }
+    },
+    "slot_count_role_templates": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": { "type": "string", "minLength": 1 }
+      }
+    },
+    "capacity_policy": {
+      "type": "object",
+      "required": ["design_capacity_meaning", "max_capacity_meaning", "hard_limit_policy"],
+      "properties": {
+        "design_capacity_meaning": { "type": "string", "minLength": 1 },
+        "max_capacity_meaning": { "type": "string", "minLength": 1 },
+        "hard_limit_policy": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "facilitySize": {
+      "type": "object",
+      "required": ["design_capacity_million", "max_capacity_million", "typical_use"],
+      "properties": {
+        "design_capacity_million": { "type": "number", "minimum": 0 },
+        "max_capacity_million": { "type": "number", "minimum": 0 },
+        "typical_use": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -36,6 +36,13 @@ def configure_cache_parser(parser: ArgumentParser) -> None:
     retention_parser.add_argument("max_runs", metavar="MAX_RUNS", type=int)
     _add_output_option(retention_parser)
 
+    viewer_retention_parser = actions.add_parser(
+        "viewer-retention",
+        help="Set how many newest Viewer releases are retained, including the current release.",
+    )
+    viewer_retention_parser.add_argument("max_releases", metavar="MAX_RELEASES", type=int)
+    _add_output_option(viewer_retention_parser)
+
 
 def _add_output_option(parser: ArgumentParser) -> None:
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON output.")
@@ -155,6 +162,8 @@ def cache_command(args: Namespace) -> int:
             payload = service.unpin_cache(args.run_id)
         elif args.cache_action == "retention":
             payload = service.set_retention(args.max_runs)
+        elif args.cache_action == "viewer-retention":
+            payload = service.set_viewer_retention(args.max_releases)
         else:  # pragma: no cover - argparse enforces the known choices.
             raise RuntimeError(f"unsupported cache action: {args.cache_action}")
     except (OSError, RuntimeError, ValueError) as error:

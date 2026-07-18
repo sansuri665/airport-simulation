@@ -19,6 +19,7 @@ CACHE_POLICY_SCHEMA_VERSION = "airport-cache-policy-v1"
 CACHE_POLICY_PATH = SAVE_ROOT.parent / "cache_policy.json"
 LEGACY_OUTPUT_ROOT = ROOT_DIR / "airport" / "output"
 DEFAULT_MAX_CACHED_RUNS = 2
+DEFAULT_MAX_VIEWER_RELEASES = 2
 SERVICE_HEALTH_URL = "http://127.0.0.1:8776/api/health"
 SERVICE_ID = "airport-local-ui-v1"
 TEMPORARY_OUTPUT_MARKERS = ("test", "smoke", "probe", "draft", "check", "eval", "validation")
@@ -133,6 +134,14 @@ def load_policy() -> dict[str, Any]:
         maximum = max(1, int(configured))
     except (TypeError, ValueError):
         maximum = DEFAULT_MAX_CACHED_RUNS
+    configured_viewer_releases = payload.get("maxViewerReleases", DEFAULT_MAX_VIEWER_RELEASES)
+    viewer_environment_value = os.environ.get("AIRPORT_MAX_VIEWER_RELEASES")
+    if viewer_environment_value is not None:
+        configured_viewer_releases = viewer_environment_value
+    try:
+        maximum_viewer_releases = max(1, int(configured_viewer_releases))
+    except (TypeError, ValueError):
+        maximum_viewer_releases = DEFAULT_MAX_VIEWER_RELEASES
     pins = sorted(
         {
             str(value).strip()
@@ -143,6 +152,7 @@ def load_policy() -> dict[str, Any]:
     return {
         "schemaVersion": CACHE_POLICY_SCHEMA_VERSION,
         "maxCachedRuns": maximum,
+        "maxViewerReleases": maximum_viewer_releases,
         "pinnedRunIds": pins,
         "policyPath": _relative(CACHE_POLICY_PATH),
     }
@@ -154,6 +164,7 @@ def _save_policy(policy: dict[str, Any]) -> None:
         {
             "schemaVersion": CACHE_POLICY_SCHEMA_VERSION,
             "maxCachedRuns": int(policy["maxCachedRuns"]),
+            "maxViewerReleases": int(policy["maxViewerReleases"]),
             "pinnedRunIds": sorted(set(policy.get("pinnedRunIds", []))),
         },
     )
@@ -192,6 +203,19 @@ def set_retention(max_cached_runs: int) -> dict[str, Any]:
     return {"ok": True, "maxCachedRuns": maximum, "policy": load_policy()}
 
 
+def set_viewer_retention(max_viewer_releases: int) -> dict[str, Any]:
+    try:
+        maximum = int(max_viewer_releases)
+    except (TypeError, ValueError) as error:
+        raise ValueError("max Viewer releases must be an integer") from error
+    if maximum < 1 or maximum > 50:
+        raise ValueError("max Viewer releases must be between 1 and 50")
+    policy = load_policy()
+    policy["maxViewerReleases"] = maximum
+    _save_policy(policy)
+    return {"ok": True, "maxViewerReleases": maximum, "policy": load_policy()}
+
+
 def _manifest_protection() -> dict[str, Any]:
     manifest_path = OUTPUT_ROOT / "current_viewer_manifest.json"
     manifest = _read_json(manifest_path)
@@ -207,6 +231,15 @@ def _manifest_protection() -> dict[str, Any]:
         except ValueError:
             invalid_paths.append(raw_value)
             continue
+        if key == "release_path":
+            try:
+                candidate.relative_to(VIEWER_RELEASE_ROOT.resolve())
+            except ValueError:
+                invalid_paths.append(raw_value)
+                continue
+            if not candidate.is_dir():
+                invalid_paths.append(raw_value)
+                continue
         protected_paths.append(candidate)
     valid = bool(manifest) and bool(str(manifest.get("release_path", "")).strip()) and not invalid_paths
     return {
@@ -369,7 +402,21 @@ def list_cache() -> dict[str, Any]:
 
     if VIEWER_RELEASE_ROOT.exists():
         current_release_paths = {path.resolve() for path in protected_paths if VIEWER_RELEASE_ROOT.resolve() in path.resolve().parents}
-        for path in sorted(VIEWER_RELEASE_ROOT.iterdir(), key=lambda candidate: candidate.stat().st_mtime, reverse=True):
+        release_paths = sorted(
+            (path for path in VIEWER_RELEASE_ROOT.iterdir() if path.is_dir()),
+            key=lambda candidate: (candidate.stat().st_mtime, candidate.name),
+            reverse=True,
+        )
+        backup_slots = max(0, int(policy["maxViewerReleases"]) - len(current_release_paths))
+        retained_backup_paths: set[Path] = set()
+        for path in release_paths:
+            resolved = path.resolve()
+            if path.name.startswith(".staging_") or resolved in current_release_paths:
+                continue
+            if len(retained_backup_paths) >= backup_slots:
+                break
+            retained_backup_paths.add(resolved)
+        for path in release_paths:
             if not path.is_dir():
                 continue
             if path.name.startswith(".staging_"):
@@ -378,8 +425,24 @@ def list_cache() -> dict[str, Any]:
                 entries.append(_entry(path, "viewer_release", "protected", "Viewer manifest is missing or invalid; failing closed"))
             elif path.resolve() in current_release_paths:
                 entries.append(_entry(path, "viewer_release", "protected", "current Viewer release"))
+            elif path.resolve() in retained_backup_paths:
+                entries.append(
+                    _entry(
+                        path,
+                        "viewer_release",
+                        "keep",
+                        f"within newest {policy['maxViewerReleases']} Viewer releases",
+                    )
+                )
             else:
-                entries.append(_entry(path, "viewer_release", "deletable", "superseded Viewer release"))
+                entries.append(
+                    _entry(
+                        path,
+                        "viewer_release",
+                        "deletable",
+                        f"older than newest {policy['maxViewerReleases']} Viewer releases",
+                    )
+                )
 
     legacy_status = "review" if LEGACY_OUTPUT_ROOT.exists() else "absent"
     entries.append(

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/sim-save-slots-response.schema.json",
+  "title": "Deprecated simulation save slots response",
+  "allOf": [
+    { "$ref": "api-envelope.schema.json" },
+    {
+      "type": "object",
+      "required": ["ok", "deprecated", "message", "slots"],
+      "properties": {
+        "ok": { "const": true },
+        "deprecated": { "const": true },
+        "message": {
+          "const": "seed-bound single save is available through POST /api/sim-save"
+        },
+        "slots": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/city-airport-financial-state-config.schema.json",
+  "title": "City airport financial state configuration",
+  "type": "object",
+  "required": [
+    "schema_version", "config_version", "operator_id", "operator_name",
+    "city_airport_market_id", "city_name", "region_id", "region_name",
+    "currency", "amount_unit", "design_note", "game_timeline", "opening_balance",
+    "tax_policy", "debt_policy", "general_loans", "initial_assets"
+  ],
+  "properties": {
+    "schema_version": { "const": "city-airport-financial-state-config-v1" },
+    "config_version": { "$ref": "#/$defs/nonEmptyString" },
+    "operator_id": { "$ref": "#/$defs/nonEmptyString" },
+    "operator_name": { "$ref": "#/$defs/nonEmptyString" },
+    "city_airport_market_id": { "$ref": "#/$defs/nonEmptyString" },
+    "city_name": { "$ref": "#/$defs/nonEmptyString" },
+    "region_id": { "$ref": "#/$defs/nonEmptyString" },
+    "region_name": { "$ref": "#/$defs/nonEmptyString" },
+    "currency": { "$ref": "#/$defs/nonEmptyString" },
+    "amount_unit": { "$ref": "#/$defs/nonEmptyString" },
+    "design_note": { "type": "string" },
+    "game_timeline": { "$ref": "#/$defs/gameTimeline" },
+    "opening_balance": { "$ref": "#/$defs/openingBalance" },
+    "tax_policy": { "$ref": "#/$defs/taxPolicy" },
+    "debt_policy": { "$ref": "#/$defs/debtPolicy" },
+    "general_loans": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/generalLoan" }
+    },
+    "initial_assets": {
+      "type": "array", "minItems": 1,
+      "items": { "$ref": "#/$defs/initialAsset" }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "quarter": { "enum": ["Q1", "Q2", "Q3", "Q4"] },
+    "gameTimeline": {
+      "type": "object",
+      "required": ["simulation_start_year", "startup_operating_history_years", "player_decision_start_year"],
+      "properties": {
+        "simulation_start_year": { "type": "integer", "minimum": 1900 },
+        "startup_operating_history_years": { "type": "integer", "minimum": 0 },
+        "player_decision_start_year": { "type": "integer", "minimum": 1900 },
+        "design_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "openingBalance": {
+      "type": "object",
+      "required": [
+        "opening_cash_million_cny", "opening_retained_earnings_million_cny",
+        "opening_short_term_debt_million_cny", "opening_long_term_debt_million_cny"
+      ],
+      "properties": {
+        "opening_cash_million_cny": { "type": "number" },
+        "opening_retained_earnings_million_cny": { "type": "number" },
+        "opening_short_term_debt_million_cny": { "type": "number", "minimum": 0 },
+        "opening_long_term_debt_million_cny": { "type": "number", "minimum": 0 },
+        "design_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "taxPolicy": {
+      "type": "object",
+      "required": [
+        "corporate_income_tax_rate_pct", "quarterly_prepayment_ratio",
+        "annual_settlement_quarter", "loss_carryforward_enabled", "loss_carryforward_years"
+      ],
+      "properties": {
+        "corporate_income_tax_rate_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "quarterly_prepayment_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+        "annual_settlement_quarter": { "$ref": "#/$defs/quarter" },
+        "loss_carryforward_enabled": { "type": "boolean" },
+        "loss_carryforward_years": { "type": "integer", "minimum": 0 },
+        "design_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "spreadPoint": {
+      "type": "object",
+      "required": ["liability_ratio_pct", "additional_spread_bps"],
+      "properties": {
+        "liability_ratio_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "additional_spread_bps": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "leverageSpread": {
+      "type": "object",
+      "required": [
+        "enabled", "ratio_metric", "pricing_mode", "block_if_begin_ratio_at_or_above_pct",
+        "block_if_post_draw_ratio_at_or_above_pct", "spread_curve"
+      ],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "ratio_metric": { "$ref": "#/$defs/nonEmptyString" },
+        "pricing_mode": { "$ref": "#/$defs/nonEmptyString" },
+        "block_if_begin_ratio_at_or_above_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "block_if_post_draw_ratio_at_or_above_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "spread_curve": {
+          "type": "array", "minItems": 2,
+          "items": { "$ref": "#/$defs/spreadPoint" }
+        },
+        "design_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "loanRateModel": {
+      "type": "object",
+      "required": [
+        "model_version", "rate_lock_policy", "fallback_short_term_rate_pct",
+        "fallback_long_term_rate_pct", "short_term_reference_adjustment_pct",
+        "long_term_reference_adjustment_pct", "short_term_spread_bps", "long_term_spread_bps",
+        "hy_spread_baseline_bps", "hy_spread_capture_ratio", "city_risk_spread_bps",
+        "min_annual_interest_rate_pct", "max_annual_interest_rate_pct", "leverage_spread_model"
+      ],
+      "properties": {
+        "model_version": { "$ref": "#/$defs/nonEmptyString" },
+        "rate_lock_policy": { "$ref": "#/$defs/nonEmptyString" },
+        "fallback_short_term_rate_pct": { "type": "number", "minimum": 0 },
+        "fallback_long_term_rate_pct": { "type": "number", "minimum": 0 },
+        "short_term_reference_adjustment_pct": { "type": "number" },
+        "long_term_reference_adjustment_pct": { "type": "number" },
+        "short_term_spread_bps": { "type": "number" },
+        "long_term_spread_bps": { "type": "number" },
+        "hy_spread_baseline_bps": { "type": "number", "minimum": 0 },
+        "hy_spread_capture_ratio": { "type": "number", "minimum": 0 },
+        "city_risk_spread_bps": { "type": "number" },
+        "min_annual_interest_rate_pct": { "type": "number", "minimum": 0 },
+        "max_annual_interest_rate_pct": { "type": "number", "minimum": 0 },
+        "leverage_spread_model": { "$ref": "#/$defs/leverageSpread" },
+        "design_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "debtPolicy": {
+      "type": "object",
+      "required": ["debt_enabled", "auto_borrow_on_negative_cash", "loan_rate_model"],
+      "properties": {
+        "debt_enabled": { "type": "boolean" },
+        "auto_borrow_on_negative_cash": { "type": "boolean" },
+        "loan_rate_model": { "$ref": "#/$defs/loanRateModel" },
+        "design_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "generalLoan": {
+      "type": "object",
+      "required": [
+        "loan_id", "loan_name", "loan_type", "start_year", "start_quarter",
+        "principal_million_cny", "tenor_quarters", "repayment_style", "purpose_note"
+      ],
+      "properties": {
+        "loan_id": { "$ref": "#/$defs/nonEmptyString" },
+        "loan_name": { "$ref": "#/$defs/nonEmptyString" },
+        "loan_type": { "enum": ["short_term", "long_term"] },
+        "start_year": { "type": "integer", "minimum": 1900 },
+        "start_quarter": { "$ref": "#/$defs/quarter" },
+        "principal_million_cny": { "type": "number", "minimum": 0 },
+        "tenor_quarters": { "type": "integer", "minimum": 1 },
+        "repayment_style": {
+          "enum": ["bullet_principal", "equal_principal", "grace_then_equal_principal"]
+        },
+        "grace_period_quarters": { "type": "integer", "minimum": 0 },
+        "annual_interest_rate_pct": { "type": "number", "minimum": 0 },
+        "purpose_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "initialAsset": {
+      "type": "object",
+      "required": [
+        "asset_id", "airport_id", "airport_name", "slot_id", "slot_name", "facility_size",
+        "in_service_year", "asset_original_million_cny", "useful_life_years", "residual_value_pct"
+      ],
+      "properties": {
+        "asset_id": { "$ref": "#/$defs/nonEmptyString" },
+        "airport_id": { "$ref": "#/$defs/nonEmptyString" },
+        "airport_name": { "$ref": "#/$defs/nonEmptyString" },
+        "slot_id": { "$ref": "#/$defs/nonEmptyString" },
+        "slot_name": { "$ref": "#/$defs/nonEmptyString" },
+        "facility_size": { "$ref": "#/$defs/nonEmptyString" },
+        "in_service_year": { "type": "integer", "minimum": 1800 },
+        "asset_original_million_cny": { "type": "number", "minimum": 0 },
+        "useful_life_years": { "type": "number", "minimum": 1 },
+        "residual_value_pct": { "type": "number", "minimum": 0, "maximum": 100 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

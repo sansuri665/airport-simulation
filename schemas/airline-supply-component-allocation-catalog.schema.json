@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/airline-supply-component-allocation-catalog.schema.json",
+  "title": "Airline supply component allocation profile catalog",
+  "type": "object",
+  "required": ["schema_version", "catalog_id", "default_profile_id", "profiles"],
+  "properties": {
+    "schema_version": { "const": "airline-supply-component-allocation-profile-catalog-v1" },
+    "catalog_id": { "type": "string", "minLength": 1 },
+    "default_profile_id": { "type": "string", "minLength": 1 },
+    "profiles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/profile" }
+    }
+  },
+  "$defs": {
+    "profile": {
+      "type": "object",
+      "required": ["description", "priority_biases"],
+      "properties": {
+        "description": { "type": "string", "minLength": 1 },
+        "priority_biases": {
+          "type": "object",
+          "required": ["business", "leisure", "vfr", "long_haul", "transfer"],
+          "properties": {
+            "business": { "type": "number", "minimum": 0.01, "maximum": 3 },
+            "leisure": { "type": "number", "minimum": 0.01, "maximum": 3 },
+            "vfr": { "type": "number", "minimum": 0.01, "maximum": 3 },
+            "long_haul": { "type": "number", "minimum": 0.01, "maximum": 3 },
+            "transfer": { "type": "number", "minimum": 0.01, "maximum": 3 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

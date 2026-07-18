@@ -103,6 +103,7 @@ class CityMarketViewerLazyLoadingTests(unittest.TestCase):
         self.assertNotIn("legacy", html.lower())
         self.assertIn("async function loadCity(", data_client_js)
         self.assertIn("window.AIRPORT_CITY_MARKET_VIEWER_INDEX", data_client_js)
+        self.assertNotIn('cache: "no-store"', data_client_js)
         self.assertNotIn("机场实际承接", html)
         self.assertNotIn("机场最大容量", html)
         self.assertNotIn("机场容量", html)

@@ -14,10 +14,14 @@ py -3.13 --version
 
 ```powershell
 py -3.13 -m compileall -q airport_sim airport_ui macro_layers dynamic_tests tests
+py -3.13 tools/check_markdown_links.py
+py -3.13 tools/check_javascript_syntax.py
 py -3.13 -m airport_sim validate-config
 py -3.13 -B -m unittest discover -s tests -v
 git diff --check
 ```
+
+JavaScript 语法检查需要 Node.js；它只用于前端静态验证，不是运行机场模型或本地服务的依赖。CI 显式安装 Node.js 22，本地未加入 PATH 时可向脚本传入 `--node` 指定可执行文件。
 
 CI 会在 Windows 和 Linux 上安装当前项目的 editable package，再执行相同的语法、入口、配置和完整测试检查。
 
@@ -31,12 +35,14 @@ CI 会在 Windows 和 Linux 上安装当前项目的 editable package，再执�
 | 客群航司供给 | `test_component_airline_allocation.py` | 总量守恒、单客群上限、商务/休闲差异及年度—季度—预测一致性 |
 | 预测报告叙事 | `test_forecast_narrative_model.py` | 8 种共享风格、四类标签、中文元数据、非数值伴飞、报告继承、神级精确与玩家/审计隔离 |
 | 城市航司周期 | `test_airline_supply_dynamics_profiles.py` | 47 城模板、经营阶段、过剩/波谷分布、年度调节上限和空置运力边界 |
-| 正式 Run | `test_atomic_run.py` | staging、校验、失败清理、版本记录和原子正式化 |
-| API | `test_api_snapshot.py`、`test_local_ui.py` | 固定 Seed JSON、路由、请求边界和服务状态 |
-| Schema | `test_json_schemas.py` | 2020-12 Schema、真实响应、Manifest 与预测配置/等级/风格目录 |
-| 缓存与存档 | `test_cache_service.py`、`test_safety_baseline.py` | 指纹、保留、固定、清理保护和旧存档迁移 |
+| 正式 Run、生命周期、变体产物与 staged 校验 | `test_atomic_run.py`、`test_orchestrator_run_lifecycle_service.py`、`test_orchestrator_variant_outputs_service.py`、`test_orchestrator_run_validation_service.py` | 参数拒绝、index-only、Run/staging 命名、重复拒绝、失败清理边界、发布/索引/Manifest 顺序、11 类 CSV 字段/路径和 full/seed-cache 写入顺序、摘要/skip、CSV 校验与原子正式化 |
+| 编排器发布、资产与索引 | `test_orchestrator_release_index_services.py`、`test_orchestrator_viewer_assets_service.py`、`test_viewer_release.py` | 高层正式化/canonical/Manifest 指针顺序、资产复制与裁剪边界、块先于索引、bundle 回退、URL/SHA-256/确定性 gzip，以及 Run 索引排序/过滤/标签和 JSON→JS 写入 |
+| API 与文件协议 | `test_api_snapshot.py`、`test_local_ui.py`、`test_server_routes.py`、`test_http_file_response.py`、`test_cache_save_api_schemas.py` | 固定 Seed JSON、36 个公开路由、缓存清单、存档四动作与兼容别名、请求边界、流式响应、ETag/304、缓存分层和 gzip 协商 |
+| 预测候选与工作区 | `test_forecast_workspace_services.py`、`test_forecast_candidate_generator.py` | 正式 Release/Seed 校验、CSV 行序、候选请求默认值与错误顺序、Manifest 映射、缓存/存档计数和相对路径 |
+| Schema 与配置 | `test_json_schemas.py`、`test_cache_save_api_schemas.py`、`test_config_validation.py` | 2020-12 Schema、真实响应/Manifest、缓存与存档对象/响应，以及 59 份配置的结构、范围、引用、守恒和曲线契约 |
+| Run、缓存、北京经营、玩家服务与存档 | `test_run_cache_service.py`、`test_beijing_operations_service.py`、`test_player_simulation_service.py`、`test_player_action_domains.py`、`test_cache_service.py`、`test_safety_baseline.py` | 缓存命中/锁内复查/执行顺序、北京字段/舍入/空值/财务配对/警告、replay 重试、玩家存档序列化、行动顺序/覆盖/拒绝、项目冷却和冻结配置、两层命令、失败 Manifest、指纹协议、保留和旧存档迁移 |
 | 后台任务 | `test_background_jobs.py` | 去重、状态、活动上限和错误裁剪 |
-| Viewer 发布 | `test_viewer_release.py` | 数据包哈希、兼容复制、失败时不切换指针 |
+| Viewer 发布 | `test_viewer_release.py` | 数据包哈希、gzip 旁车、兼容复制、失败时不切换指针 |
 | 按需加载 | 三个 `test_*_lazy_loading.py` | 报告/区域/估值分块、哈希、玩家/审计隔离与必需索引 |
 | 前端结构 | `test_viewer_smoke.py`、`test_viewer_dom_contract.py` | 资源存在、脚本顺序、关键 DOM `id` 唯一 |
 | 包与命令 | `test_airport_sim_cli.py`、`test_package_imports.py` | 统一入口、兼容包装和任意工作目录导入 |
@@ -65,7 +71,7 @@ py -3.13 -B -m unittest tests.test_global_viewer_lazy_loading tests.test_city_ma
 ### 服务、路由或 API
 
 ```powershell
-py -3.13 -B -m unittest tests.test_local_ui tests.test_api_snapshot tests.test_json_schemas tests.test_background_jobs -v
+py -3.13 -B -m unittest tests.test_forecast_workspace_services tests.test_beijing_operations_service tests.test_player_action_domains tests.test_player_simulation_service tests.test_local_ui tests.test_api_snapshot tests.test_json_schemas tests.test_background_jobs -v
 ```
 
 若字段发生变化，还必须更新 Schema、固定 Seed 快照和前端读取逻辑；不能只改其中一处。
@@ -73,7 +79,7 @@ py -3.13 -B -m unittest tests.test_local_ui tests.test_api_snapshot tests.test_j
 ### 缓存、存档、路径或发布
 
 ```powershell
-py -3.13 -B -m unittest tests.test_cache_service tests.test_atomic_run tests.test_viewer_release tests.test_safety_baseline -v
+py -3.13 -B -m unittest tests.test_cache_save_api_schemas tests.test_orchestrator_run_lifecycle_service tests.test_orchestrator_variant_outputs_service tests.test_orchestrator_run_validation_service tests.test_orchestrator_viewer_assets_service tests.test_orchestrator_release_index_services tests.test_run_cache_service tests.test_cache_service tests.test_atomic_run tests.test_viewer_release tests.test_safety_baseline -v
 ```
 
 测试应使用临时目录，不要把 smoke/test 产物写进正式 `output/` 或 `saves/`。
@@ -119,7 +125,9 @@ py -3.13 -B -m unittest tests.test_forecast_narrative_model tests.test_forecast_
 py -3.13 -m airport_sim validate-config
 ```
 
-该命令检查全部配置 JSON 的语法和重复对象键。它不会验证所有模型参数的业务范围，因此还要运行使用该配置的模型测试与固定 Seed 契约。
+该命令严格归类工作区的 59 份配置，并检查 JSON 语法、重复对象键、Schema、字段范围、ID/跨文件引用、适用的权重守恒、曲线顺序和派生设施容量。错误同时给出文件、错误代码和 JSON 路径；`--json` 可输出机器可读报告。完整清单和扩展规则见[配置清单与校验契约](../reference/Configuration_Validation.md)。
+
+该命令不重新计算模型结果，也不能代替消费该配置的模型测试与固定 Seed 契约。
 
 参数的权威来源是配置文件和读取它的 Python 代码。文档中的示例范围用于解释，不能覆盖实际代码。
 

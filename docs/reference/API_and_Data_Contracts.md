@@ -4,11 +4,15 @@
 
 8776 本地服务使用 JSON API 连接网页、模型、缓存和玩家存档。`schemas/` 中的 JSON Schema 2020-12 用于固定必需字段、类型、协议版本和基础约束；Schema 不定义模型公式，也不会替代固定 Seed 数值回归。
 
-正式服务：
+正式装配、路由与协议目录：
 
 ```text
 airport_sim/server/app.py
+airport_sim/server/routes.py
+airport_sim/server/api_contract.py
 ```
+
+`routes.route_contract()` 是 HTTP 方法、公开路径、响应类型和缓存层级的机器可读清单；`api_contract.py` 是 Schema 文件及关键端点映射的权威来源。`app.py` 暂时继续兼容暴露原函数和 Handler 名称。
 
 Schema 目录：
 
@@ -48,8 +52,8 @@ JSON 响应会附加当前协议与运行环境：
 | `GET /api/task-status?seed=&years=` | 同步 Run 的内存进度 | `task-progress-response.schema.json` |
 | `GET /api/jobs/<jobId>` | 后台任务状态与完成结果 | `background-job-response.schema.json` |
 | `GET /api/schema` | Schema 目录及关键 API 映射 | 目录自身带版本 |
-| `GET /api/cached-runs` | Seed 缓存清单与保留信息 | 当前仅共享公共元数据 |
-| `GET /api/sim-save-slots` | 已弃用的多槽位兼容响应 | 无；始终提示使用 `/api/sim-save` |
+| `GET /api/cached-runs` | Seed 缓存清单与保留信息 | `cached-runs-response.schema.json` |
+| `GET /api/sim-save-slots` | 已弃用的多槽位兼容响应 | `sim-save-slots-response.schema.json`；始终提示使用 `/api/sim-save` |
 
 后台 Job 状态为 `queued`、`running`、`complete` 或 `failed`。相同 Seed、年数和 `force` 语义的活动任务会复用同一个 Job；普通请求和强制重算不会错误去重。队列与运行中任务合计最多 16 个，执行 worker 为 2。
 
@@ -121,9 +125,10 @@ POST /api/sim-save
 
 - `status`：检查当前 Seed 是否有存档；
 - `load`：读取存档；
-- `save`：写入当前季度和玩家行动。
+- `save`：写入当前季度和玩家行动；
+- `clear`：清除当前 Seed 的单一存档。
 
-`POST /api/sim-save-slot` 是旧名称兼容入口，使用同一处理逻辑。存档接口目前只共享 API 公共元数据，尚无独立响应 Schema。
+`POST /api/sim-save-slot` 是旧名称兼容入口，使用同一处理逻辑和 `sim-save-response.schema.json`。`status` 在没有存档时保留 `save: null`，`clear` 响应不含 `save`；Schema 有意描述这两个历史形态，不在协议补齐时改写响应。实际写入的 `seed-explorer-simulation-save-v0.3` 对象由 `simulation-save.schema.json` 固定字段和类型。
 
 ### 4.5 开发审计候选报告
 
@@ -148,7 +153,7 @@ POST /api/forecast-candidate
 }
 ```
 
-接口只读取 `current_viewer_manifest.json` 指向的正式城市市场数据，Seed 不一致或自然预测期越过数据终点会拒绝请求。v2 生成器使用与正式报告相同的总量和五类客群预测链路；响应携带完整审计行、实际评分、总量结果分、分项结果分、四个分项子分、是否命中目标范围和搜索次数，但不执行任何文件写入。Schema：`forecast-candidate-catalog-response.schema.json` 与 `forecast-candidate-response.schema.json`。
+接口装配位于 `server/forecast_candidates.py`，只读取 `current_viewer_manifest.json` 指向的正式城市市场数据，Seed 不一致或自然预测期越过数据终点会拒绝请求。v2 生成器使用与正式报告相同的总量和五类客群预测链路；响应携带完整审计行、实际评分、总量结果分、分项结果分、四个分项子分、是否命中目标范围和搜索次数，但不执行任何文件写入。Schema：`forecast-candidate-catalog-response.schema.json` 与 `forecast-candidate-response.schema.json`。
 
 ## 5. Schema 清单
 
@@ -167,9 +172,13 @@ POST /api/forecast-candidate
 - `random-seed-response.schema.json`
 - `task-progress-response.schema.json`
 - `background-job-response.schema.json`
+- `cached-runs-response.schema.json`
 - `seed-explorer-run-response.schema.json`
 - `beijing-operations-response.schema.json`
 - `player-simulation-response.schema.json`
+- `simulation-save.schema.json`
+- `sim-save-response.schema.json`
+- `sim-save-slots-response.schema.json`
 - `forecast-candidate-catalog-response.schema.json`
 - `forecast-candidate-response.schema.json`
 

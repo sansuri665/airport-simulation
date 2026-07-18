@@ -1,0 +1,312 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/city-airport-market-config.schema.json",
+  "title": "City airport market configuration",
+  "type": "object",
+  "required": [
+    "schema_version", "config_version", "market", "upstream_linkage", "demand_model",
+    "component_mix", "component_biases", "airline_supply_model", "commercial_biases",
+    "facility_model", "airports", "capacity_reference_profiles", "future_airport_options"
+  ],
+  "properties": {
+    "schema_version": { "const": "city-airport-market-config-v1" },
+    "config_version": { "type": "string", "minLength": 1 },
+    "market": { "$ref": "#/$defs/market" },
+    "upstream_linkage": { "$ref": "#/$defs/upstreamLinkage" },
+    "demand_model": { "$ref": "#/$defs/demandModel" },
+    "component_mix": { "$ref": "#/$defs/componentMix" },
+    "component_biases": { "$ref": "#/$defs/componentBiases" },
+    "airline_supply_model": { "$ref": "#/$defs/airlineSupplyModel" },
+    "airline_supply_component_allocation": { "$ref": "#/$defs/componentAllocation" },
+    "commercial_biases": { "$ref": "#/$defs/commercialBiases" },
+    "facility_model": { "$ref": "#/$defs/facilityModel" },
+    "airports": {
+      "type": "array", "minItems": 1,
+      "items": { "$ref": "#/$defs/airport" }
+    },
+    "capacity_reference_profiles": {
+      "type": "array", "minItems": 1,
+      "items": { "$ref": "#/$defs/capacityProfile" }
+    },
+    "future_airport_options": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/futureAirport" }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "componentNumberMap": {
+      "type": "object",
+      "required": ["business", "leisure", "vfr", "long_haul", "transfer"],
+      "properties": {
+        "business": { "type": "number", "minimum": 0 },
+        "leisure": { "type": "number", "minimum": 0 },
+        "vfr": { "type": "number", "minimum": 0 },
+        "long_haul": { "type": "number", "minimum": 0 },
+        "transfer": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "market": {
+      "type": "object",
+      "required": [
+        "city_airport_market_id", "city_name", "region_id", "region_name",
+        "market_tier", "market_type", "airport_system"
+      ],
+      "properties": {
+        "city_airport_market_id": { "$ref": "#/$defs/nonEmptyString" },
+        "city_name": { "$ref": "#/$defs/nonEmptyString" },
+        "region_id": { "$ref": "#/$defs/nonEmptyString" },
+        "region_name": { "$ref": "#/$defs/nonEmptyString" },
+        "market_tier": { "$ref": "#/$defs/nonEmptyString" },
+        "market_type": { "$ref": "#/$defs/nonEmptyString" },
+        "airport_system": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "additionalProperties": false
+    },
+    "upstreamLinkage": {
+      "type": "object",
+      "required": [
+        "regional_aviation_demand_region_id", "regional_air_capacity_supply_region_id",
+        "seed_mode", "branch_mode", "passenger_components"
+      ],
+      "properties": {
+        "regional_aviation_demand_region_id": { "$ref": "#/$defs/nonEmptyString" },
+        "regional_air_capacity_supply_region_id": { "$ref": "#/$defs/nonEmptyString" },
+        "seed_mode": { "enum": ["inherit"] },
+        "branch_mode": { "enum": ["inherit"] },
+        "passenger_components": {
+          "type": "array", "minItems": 5, "maxItems": 5, "uniqueItems": true,
+          "items": { "enum": ["business", "leisure", "vfr", "long_haul", "transfer"] }
+        }
+      },
+      "additionalProperties": false
+    },
+    "seedPotentialModel": {
+      "type": "object",
+      "required": [
+        "enabled", "template_id", "release_start_year_index", "full_effect_year_index",
+        "annual_growth_bias_range_pct", "max_growth_bias_range_pct",
+        "regional_correlation_weight", "potential_multiplier_floor",
+        "potential_multiplier_ceiling"
+      ],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "template_id": { "$ref": "#/$defs/nonEmptyString" },
+        "release_start_year_index": { "type": "number", "minimum": 0 },
+        "full_effect_year_index": { "type": "number", "minimum": 0 },
+        "annual_growth_bias_range_pct": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": { "type": "number" }
+        },
+        "max_growth_bias_range_pct": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": { "type": "number" }
+        },
+        "regional_correlation_weight": { "type": "number", "minimum": 0, "maximum": 1 },
+        "potential_multiplier_floor": { "type": "number", "minimum": 0 },
+        "potential_multiplier_ceiling": { "type": "number", "minimum": 0 },
+        "design_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "demandModel": {
+      "type": "object",
+      "required": [
+        "baseline_year", "baseline_region_demand_share_pct",
+        "baseline_city_potential_passengers_million", "annual_long_term_city_growth_bias_pct",
+        "max_long_term_city_growth_bias_pct", "target_long_term_potential_range_million",
+        "seed_potential_model", "design_note"
+      ],
+      "properties": {
+        "baseline_year": { "type": "integer", "minimum": 1900 },
+        "baseline_region_demand_share_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "baseline_city_potential_passengers_million": { "type": "number", "minimum": 0 },
+        "annual_long_term_city_growth_bias_pct": { "type": "number" },
+        "max_long_term_city_growth_bias_pct": { "type": "number" },
+        "target_long_term_potential_range_million": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": { "type": "number", "minimum": 0 }
+        },
+        "seed_potential_model": { "$ref": "#/$defs/seedPotentialModel" },
+        "design_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "componentMix": {
+      "type": "object",
+      "required": [
+        "business_base_share_pct", "leisure_base_share_pct", "vfr_base_share_pct",
+        "long_haul_base_share_pct", "transfer_base_share_pct"
+      ],
+      "properties": {
+        "business_base_share_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "leisure_base_share_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "vfr_base_share_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "long_haul_base_share_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "transfer_base_share_pct": { "type": "number", "minimum": 0, "maximum": 100 }
+      },
+      "additionalProperties": false
+    },
+    "componentBiases": {
+      "type": "object",
+      "required": [
+        "business_share_bias", "leisure_share_bias", "vfr_share_bias",
+        "long_haul_share_bias", "transfer_share_bias"
+      ],
+      "properties": {
+        "business_share_bias": { "type": "number", "minimum": 0 },
+        "leisure_share_bias": { "type": "number", "minimum": 0 },
+        "vfr_share_bias": { "type": "number", "minimum": 0 },
+        "long_haul_share_bias": { "type": "number", "minimum": 0 },
+        "transfer_share_bias": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "airlineSupplyModel": {
+      "type": "object",
+      "required": [
+        "dynamics_profile_id", "dynamics_modifier_ids", "base_airline_supply_passengers_million",
+        "regional_airline_capacity_growth_capture", "annual_local_airline_supply_growth_pct",
+        "max_local_airline_supply_growth_pct", "airline_supply_confidence_bias",
+        "airline_supply_appetite_bias", "airline_supply_constraint_bias"
+      ],
+      "properties": {
+        "dynamics_profile_id": { "$ref": "#/$defs/nonEmptyString" },
+        "dynamics_modifier_ids": {
+          "type": "array", "uniqueItems": true,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "dynamics_overrides": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "base_airline_supply_passengers_million": { "type": "number", "minimum": 0 },
+        "regional_airline_capacity_growth_capture": { "type": "number", "minimum": 0 },
+        "annual_local_airline_supply_growth_pct": { "type": "number" },
+        "max_local_airline_supply_growth_pct": { "type": "number" },
+        "airline_supply_confidence_bias": { "type": "number", "minimum": 0 },
+        "airline_supply_appetite_bias": { "type": "number", "minimum": 0 },
+        "airline_supply_constraint_bias": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "componentAllocation": {
+      "type": "object",
+      "required": ["profile_id", "priority_biases"],
+      "properties": {
+        "profile_id": { "$ref": "#/$defs/nonEmptyString" },
+        "priority_biases": { "$ref": "#/$defs/componentNumberMap" },
+        "design_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "commercialBiases": {
+      "type": "object",
+      "required": [
+        "premium_propensity_bias", "premium_share_bias", "duty_free_bias",
+        "luxury_retail_bias", "electronics_retail_bias", "food_beverage_bias",
+        "general_retail_bias"
+      ],
+      "properties": {
+        "premium_propensity_bias": { "type": "number", "minimum": 0 },
+        "premium_share_bias": { "type": "number", "minimum": 0 },
+        "duty_free_bias": { "type": "number", "minimum": 0 },
+        "luxury_retail_bias": { "type": "number", "minimum": 0 },
+        "electronics_retail_bias": { "type": "number", "minimum": 0 },
+        "food_beverage_bias": { "type": "number", "minimum": 0 },
+        "general_retail_bias": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "facilityModel": {
+      "type": "object",
+      "required": [
+        "airport_facility_slot_profile_id", "facility_size_catalog",
+        "airport_capacity_shortage_policy", "use_design_capacity_for_crowding",
+        "use_max_capacity_for_hard_limit"
+      ],
+      "properties": {
+        "airport_facility_slot_profile_id": { "$ref": "#/$defs/nonEmptyString" },
+        "facility_size_catalog": { "$ref": "#/$defs/nonEmptyString" },
+        "airport_capacity_shortage_policy": { "const": "proportional_compression" },
+        "use_design_capacity_for_crowding": { "type": "boolean" },
+        "use_max_capacity_for_hard_limit": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "slot": {
+      "type": "object",
+      "required": ["slot_id", "slot_name", "slot_role", "facility_size", "open_year"],
+      "properties": {
+        "slot_id": { "$ref": "#/$defs/nonEmptyString" },
+        "slot_name": { "$ref": "#/$defs/nonEmptyString" },
+        "slot_role": { "$ref": "#/$defs/nonEmptyString" },
+        "facility_size": { "$ref": "#/$defs/nonEmptyString" },
+        "allowed_sizes": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "open_year": { "type": "integer", "minimum": 1900 }
+      },
+      "additionalProperties": false
+    },
+    "airport": {
+      "type": "object",
+      "required": ["airport_id", "airport_name", "airport_role", "slot_count", "slots"],
+      "properties": {
+        "airport_id": { "$ref": "#/$defs/nonEmptyString" },
+        "airport_name": { "$ref": "#/$defs/nonEmptyString" },
+        "airport_role": { "$ref": "#/$defs/nonEmptyString" },
+        "slot_count": { "type": "integer", "minimum": 1 },
+        "slots": {
+          "type": "array", "minItems": 1,
+          "items": { "$ref": "#/$defs/slot" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "capacityProfile": {
+      "type": "object",
+      "required": ["design_capacity_million", "max_capacity_million", "slot_assignments"],
+      "properties": {
+        "preset_id": { "$ref": "#/$defs/nonEmptyString" },
+        "preset_name": { "$ref": "#/$defs/nonEmptyString" },
+        "profile_id": { "$ref": "#/$defs/nonEmptyString" },
+        "profile_name": { "$ref": "#/$defs/nonEmptyString" },
+        "design_capacity_million": { "type": "number", "minimum": 0 },
+        "max_capacity_million": { "type": "number", "minimum": 0 },
+        "slot_assignments": {
+          "type": "object", "minProperties": 1,
+          "additionalProperties": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "design_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "futureAirport": {
+      "type": "object",
+      "required": [
+        "airport_id", "airport_name", "name_policy", "default_slot_count",
+        "default_slot_role_template", "starting_main_slot_allowed_sizes", "design_note"
+      ],
+      "properties": {
+        "airport_id": { "$ref": "#/$defs/nonEmptyString" },
+        "airport_name": { "$ref": "#/$defs/nonEmptyString" },
+        "name_policy": { "$ref": "#/$defs/nonEmptyString" },
+        "default_slot_count": { "type": "integer", "minimum": 1 },
+        "default_slot_role_template": {
+          "type": "array", "minItems": 1,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "starting_main_slot_allowed_sizes": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "design_note": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

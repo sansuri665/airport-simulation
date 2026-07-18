@@ -13,7 +13,7 @@
   async function loadCity(index, cityMeta) {
     const baseUrl = String(index.baseUrl || "");
     if (!baseUrl || !cityMeta?.file) throw new Error("城市数据分块地址无效。");
-    const response = await fetch(new URL(cityMeta.file, baseUrl).href, { cache: "no-store" });
+    const response = await fetch(new URL(cityMeta.file, baseUrl).href);
     if (!response.ok) throw new Error(`城市数据读取失败（HTTP ${response.status}）。`);
     const payload = await response.json();
     if (

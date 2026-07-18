@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/simulation-save.schema.json",
+  "title": "Seed-bound player simulation save",
+  "allOf": [
+    { "type": "object" },
+    { "$ref": "#/$defs/save" }
+  ],
+  "$defs": {
+    "save": {
+      "required": [
+        "schemaVersion", "seed", "years", "mode", "runId", "runDir", "currentQuarterIndex",
+        "currentLabel", "contractSignatures", "contractAffairsContractId", "playerActions",
+        "savedAtUnix", "savedAt", "note"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "seed-explorer-simulation-save-v0.3" },
+        "seed": { "type": "integer" },
+        "years": { "type": "integer", "minimum": 1 },
+        "mode": { "const": "simulate_default" },
+        "runId": { "type": "string", "minLength": 1 },
+        "runDir": { "type": "string" },
+        "currentQuarterIndex": { "type": "integer", "minimum": 0 },
+        "currentLabel": { "type": "string" },
+        "contractSignatures": { "type": "object" },
+        "contractAffairsContractId": { "type": "string", "minLength": 1 },
+        "playerActions": {
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "savedAtUnix": { "type": "number", "minimum": 0 },
+        "savedAt": { "type": "string", "minLength": 1 },
+        "note": {
+          "const": "Seed-bound dynamic-test save. Stores the current quarter and player action journal; server-generated quarterly results are rebuilt and are not copied into the save."
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

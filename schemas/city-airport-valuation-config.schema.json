@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/city-airport-valuation-config.schema.json",
+  "title": "City airport valuation forecast configuration",
+  "type": "object",
+  "required": [
+    "schema_version", "config_version", "operator_id", "operator_name",
+    "city_airport_market_id", "city_name", "region_id", "region_name",
+    "currency", "amount_unit", "valuation_scenario_tag", "design_note",
+    "timeline", "forecast", "valuation"
+  ],
+  "properties": {
+    "schema_version": { "const": "city-airport-valuation-forecast-config-v1" },
+    "config_version": { "type": "string", "minLength": 1 },
+    "operator_id": { "type": "string", "minLength": 1 },
+    "operator_name": { "type": "string", "minLength": 1 },
+    "city_airport_market_id": { "type": "string", "minLength": 1 },
+    "city_name": { "type": "string", "minLength": 1 },
+    "region_id": { "type": "string", "minLength": 1 },
+    "region_name": { "type": "string", "minLength": 1 },
+    "currency": { "type": "string", "minLength": 1 },
+    "amount_unit": { "type": "string", "minLength": 1 },
+    "valuation_scenario_tag": { "type": "string", "minLength": 1 },
+    "design_note": { "type": "string" },
+    "timeline": {
+      "type": "object",
+      "required": ["simulation_start_year", "player_decision_start_year", "startup_operating_history_years"],
+      "properties": {
+        "simulation_start_year": { "type": "integer", "minimum": 1900 },
+        "player_decision_start_year": { "type": "integer", "minimum": 1900 },
+        "startup_operating_history_years": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "forecast": {
+      "type": "object",
+      "required": [
+        "forecast_horizon_quarters", "history_quarters", "minimum_history_quarters",
+        "fallback_annual_passenger_growth_pct", "fallback_annual_revenue_growth_pct",
+        "long_term_margin_weight", "annual_growth_floor_pct", "annual_growth_cap_pct",
+        "cash_tax_rate_pct", "maintenance_capex_ratio_of_depreciation",
+        "maintenance_capex_ratio_of_fixed_asset_book_value_pct",
+        "maintenance_capex_annual_growth_pct", "macro_revenue_sensitivity"
+      ],
+      "properties": {
+        "forecast_horizon_quarters": { "type": "integer", "minimum": 1 },
+        "history_quarters": { "type": "integer", "minimum": 1 },
+        "minimum_history_quarters": { "type": "integer", "minimum": 1 },
+        "fallback_annual_passenger_growth_pct": { "type": "number" },
+        "fallback_annual_revenue_growth_pct": { "type": "number" },
+        "long_term_margin_weight": { "type": "number", "minimum": 0, "maximum": 1 },
+        "annual_growth_floor_pct": { "type": "number" },
+        "annual_growth_cap_pct": { "type": "number" },
+        "cash_tax_rate_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "maintenance_capex_ratio_of_depreciation": { "type": "number", "minimum": 0 },
+        "maintenance_capex_ratio_of_fixed_asset_book_value_pct": { "type": "number", "minimum": 0 },
+        "maintenance_capex_annual_growth_pct": { "type": "number" },
+        "macro_revenue_sensitivity": { "type": "object", "minProperties": 1 }
+      },
+      "additionalProperties": false
+    },
+    "valuation": {
+      "type": "object",
+      "required": [
+        "primary_method", "net_asset_valuation", "cash_recognition_rate",
+        "discount_rate_floor_pct", "discount_rate_cap_pct", "terminal_growth_floor_pct",
+        "terminal_growth_cap_pct", "operating_value", "market_valuation",
+        "asset_quality_adjustment", "contract_quality_adjustment", "uncertainty"
+      ],
+      "minProperties": 1
+    }
+  },
+  "additionalProperties": false
+}

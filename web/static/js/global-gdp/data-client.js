@@ -1,4 +1,3 @@
-const CSV_PATH = "./output/global_gdp/global_gdp_seed_sweep.csv";
     const SCOPE_OPTIONS = [
       { id: "global", label: "全球", shortLabel: "全球", type: "global" },
       { id: "north_america", label: "北美", shortLabel: "北美", type: "regional" },
@@ -348,20 +347,6 @@ const CSV_PATH = "./output/global_gdp/global_gdp_seed_sweep.csv";
       detailShock: document.getElementById("detailShock"),
     };
 
-    function parseCsv(text) {
-      const lines = text.trim().split(/\r?\n/);
-      const headers = lines.shift().split(",");
-      return lines.map((line) => {
-        const parts = line.split(",");
-        const row = {};
-        headers.forEach((key, index) => {
-          const raw = parts[index] ?? "";
-          row[key] = numFields.has(key) ? Number(raw) : raw;
-        });
-        return row;
-      });
-    }
-
     function normalizeRows(rows) {
       return rows.map((row) => {
         const next = { ...row };
@@ -595,46 +580,17 @@ const CSV_PATH = "./output/global_gdp/global_gdp_seed_sweep.csv";
     }
 
     async function loadRows() {
-      if (Array.isArray(window.GLOBAL_MACRO_FEEDBACK_DATA) && window.GLOBAL_MACRO_FEEDBACK_DATA.length) {
-        el.status.textContent = "data: feedback-calibrated macro stack";
-        return normalizeRows(window.GLOBAL_MACRO_FEEDBACK_DATA);
+      if (window.AIRPORT_GLOBAL_VIEWER_LOAD_ERROR) {
+        throw new Error(window.AIRPORT_GLOBAL_VIEWER_LOAD_ERROR);
       }
-      if (Array.isArray(window.GLOBAL_OIL_COMMODITY_DATA) && window.GLOBAL_OIL_COMMODITY_DATA.length) {
-        el.status.textContent = "data: combined gdp+inflation+policy+yield+dollar+credit+assets+oil";
-        return normalizeRows(window.GLOBAL_OIL_COMMODITY_DATA);
+      if (!Array.isArray(window.GLOBAL_MACRO_FEEDBACK_DATA) || !window.GLOBAL_MACRO_FEEDBACK_DATA.length) {
+        throw new Error("全球 Viewer 主数据缺失，请重新运行或发布 Viewer。");
       }
-      if (Array.isArray(window.GLOBAL_ASSET_PRICE_DATA) && window.GLOBAL_ASSET_PRICE_DATA.length) {
-        el.status.textContent = "data: combined gdp+inflation+policy+yield+dollar+credit+assets";
-        return normalizeRows(window.GLOBAL_ASSET_PRICE_DATA);
+      if (!window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX) {
+        throw new Error("全球 Viewer 没有按区域分块，请重新运行或发布 Viewer。");
       }
-      if (Array.isArray(window.GLOBAL_CREDIT_SPREAD_DATA) && window.GLOBAL_CREDIT_SPREAD_DATA.length) {
-        el.status.textContent = "data: combined gdp+inflation+policy+yield+dollar+credit";
-        return normalizeRows(window.GLOBAL_CREDIT_SPREAD_DATA);
-      }
-      if (Array.isArray(window.GLOBAL_DOLLAR_LIQUIDITY_DATA) && window.GLOBAL_DOLLAR_LIQUIDITY_DATA.length) {
-        el.status.textContent = "data: combined gdp+inflation+policy+yield+dollar";
-        return normalizeRows(window.GLOBAL_DOLLAR_LIQUIDITY_DATA);
-      }
-      if (Array.isArray(window.GLOBAL_YIELD_CURVE_DATA) && window.GLOBAL_YIELD_CURVE_DATA.length) {
-        el.status.textContent = "data: combined gdp+inflation+policy+yield";
-        return normalizeRows(window.GLOBAL_YIELD_CURVE_DATA);
-      }
-      if (Array.isArray(window.GLOBAL_POLICY_RATE_DATA) && window.GLOBAL_POLICY_RATE_DATA.length) {
-        el.status.textContent = "data: combined gdp+inflation+policy";
-        return normalizeRows(window.GLOBAL_POLICY_RATE_DATA);
-      }
-      if (Array.isArray(window.GLOBAL_GDP_INFLATION_DATA) && window.GLOBAL_GDP_INFLATION_DATA.length) {
-        el.status.textContent = "data: combined gdp+inflation";
-        return normalizeRows(window.GLOBAL_GDP_INFLATION_DATA);
-      }
-      if (Array.isArray(window.GLOBAL_GDP_VIEWER_DATA) && window.GLOBAL_GDP_VIEWER_DATA.length) {
-        el.status.textContent = "data: embedded output/global_gdp";
-        return normalizeRows(window.GLOBAL_GDP_VIEWER_DATA);
-      }
-      const response = await fetch(CSV_PATH);
-      if (!response.ok) throw new Error(`Cannot load ${CSV_PATH}`);
-      el.status.textContent = "data: csv";
-      return parseCsv(await response.text());
+      el.status.textContent = "data: feedback-calibrated macro stack";
+      return normalizeRows(window.GLOBAL_MACRO_FEEDBACK_DATA);
     }
 
     function cloneRows(rows = []) {
@@ -690,7 +646,7 @@ const CSV_PATH = "./output/global_gdp/global_gdp_seed_sweep.csv";
 
       const loadPromise = (async () => {
         const baseUrl = data.lazyBaseUrl || data.lazyIndex.baseUrl;
-        const response = await fetch(new URL(entry.file, baseUrl).href, { cache: "no-store" });
+        const response = await fetch(new URL(entry.file, baseUrl).href);
         if (!response.ok) throw new Error(`无法加载区域数据 ${regionId}`);
         const chunk = await response.json();
         if (
@@ -755,63 +711,21 @@ const CSV_PATH = "./output/global_gdp/global_gdp_seed_sweep.csv";
       try {
         await loadScriptFile(`${basePath}/global_macro/global_viewer_index.js`);
       } catch (error) {
-        // Older archived runs predate regional chunks and continue through the legacy scripts below.
+        throw new Error("这个历史 Run 没有按区域分块，请重新运行或发布后再查看。");
       }
       const lazyIndex = window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX || null;
-      if (lazyIndex) {
-        return {
-          globalRows,
-          regionalDatasets: {},
-          aviationDatasets: {},
-          supplyDatasets: {},
-          reconciledRows,
-          diagnosticRows,
-          lazyIndex,
-          lazyBaseUrl: lazyIndex.baseUrl,
-          loadedRegionIds: new Set(),
-          regionLoadPromises: new Map(),
-        };
-      }
-
-      const regionalDatasets = {};
-      for (const config of SCOPE_OPTIONS.filter((item) => item.type === "regional")) {
-        window.REGIONAL_MACRO_DATA = [];
-        try {
-          await loadScriptFile(`${basePath}/regional_macro/${config.id}/${config.id}_regional_macro_viewer_data.js`);
-          regionalDatasets[config.id] = cloneRows(window.REGIONAL_MACRO_DATA || []);
-        } catch (error) {
-          regionalDatasets[config.id] = [];
-        }
-      }
-      const aviationDatasets = {};
-      for (const config of SCOPE_OPTIONS.filter((item) => item.type === "regional")) {
-        window.REGIONAL_AVIATION_DEMAND_DATA = [];
-        try {
-          await loadScriptFile(`${basePath}/regional_aviation_demand/${config.id}/${config.id}_aviation_demand_viewer_data.js`);
-          aviationDatasets[config.id] = cloneRows(window.REGIONAL_AVIATION_DEMAND_DATA || []);
-        } catch (error) {
-          aviationDatasets[config.id] = [];
-        }
-      }
-      const supplyDatasets = {};
-      for (const config of SCOPE_OPTIONS.filter((item) => item.type === "regional")) {
-        window.REGIONAL_AIR_CAPACITY_SUPPLY_DATA = [];
-        try {
-          await loadScriptFile(`${basePath}/regional_air_capacity_supply/${config.id}/${config.id}_air_capacity_supply_viewer_data.js`);
-          supplyDatasets[config.id] = cloneRows(window.REGIONAL_AIR_CAPACITY_SUPPLY_DATA || []);
-        } catch (error) {
-          supplyDatasets[config.id] = [];
-        }
+      if (!lazyIndex) {
+        throw new Error("这个历史 Run 没有按区域分块，请重新运行或发布后再查看。");
       }
       return {
         globalRows,
-        regionalDatasets,
-        aviationDatasets,
-        supplyDatasets,
+        regionalDatasets: {},
+        aviationDatasets: {},
+        supplyDatasets: {},
         reconciledRows,
         diagnosticRows,
-        lazyIndex: null,
-        lazyBaseUrl: "",
+        lazyIndex,
+        lazyBaseUrl: lazyIndex.baseUrl,
         loadedRegionIds: new Set(),
         regionLoadPromises: new Map(),
       };

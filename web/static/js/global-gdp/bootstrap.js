@@ -1,14 +1,16 @@
 (() => {
+  window.AIRPORT_GLOBAL_VIEWER_LOAD_ERROR = "";
   const releaseScript = window.AIRPORT_VIEWER_MANIFEST?.scripts?.global_gdp_viewer;
-  const fallbackCheck = '<script>if (!window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX && !Object.keys(window.REGIONAL_MACRO_DATASETS || {}).length) { document.write(document.getElementById("legacyGlobalViewerDataScripts").innerHTML); }</script>';
-  if (releaseScript) {
-    document.write("<script src=" + JSON.stringify(releaseScript) + "></script>" + fallbackCheck);
-  } else {
-    document.write(
-      '<script src="./output/global_macro/global_macro_feedback_viewer_data.js"></script>'
-      + '<script src="./output/regional_macro_reconciled/regional_macro_reconciled_viewer_data.js"></script>'
-      + '<script src="./output/global_macro/global_viewer_index.js"></script>'
-      + fallbackCheck
-    );
-  }
+  const sources = releaseScript
+    ? [releaseScript]
+    : [
+        "./output/global_macro/global_macro_feedback_viewer_data.js",
+        "./output/regional_macro_reconciled/regional_macro_reconciled_viewer_data.js",
+        "./output/global_macro/global_viewer_index.js",
+      ];
+  const errorMessage = "全球 Viewer 数据加载失败，请重新发布 Viewer。";
+  const scriptTag = (source) => (
+    `<script src=${JSON.stringify(source)} onerror="window.AIRPORT_GLOBAL_VIEWER_LOAD_ERROR='${errorMessage}'"></script>`
+  );
+  document.write(sources.map(scriptTag).join(""));
 })();

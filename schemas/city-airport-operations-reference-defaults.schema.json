@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/city-airport-operations-reference-defaults.schema.json",
+  "title": "City airport quarterly operations reference defaults",
+  "type": "object",
+  "required": [
+    "schema_version", "reference_defaults_id", "description", "currency", "amount_unit",
+    "game_timeline", "quarter_component_weights",
+    "facility_fixed_operating_cost_million_cny_per_year", "slot_fixed_operating_cost_model",
+    "facility_renovation_model", "facility_construction_model", "facility_rebuild_model",
+    "facility_renovation_events", "facility_construction_events", "facility_rebuild_events",
+    "aeronautical_revenue", "passenger_variable_cost", "congestion_cost", "commercial"
+  ],
+  "properties": {
+    "schema_version": { "const": "city-airport-quarterly-operations-reference-defaults-v1" },
+    "reference_defaults_id": { "type": "string", "minLength": 1 },
+    "description": { "type": "string", "minLength": 1 },
+    "currency": { "type": "string", "minLength": 1 },
+    "amount_unit": { "type": "string", "minLength": 1 },
+    "game_timeline": { "$ref": "city-airport-operations-config.schema.json#/$defs/gameTimeline" },
+    "quarter_component_weights": { "$ref": "city-airport-operations-config.schema.json#/$defs/quarterComponentWeights" },
+    "facility_fixed_operating_cost_million_cny_per_year": { "$ref": "city-airport-operations-config.schema.json#/$defs/facilityNumberMap" },
+    "slot_fixed_operating_cost_model": { "$ref": "city-airport-operations-config.schema.json#/$defs/modelObject" },
+    "facility_renovation_model": { "$ref": "city-airport-operations-config.schema.json#/$defs/modelObject" },
+    "facility_construction_model": { "$ref": "city-airport-operations-config.schema.json#/$defs/modelObject" },
+    "facility_rebuild_model": { "$ref": "city-airport-operations-config.schema.json#/$defs/modelObject" },
+    "facility_renovation_events": { "$ref": "city-airport-operations-config.schema.json#/$defs/eventList" },
+    "facility_construction_events": { "$ref": "city-airport-operations-config.schema.json#/$defs/eventList" },
+    "facility_rebuild_events": { "$ref": "city-airport-operations-config.schema.json#/$defs/eventList" },
+    "aeronautical_revenue": { "$ref": "city-airport-operations-config.schema.json#/$defs/modelObject" },
+    "passenger_variable_cost": { "$ref": "city-airport-operations-config.schema.json#/$defs/modelObject" },
+    "congestion_cost": { "$ref": "city-airport-operations-config.schema.json#/$defs/modelObject" },
+    "commercial": { "$ref": "city-airport-operations-config.schema.json#/$defs/modelObject" }
+  },
+  "additionalProperties": false
+}

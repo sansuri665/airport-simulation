@@ -34,7 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     validate_parser = commands.add_parser(
         "validate-config",
-        help="Check configuration JSON syntax and reject duplicate object keys.",
+        help="Validate configuration syntax, family schemas, ranges, references, weights, and curves.",
     )
     validate_parser.add_argument(
         "--config-root",
@@ -66,4 +66,3 @@ def main(argv: Sequence[str] | None = None) -> int:
     if command_handler is None:  # pragma: no cover - required subparsers prevent this.
         parser.error("a command is required")
     return int(command_handler(args))
-

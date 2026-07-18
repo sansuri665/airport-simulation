@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/cached-runs-response.schema.json",
+  "title": "Seed Explorer cached run inventory response",
+  "allOf": [
+    { "$ref": "api-envelope.schema.json" },
+    {
+      "type": "object",
+      "required": [
+        "ok", "runRoot", "saveRoot", "maxCachedRuns", "cacheFingerprintVersion", "runs"
+      ],
+      "properties": {
+        "ok": { "const": true },
+        "runRoot": { "type": "string", "minLength": 1 },
+        "saveRoot": { "type": "string", "minLength": 1 },
+        "maxCachedRuns": { "type": "integer", "minimum": 1 },
+        "cacheFingerprintVersion": { "const": "seed-explorer-run-cache-v4" },
+        "runs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/run" }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "run": {
+      "type": "object",
+      "required": [
+        "runId", "seed", "years", "cityCount", "startYear", "finalYear", "generatedAt",
+        "lastWriteTime", "hasCityCache", "cacheStatus", "hasBeijingOperations"
+      ],
+      "properties": {
+        "runId": { "type": "string", "minLength": 1 },
+        "seed": { "type": ["integer", "null"] },
+        "years": { "type": ["integer", "null"] },
+        "cityCount": { "type": "integer", "minimum": 0 },
+        "startYear": { "type": ["integer", "null"] },
+        "finalYear": { "type": ["integer", "null"] },
+        "generatedAt": { "type": "string" },
+        "lastWriteTime": { "type": "string", "minLength": 1 },
+        "hasCityCache": { "type": "boolean" },
+        "cacheStatus": { "enum": ["valid", "missing_or_stale"] },
+        "hasBeijingOperations": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

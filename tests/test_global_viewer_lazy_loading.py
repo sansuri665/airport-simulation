@@ -86,7 +86,7 @@ class GlobalViewerLazyLoadingTests(unittest.TestCase):
                 len(list((viewer_root / "global_macro" / "global_viewer_chunks").glob("*.json"))),
             )
 
-    def test_viewer_contains_region_loader_and_legacy_fallback(self) -> None:
+    def test_viewer_requires_region_loader_without_legacy_script_fallback(self) -> None:
         html = (PAGES_DIR / "global_gdp_viewer.html").read_text(encoding="utf-8")
         bootstrap_script = "/static/js/global-gdp/bootstrap.js"
         bootstrap_js = (STATIC_DIR / "js" / "global-gdp" / "bootstrap.js").read_text(encoding="utf-8")
@@ -97,12 +97,17 @@ class GlobalViewerLazyLoadingTests(unittest.TestCase):
         self.assertIn(f'<script src="{bootstrap_script}"></script>', html)
         self.assertIn(f'<script src="{data_client_script}"></script>', html)
         self.assertIn(f'<script src="{page_script}"></script>', html)
-        self.assertIn("AIRPORT_GLOBAL_VIEWER_LAZY_INDEX", bootstrap_js)
         self.assertIn("global_viewer_index.js", bootstrap_js)
-        self.assertIn("legacyGlobalViewerDataScripts", html)
+        self.assertIn("AIRPORT_GLOBAL_VIEWER_LOAD_ERROR", bootstrap_js)
+        self.assertNotIn("legacyGlobalViewerDataScripts", html)
+        self.assertNotIn("legacyGlobalViewerDataScripts", bootstrap_js)
         self.assertIn("async function ensureRegionLoaded(", data_client_js)
         self.assertIn("window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX", data_client_js)
         self.assertIn("window.REGIONAL_MACRO_DATASETS", data_client_js)
+        self.assertNotIn("CSV_PATH", data_client_js)
+        self.assertNotIn("regional_macro/${config.id}", data_client_js)
+        self.assertNotIn('cache: "no-store"', data_client_js)
+        self.assertIn("没有按区域分块", data_client_js)
 
 
 if __name__ == "__main__":

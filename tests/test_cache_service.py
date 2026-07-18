@@ -86,6 +86,83 @@ class CacheServiceTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     cache_service.set_retention(0)
 
+    def test_viewer_retention_defaults_to_two_and_is_persisted_outside_output(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            patches = self.roots(root)
+            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+                self.assertEqual(2, cache_service.load_policy()["maxViewerReleases"])
+                result = cache_service.set_viewer_retention(3)
+                self.assertEqual(3, result["maxViewerReleases"])
+                self.assertEqual(3, cache_service.load_policy()["maxViewerReleases"])
+                policy = json.loads(cache_service.CACHE_POLICY_PATH.read_text(encoding="utf-8"))
+                self.assertEqual(3, policy["maxViewerReleases"])
+                self.assertTrue(cache_service.CACHE_POLICY_PATH.is_relative_to(cache_service.SAVE_ROOT.parent))
+                self.assertFalse(cache_service.CACHE_POLICY_PATH.is_relative_to(cache_service.OUTPUT_ROOT))
+                with self.assertRaises(ValueError):
+                    cache_service.set_viewer_retention(0)
+
+    def test_plan_preserves_current_and_newest_viewer_backup(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            patches = self.roots(root)
+            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+                releases = {
+                    name: cache_service.VIEWER_RELEASE_ROOT / name
+                    for name in ("current", "backup_new", "backup_old")
+                }
+                release_times = {"current": 4, "backup_new": 3, "backup_old": 2}
+                for name, release in releases.items():
+                    release.mkdir(parents=True)
+                    (release / "bundle.js").write_text(release.name, encoding="utf-8")
+                    cache_service.os.utime(release, (release_times[name], release_times[name]))
+                (cache_service.OUTPUT_ROOT / "current_viewer_manifest.json").write_text(
+                    json.dumps({"release_path": "output/viewer_releases/current"}),
+                    encoding="utf-8",
+                )
+
+                plan = cache_service.plan_cache()
+
+                releases_by_name = {
+                    Path(item["path"]).name: item
+                    for item in plan["entries"]
+                    if item["category"] == "viewer_release"
+                }
+                self.assertEqual("protected", releases_by_name["current"]["status"])
+                self.assertEqual("keep", releases_by_name["backup_new"]["status"])
+                self.assertEqual("deletable", releases_by_name["backup_old"]["status"])
+                candidate_names = {
+                    Path(item["path"]).name
+                    for item in plan["plan"]["candidates"]
+                    if item["category"] == "viewer_release"
+                }
+                self.assertEqual({"backup_old"}, candidate_names)
+
+    def test_viewer_backup_selection_is_deterministic_and_staging_does_not_consume_a_slot(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            patches = self.roots(root)
+            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
+                for name in ("current", "backup_a", "backup_b", ".staging_publish"):
+                    release = cache_service.VIEWER_RELEASE_ROOT / name
+                    release.mkdir(parents=True)
+                    cache_service.os.utime(release, (10, 10))
+                (cache_service.OUTPUT_ROOT / "current_viewer_manifest.json").write_text(
+                    json.dumps({"release_path": "output/viewer_releases/current"}),
+                    encoding="utf-8",
+                )
+
+                inventory = cache_service.list_cache()
+
+                releases_by_name = {
+                    Path(item["path"]).name: item
+                    for item in inventory["entries"]
+                    if item["category"] == "viewer_release"
+                }
+                self.assertEqual("protected", releases_by_name[".staging_publish"]["status"])
+                self.assertEqual("keep", releases_by_name["backup_b"]["status"])
+                self.assertEqual("deletable", releases_by_name["backup_a"]["status"])
+
     def test_cleanup_refuses_while_8776_is_active(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
@@ -108,10 +185,16 @@ class CacheServiceTests(unittest.TestCase):
             patches = self.roots(root)
             with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5], patches[6], patches[7], patches[8]:
                 current_release = cache_service.VIEWER_RELEASE_ROOT / "current"
+                backup_release = cache_service.VIEWER_RELEASE_ROOT / "backup"
                 old_release = cache_service.VIEWER_RELEASE_ROOT / "old"
                 current_release.mkdir(parents=True)
+                backup_release.mkdir(parents=True)
                 old_release.mkdir(parents=True)
+                (backup_release / "bundle.js").write_text("backup", encoding="utf-8")
                 (old_release / "bundle.js").write_text("old", encoding="utf-8")
+                cache_service.os.utime(old_release, (1, 1))
+                cache_service.os.utime(backup_release, (2, 2))
+                cache_service.os.utime(current_release, (3, 3))
                 cache_service.OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
                 (cache_service.OUTPUT_ROOT / "current_viewer_manifest.json").write_text(
                     json.dumps({"release_path": "output/viewer_releases/current"}),
@@ -125,6 +208,7 @@ class CacheServiceTests(unittest.TestCase):
 
                 self.assertTrue(result["executed"])
                 self.assertTrue(current_release.exists())
+                self.assertTrue(backup_release.exists())
                 self.assertFalse(old_release.exists())
                 self.assertTrue(save.exists())
 

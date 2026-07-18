@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import gzip
 import json
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import unittest
@@ -320,6 +322,62 @@ class LocalUIIntegrationTests(unittest.TestCase):
         self.assertEqual(200, status)
         self.assertEqual("text/javascript", content_type)
         self.assertIn("workspace-status", body)
+
+    def test_static_and_release_files_support_revalidation_and_gzip(self) -> None:
+        static_request = urllib.request.Request(f"{self.base_url}/static/js/home/page.js")
+        with urllib.request.urlopen(static_request, timeout=5) as response:
+            static_etag = response.headers["ETag"]
+            self.assertEqual("no-cache", response.headers["Cache-Control"])
+            self.assertTrue(static_etag)
+            response.read()
+        cached_static_request = urllib.request.Request(
+            f"{self.base_url}/static/js/home/page.js",
+            headers={"If-None-Match": static_etag},
+        )
+        with self.assertRaises(urllib.error.HTTPError) as static_context:
+            urllib.request.urlopen(cached_static_request, timeout=5)
+        self.assertEqual(304, static_context.exception.code)
+
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            output_root = Path(temporary_dir) / "output"
+            release_file = output_root / "viewer_releases" / "release-id" / "chunk.json"
+            release_file.parent.mkdir(parents=True)
+            raw = b'{"data":"' + b"repeat" * 5_000 + b'"}'
+            compressed = gzip.compress(raw, compresslevel=9, mtime=0)
+            release_file.write_bytes(raw)
+            Path(f"{release_file}.gz").write_bytes(compressed)
+            manifest_file = output_root / "current_viewer_manifest.json"
+            manifest_file.write_bytes(b'{"release_id":"release-id"}')
+            Path(f"{manifest_file}.gz").write_bytes(gzip.compress(manifest_file.read_bytes(), mtime=0))
+
+            with mock.patch.object(local_ui, "OUTPUT_ROOT", output_root):
+                release_request = urllib.request.Request(
+                    f"{self.base_url}/output/viewer_releases/release-id/chunk.json",
+                    headers={"Accept-Encoding": "gzip"},
+                )
+                with urllib.request.urlopen(release_request, timeout=5) as response:
+                    gzip_etag = response.headers["ETag"]
+                    self.assertEqual("gzip", response.headers["Content-Encoding"])
+                    self.assertEqual("Accept-Encoding", response.headers["Vary"])
+                    self.assertEqual("public, max-age=31536000, immutable", response.headers["Cache-Control"])
+                    self.assertEqual(compressed, response.read())
+
+                cached_release_request = urllib.request.Request(
+                    f"{self.base_url}/output/viewer_releases/release-id/chunk.json",
+                    headers={"Accept-Encoding": "gzip", "If-None-Match": gzip_etag},
+                )
+                with self.assertRaises(urllib.error.HTTPError) as release_context:
+                    urllib.request.urlopen(cached_release_request, timeout=5)
+                self.assertEqual(304, release_context.exception.code)
+
+                manifest_request = urllib.request.Request(
+                    f"{self.base_url}/output/current_viewer_manifest.json",
+                    headers={"Accept-Encoding": "gzip"},
+                )
+                with urllib.request.urlopen(manifest_request, timeout=5) as response:
+                    self.assertEqual("no-cache", response.headers["Cache-Control"])
+                    self.assertIsNone(response.headers["Content-Encoding"])
+                    self.assertEqual(manifest_file.read_bytes(), response.read())
 
     def test_start_scripts_do_not_kill_an_unknown_port_owner(self) -> None:
         root_start = (ROOT_DIR / "start_airport_ui.bat").read_text(encoding="utf-8")
