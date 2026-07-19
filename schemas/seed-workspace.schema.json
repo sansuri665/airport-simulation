@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/seed-workspace.schema.json",
+  "title": "Persisted Seed workspace registry",
+  "type": "object",
+  "required": ["schemaVersion", "revision", "activeSlotId", "slots"],
+  "properties": {
+    "schemaVersion": { "const": "airport-seed-workspace-v1" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "activeSlotId": {
+      "type": ["string", "null"],
+      "pattern": "^seed_[0-9]+_years_[0-9]+$"
+    },
+    "slots": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/slot" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "slot": {
+      "type": "object",
+      "required": ["slotId", "seed", "years", "label", "createdAt", "lastUsedAt"],
+      "properties": {
+        "slotId": { "type": "string", "pattern": "^seed_[0-9]+_years_[0-9]+$" },
+        "seed": { "type": "integer", "minimum": 0 },
+        "years": { "type": "integer", "minimum": 5, "maximum": 90 },
+        "label": { "type": "string" },
+        "createdAt": { "type": "string", "minLength": 1 },
+        "lastUsedAt": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

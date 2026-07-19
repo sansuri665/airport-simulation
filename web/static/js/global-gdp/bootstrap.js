@@ -1,17 +1,23 @@
 (() => {
-  window.AIRPORT_GLOBAL_VIEWER_LOAD_ERROR = "";
-  const releaseScript = window.AIRPORT_VIEWER_MANIFEST?.scripts?.global_gdp_viewer;
-  const errorMessage = "全球 Viewer 数据加载失败，请重新发布 Viewer。";
-  if (!releaseScript) {
-    window.AIRPORT_GLOBAL_VIEWER_LOAD_ERROR = "当前 Viewer Manifest 没有全球 Viewer Release。";
-    return;
+  let releasePromise = null;
+
+  function loadReleaseData() {
+    if (releasePromise) return releasePromise;
+    releasePromise = new Promise((resolve, reject) => {
+      const releaseScript = window.AIRPORT_VIEWER_MANIFEST?.scripts?.global_gdp_viewer;
+      if (!releaseScript) {
+        reject(new Error("当前 Viewer Manifest 没有全球 Viewer Release。"));
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = new URL(releaseScript, window.location.href).href;
+      script.async = true;
+      script.addEventListener("load", resolve);
+      script.addEventListener("error", () => reject(new Error("全球 Viewer Release 加载失败。")));
+      document.head.append(script);
+    });
+    return releasePromise;
   }
-  window.addEventListener("error", (event) => {
-    if (event.target?.dataset?.airportGlobalRelease === "true") {
-      window.AIRPORT_GLOBAL_VIEWER_LOAD_ERROR = errorMessage;
-    }
-  }, true);
-  document.write(
-    `<script data-airport-global-release="true" src=${JSON.stringify(releaseScript)}><\/script>`
-  );
+
+  window.AirportGlobalViewerBootstrap = Object.freeze({loadReleaseData});
 })();

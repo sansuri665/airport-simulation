@@ -32,7 +32,7 @@ JSON 响应会附加当前协议与运行环境：
 
 ```json
 {
-  "apiSchemaVersion": "seed-explorer-api-v2",
+  "apiSchemaVersion": "seed-explorer-api-v3",
   "modelVersion": "airport-model-v0.8",
   "outputSchemaVersion": "airport-model-output-v1",
   "pythonVersion": "3.13.x",
@@ -48,6 +48,13 @@ JSON 响应会附加当前协议与运行环境：
 |---|---|---|
 | `GET /api/health` | 服务身份、PID、缓存/存档根与指纹版本 | `health-response.schema.json` |
 | `GET /api/workspace-status` | 当前 Viewer 发布、缓存与存档数量、页面地址 | `workspace-status-response.schema.json` |
+| `GET /api/seed-workspace` | 按 `Seed + 年数` 合并注册槽位、Release、缓存和玩家存档 | `seed-workspace-response.schema.json` |
+| `GET /api/city-market-viewer/index?seed=&years=` | 从有效 Seed 缓存读取城市轻量索引 | `city-market-context-index-response.schema.json` |
+| `GET /api/city-market-viewer/chunk?seed=&years=&city=` | 从同一缓存按需读取单城分块 | `city-market-context-chunk-response.schema.json` |
+| `GET /api/global-viewer/index?seed=&years=` | 从有效 Seed 缓存读取全球主链与 14 区目录 | `global-viewer-context-index-response.schema.json` |
+| `GET /api/global-viewer/region?seed=&years=&region=` | 从同一缓存按需读取单区域宏观、航空需求与运力供给 | `global-viewer-context-region-response.schema.json` |
+| `GET /api/forecast-viewer/index?seed=&years=&mode=` | 从有效 Seed 缓存分别读取玩家或审计预测索引 | `forecast-viewer-context-index-response.schema.json` |
+| `GET /api/forecast-viewer/report?seed=&years=&mode=&report=` | 从同一缓存按需读取单份预测报告分块 | `forecast-viewer-context-report-response.schema.json` |
 | `GET /api/random-seed` | 用 Python `secrets` 生成正式随机 Seed | `random-seed-response.schema.json` |
 | `GET /api/task-status?seed=&years=` | 同步 Run 的内存进度 | `task-progress-response.schema.json` |
 | `GET /api/jobs/<jobId>` | 后台任务状态与完成结果 | `background-job-response.schema.json` |
@@ -56,11 +63,82 @@ JSON 响应会附加当前协议与运行环境：
 
 后台 Job 状态为 `queued`、`running`、`complete` 或 `failed`。相同 Seed、年数和 `force` 语义的活动任务会复用同一个 Job；普通请求和强制重算不会错误去重。队列与运行中任务合计最多 16 个，执行 worker 为 2。
 
+### 3.1 统一 Seed 工作区
+
+`GET /api/seed-workspace` 是首页 Seed 中心的数据基础。槽位使用 `seed_<seed>_years_<years>`，响应包含：
+
+- 当前槽位、选择来源和工作区 revision；
+- 注册表是否缺失、有效、部分降级或损坏；
+- 缓存有效性、实际字节、文件数和 pinned 状态；
+- 玩家存档是否有效及其独立路径；
+- 是否对应当前 Viewer Release；
+- 经营、全球、城市、玩家预测和审计预测当前是否可打开；
+- 活动槽位、当前 Release 和 pinned 缓存等保护原因。
+
+注册表磁盘契约是 `seed-workspace.schema.json`，只保存槽位元数据；组合后的 HTTP 响应使用 `seed-workspace-response.schema.json`。GET 仍严格只读，不创建 Seed、不运行模型、不删除数据，也不把一个 Seed 的页面请求回退到另一个 Seed。统一 Seed 四页迁移完成后 API 升级为 v3；模型版本和输出 Schema 版本没有变化。
+
+经营页的浏览器上下文由 URL 中成对出现的 `seed` 与 `years` 确定。两项都缺失时，前端只读取一次 `activeSlot` 并用 `history.replaceState` 补成可复现 URL；只缺一项、值非法或槽位未注册都会阻止继续请求。`/api/run-job`、`/api/beijing-operations`、`/api/player-simulation`、玩家行动接口和 `/api/sim-save` 共用该上下文，并校验成功响应中的 Seed 与年数。这里没有新增第二套服务端 Session，也不会把请求隐式改写为当前 Release。
+
+### 3.2 城市 Viewer 缓存读取
+
+城市页对当前发布槽位继续直接读取 Manifest 指向的版本化 bundle 和分块。只有非发布且缓存有效的槽位才调用：
+
+```text
+GET /api/city-market-viewer/index?seed=20260716&years=60
+GET /api/city-market-viewer/chunk?seed=20260716&years=60&city=beijing_airport_system
+```
+
+两个接口严格只读，只接受已注册、`cacheStatus=ready`、`cacheRunId` 与 `(seed, years)` 一致的槽位；过期缓存返回 409，槽位或城市不存在返回 404，非法参数返回 400。响应的 `context` 包含 `seed`、`years`、`slotId`、`source=seed_cache`、工作区 revision 和 `cacheRunId`。索引与块仍分别复用现有 v2 Viewer 协议，包装 Schema 只增加来源身份，不加入机场运营字段。
+
+### 3.3 全球 Viewer 缓存读取
+
+全球页对当前发布槽位继续直接读取 Manifest 指向的版本化 bundle 和 14 个区域分块。只有非发布且缓存有效的槽位才调用：
+
+```text
+GET /api/global-viewer/index?seed=20260716&years=60
+GET /api/global-viewer/region?seed=20260716&years=60&region=china_mainland
+```
+
+两个接口同样严格只读并要求注册槽位、`ready` 缓存和一致的 `cacheRunId`。索引返回全球主链、区域协调和轻量区域目录；单区域响应返回区域宏观、航空需求和运力供给。服务会验证各组行的 Seed / 年数，在读取期间持有同一 Run 锁，并以 409 `global_viewer_context_unavailable` 拒绝过期缓存。响应上下文与城市接口一致，浏览器还会把槽位身份纳入区域内存缓存键，不会静默改读当前 Release。
+
+### 3.4 预测 Viewer 缓存读取
+
+预测页对当前发布槽位继续读取 Manifest 指向的玩家索引、独立审计索引和报告分块。非发布且缓存有效的槽位改用：
+
+```text
+GET /api/forecast-viewer/index?seed=20260716&years=60&mode=player
+GET /api/forecast-viewer/report?seed=20260716&years=60&mode=player&report=public_consensus
+```
+
+`mode` 只能是 `player` 或 `audit`。服务在同一 Run 锁内读取现有预测 CSV，并调用与正式发布器相同的纯索引/报告序列化器；不生成临时 Release 或落盘分块。玩家模式只投影玩家字段，排除神级报告、真实未来与评分字段；审计模式由单独请求取得。响应上下文包含 `seed`、`years`、`slotId`、`source=seed_cache`、`dataMode`、工作区 revision 和 `cacheRunId`。过期缓存返回 409，缺少槽位或报告返回 404，且不会隐式改读当前 Release。
+
 ## 4. POST 接口
 
 所有 POST 都要求 `Content-Type: application/json`，UTF-8 JSON 对象，大小不超过 2 MiB。
 
-### 4.1 运行城市市场
+### 4.1 Seed 工作区写操作
+
+```text
+POST /api/seed-workspace
+```
+
+同一路径按 `action` 支持：
+
+- `create-random`：创建未占用的随机 `Seed + 年数` 槽位；
+- `import`：导入指定 Seed，重复导入复用槽位；
+- `activate`：切换活动槽位；
+- `remove-slot`：只移除非活动、没有缓存/存档/Release 的空草稿；
+- `plan-delete` / `delete`：分别预览和执行单槽位缓存或玩家存档删除；
+- `plan-retention` / `apply-retention`：分别预览和执行 Seed 缓存保留计划；
+- `set-retention`：只保存 1–50 的缓存上限，不立即删除文件。
+
+除只读预览外，写操作必须携带 GET 返回的 `expectedRevision`。revision 过期返回 409，前端应刷新后重新操作。删除执行还必须携带同一次预览返回的 `planId` 和 `confirm: true`；目标字节、文件数、修改时间、revision 或 Run 锁发生变化都会拒绝执行。服务端只根据规范槽位 ID重新构造路径，不接受前端传入的任意文件路径。
+
+活动槽位、当前 Viewer Release 和 pinned 缓存会在 `protectedReasons` / `blockers` 中说明。清缓存明确保留玩家存档，删存档明确保留 Seed 缓存；本接口不删除版本化 Release 或正式源 Run。响应使用 `seed-workspace-action-response.schema.json`。
+
+首页的“删除 Seed”不是新的 API action：它在一次明确确认后，必要时先激活当前 Release 或其它备用槽位，再对目标缓存和存档分别取得新鲜 `plan-delete`，逐项执行 `delete`，最后以当时的 revision 调用 `remove-slot`。任何一步发生并发变化都会由既有校验拒绝，页面随后重新读取真实工作区状态。
+
+### 4.2 运行城市市场
 
 ```text
 POST /api/run
@@ -79,7 +157,7 @@ POST /api/run-job
 
 `/api/run` 同步返回城市市场汇总；`/api/run-job` 返回 HTTP 202 与 `jobId`，完成后的 `result` 使用同一 Run 响应结构。Schema：`seed-explorer-run-response.schema.json` 与 `background-job-response.schema.json`。
 
-### 4.2 北京经营历史
+### 4.3 北京经营历史
 
 ```text
 POST /api/beijing-operations
@@ -103,7 +181,7 @@ cashNetChange
   = freeCashFlowBeforeFinancing + financingCashFlow - interestExpense
 ```
 
-### 4.3 玩家模拟运营
+### 4.4 玩家模拟运营
 
 ```text
 POST /api/player-simulation
@@ -121,7 +199,7 @@ POST /api/player-simulation
 
 服务端校验行动类型、字段和时点，并以行动日志作为经营重算来源。响应 Schema：`player-simulation-response.schema.json`。当前响应含 `allQuarters` 供本地季度切换；它是调试/原型接口边界，不应直接当作正式游戏的信息权限设计。
 
-### 4.4 玩家存档
+### 4.5 玩家存档
 
 ```text
 POST /api/sim-save
@@ -136,18 +214,20 @@ POST /api/sim-save
 
 `status` 在没有存档时返回 `save: null`，`clear` 响应不含 `save`；两种当前响应形态都由 `sim-save-response.schema.json` 描述。实际写入的 `seed-explorer-simulation-save-v0.3` 对象由 `simulation-save.schema.json` 固定字段和类型。
 
-### 4.5 开发审计候选报告
+### 4.6 开发审计候选报告
 
 ```text
-GET  /api/forecast-candidate-catalog
+GET  /api/forecast-candidate-catalog?seed=&years=&source=
 POST /api/forecast-candidate
 ```
 
-目录接口返回 4 个正式等级、8 种普通基础风格、15 个修饰标签、矛盾标签组合、最低分数区间宽度，以及当前正式 Viewer 发布的 Seed 和数据终点。生成接口最小请求示例：
+目录接口返回 4 个正式等级、8 种普通基础风格、15 个修饰标签、矛盾标签组合、最低分数区间宽度，以及请求来源上下文和数据终点。生成接口最小请求示例：
 
 ```json
 {
   "seed": 424242,
+  "years": 60,
+  "source": "viewer_release",
   "asOfYear": 2030,
   "tierProfileId": "initial_v1",
   "narrativeProfileId": "public_consensus_v2",
@@ -159,7 +239,7 @@ POST /api/forecast-candidate
 }
 ```
 
-接口装配位于 `server/forecast_candidates.py`，只读取 `current_viewer_manifest.json` 指向的正式城市市场数据，Seed 不一致或自然预测期越过数据终点会拒绝请求。v2 生成器使用与正式报告相同的总量和五类客群预测链路；响应携带完整审计行、实际评分、总量结果分、分项结果分、四个分项子分、是否命中目标范围和搜索次数，但不执行任何文件写入。Schema：`forecast-candidate-catalog-response.schema.json` 与 `forecast-candidate-response.schema.json`。
+接口装配位于 `server/forecast_candidates.py`。调用方必须明确传入 `viewer_release` 或 `seed_cache`；服务校验注册槽位、Seed、年数和精确来源后，读取同一来源的北京城市市场数据，绝不在来源不可用时回退当前 Release。目录和生成响应都携带同一个审计 `context`，浏览器会比较 Release ID 或缓存 Run ID 与工作区 revision。v2 生成器算法本身不变，继续使用与正式报告相同的总量和五类客群预测链路；响应含完整审计行、实际评分和各分项结果，但不执行文件写入。Schema：`forecast-candidate-catalog-response.schema.json` 与 `forecast-candidate-response.schema.json`。
 
 ## 5. Schema 清单
 
@@ -177,6 +257,15 @@ Viewer Manifest v2 使用 `downstream_csv_copy_count` 记录发布后刷新的�
 - `api-error-response.schema.json`
 - `health-response.schema.json`
 - `workspace-status-response.schema.json`
+- `seed-workspace.schema.json`
+- `seed-workspace-response.schema.json`
+- `seed-workspace-action-response.schema.json`
+- `city-market-context-index-response.schema.json`
+- `city-market-context-chunk-response.schema.json`
+- `global-viewer-context-index-response.schema.json`
+- `global-viewer-context-region-response.schema.json`
+- `forecast-viewer-context-index-response.schema.json`
+- `forecast-viewer-context-report-response.schema.json`
 - `random-seed-response.schema.json`
 - `task-progress-response.schema.json`
 - `background-job-response.schema.json`

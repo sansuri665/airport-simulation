@@ -26,7 +26,10 @@ from airport_sim.paths import (
 
 from . import api_contract
 from . import beijing_operations
+from . import city_market_viewer
 from . import forecast_candidates
+from . import forecast_viewer
+from . import global_viewer
 from . import http as http_utils
 from . import jobs as background_jobs
 from . import player_actions
@@ -39,6 +42,8 @@ from . import routes as server_routes
 from . import run_cache
 from . import run_locks
 from . import run_service
+from . import seed_workspace as seed_workspace_service
+from . import seed_workspace_actions as seed_workspace_action_service
 from . import serializers, storage, validation
 from . import workspace_service
 
@@ -67,6 +72,7 @@ VERSION_RECORD = json.loads(VERSION_RECORD_PATH.read_text(encoding="utf-8"))
 MODEL_VERSION = str(VERSION_RECORD["model_version"])
 OUTPUT_SCHEMA_VERSION = str(VERSION_RECORD["output_schema_version"])
 SEED_EXPLORER_API_SCHEMA_VERSION = str(VERSION_RECORD["seed_explorer_api_schema_version"])
+SEED_WORKSPACE_REGISTRY_PATH = SAVE_ROOT.parent / "seed_workspace.json"
 VIEWER_ROUTES = server_routes.VIEWER_ROUTES
 VIEWER_REDIRECTS = server_routes.VIEWER_REDIRECTS
 STATIC_CONTENT_TYPES = server_routes.STATIC_CONTENT_TYPES
@@ -76,6 +82,12 @@ SCHEMA_FILES = api_contract.SCHEMA_FILES
 
 UnsupportedMediaTypeError = http_utils.UnsupportedMediaTypeError
 RequestTooLargeError = http_utils.RequestTooLargeError
+CityMarketContextUnavailableError = city_market_viewer.CityMarketContextUnavailableError
+GlobalViewerContextUnavailableError = global_viewer.GlobalViewerContextUnavailableError
+ForecastViewerContextUnavailableError = forecast_viewer.ForecastViewerContextUnavailableError
+ForecastCandidateContextUnavailableError = (
+    forecast_candidates.ForecastCandidateContextUnavailableError
+)
 BEIJING_OPERATIONS_RELATIVE_CSV = Path(
     "baseline/city_airport_quarterly_operations/china_mainland/"
     "beijing_airport_system_quarterly_operations_seed_sweep.csv"
@@ -480,6 +492,12 @@ def cache_retention_policy() -> dict[str, Any]:
     return run_cache.retention_policy(MAX_CACHED_RUNS)
 
 
+def set_cache_retention(max_cached_runs: int) -> dict[str, Any]:
+    from airport_sim.cache_service import set_retention
+
+    return set_retention(max_cached_runs)
+
+
 def prune_cached_runs() -> None:
     run_cache.prune_cached_runs(
         run_root=RUN_ROOT,
@@ -771,10 +789,21 @@ def current_viewer_release_status() -> dict[str, Any]:
     )
 
 
-def forecast_candidate_release_context() -> tuple[dict[str, Any], list[dict[str, str]]]:
-    return forecast_candidates.forecast_candidate_release_context(
+def forecast_candidate_source_context(
+    seed: int,
+    years: int,
+    source: str,
+) -> tuple[dict[str, Any], list[dict[str, str]]]:
+    return forecast_candidates.forecast_candidate_source_context(
+        seed,
+        years,
+        source,
         output_root=OUTPUT_ROOT,
         root_dir=ROOT_DIR,
+        run_root=RUN_ROOT,
+        workspace_payload=seed_workspace_payload,
+        run_id_for=run_id_for,
+        lock_for_run=lock_for_run,
         read_json=read_json,
         ensure_inside=ensure_inside,
         read_csv=read_csv,
@@ -782,9 +811,16 @@ def forecast_candidate_release_context() -> tuple[dict[str, Any], list[dict[str,
     )
 
 
-def forecast_candidate_catalog_payload() -> dict[str, Any]:
+def forecast_candidate_catalog_payload(
+    seed: int,
+    years: int,
+    source: str,
+) -> dict[str, Any]:
     return forecast_candidates.forecast_candidate_catalog_payload(
-        release_context=forecast_candidate_release_context,
+        seed,
+        years,
+        source,
+        source_context=forecast_candidate_source_context,
         candidate_layer=forecast_candidate_layer,
         config_path=BEIJING_FORECAST_CONFIG,
         as_float=as_float,
@@ -794,11 +830,11 @@ def forecast_candidate_catalog_payload() -> dict[str, Any]:
 def generate_forecast_candidate_payload(body: dict[str, Any]) -> dict[str, Any]:
     return forecast_candidates.generate_forecast_candidate_payload(
         body,
-        release_context=forecast_candidate_release_context,
+        source_context=forecast_candidate_source_context,
         candidate_layer=forecast_candidate_layer,
         config_path=BEIJING_FORECAST_CONFIG,
         clean_seed=clean_seed,
-        as_float=as_float,
+        clean_years=clean_years,
     )
 
 
@@ -811,6 +847,165 @@ def workspace_status() -> dict[str, Any]:
         list_cached_runs=list_cached_runs,
         current_viewer_release_status=current_viewer_release_status,
         getpid=os.getpid,
+    )
+
+
+def seed_workspace_payload() -> dict[str, Any]:
+    return seed_workspace_service.seed_workspace_payload(
+        root_dir=ROOT_DIR,
+        run_root=RUN_ROOT,
+        save_root=SAVE_ROOT,
+        registry_path=SEED_WORKSPACE_REGISTRY_PATH,
+        read_json=read_json,
+        list_cached_runs=list_cached_runs,
+        current_viewer_release_status=current_viewer_release_status,
+        cache_retention_policy=cache_retention_policy,
+        parse_run_id=parse_run_id,
+        run_id_for=run_id_for,
+    )
+
+
+def initialise_seed_workspace() -> dict[str, Any]:
+    return seed_workspace_service.initialise_registry_if_missing(
+        seed_workspace_payload(),
+        registry_path=SEED_WORKSPACE_REGISTRY_PATH,
+        read_json=read_json,
+        atomic_write_text=atomic_write_text,
+        parse_run_id=parse_run_id,
+        run_id_for=run_id_for,
+    )
+
+
+def seed_workspace_action(body: dict[str, Any]) -> dict[str, Any]:
+    return seed_workspace_action_service.handle_action(
+        body,
+        root_dir=ROOT_DIR,
+        run_root=RUN_ROOT,
+        save_root=SAVE_ROOT,
+        registry_path=SEED_WORKSPACE_REGISTRY_PATH,
+        read_json=read_json,
+        atomic_write_text=atomic_write_text,
+        workspace_payload=seed_workspace_payload,
+        parse_run_id=parse_run_id,
+        run_id_for=run_id_for,
+        try_lock_for_run=try_lock_for_run,
+        set_cache_retention=set_cache_retention,
+    )
+
+
+def city_market_viewer_index_payload(seed: int, years: int) -> dict[str, Any]:
+    return city_market_viewer.index_payload(
+        seed,
+        years,
+        workspace_payload=seed_workspace_payload,
+        run_root=RUN_ROOT,
+        run_id_for=run_id_for,
+        ensure_inside=ensure_inside,
+        lock_for_run=lock_for_run,
+        read_csv=read_csv,
+        serialize_dataset=serializers.serialize_city_market_viewer_dataset,
+    )
+
+
+def city_market_viewer_chunk_payload(
+    seed: int,
+    years: int,
+    market_id: str,
+) -> dict[str, Any]:
+    return city_market_viewer.chunk_payload(
+        seed,
+        years,
+        market_id,
+        workspace_payload=seed_workspace_payload,
+        run_root=RUN_ROOT,
+        run_id_for=run_id_for,
+        ensure_inside=ensure_inside,
+        lock_for_run=lock_for_run,
+        read_csv=read_csv,
+        serialize_rows=serializers.serialize_city_market_viewer_rows,
+    )
+
+
+def global_viewer_index_payload(seed: int, years: int) -> dict[str, Any]:
+    return global_viewer.index_payload(
+        seed,
+        years,
+        workspace_payload=seed_workspace_payload,
+        run_root=RUN_ROOT,
+        run_id_for=run_id_for,
+        ensure_inside=ensure_inside,
+        lock_for_run=lock_for_run,
+        read_csv=read_csv,
+        decode_rows=serializers.decode_viewer_csv_rows,
+        optional_scenario_fields=serializers.GLOBAL_VIEWER_OPTIONAL_SCENARIO_FIELDS,
+        serialize_core=serializers.serialize_global_viewer_core,
+        serialize_dataset=serializers.serialize_global_viewer_dataset,
+    )
+
+
+def global_viewer_region_payload(
+    seed: int,
+    years: int,
+    region_id: str,
+) -> dict[str, Any]:
+    return global_viewer.region_payload(
+        seed,
+        years,
+        region_id,
+        workspace_payload=seed_workspace_payload,
+        run_root=RUN_ROOT,
+        run_id_for=run_id_for,
+        ensure_inside=ensure_inside,
+        lock_for_run=lock_for_run,
+        read_csv=read_csv,
+        decode_rows=serializers.decode_viewer_csv_rows,
+        serialize_region=serializers.serialize_global_viewer_region,
+    )
+
+
+def forecast_viewer_index_payload(
+    seed: int,
+    years: int,
+    data_mode: str,
+) -> dict[str, Any]:
+    return forecast_viewer.index_payload(
+        seed,
+        years,
+        data_mode,
+        workspace_payload=seed_workspace_payload,
+        run_root=RUN_ROOT,
+        run_id_for=run_id_for,
+        ensure_inside=ensure_inside,
+        lock_for_run=lock_for_run,
+        read_csv=read_csv,
+        read_config=read_config_json,
+        config_path=BEIJING_FORECAST_CONFIG,
+        decode_rows=serializers.decode_viewer_csv_rows,
+        null_fields=forecast_candidate_layer.FORECAST_VIEWER_NULL_FIELDS,
+        serialize_index=forecast_candidate_layer.serialize_viewer_index,
+    )
+
+
+def forecast_viewer_report_payload(
+    seed: int,
+    years: int,
+    data_mode: str,
+    report_id: str,
+) -> dict[str, Any]:
+    return forecast_viewer.report_payload(
+        seed,
+        years,
+        data_mode,
+        report_id,
+        workspace_payload=seed_workspace_payload,
+        run_root=RUN_ROOT,
+        run_id_for=run_id_for,
+        ensure_inside=ensure_inside,
+        lock_for_run=lock_for_run,
+        read_csv=read_csv,
+        decode_rows=serializers.decode_viewer_csv_rows,
+        null_fields=forecast_candidate_layer.FORECAST_VIEWER_NULL_FIELDS,
+        serialize_report=forecast_candidate_layer.serialize_viewer_report,
     )
 
 
@@ -937,6 +1132,13 @@ def main() -> None:
     ]
     if missing_schemas:
         raise FileNotFoundError(f"missing API Schema files: {', '.join(missing_schemas)}")
+    seed_workspace_initialisation = initialise_seed_workspace()
+    if seed_workspace_initialisation["status"] != "ready":
+        structured_log(
+            "seed_workspace_registry_warning",
+            status=seed_workspace_initialisation["status"],
+            warnings=seed_workspace_initialisation["warnings"],
+        )
     server = ThreadingHTTPServer((args.host, args.port), SeedExplorerHandler)
     server.allow_non_loopback = bool(args.allow_non_loopback)
     base_url = f"http://{args.host}:{args.port}"

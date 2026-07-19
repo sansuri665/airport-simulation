@@ -14,9 +14,9 @@
         <span class="status" id="statusText">loading</span>
       </div>
       <div class="controls">
-        <a class="nav-link" href="/city-markets">城市市场</a>
-        <a class="nav-link" href="/global-gdp">宏观 viewer</a>
-        <label class="control">Seed <select id="seedSelect"></select></label>
+        <a class="nav-link" id="cityMarketsLink" href="/city-markets">城市市场</a>
+        <a class="nav-link" id="globalViewerLink" href="/global-gdp">宏观 viewer</a>
+        <span class="control" id="seedContextLabel">固定 Seed</span>
         <label class="control">视图
           <select id="modeSelect">
             <option value="player">报告视图</option>
@@ -27,6 +27,7 @@
     </header>
 
     <main>
+      <div class="empty" id="contextChangeNotice" hidden>首页活动 Seed 已变化；本页仍固定使用打开时的 Seed，上下文不会自动切换。</div>
       <section class="summary-grid" id="summaryGrid" aria-label="预测测试摘要"></section>
 
       <section class="panel candidate-lab" id="candidateLab" hidden>
@@ -137,6 +138,8 @@
   </div>
 
   <script src="./output/current_viewer_manifest.js"></script>
+  <script src="/static/js/shared/api-client.js"></script>
+  <script src="/static/js/shared/seed-context.js"></script>
   <script src="/static/js/beijing-forecast/bootstrap.js"></script>
   <script src="/static/js/beijing-forecast/state.js"></script>
   <script src="/static/js/beijing-forecast/data-client.js"></script>

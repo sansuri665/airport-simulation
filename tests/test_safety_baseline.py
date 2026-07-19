@@ -338,12 +338,14 @@ class RuntimeSafetyTests(unittest.TestCase):
 
                 durable_save = seed_explorer_server.sim_save_path(0, 12)
                 seed_explorer_server.write_json(durable_save, {"seed": 0, "years": 12})
+                durable_save_bytes = durable_save.read_bytes()
 
                 self.assertEqual(seed_explorer_server.MAX_CACHED_RUNS + 1, len(seed_explorer_server.list_cached_runs()))
                 seed_explorer_server.prune_cached_runs()
 
                 self.assertEqual(seed_explorer_server.MAX_CACHED_RUNS, len(list(run_root.iterdir())))
                 self.assertTrue(durable_save.exists())
+                self.assertEqual(durable_save_bytes, durable_save.read_bytes())
 
     def test_pruning_skips_staging_and_active_run_directories(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:

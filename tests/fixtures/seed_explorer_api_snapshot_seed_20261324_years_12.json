@@ -1,6 +1,6 @@
 {
   "snapshotSchemaVersion": "seed-explorer-api-snapshot-v1",
-  "apiSchemaVersion": "seed-explorer-api-v2",
+  "apiSchemaVersion": "seed-explorer-api-v3",
   "modelVersion": "airport-model-v0.8",
   "outputSchemaVersion": "airport-model-output-v1",
   "schemaCatalog": "/api/schema",

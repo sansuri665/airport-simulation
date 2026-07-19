@@ -1,3 +1,11 @@
+    const {
+      branchRisksForRow,
+      activeScenarioRows,
+      simulateBranchRisk,
+      clearScenario,
+      scenarioDeltaSummary,
+    } = window.AirportGlobalScenarioModel;
+
     function render() {
       const rows = rowsForSeed();
       if (!rows.length) {

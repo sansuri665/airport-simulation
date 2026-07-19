@@ -17,6 +17,7 @@ if str(MACRO_DIR) not in sys.path:
     sys.path.insert(0, str(MACRO_DIR))
 
 import macro_run_orchestrator_sim as orchestrator
+from airport_sim.server import serializers, storage
 try:
     from . import test_viewer_release
     from .schema_support import load_schema_registry, validate_named_schema
@@ -74,6 +75,14 @@ class CityMarketViewerLazyLoadingTests(unittest.TestCase):
             self.assertTrue(
                 all("served" not in component for component in final["components"].values())
             )
+            dataset = serializers.serialize_city_market_viewer_dataset(
+                [(str(path), storage.read_csv(path)) for path in sorted(market_dir.glob("*.csv"))]
+            )
+            self.assertEqual(index, dataset["index"])
+            self.assertEqual(
+                raw,
+                dataset["chunks"][MARKET_ID]["raw"],
+            )
 
     def test_atomic_release_publishes_city_index_and_chunks(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
@@ -100,10 +109,14 @@ class CityMarketViewerLazyLoadingTests(unittest.TestCase):
         self.assertIn('/static/js/city-markets/data-client.js', html)
         self.assertIn('/static/js/city-markets/page.js', html)
         self.assertIn("scripts?.city_market_viewer", bootstrap_js)
+        self.assertIn("loadReleaseIndex", bootstrap_js)
+        self.assertNotIn("document.write", bootstrap_js)
         self.assertNotIn("legacy", html.lower())
         self.assertIn("async function loadCity(", data_client_js)
-        self.assertIn("window.AIRPORT_CITY_MARKET_VIEWER_INDEX", data_client_js)
-        self.assertNotIn('cache: "no-store"', data_client_js)
+        self.assertIn("/api/city-market-viewer/index", data_client_js)
+        self.assertIn("/api/city-market-viewer/chunk", data_client_js)
+        self.assertIn("context.slotId", data_client_js)
+        self.assertIn('cache: "no-store"', data_client_js)
         self.assertNotIn("机场实际承接", html)
         self.assertNotIn("机场最大容量", html)
         self.assertNotIn("机场容量", html)

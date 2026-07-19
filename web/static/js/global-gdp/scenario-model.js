@@ -1,3 +1,4 @@
+window.AirportGlobalScenarioModel = (() => {
     function clamp(value, low, high) {
       return Math.max(low, Math.min(high, value));
     }
@@ -75,8 +76,7 @@
     }
 
     function dynamicParams() {
-      const staticSeed = state.seeds.find((seed) => !state.dynamicSeeds.has(seed)) ?? state.seeds[0];
-      const baseRows = state.rows.filter((row) => row.seed === staticSeed).sort((a, b) => a.year - b.year);
+      const baseRows = state.rows.filter((row) => row.seed === state.seed).sort((a, b) => a.year - b.year);
       return {
         years: Math.max(1, baseRows.length - 1) || 60,
         startYear: baseRows[0]?.year ?? 2025,
@@ -2202,3 +2202,11 @@
       return attachDynamicOilCommodities(attachDynamicAssetPrices(attachDynamicCreditSpreads(attachDynamicDollarLiquidity(attachDynamicYieldCurve(attachDynamicPolicy(attachDynamicInflation(seed, simulateDynamicGlobalGdp(seed, feedbackByIndex))))))));
     }
 
+    return Object.freeze({
+      branchRisksForRow,
+      activeScenarioRows,
+      simulateBranchRisk,
+      clearScenario,
+      scenarioDeltaSummary,
+    });
+})();

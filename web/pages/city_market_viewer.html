@@ -20,7 +20,7 @@
       <nav class="topnav" aria-label="主导航">
         <a href="/">工作台</a>
         <a href="/global-gdp">宏观 Viewer</a>
-        <a href="/seed-explorer">动态测试</a>
+        <a id="operationsLink" href="/seed-explorer">动态测试</a>
         <a href="/beijing-forecast">有效客流预测</a>
       </nav>
     </header>
@@ -29,6 +29,8 @@
       <div class="release-copy">
         <strong id="releaseMeta">—</strong>
         <span id="yearLabel">—</span>
+        <small id="contextSource">正在解析 Seed 上下文…</small>
+        <small class="context-change" id="contextChangeNotice" hidden>首页活动 Seed 已变化；本页仍固定显示当前 URL 的世界。请从首页重新打开以切换。</small>
       </div>
       <label class="year-control">查看年份
         <input id="yearRange" type="range" min="0" max="0" value="0">
@@ -124,6 +126,8 @@
   </div>
 
   <script src="./output/current_viewer_manifest.js"></script>
+  <script src="/static/js/shared/api-client.js"></script>
+  <script src="/static/js/shared/seed-context.js"></script>
   <script src="/static/js/city-markets/bootstrap.js"></script>
   <script src="/static/js/city-markets/state.js"></script>
   <script src="/static/js/city-markets/data-client.js"></script>

@@ -1,12 +1,17 @@
 const apiClient = window.AirportApiClient;
+const seedContext = window.AirportSeedContext;
 const PLAYER_SIMULATION_MIN_YEARS = 60;
 const el = {
-      seedInput: document.getElementById("seedInput"),
-      yearsInput: document.getElementById("yearsInput"),
-      cachedRunSelect: document.getElementById("cachedRunSelect"),
+      seedCenterLink: document.getElementById("seedCenterLink"),
+      contextSeedValue: document.getElementById("contextSeedValue"),
+      contextYearsValue: document.getElementById("contextYearsValue"),
+      contextSourceValue: document.getElementById("contextSourceValue"),
+      contextSlotValue: document.getElementById("contextSlotValue"),
+      contextRevisionValue: document.getElementById("contextRevisionValue"),
+      contextStatusValue: document.getElementById("contextStatusValue"),
+      contextChangeNotice: document.getElementById("contextChangeNotice"),
       forceInput: document.getElementById("forceInput"),
       runButton: document.getElementById("runButton"),
-      randomButton: document.getElementById("randomButton"),
       status: document.getElementById("status"),
       sortSelect: document.getElementById("sortSelect"),
       searchInput: document.getElementById("searchInput"),
@@ -638,32 +643,82 @@ const el = {
       el.status.textContent = text;
     }
 
-    function setLoading(value) {
-      state.loading = value;
-      el.runButton.disabled = value;
-      el.randomButton.disabled = value;
-      el.runButton.textContent = value ? "运行中..." : "运行全链路";
+    function requireSeedContext() {
+      if (!state.seedContext) throw new Error("Seed 上下文尚未就绪，请返回首页重新进入");
+      return {...state.seedContext};
     }
 
-    function startTaskProgressPolling(seed, years) {
-      let stopped = false;
-      let timer = null;
-      const poll = async () => {
-        try {
-          const payload = await apiClient.requestJson(`/api/task-status?seed=${encodeURIComponent(seed)}&years=${encodeURIComponent(years)}`);
-          if (!stopped && payload.ok && payload.status === "running") {
-            status(`${payload.message}（${payload.progressPct}%）`);
-          }
-        } catch {
-          // Progress is optional; the original synchronous request remains authoritative.
-        }
-      };
-      poll();
-      timer = window.setInterval(poll, 500);
-      return () => {
-        stopped = true;
-        if (timer !== null) window.clearInterval(timer);
-      };
+    function contextRequestBody(extra = {}) {
+      return seedContext.requestBody(extra);
+    }
+
+    function assertContextResponse(payload, label) {
+      return seedContext.assertResponse(payload, label);
+    }
+
+    function contextCacheReady() {
+      return state.seedContext?.cacheStatus === "ready";
+    }
+
+    function contextSourceLabel(context) {
+      if (context.cacheStatus === "ready") return "Seed 缓存";
+      if (context.cacheStatus === "stale") return "过期 Seed 缓存";
+      if (context.hasPlayerSave) return "玩家存档（基础缓存缺失）";
+      if (context.isCurrentViewerRelease) return "Viewer Release（经营缓存未生成）";
+      return "工作区槽位（尚未生成）";
+    }
+
+    function renderSeedContext() {
+      const context = state.seedContext;
+      if (!context) {
+        el.contextSeedValue.textContent = "不可用";
+        el.contextStatusValue.textContent = "上下文错误";
+        el.contextStatusValue.className = "context-status error";
+        return;
+      }
+      el.contextSeedValue.textContent = `Seed ${context.seed}`;
+      el.contextYearsValue.textContent = `${context.years} 年`;
+      el.contextSourceValue.textContent = contextSourceLabel(context);
+      el.contextSlotValue.textContent = context.slotId;
+      el.contextRevisionValue.textContent = `${context.workspaceRevision}（当前 ${context.currentWorkspaceRevision}）`;
+      el.contextStatusValue.textContent = context.cacheStatus === "ready"
+        ? "经营缓存可用"
+        : context.cacheStatus === "stale" ? "需要重建" : "尚未生成";
+      el.contextStatusValue.className = `context-status ${context.cacheStatus === "ready" ? "ready" : context.cacheStatus === "missing" || context.cacheStatus === "stale" ? "error" : ""}`.trim();
+      el.contextChangeNotice.hidden = !state.contextChanged;
+    }
+
+    function setContextAvailability() {
+      const hasContext = Boolean(state.seedContext);
+      const cacheReady = contextCacheReady();
+      el.runButton.disabled = !hasContext || state.loading || Boolean(state.generationJobId);
+      el.operationModeOptionButtons.forEach((button) => { button.disabled = !cacheReady; });
+      el.runOpsButton.disabled = !cacheReady;
+      if (!cacheReady) {
+        el.prevQuarterButton.disabled = true;
+        el.nextQuarterButton.disabled = true;
+      }
+      renderSimSaveSlots();
+    }
+
+    async function refreshSeedContext(silent = true) {
+      try {
+        const refreshed = await seedContext.refresh();
+        state.seedContext = refreshed.context;
+        state.contextChanged = refreshed.activeSlotChanged || refreshed.slotMissing;
+        renderSeedContext();
+        setContextAvailability();
+        return refreshed;
+      } catch (error) {
+        if (!silent) status(String(error.message || error), "error");
+        return null;
+      }
+    }
+
+    function setLoading(value) {
+      state.loading = value;
+      el.runButton.textContent = value ? "生成中..." : "生成当前世界";
+      setContextAvailability();
     }
 
     function bottleneckLabel(value) {
@@ -733,7 +788,7 @@ const el = {
     function renderSimSaveSlots() {
       const summary = state.simSaveSummary;
       const canSave = Boolean(state.operations && state.operations.mode === "simulate_default");
-      const canLoad = Boolean(summary?.occupied);
+      const canLoad = Boolean(summary?.occupied) && contextCacheReady();
       el.saveSimSlotButton.disabled = !canSave;
       el.loadSimSlotButton.disabled = !canLoad;
       el.simSaveSummary.textContent = summary?.occupied
@@ -745,17 +800,15 @@ const el = {
     }
 
     async function refreshSimSaveSlots(silent = true) {
+      if (!state.seedContext) return;
       try {
         const payload = await apiClient.requestJson("/api/sim-save", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "status",
-            seed: Number(el.seedInput.value),
-            years: Number(el.yearsInput.value || 60),
-          }),
+          body: JSON.stringify(contextRequestBody({action: "status"})),
         });
         if (!payload.ok) throw new Error(payload.error || "save status failed");
+        assertContextResponse(payload, "存档状态");
         state.simSaveSummary = payload.summary || null;
         renderSimSaveSlots();
       } catch (error) {
@@ -777,7 +830,7 @@ const el = {
         el.prevQuarterButton.disabled = true;
         el.nextQuarterButton.disabled = true;
       } else {
-        el.runOpsButton.disabled = false;
+        el.runOpsButton.disabled = !contextCacheReady();
         renderOperations();
         renderSimSaveSlots();
       }
@@ -834,55 +887,6 @@ const el = {
       render();
       renderOperations();
       refreshSimSaveSlots();
-    }
-
-    function cacheOptionLabel(run) {
-      const cityPart = run.cityCount ? ` / ${run.cityCount}城` : "";
-      const timePart = run.lastWriteTime ? ` / ${run.lastWriteTime}` : "";
-      const operationsPart = Number(run.years) < PLAYER_SIMULATION_MIN_YEARS
-        ? ` / 运营自动扩至${PLAYER_SIMULATION_MIN_YEARS}年`
-        : "";
-      return `seed ${run.seed} / ${run.years}年${cityPart}${operationsPart}${timePart}`;
-    }
-
-    function renderCachedRuns() {
-      if (!state.cachedRuns.length) {
-        el.cachedRunSelect.innerHTML = `<option value="">暂无缓存</option>`;
-        return;
-      }
-      const currentRunId = state.data?.runId || state.operations?.runId || "";
-      el.cachedRunSelect.innerHTML = [
-        `<option value="">选择已有缓存...</option>`,
-        ...state.cachedRuns.map((run) => {
-          const selected = run.runId === currentRunId ? " selected" : "";
-          return `<option value="${escapeHtml(run.runId)}"${selected}>${escapeHtml(cacheOptionLabel(run))}</option>`;
-        }),
-      ].join("");
-    }
-
-    async function refreshCachedRuns(silent = true) {
-      try {
-        const payload = await apiClient.requestJson("/api/cached-runs");
-        if (!payload.ok) throw new Error(payload.error || "cached run list failed");
-        state.cachedRuns = payload.runs || [];
-        renderCachedRuns();
-      } catch (error) {
-        el.cachedRunSelect.innerHTML = `<option value="">缓存列表读取失败</option>`;
-        if (!silent) status(String(error.message || error), "error");
-      }
-    }
-
-    function applyCachedRun(runId) {
-      const run = state.cachedRuns.find((item) => item.runId === runId);
-      if (!run) return;
-      el.seedInput.value = String(run.seed);
-      el.yearsInput.value = String(run.years || 60);
-      el.forceInput.checked = false;
-      resetLoadedData();
-      const shortRunNote = Number(run.years) < PLAYER_SIMULATION_MIN_YEARS
-        ? `这是短期分析缓存；进入模拟运营时会自动扩展为 ${PLAYER_SIMULATION_MIN_YEARS} 年完整世界线。`
-        : "点击运行或运营读取结果。";
-      status(`已选择缓存：seed ${run.seed} / ${run.years || 60} 年。${shortRunNote}`, "ok");
     }
 
     function setOpsModule(module) {

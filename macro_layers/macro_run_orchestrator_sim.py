@@ -15,7 +15,13 @@ from importlib import import_module
 from pathlib import Path
 from typing import Any
 
-from airport_sim.server.serializers import summarize_city
+from airport_sim.server.serializers import (
+    global_viewer_core_scripts,
+    serialize_city_market_viewer_dataset,
+    serialize_global_viewer_core,
+    serialize_global_viewer_dataset,
+    summarize_city,
+)
 
 _SIBLING_PREFIX = f"{__package__}." if __package__ else ""
 
@@ -80,7 +86,6 @@ convergence_summary = global_feedback_layer.convergence_summary
 derive_feedback_path = global_feedback_layer.derive_feedback_path
 run_full_chain = global_feedback_layer.run_full_chain
 summarize_seed = global_feedback_layer.summarize_seed
-write_global_viewer_data_js = global_feedback_layer.write_viewer_data_js
 
 AIR_SUPPLY_FIELDS = air_supply_layer.AIR_SUPPLY_FIELDS
 AIR_SUPPLY_REGION_CONFIGS = air_supply_layer.AIR_SUPPLY_REGION_CONFIGS
@@ -104,7 +109,6 @@ REGION_ORDER = reconciliation_layer.REGION_ORDER
 REGIONAL_VALUE_FIELDS = reconciliation_layer.REGIONAL_VALUE_FIELDS
 build_reconciliation = reconciliation_layer.build_reconciliation
 key_for = reconciliation_layer.key_for
-write_reconciliation_viewer_js = reconciliation_layer.write_viewer_js
 
 clamp = simulation_utils.clamp
 round_record = simulation_utils.round_record
@@ -682,6 +686,20 @@ def read_json_file(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def write_global_viewer_data_js(path: Path, rows: list[dict[str, Any]]) -> None:
+    core = serialize_global_viewer_core(rows, [], [])
+    atomic_write_text_file(path, global_viewer_core_scripts(core)["global"])
+
+
+def write_reconciliation_viewer_js(
+    path: Path,
+    regional_rows: list[dict[str, Any]],
+    diagnostic_rows: list[dict[str, Any]],
+) -> None:
+    core = serialize_global_viewer_core([], regional_rows, diagnostic_rows)
+    atomic_write_text_file(path, global_viewer_core_scripts(core)["reconciliation"])
+
+
 def write_global_viewer_lazy_assets(
     global_dir: Path,
     regional_result: dict[str, Any],
@@ -689,43 +707,28 @@ def write_global_viewer_lazy_assets(
     """Publish one compact Viewer chunk per region without changing model rows."""
     global_dir.mkdir(parents=True, exist_ok=True)
     chunk_dir_name = "global_viewer_chunks"
+    dataset = serialize_global_viewer_dataset(
+        [
+            (
+                region_id,
+                REGION_CONFIGS[region_id].region_name,
+                regional_result.get("regional_rows_by_region", {}).get(region_id, []),
+                regional_result.get("aviation_rows_by_region", {}).get(region_id, []),
+                regional_result.get("supply_rows_by_region", {}).get(region_id, []),
+            )
+            for region_id in REGION_ORDER
+        ],
+        chunk_dir_name=chunk_dir_name,
+    )
     chunk_dir = global_dir / chunk_dir_name
     chunk_dir.mkdir(parents=True, exist_ok=True)
-
-    regions: list[dict[str, Any]] = []
-    for region_id in REGION_ORDER:
-        regional_rows = regional_result.get("regional_rows_by_region", {}).get(region_id, [])
-        aviation_rows = regional_result.get("aviation_rows_by_region", {}).get(region_id, [])
-        supply_rows = regional_result.get("supply_rows_by_region", {}).get(region_id, [])
-        filename = f"r_{region_id}.json"
-        chunk_payload = {
-            "schemaVersion": GLOBAL_VIEWER_REGION_CHUNK_VERSION,
-            "regionId": region_id,
-            "regionalMacroRows": regional_rows,
-            "aviationDemandRows": aviation_rows,
-            "airCapacitySupplyRows": supply_rows,
-        }
-        raw = json.dumps(chunk_payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-        atomic_write_text_file(chunk_dir / filename, raw.decode("utf-8"))
-        regions.append(
-            {
-                "regionId": region_id,
-                "regionName": REGION_CONFIGS[region_id].region_name,
-                "regionalMacroRowCount": len(regional_rows),
-                "aviationDemandRowCount": len(aviation_rows),
-                "airCapacitySupplyRowCount": len(supply_rows),
-                "file": filename,
-                "sha256": hashlib.sha256(raw).hexdigest(),
-                "bytes": len(raw),
-            }
+    for serialized in dataset["chunks"].values():
+        atomic_write_text_file(
+            chunk_dir / serialized["filename"],
+            serialized["raw"].decode("utf-8"),
         )
 
-    index = {
-        "schemaVersion": GLOBAL_VIEWER_LAZY_INDEX_VERSION,
-        "chunkSchemaVersion": GLOBAL_VIEWER_REGION_CHUNK_VERSION,
-        "chunkBase": f"./{chunk_dir_name}/",
-        "regions": regions,
-    }
+    index = dataset["index"]
     index_json = json.dumps(index, ensure_ascii=False, separators=(",", ":"))
     index_script = (
         "(() => { const index = "
@@ -738,8 +741,11 @@ def write_global_viewer_lazy_assets(
     return {
         "index": str(index_path.as_posix()),
         "chunkDir": str(chunk_dir.as_posix()),
-        "regionCount": len(regions),
-        "chunkBytes": sum(int(region["bytes"]) for region in regions),
+        "regionCount": len(index["regions"]),
+        "chunkBytes": sum(
+            len(serialized["raw"])
+            for serialized in dataset["chunks"].values()
+        ),
     }
 
 
@@ -811,155 +817,26 @@ def write_city_market_viewer_lazy_assets(
     if not csv_paths:
         raise FileNotFoundError(f"missing city market CSV files: {market_dir}")
 
-    chunk_dir_name = "city_market_viewer_chunks"
-    chunk_dir = output_dir / chunk_dir_name
-    chunk_dir.mkdir(parents=True, exist_ok=True)
-    cities: list[dict[str, Any]] = []
-    seeds: set[int] = set()
-    start_years: set[int] = set()
-    final_years: set[int] = set()
-
+    market_rows: list[tuple[str, list[dict[str, str]]]] = []
     for csv_path in csv_paths:
         with csv_path.open("r", encoding="utf-8-sig", newline="") as handle:
             rows = list(csv.DictReader(handle))
-        if not rows:
-            continue
-        summary = summarize_city(rows)
-        market_id = str(summary["id"])
-        if not market_id or not market_id.replace("_", "").isalnum():
-            raise ValueError(f"unsafe city market id in {csv_path}: {market_id!r}")
-        seeds.update(int(to_float(row.get("seed"))) for row in rows)
-        start_years.add(int(summary["startYear"]))
-        final_years.add(int(summary["finalYear"]))
-
-        city_points = []
-        for point in summary["points"]:
-            components = {
-                component_id: {
-                    key: component[key]
-                    for key in (
-                        "potential",
-                        "offeredCapacity",
-                        "airlineSupply",
-                        "supplyGap",
-                        "supplyFulfillmentPct",
-                        "potentialSharePct",
-                        "supplySharePct",
-                        "priorityWeight",
-                    )
-                }
-                for component_id, component in point["components"].items()
-            }
-            city_points.append(
-                {
-                    key: point[key]
-                    for key in (
-                        "year",
-                        "potential",
-                        "airlineOffered",
-                        "airlineSupply",
-                        "serviceable",
-                        "unusedAirlineCapacity",
-                        "supplyGap",
-                        "supplyFulfillmentPct",
-                        "supplyRegime",
-                        "supplyVolatilityRegime",
-                        "supplyBehaviorPhase",
-                        "supplyPhaseAgeYears",
-                        "supplyCycleNumber",
-                        "supplyDeviationFromFundamentalPct",
-                        "supplyDeviationFromPotentialPct",
-                        "supplyExcessOverPotentialPct",
-                        "supplyEventImpulsePct",
-                        "supplyShockImpulsePct",
-                    )
-                }
-                | {"components": components}
-            )
-        viewer_city = {
-            key: summary[key]
-            for key in (
-                "id",
-                "name",
-                "region",
-                "marketTier",
-                "marketType",
-                "startYear",
-                "finalYear",
-                "finalPotential",
-                "finalAirlineSupply",
-                "finalEffective",
-                "finalSupplyGap",
-                "effectiveCagrPct",
-                "peakEffective",
-            )
-        } | {"points": city_points}
-
-        filename = f"c_{market_id}.json"
-        chunk_payload = {
-            "schemaVersion": CITY_MARKET_VIEWER_CHUNK_VERSION,
-            "marketId": market_id,
-            "rowCount": len(rows),
-            "city": viewer_city,
-        }
-        raw = json.dumps(chunk_payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-        atomic_write_text_file(chunk_dir / filename, raw.decode("utf-8"))
-        ranking_points = [
-            {
-                "year": point["year"],
-                "potential": point["potential"],
-                "airlineSupply": point["airlineSupply"],
-                "serviceable": point["serviceable"],
-                "supplyGap": point["supplyGap"],
-                "supplyFulfillmentPct": point["supplyFulfillmentPct"],
-                "unusedAirlineCapacity": point["unusedAirlineCapacity"],
-            }
-            for point in city_points
-        ]
-        cities.append(
-            {
-                key: summary[key]
-                for key in (
-                    "id",
-                    "name",
-                    "region",
-                    "marketTier",
-                    "marketType",
-                    "startYear",
-                    "finalYear",
-                    "finalPotential",
-                    "finalAirlineSupply",
-                    "finalEffective",
-                    "finalSupplyGap",
-                    "effectiveCagrPct",
-                    "peakEffective",
-                )
-            }
-            | {
-                "rowCount": len(rows),
-                "file": filename,
-                "sha256": hashlib.sha256(raw).hexdigest(),
-                "bytes": len(raw),
-                "rankingPoints": ranking_points,
-            }
-        )
-
-    if not cities:
+        market_rows.append((str(csv_path), rows))
+    if not any(rows for _, rows in market_rows):
         raise ValueError(f"city market CSV files contain no rows: {market_dir}")
-    if len(start_years) != 1 or len(final_years) != 1:
-        raise ValueError("city market Viewer requires a shared year range")
-
-    cities.sort(key=lambda city: (-float(city["finalEffective"]), str(city["id"])))
-    index = {
-        "schemaVersion": CITY_MARKET_VIEWER_LAZY_INDEX_VERSION,
-        "chunkSchemaVersion": CITY_MARKET_VIEWER_CHUNK_VERSION,
-        "chunkBase": f"./{chunk_dir_name}/",
-        "seed": next(iter(seeds)) if len(seeds) == 1 else None,
-        "startYear": next(iter(start_years)),
-        "finalYear": next(iter(final_years)),
-        "cityCount": len(cities),
-        "cities": cities,
-    }
+    chunk_dir_name = "city_market_viewer_chunks"
+    dataset = serialize_city_market_viewer_dataset(
+        market_rows,
+        chunk_dir_name=chunk_dir_name,
+    )
+    index = dataset["index"]
+    chunk_dir = output_dir / chunk_dir_name
+    chunk_dir.mkdir(parents=True, exist_ok=True)
+    for serialized in dataset["chunks"].values():
+        atomic_write_text_file(
+            chunk_dir / serialized["filename"],
+            serialized["raw"].decode("utf-8"),
+        )
     index_json = json.dumps(index, ensure_ascii=False, separators=(",", ":"))
     index_script = (
         "(() => { const index = "
@@ -972,8 +849,11 @@ def write_city_market_viewer_lazy_assets(
     return {
         "index": index_path,
         "chunkDir": chunk_dir,
-        "cityCount": len(cities),
-        "chunkBytes": sum(int(city["bytes"]) for city in cities),
+        "cityCount": int(index["cityCount"]),
+        "chunkBytes": sum(
+            len(serialized["raw"])
+            for serialized in dataset["chunks"].values()
+        ),
     }
 
 

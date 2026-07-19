@@ -1,57 +1,84 @@
     async function runSeed() {
-      const seed = Number(el.seedInput.value);
-      const years = Number(el.yearsInput.value || 60);
-      if (!Number.isInteger(seed) || seed < 0) {
-        status("请输入有效的非负整数 seed。", "error");
-        return;
-      }
+      const context = requireSeedContext();
       setLoading(true);
-      status("正在运行全链路：宏观、区域航空、城市市场、北京下游样板都会跑。请稍等。");
-      const stopTaskProgress = startTaskProgressPolling(seed, years);
+      status(`正在提交 Seed ${context.seed} / ${context.years} 年后台生成任务。`);
       try {
-        const payload = await apiClient.requestJson("/api/run", {
+        const job = await apiClient.requestJson("/api/run-job", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ seed, years, force: el.forceInput.checked }),
+          body: JSON.stringify(contextRequestBody({force: el.forceInput.checked})),
         });
-        if (!payload.ok) throw new Error(payload.error || "run failed");
+        if (!job.ok || !job.jobId) throw new Error(job.error || "后台任务提交失败");
+        state.generationJobId = job.jobId;
+        status(job.deduplicated ? "已接入正在执行的同一后台任务。" : "后台任务已提交，正在等待执行。");
+        pollGeneration(job.jobId);
+      } catch (error) {
+        state.generationJobId = null;
+        status(String(error.message || error), "error");
+        setLoading(false);
+      }
+    }
+
+    async function pollGeneration(jobId) {
+      if (state.generationJobId !== jobId) return;
+      try {
+        const job = await apiClient.requestJson(`/api/jobs/${encodeURIComponent(jobId)}`, {cache: "no-store"});
+        if (!job.ok) throw new Error(job.error || "无法读取后台任务");
+        if (job.status === "queued" || job.status === "running") {
+          const progress = Number.isFinite(Number(job.progressPct)) ? `（${job.progressPct}%）` : "";
+          status(`${job.status === "queued" ? "等待后台执行" : job.message || "正在生成当前世界"}${progress}`);
+          window.setTimeout(() => pollGeneration(jobId), 900);
+          return;
+        }
+        if (job.status === "failed") throw new Error(job.error || "后台生成失败");
+        if (job.status !== "complete" || !job.result) throw new Error("后台任务返回了未知状态");
+        const payload = assertContextResponse(job.result, "世界生成响应");
         state.data = payload;
         state.operations = null;
         state.operationMode = null;
         state.operationsQuarterIndex = null;
         state.selectedCityId = payload.cities[0]?.id || null;
-        status(`${payload.cached ? "读取已有结果" : "全链路完成"}：${payload.cityCount} 城市，耗时 ${fmt(payload.elapsedSec, 1)} 秒。`, "ok");
-        refreshCachedRuns();
+        state.generationJobId = null;
+        el.forceInput.checked = false;
+        await refreshSeedContext(false);
+        await refreshSimSaveSlots();
+        status(`${payload.cached ? "读取已有结果" : "当前世界生成完成"}：${payload.cityCount} 城市，耗时 ${fmt(payload.elapsedSec, 1)} 秒。`, "ok");
         if (state.view === "operations") {
           renderOperations();
         } else {
           render();
         }
       } catch (error) {
+        state.generationJobId = null;
         status(String(error.message || error), "error");
       } finally {
-        stopTaskProgress();
         setLoading(false);
       }
     }
 
-    el.runButton.addEventListener("click", runSeed);
-    el.randomButton.addEventListener("click", async () => {
-      el.randomButton.disabled = true;
+    async function initialisePage() {
       try {
-        const payload = await apiClient.requestJson("/api/random-seed");
-        if (!payload.ok || !Number.isInteger(payload.seed)) throw new Error(payload.error || "random seed failed");
-        el.seedInput.value = String(payload.seed);
-        el.cachedRunSelect.value = "";
-        resetLoadedData();
-        status(`Python 已生成随机 Seed ${payload.seed}，尚未开始计算。`, "ok");
+        state.seedContext = await seedContext.resolve();
+        state.contextChanged = !state.seedContext.isWorkspaceActive;
+        renderSeedContext();
+        setContextAvailability();
+        if (contextCacheReady()) {
+          status(`Seed ${state.seedContext.seed} / ${state.seedContext.years} 年经营缓存可用；可加载城市市场或北京运营。`, "ok");
+        } else if (state.seedContext.hasPlayerSave) {
+          status("玩家存档仍保留，但基础经营缓存缺失或过期；请先生成当前世界。", "error");
+        } else {
+          status("当前槽位尚无可用经营缓存；请先生成当前世界。", "error");
+        }
+        await refreshSimSaveSlots();
       } catch (error) {
+        state.seedContext = null;
+        renderSeedContext();
+        setContextAvailability();
         status(String(error.message || error), "error");
-      } finally {
-        el.randomButton.disabled = false;
+        return;
       }
-    });
-    el.cachedRunSelect.addEventListener("change", () => applyCachedRun(el.cachedRunSelect.value));
+
+    el.runButton.addEventListener("click", runSeed);
     el.operationModeOptionButtons.forEach((button) => {
       button.addEventListener("click", () => {
         setSelectedOperationMode(button.getAttribute("data-operation-mode-option"));
@@ -339,10 +366,12 @@
     el.nextQuarterButton.addEventListener("click", () => moveQuarter(1));
     el.sortSelect.addEventListener("change", render);
     el.searchInput.addEventListener("input", render);
-    refreshCachedRuns();
-    refreshSimSaveSlots();
     setSelectedOperationMode(state.selectedOperationMode);
     setOpsModule(state.opsModule);
     setOpsReportSection(state.opsReportSection);
     render();
     renderOperations();
+    window.setInterval(() => refreshSeedContext(), 2500);
+    }
+
+    initialisePage();

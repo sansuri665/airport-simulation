@@ -134,6 +134,140 @@ class LocalUIIntegrationTests(unittest.TestCase):
         self.assertGreaterEqual(payload["seed"], 20_260_000)
         self.assertLessEqual(payload["seed"], 20_261_999)
 
+    def test_seed_workspace_route_is_read_only_and_versioned(self) -> None:
+        status, content_type, body = self.get("/api/seed-workspace")
+        payload = json.loads(body)
+
+        self.assertEqual(200, status)
+        self.assertEqual("application/json", content_type)
+        self.assertEqual("airport-seed-workspace-response-v1", payload["schemaVersion"])
+        self.assertEqual(local_ui.SEED_EXPLORER_API_SCHEMA_VERSION, payload["apiSchemaVersion"])
+        self.assertIn(payload["registry"]["status"], {"missing", "ready", "degraded", "invalid"})
+        self.assertEqual(payload["counts"]["slotCount"], len(payload["slots"]))
+
+    def test_seed_workspace_revision_conflict_is_http_409(self) -> None:
+        with mock.patch.object(
+            local_ui,
+            "seed_workspace_action",
+            side_effect=FileExistsError("revision changed"),
+        ):
+            status, payload = self.post_error(
+                "/api/seed-workspace",
+                json.dumps(
+                    {
+                        "action": "activate",
+                        "slotId": "seed_7_years_12",
+                        "expectedRevision": 1,
+                    }
+                ).encode("utf-8"),
+            )
+
+        self.assertEqual(409, status)
+        self.assertEqual("resource_conflict", payload["errorCode"])
+
+    def test_city_market_context_routes_preserve_seed_years_and_error_boundary(self) -> None:
+        index_payload = {
+            "ok": True,
+            "schemaVersion": "airport-city-market-context-index-v1",
+            "context": {"seed": 7, "years": 5},
+            "index": {"cityCount": 1},
+        }
+        chunk_payload = {
+            "ok": True,
+            "schemaVersion": "airport-city-market-context-chunk-v1",
+            "context": {"seed": 7, "years": 5},
+            "chunk": {"marketId": "beijing_airport_system"},
+        }
+        with (
+            mock.patch.object(
+                local_ui,
+                "city_market_viewer_index_payload",
+                return_value=index_payload,
+            ) as index,
+            mock.patch.object(
+                local_ui,
+                "city_market_viewer_chunk_payload",
+                return_value=chunk_payload,
+            ) as chunk,
+        ):
+            status, _, body = self.get("/api/city-market-viewer/index?seed=7&years=5")
+            self.assertEqual(200, status)
+            self.assertEqual(index_payload["index"], json.loads(body)["index"])
+            status, _, body = self.get(
+                "/api/city-market-viewer/chunk?seed=7&years=5&city=beijing_airport_system"
+            )
+            self.assertEqual(200, status)
+            self.assertEqual(chunk_payload["chunk"], json.loads(body)["chunk"])
+
+        index.assert_called_once_with(7, 5)
+        chunk.assert_called_once_with(7, 5, "beijing_airport_system")
+
+        with mock.patch.object(
+            local_ui,
+            "city_market_viewer_index_payload",
+            side_effect=local_ui.CityMarketContextUnavailableError("cache stale"),
+        ):
+            with self.assertRaises(urllib.error.HTTPError) as context:
+                urllib.request.urlopen(
+                    f"{self.base_url}/api/city-market-viewer/index?seed=7&years=5",
+                    timeout=5,
+                )
+            payload = json.loads(context.exception.read().decode("utf-8"))
+        self.assertEqual(409, context.exception.code)
+        self.assertEqual("city_market_context_unavailable", payload["errorCode"])
+
+    def test_global_viewer_context_routes_preserve_seed_years_and_error_boundary(self) -> None:
+        index_payload = {
+            "ok": True,
+            "schemaVersion": "airport-global-viewer-context-index-v1",
+            "context": {"seed": 7, "years": 5},
+            "core": {"globalRows": []},
+            "index": {"regions": []},
+        }
+        region_payload = {
+            "ok": True,
+            "schemaVersion": "airport-global-viewer-context-region-v1",
+            "context": {"seed": 7, "years": 5},
+            "chunk": {"regionId": "china_mainland"},
+        }
+        with (
+            mock.patch.object(
+                local_ui,
+                "global_viewer_index_payload",
+                return_value=index_payload,
+            ) as index,
+            mock.patch.object(
+                local_ui,
+                "global_viewer_region_payload",
+                return_value=region_payload,
+            ) as region,
+        ):
+            status, _, body = self.get("/api/global-viewer/index?seed=7&years=5")
+            self.assertEqual(200, status)
+            self.assertEqual(index_payload["index"], json.loads(body)["index"])
+            status, _, body = self.get(
+                "/api/global-viewer/region?seed=7&years=5&region=china_mainland"
+            )
+            self.assertEqual(200, status)
+            self.assertEqual(region_payload["chunk"], json.loads(body)["chunk"])
+
+        index.assert_called_once_with(7, 5)
+        region.assert_called_once_with(7, 5, "china_mainland")
+
+        with mock.patch.object(
+            local_ui,
+            "global_viewer_index_payload",
+            side_effect=local_ui.GlobalViewerContextUnavailableError("cache stale"),
+        ):
+            with self.assertRaises(urllib.error.HTTPError) as context:
+                urllib.request.urlopen(
+                    f"{self.base_url}/api/global-viewer/index?seed=7&years=5",
+                    timeout=5,
+                )
+            payload = json.loads(context.exception.read().decode("utf-8"))
+        self.assertEqual(409, context.exception.code)
+        self.assertEqual("global_viewer_context_unavailable", payload["errorCode"])
+
     def test_forecast_candidate_endpoints_are_audit_only_services(self) -> None:
         catalog_payload = {
             "catalog": {
@@ -142,27 +276,38 @@ class LocalUIIntegrationTests(unittest.TestCase):
                 "styles": [],
                 "modifiers": [],
             },
-            "release": {"releaseId": "release-test", "seed": 424242},
+            "context": {
+                "releaseId": "release-test", "seed": 424242, "years": 60,
+                "source": "viewer_release", "dataMode": "audit",
+            },
         }
         with mock.patch.object(
             local_ui,
             "forecast_candidate_catalog_payload",
             return_value=catalog_payload,
-        ):
-            status, content_type, body = self.get("/api/forecast-candidate-catalog")
+        ) as catalog:
+            status, content_type, body = self.get(
+                "/api/forecast-candidate-catalog?seed=424242&years=60&source=viewer_release"
+            )
         payload = json.loads(body)
         self.assertEqual(200, status)
         self.assertEqual("application/json", content_type)
         self.assertTrue(payload["ok"])
-        self.assertEqual("release-test", payload["release"]["releaseId"])
+        self.assertEqual("release-test", payload["context"]["releaseId"])
+        catalog.assert_called_once_with(424242, 60, "viewer_release")
 
         candidate_payload = {
-            "releaseId": "release-test",
+            "context": {
+                "releaseId": "release-test", "seed": 424242, "years": 60,
+                "source": "viewer_release", "dataMode": "audit",
+            },
             "generatorVersion": "audit-forecast-candidate-generator-v2",
             "candidate": {"candidateId": "audit_candidate_0123456789abcdef", "rows": []},
         }
         request = {
             "seed": 424242,
+            "years": 60,
+            "source": "viewer_release",
             "asOfYear": 2030,
             "tierProfileId": "initial_v1",
             "narrativeProfileId": "public_consensus_v2",
@@ -185,6 +330,55 @@ class LocalUIIntegrationTests(unittest.TestCase):
             payload["candidate"]["candidateId"],
         )
         generate.assert_called_once_with(request)
+
+    def test_forecast_viewer_context_routes_preserve_mode_report_and_error_boundary(self) -> None:
+        index_payload = {
+            "ok": True,
+            "schemaVersion": "airport-forecast-viewer-context-index-v1",
+            "context": {"seed": 7, "years": 5, "dataMode": "player"},
+            "index": {"reports": []},
+        }
+        report_payload = {
+            "ok": True,
+            "schemaVersion": "airport-forecast-viewer-context-report-v1",
+            "context": {"seed": 7, "years": 5, "dataMode": "audit"},
+            "chunk": {"reportId": "public_consensus", "rows": []},
+        }
+        with (
+            mock.patch.object(
+                local_ui, "forecast_viewer_index_payload", return_value=index_payload
+            ) as index,
+            mock.patch.object(
+                local_ui, "forecast_viewer_report_payload", return_value=report_payload
+            ) as report,
+        ):
+            status, _, body = self.get(
+                "/api/forecast-viewer/index?seed=7&years=5&mode=player"
+            )
+            self.assertEqual(200, status)
+            self.assertEqual("player", json.loads(body)["context"]["dataMode"])
+            status, _, body = self.get(
+                "/api/forecast-viewer/report?seed=7&years=5&mode=audit&report=public_consensus"
+            )
+            self.assertEqual(200, status)
+            self.assertEqual("public_consensus", json.loads(body)["chunk"]["reportId"])
+
+        index.assert_called_once_with(7, 5, "player")
+        report.assert_called_once_with(7, 5, "audit", "public_consensus")
+
+        with mock.patch.object(
+            local_ui,
+            "forecast_viewer_index_payload",
+            side_effect=local_ui.ForecastViewerContextUnavailableError("cache stale"),
+        ):
+            with self.assertRaises(urllib.error.HTTPError) as context:
+                urllib.request.urlopen(
+                    f"{self.base_url}/api/forecast-viewer/index?seed=7&years=5&mode=player",
+                    timeout=5,
+                )
+            payload = json.loads(context.exception.read().decode("utf-8"))
+        self.assertEqual(409, context.exception.code)
+        self.assertEqual("forecast_viewer_context_unavailable", payload["errorCode"])
 
     def test_player_simulation_expands_short_run_to_full_horizon(self) -> None:
         expected = {"seed": 77, "years": local_ui.PLAYER_SIMULATION_MIN_YEARS}

@@ -116,6 +116,32 @@
       color: var(--ink);
     }
 
+    .context-copy {
+      min-width: 210px;
+      max-width: 340px;
+      display: grid;
+      gap: 2px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+    }
+
+    .context-copy strong {
+      font-size: 12px;
+      color: var(--ink);
+    }
+
+    .context-copy small {
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.25;
+    }
+
+    .context-copy .context-change {
+      color: #fbbf24;
+    }
+
     .icon-button {
       width: 34px;
       height: 34px;

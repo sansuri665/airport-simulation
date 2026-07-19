@@ -4,7 +4,7 @@
   "title": "Forecast candidate audit catalog response",
   "type": "object",
   "required": [
-    "ok", "catalog", "release", "apiSchemaVersion", "modelVersion",
+    "ok", "catalog", "context", "apiSchemaVersion", "modelVersion",
     "outputSchemaVersion", "pythonVersion", "schemaCatalog"
   ],
   "properties": {
@@ -72,16 +72,40 @@
       },
       "additionalProperties": false
     },
-    "release": {
-      "type": "object",
-      "required": ["releaseId", "runId", "seed", "startYear", "finalYear", "modelVersion"],
-      "additionalProperties": true
-    },
-    "apiSchemaVersion": { "type": "string", "minLength": 1 },
+    "context": { "$ref": "#/$defs/context" },
+    "apiSchemaVersion": { "const": "seed-explorer-api-v3" },
     "modelVersion": { "type": "string", "minLength": 1 },
     "outputSchemaVersion": { "type": "string", "minLength": 1 },
     "pythonVersion": { "type": "string", "minLength": 1 },
     "schemaCatalog": { "const": "/api/schema" }
+  },
+  "$defs": {
+    "context": {
+      "type": "object",
+      "required": [
+        "seed", "years", "slotId", "source", "dataMode",
+        "workspaceRevision", "startYear", "finalYear"
+      ],
+      "properties": {
+        "seed": { "type": "integer", "minimum": 0 },
+        "years": { "type": "integer", "minimum": 5, "maximum": 90 },
+        "slotId": { "type": "string", "pattern": "^seed_[0-9]+_years_[0-9]+$" },
+        "source": { "enum": ["viewer_release", "seed_cache"] },
+        "dataMode": { "const": "audit" },
+        "workspaceRevision": { "type": "integer", "minimum": 0 },
+        "startYear": { "type": "integer" },
+        "finalYear": { "type": "integer" },
+        "releaseId": { "type": "string", "minLength": 1 },
+        "runId": { "type": "string", "minLength": 1 },
+        "modelVersion": { "type": "string", "minLength": 1 },
+        "cacheRunId": { "type": "string", "pattern": "^seed_[0-9]+_years_[0-9]+$" }
+      },
+      "oneOf": [
+        { "properties": { "source": { "const": "viewer_release" } }, "required": ["releaseId", "runId", "modelVersion"] },
+        { "properties": { "source": { "const": "seed_cache" } }, "required": ["cacheRunId"] }
+      ],
+      "additionalProperties": false
+    }
   },
   "additionalProperties": true
 }

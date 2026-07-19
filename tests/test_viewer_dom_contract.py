@@ -32,6 +32,30 @@ class ViewerDomContractTests(unittest.TestCase):
             "releaseRun",
             "releaseSeed",
             "releaseModel",
+            "seedWorkspaceState",
+            "activeSeedValue",
+            "activeYearsValue",
+            "activeStatusValue",
+            "activeSourceValue",
+            "workspaceRevisionValue",
+            "generateWorldButton",
+            "generationStatus",
+            "seedCreateForm",
+            "suggestRandomSeedButton",
+            "importSeedInput",
+            "importYearsInput",
+            "advancedYearsSettings",
+            "newSeedModeValue",
+            "newSeedYearsValue",
+            "importSeedButton",
+            "retentionInput",
+            "planRetentionButton",
+            "saveRetentionButton",
+            "applyRetentionButton",
+            "seedSlotList",
+            "workspaceNotice",
+            "actionDialog",
+            "actionDialogConfirm",
             "cachedRunCount",
             "saveCount",
         },
@@ -39,14 +63,20 @@ class ViewerDomContractTests(unittest.TestCase):
             "dataStatus",
             "viewSelect",
             "scopeSelect",
-            "seedSelect",
-            "randomSeedButton",
+            "contextMeta",
+            "contextSource",
+            "contextChangeNotice",
+            "cityMarketsLink",
             "statsGrid",
             "chart",
             "dataBody",
         },
         "web/pages/city_market_viewer.html": {
             "statusText",
+            "releaseMeta",
+            "contextSource",
+            "contextChangeNotice",
+            "operationsLink",
             "yearRange",
             "yearLabel",
             "sortSelect",
@@ -62,7 +92,8 @@ class ViewerDomContractTests(unittest.TestCase):
         },
         "web/pages/beijing_potential_passenger_forecast_viewer.html": {
             "statusText",
-            "seedSelect",
+            "seedContextLabel",
+            "contextChangeNotice",
             "summaryGrid",
             "asOfRange",
               "reportSelect",
@@ -83,10 +114,15 @@ class ViewerDomContractTests(unittest.TestCase):
             "forecastTable",
         },
         "web/pages/seed_explorer_viewer.html": {
-            "seedInput",
-            "yearsInput",
+            "seedCenterLink",
+            "contextSeedValue",
+            "contextYearsValue",
+            "contextSourceValue",
+            "contextSlotValue",
+            "contextRevisionValue",
+            "contextStatusValue",
+            "contextChangeNotice",
             "runButton",
-            "randomButton",
             "status",
             "cityView",
             "operationsView",
@@ -125,6 +161,24 @@ class ViewerDomContractTests(unittest.TestCase):
         self.assertLess(traffic_panel, traffic_chart)
         self.assertLess(traffic_chart, service_panel)
         self.assertLess(service_panel, service_chart)
+
+    def test_seed_explorer_has_no_page_local_seed_controls(self) -> None:
+        html = (PAGES_DIR / "seed_explorer_viewer.html").read_text(encoding="utf-8")
+
+        for retired_id in ("seedInput", "yearsInput", "cachedRunSelect", "randomButton"):
+            self.assertNotIn(f'id="{retired_id}"', html)
+        self.assertIn("返回 Seed 中心", html)
+        self.assertIn("生成当前世界", html)
+
+    def test_home_seed_creation_prefers_sixty_year_standard_mode(self) -> None:
+        html = (PAGES_DIR / "airport_home.html").read_text(encoding="utf-8")
+
+        self.assertIn('id="newSeedYearsValue">60 年', html)
+        self.assertIn('id="importYearsInput" type="number" min="5" max="90" value="60"', html)
+        self.assertIn('id="suggestRandomSeedButton"', html)
+        self.assertIn('id="advancedYearsSettings"', html)
+        self.assertNotIn('id="randomYearsInput"', html)
+        self.assertNotIn('id="createRandomSeedButton"', html)
 
     def test_city_viewer_labels_city_supply_as_the_operating_constraint(self) -> None:
         html = (PAGES_DIR / "seed_explorer_viewer.html").read_text(encoding="utf-8")

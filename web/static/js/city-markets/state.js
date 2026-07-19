@@ -1,6 +1,8 @@
 (() => {
   window.AirportCityMarketState = {
     index: null,
+    seedContext: null,
+    contextChanged: false,
     selectedCityId: null,
     selectedCity: null,
     selectedYear: null,

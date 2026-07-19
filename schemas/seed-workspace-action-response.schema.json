@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/seed-workspace-action-response.schema.json",
+  "title": "Unified Seed workspace action response",
+  "allOf": [
+    { "$ref": "api-envelope.schema.json" },
+    {
+      "type": "object",
+      "required": [
+        "ok", "schemaVersion", "action", "changed", "workspaceRevision",
+        "activeSlotId", "message"
+      ],
+      "properties": {
+        "ok": { "const": true },
+        "schemaVersion": { "const": "airport-seed-workspace-action-response-v1" },
+        "action": {
+          "enum": [
+            "create-random", "import", "activate", "remove-slot",
+            "plan-delete", "delete", "plan-retention", "set-retention",
+            "apply-retention"
+          ]
+        },
+        "changed": { "type": "boolean" },
+        "workspaceRevision": { "type": "integer", "minimum": 1 },
+        "activeSlotId": {
+          "type": ["string", "null"],
+          "pattern": "^seed_[0-9]+_years_[0-9]+$"
+        },
+        "message": { "type": "string", "minLength": 1 },
+        "slotId": { "type": "string", "pattern": "^seed_[0-9]+_years_[0-9]+$" },
+        "seed": { "type": "integer", "minimum": 0 },
+        "years": { "type": "integer", "minimum": 5, "maximum": 90 },
+        "created": { "type": "boolean" },
+        "plan": { "oneOf": [{ "$ref": "#/$defs/deletePlan" }, { "$ref": "#/$defs/retentionPlan" }] },
+        "deleted": {
+          "oneOf": [
+            { "$ref": "#/$defs/deletedItem" },
+            { "type": "array", "items": { "$ref": "#/$defs/deletedItem" } }
+          ]
+        },
+        "blocked": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["slotId", "reason"],
+            "properties": {
+              "slotId": { "type": "string", "pattern": "^seed_[0-9]+_years_[0-9]+$" },
+              "reason": { "type": "string", "minLength": 1 }
+            },
+            "additionalProperties": false
+          }
+        },
+        "releasedBytes": { "type": "integer", "minimum": 0 },
+        "retention": { "type": "object" }
+      }
+    }
+  ],
+  "$defs": {
+    "candidate": {
+      "type": "object",
+      "required": [
+        "slotId", "path", "cacheStatus", "bytes", "fileCount",
+        "modifiedNs", "hasPlayerSave"
+      ],
+      "properties": {
+        "slotId": { "type": "string", "pattern": "^seed_[0-9]+_years_[0-9]+$" },
+        "path": { "type": "string", "minLength": 1 },
+        "cacheStatus": { "enum": ["ready", "stale"] },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "fileCount": { "type": "integer", "minimum": 0 },
+        "modifiedNs": { "type": "integer", "minimum": 0 },
+        "hasPlayerSave": { "type": "boolean" },
+        "blockers": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      },
+      "additionalProperties": false
+    },
+    "deletePlan": {
+      "type": "object",
+      "required": [
+        "kind", "workspaceRevision", "slotId", "target", "path", "bytes",
+        "fileCount", "modifiedNs", "blockers", "planId", "canExecute", "preserves"
+      ],
+      "properties": {
+        "kind": { "const": "delete" },
+        "workspaceRevision": { "type": "integer", "minimum": 1 },
+        "slotId": { "type": "string", "pattern": "^seed_[0-9]+_years_[0-9]+$" },
+        "target": { "enum": ["cache", "save"] },
+        "path": { "type": "string", "minLength": 1 },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "fileCount": { "type": "integer", "minimum": 0 },
+        "modifiedNs": { "type": "integer", "minimum": 0 },
+        "blockers": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "planId": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "canExecute": { "type": "boolean" },
+        "preserves": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      },
+      "additionalProperties": false
+    },
+    "retentionPlan": {
+      "type": "object",
+      "required": [
+        "kind", "workspaceRevision", "maxCachedRuns", "candidates", "planId",
+        "candidateCount", "reclaimableBytes", "protected"
+      ],
+      "properties": {
+        "kind": { "const": "retention" },
+        "workspaceRevision": { "type": "integer", "minimum": 1 },
+        "maxCachedRuns": { "type": "integer", "minimum": 1, "maximum": 50 },
+        "candidates": { "type": "array", "items": { "$ref": "#/$defs/candidate" } },
+        "planId": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "candidateCount": { "type": "integer", "minimum": 0 },
+        "reclaimableBytes": { "type": "integer", "minimum": 0 },
+        "protected": { "type": "array", "items": { "$ref": "#/$defs/candidate" } }
+      },
+      "additionalProperties": false
+    },
+    "deletedItem": {
+      "type": "object",
+      "required": ["slotId", "path", "releasedBytes", "preserved"],
+      "properties": {
+        "slotId": { "type": "string", "pattern": "^seed_[0-9]+_years_[0-9]+$" },
+        "target": { "enum": ["cache", "save"] },
+        "path": { "type": "string", "minLength": 1 },
+        "releasedBytes": { "type": "integer", "minimum": 0 },
+        "preserved": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      },
+      "additionalProperties": false
+    }
+  }
+}

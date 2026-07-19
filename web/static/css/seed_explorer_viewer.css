@@ -57,14 +57,58 @@
       font-size: 13px;
       line-height: 1.55;
     }
-    .controls {
-      display: grid;
-      grid-template-columns: 1fr 96px;
-      gap: 10px;
+    .seed-center-link {
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 650;
+      text-decoration: none;
     }
-    .cache-picker {
+    .seed-center-link:hover,
+    .seed-center-link:focus-visible { text-decoration: underline; }
+    .seed-context-card {
       display: grid;
-      gap: 6px;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: linear-gradient(145deg, #111a27, #0b121c);
+    }
+    .seed-context-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .seed-context-head > div { display: grid; gap: 4px; }
+    .seed-context-head strong { color: var(--blue); font-size: 23px; }
+    .context-label { color: var(--muted); font-size: 11px; font-weight: 700; }
+    .context-status {
+      padding: 5px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--amber);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .context-status.ready { color: var(--green); border-color: #176449; }
+    .context-status.error { color: var(--red); border-color: #7f1d1d; }
+    .seed-context-meta {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 6px 10px;
+      margin: 0;
+      font-size: 12px;
+    }
+    .seed-context-meta div { display: contents; }
+    .seed-context-meta dt { color: var(--muted); }
+    .seed-context-meta dd { margin: 0; overflow-wrap: anywhere; }
+    .context-change-notice {
+      padding: 8px 10px;
+      border-left: 3px solid var(--amber);
+      color: #f8d68a;
+      background: #261d0b;
+      font-size: 12px;
+      line-height: 1.5;
     }
     .control {
       display: flex;
@@ -91,6 +135,7 @@
       gap: 10px;
       align-items: center;
     }
+    .generation-actions { grid-template-columns: 1fr; }
     .page-tabs {
       display: grid;
       grid-template-columns: 1fr 1fr;

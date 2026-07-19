@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/city-market-context-chunk-response.schema.json",
+  "title": "Seed-context city market chunk response",
+  "type": "object",
+  "required": [
+    "ok", "schemaVersion", "context", "chunk",
+    "apiSchemaVersion", "modelVersion", "outputSchemaVersion", "pythonVersion", "schemaCatalog"
+  ],
+  "properties": {
+    "ok": { "const": true },
+    "schemaVersion": { "const": "airport-city-market-context-chunk-v1" },
+    "context": { "$ref": "city-market-context-index-response.schema.json#/$defs/context" },
+    "chunk": { "$ref": "city-market-viewer-chunk.schema.json" },
+    "apiSchemaVersion": { "type": "string", "minLength": 1 },
+    "modelVersion": { "type": "string", "minLength": 1 },
+    "outputSchemaVersion": { "type": "string", "minLength": 1 },
+    "pythonVersion": { "type": "string", "minLength": 1 },
+    "schemaCatalog": { "const": "/api/schema" }
+  },
+  "additionalProperties": true
+}

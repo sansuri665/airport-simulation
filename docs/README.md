@@ -51,7 +51,7 @@
 
 | 文档 | 说明 |
 | --- | --- |
-| [Quick_Start.md](getting_started/Quick_Start.md) | Python 3.13、启动、停止、Run 和缓存命令 |
+| [Quick_Start.md](getting_started/Quick_Start.md) | Python 3.13、启动、统一 Seed 初次使用、停止、Run 和缓存命令 |
 | [User_Guide.md](getting_started/User_Guide.md) | 五个页面分别怎样使用，哪些页面只读，哪些可以操作 |
 
 ### `product/`
@@ -87,6 +87,7 @@
 | [Glossary.md](reference/Glossary.md) | Seed、Run、客流、报表、缓存和存档等统一术语 |
 | [Beijing_Template_and_New_City_Guide.md](reference/Beijing_Template_and_New_City_Guide.md) | 北京五层配置的迁移分类、新城市接入顺序和验收清单 |
 | [API_and_Data_Contracts.md](reference/API_and_Data_Contracts.md) | HTTP API、JSON Schema、版本和兼容规则 |
+| [Configuration_Validation.md](reference/Configuration_Validation.md) | 59 份正式 JSON、13 个配置族、Schema 与跨文件语义校验 |
 | [Macro_Regional_Aviation_Parameters.md](reference/Macro_Regional_Aviation_Parameters.md) | 全球、区域和航空参数来源、单位与约束 |
 | [Airport_Operations_Parameters.md](reference/Airport_Operations_Parameters.md) | 城市市场、季度需求、容量、服务和商业经营参数 |
 | [Finance_and_Valuation_Parameters.md](reference/Finance_and_Valuation_Parameters.md) | 财务、贷款、税务和估值参数 |
@@ -109,8 +110,11 @@
 
 ### `releases/`
 
+这里的文档是对应 Git 标签的历史阶段边界，不是当前操作指南；当前用法以 `getting_started/`、`architecture/` 和 `reference/` 为准。
+
 | 文档 | 说明 |
 | --- | --- |
+| [aggregated-seed-0719-release.md](releases/aggregated-seed-0719-release.md) | 聚合 Seed 0719 正式版的统一工作区、四页固定上下文、预测/场景收尾和 Git 发布边界 |
 | [v0719-preview3.md](releases/v0719-preview3.md) | v0719 Preview3 的 Release-only、Manifest v2、gzip 实际发布和 Git 阶段边界 |
 | [v0719-preview2.md](releases/v0719-preview2.md) | v0719 Preview2 的兼容边界退役、API v2、Git 分支，以及标签后 Release-only/空间收敛验收说明 |
 | [v0719-preview.md](releases/v0719-preview.md) | v0719 Preview 的提交边界、已完成技术债和未合并说明 |

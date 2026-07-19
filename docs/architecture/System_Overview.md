@@ -110,10 +110,10 @@ py -3.13 -m airport_sim run --seed 20261324 --publish-viewer baseline
 ## 7. 当前技术边界
 
 - 正式服务的路由、协议、Run/缓存、玩家模拟、合同/项目/融资、北京经营和工作区状态已经迁入 `airport_sim/server/` 的独立模块；`app.py` 主要保留兼容装配、共享常量和进程入口，不再以降低行数为目标机械拆分。
-- 全球 Viewer 的浏览器预览只用于快速观察；正式世界线来自 Python。
+- 全球 Viewer 已退出浏览器随机 Seed 世界入口；风险场景所需近似计算已隔离为显式场景模块，只用于观察，正式世界线来自 Python。
 - Seed Explorer 为本地调试和经营原型返回完整 `allQuarters`，因此浏览器当前拥有未来季度数据；成为正式游戏界面前需要收紧可见范围。
 - 估值仍是实验观察输出，不是成熟定价系统。
-- 三个 Viewer 只读取当前 Manifest 指向的版本化 Release；无 Manifest 时明确不可用。浏览器 canonical 已退出，Run 只保留发布器仍消费的全球主数据/索引、预测玩家/审计索引和经营轻量索引等源资产。
+- 三个 Viewer 的正式发布只读取当前 Manifest 指向的版本化 Release；全球、城市和预测也可按显式 `Seed + 年数` 从有效 Seed 缓存只读适配。预测玩家与开发审计接口分离。缓存不可用时明确报错，不回退当前 Release。浏览器 canonical 已退出，Run 只保留发布器仍消费的全球主数据/索引、预测玩家/审计索引和经营轻量索引等源资产。
 - 区域并行和玩家行动增量重算尚未实施；当前优先保证固定 Seed 与长期账本一致。
 
 运行与前后端细节见 [运行与 Web 架构](Runtime_and_Web.md)，数据生命周期见 [Run、缓存、存档与 Viewer](Data_Cache_Save_and_Viewer.md)。

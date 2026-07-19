@@ -16,6 +16,13 @@
       { id: "sub_saharan_africa", label: "撒哈拉以南非洲", shortLabel: "撒哈拉非洲", type: "regional" },
     ];
     const state = window.AirportGlobalViewerState;
+    const EXPECTED_GLOBAL_INDEX = "airport-global-viewer-lazy-index-v1";
+    const EXPECTED_GLOBAL_CHUNK = "airport-global-viewer-region-chunk-v1";
+    const EXPECTED_CONTEXT_INDEX = "airport-global-viewer-context-index-v1";
+    const EXPECTED_CONTEXT_REGION = "airport-global-viewer-context-region-v1";
+    const globalApiClient = window.AirportApiClient;
+    const sharedSeedContext = window.AirportSeedContext;
+    const globalBootstrap = window.AirportGlobalViewerBootstrap;
 
     const numFields = new Set([
       "year_index",
@@ -300,8 +307,6 @@
       status: document.getElementById("dataStatus"),
       viewSelect: document.getElementById("viewSelect"),
       scopeSelect: document.getElementById("scopeSelect"),
-      seedSelect: document.getElementById("seedSelect"),
-      randomSeedButton: document.getElementById("randomSeedButton"),
       yearRange: document.getElementById("yearRange"),
       yearLabel: document.getElementById("yearLabel"),
       chart: document.getElementById("chart"),
@@ -577,20 +582,6 @@
       return datasets;
     }
 
-    async function loadRows() {
-      if (window.AIRPORT_GLOBAL_VIEWER_LOAD_ERROR) {
-        throw new Error(window.AIRPORT_GLOBAL_VIEWER_LOAD_ERROR);
-      }
-      if (!Array.isArray(window.GLOBAL_MACRO_FEEDBACK_DATA) || !window.GLOBAL_MACRO_FEEDBACK_DATA.length) {
-        throw new Error("全球 Viewer 主数据缺失，请重新运行或发布 Viewer。");
-      }
-      if (!window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX) {
-        throw new Error("全球 Viewer 没有按区域分块，请重新运行或发布 Viewer。");
-      }
-      el.status.textContent = "data: feedback-calibrated macro stack";
-      return normalizeRows(window.GLOBAL_MACRO_FEEDBACK_DATA);
-    }
-
     function cloneRows(rows = []) {
       return rows.map((row) => ({ ...row }));
     }
@@ -601,19 +592,82 @@
       );
     }
 
-    function captureViewerData(globalRows) {
+    function captureViewerData(globalRows, options = {}) {
       return {
         globalRows: cloneRows(globalRows || []),
-        regionalDatasets: cloneRegionalDatasets(window.REGIONAL_MACRO_DATASETS || {}),
-        aviationDatasets: cloneRegionalDatasets(window.REGIONAL_AVIATION_DEMAND_DATASETS || {}),
-        supplyDatasets: cloneRegionalDatasets(window.REGIONAL_AIR_CAPACITY_SUPPLY_DATASETS || {}),
-        reconciledRows: cloneRows(window.REGIONAL_MACRO_RECONCILED_DATA || []),
-        diagnosticRows: cloneRows(window.REGIONAL_MACRO_RECONCILIATION_DATA || []),
-        lazyIndex: window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX || null,
-        lazyBaseUrl: window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX?.baseUrl || "",
+        regionalDatasets: cloneRegionalDatasets(options.regionalDatasets || {}),
+        aviationDatasets: cloneRegionalDatasets(options.aviationDatasets || {}),
+        supplyDatasets: cloneRegionalDatasets(options.supplyDatasets || {}),
+        reconciledRows: cloneRows(options.reconciledRows || []),
+        diagnosticRows: cloneRows(options.diagnosticRows || []),
+        lazyIndex: options.lazyIndex || null,
+        lazyBaseUrl: options.lazyIndex?.baseUrl || "",
+        contextKey: options.contextKey || "",
+        contextSource: options.contextSource || "",
         loadedRegionIds: new Set(),
         regionLoadPromises: new Map(),
       };
+    }
+
+    function validateRowsContext(rows, context, label) {
+      if (!Array.isArray(rows) || !rows.length) throw new Error(`${label}缺少数据。`);
+      const seeds = new Set(rows.map((row) => Number(row.seed)));
+      const years = rows.map((row) => Number(row.year)).filter(Number.isFinite);
+      if (seeds.size !== 1 || !seeds.has(context.seed)) {
+        throw new Error(`${label} Seed 与页面上下文不一致。`);
+      }
+      if (!years.length || Math.max(...years) - Math.min(...years) !== context.years) {
+        throw new Error(`${label}年数与页面上下文不一致。`);
+      }
+    }
+
+    function validateIndex(index) {
+      if (
+        !index
+        || index.schemaVersion !== EXPECTED_GLOBAL_INDEX
+        || index.chunkSchemaVersion !== EXPECTED_GLOBAL_CHUNK
+        || !Array.isArray(index.regions)
+      ) {
+        throw new Error("当前 Seed 缺少全球 Viewer 区域索引。");
+      }
+      return index;
+    }
+
+    async function loadViewerData(context) {
+      if (context.isCurrentViewerRelease) {
+        await globalBootstrap.loadReleaseData();
+        const release = window.AIRPORT_VIEWER_RELEASE_INFO || {};
+        if (Number(release.seed) !== context.seed || Number(release.years) !== context.years) {
+          throw new Error("Viewer Release 与页面 Seed 上下文不一致。");
+        }
+        const globalRows = normalizeRows(window.GLOBAL_MACRO_FEEDBACK_DATA || []);
+        validateRowsContext(globalRows, context, "全球 Viewer 主链");
+        return captureViewerData(globalRows, {
+          reconciledRows: window.REGIONAL_MACRO_RECONCILED_DATA || [],
+          diagnosticRows: window.REGIONAL_MACRO_RECONCILIATION_DATA || [],
+          lazyIndex: validateIndex(window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX),
+          contextKey: context.slotId,
+          contextSource: "viewer_release",
+        });
+      }
+      if (context.cacheStatus !== "ready") {
+        throw new Error("当前 Seed 的全球缓存尚未生成或已经过期，请先返回首页生成当前世界。");
+      }
+      const query = new URLSearchParams({seed: String(context.seed), years: String(context.years)});
+      const payload = await globalApiClient.requestJson(`/api/global-viewer/index?${query.toString()}`, {cache: "no-store"});
+      if (!payload?.ok || payload.schemaVersion !== EXPECTED_CONTEXT_INDEX) {
+        throw new Error(payload?.error || "全球缓存索引读取失败。");
+      }
+      sharedSeedContext.assertResponse(payload, "全球缓存索引");
+      const globalRows = normalizeRows(payload.core?.globalRows || []);
+      validateRowsContext(globalRows, context, "全球缓存主链");
+      return captureViewerData(globalRows, {
+        reconciledRows: payload.core?.regionalReconciledRows || [],
+        diagnosticRows: payload.core?.regionalReconciliationRows || [],
+        lazyIndex: validateIndex(payload.index),
+        contextKey: context.slotId,
+        contextSource: "seed_cache",
+      });
     }
 
     function lazyRegionEntry(data, regionId) {
@@ -635,18 +689,37 @@
 
     async function ensureRegionLoaded(data, regionId) {
       if (!data || regionId === "global" || !data.lazyIndex) return;
+      if (data.contextKey !== state.seedContext?.slotId) {
+        throw new Error("全球 Viewer 内存索引与页面 Seed 上下文不一致。");
+      }
       data.loadedRegionIds ||= new Set();
       data.regionLoadPromises ||= new Map();
-      if (data.loadedRegionIds.has(regionId)) return;
-      if (data.regionLoadPromises.has(regionId)) return data.regionLoadPromises.get(regionId);
+      const regionKey = `${data.contextKey}:${regionId}`;
+      if (data.loadedRegionIds.has(regionKey)) return;
+      if (data.regionLoadPromises.has(regionKey)) return data.regionLoadPromises.get(regionKey);
       const entry = lazyRegionEntry(data, regionId);
       if (!entry) throw new Error(`区域目录中没有 ${regionId}`);
 
       const loadPromise = (async () => {
-        const baseUrl = data.lazyBaseUrl || data.lazyIndex.baseUrl;
-        const response = await fetch(new URL(entry.file, baseUrl).href);
-        if (!response.ok) throw new Error(`无法加载区域数据 ${regionId}`);
-        const chunk = await response.json();
+        let chunk;
+        if (data.contextSource === "viewer_release") {
+          const baseUrl = data.lazyBaseUrl || data.lazyIndex.baseUrl;
+          const response = await fetch(new URL(entry.file, baseUrl).href);
+          if (!response.ok) throw new Error(`无法加载区域数据 ${regionId}`);
+          chunk = await response.json();
+        } else {
+          const query = new URLSearchParams({
+            seed: String(state.seedContext.seed),
+            years: String(state.seedContext.years),
+            region: regionId,
+          });
+          const payload = await globalApiClient.requestJson(`/api/global-viewer/region?${query.toString()}`, {cache: "no-store"});
+          if (!payload?.ok || payload.schemaVersion !== EXPECTED_CONTEXT_REGION) {
+            throw new Error(payload?.error || `无法加载区域数据 ${regionId}`);
+          }
+          sharedSeedContext.assertResponse(payload, `全球区域 ${regionId}`);
+          chunk = payload.chunk;
+        }
         if (
           chunk?.schemaVersion !== data.lazyIndex.chunkSchemaVersion
           || chunk?.regionId !== regionId
@@ -656,17 +729,22 @@
         ) {
           throw new Error(`区域数据格式不兼容 ${regionId}`);
         }
+        for (const [label, rows] of [
+          ["区域宏观", chunk.regionalMacroRows],
+          ["航空需求", chunk.aviationDemandRows],
+          ["航空供给", chunk.airCapacitySupplyRows],
+        ]) validateRowsContext(rows, state.seedContext, `${regionId} ${label}`);
         data.regionalDatasets[regionId] = chunk.regionalMacroRows;
         data.aviationDatasets[regionId] = chunk.aviationDemandRows;
         data.supplyDatasets[regionId] = chunk.airCapacitySupplyRows;
-        data.loadedRegionIds.add(regionId);
+        data.loadedRegionIds.add(regionKey);
         syncLoadedRegion(data, regionId);
       })();
-      data.regionLoadPromises.set(regionId, loadPromise);
+      data.regionLoadPromises.set(regionKey, loadPromise);
       try {
         await loadPromise;
       } finally {
-        data.regionLoadPromises.delete(regionId);
+        data.regionLoadPromises.delete(regionKey);
       }
     }
 
@@ -684,7 +762,7 @@
       state.datasets = buildDatasets(data.globalRows || [], data.regionalDatasets || {});
       state.supplyDatasets = buildSupplyDatasets(data.supplyDatasets || {});
       state.aviationDatasets = buildAviationDatasets(data.aviationDatasets || {}, data.supplyDatasets || {});
-      if (!state.datasets.global?.length) throw new Error("当前 Release 没有全球宏观数据");
+      if (!state.datasets.global?.length) throw new Error("当前 Seed 没有全球宏观数据");
       if (preferredScope !== "global") await ensureRegionLoaded(data, preferredScope);
       applyScope(preferredScope, preferredSeed);
     }

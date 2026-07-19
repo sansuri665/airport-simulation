@@ -1,12 +1,16 @@
 (async () => {
   const state = window.AirportForecastViewerState;
   const client = window.AirportForecastDataClient;
+  const seedContext = window.AirportSeedContext;
   const renderers = window.AirportForecastRenderers;
   const { num, fmt, escapeHtml } = renderers;
 
   const el = {
     statusText: document.getElementById("statusText"),
-    seedSelect: document.getElementById("seedSelect"),
+    seedContextLabel: document.getElementById("seedContextLabel"),
+    contextChangeNotice: document.getElementById("contextChangeNotice"),
+    cityMarketsLink: document.getElementById("cityMarketsLink"),
+    globalViewerLink: document.getElementById("globalViewerLink"),
     modeSelect: document.getElementById("modeSelect"),
     summaryGrid: document.getElementById("summaryGrid"),
     candidateLab: document.getElementById("candidateLab"),
@@ -42,14 +46,22 @@
   };
 
   try {
-    await window.AIRPORT_FORECAST_DATA_READY;
+    state.seedContext = await seedContext.resolve();
+    state.seed = state.seedContext.seed;
   } catch (error) {
     el.statusText.textContent = "预测数据加载失败";
     document.querySelector("main").innerHTML = `<div class="empty">${escapeHtml(error?.message || error)}</div>`;
     return;
   }
 
-  const playerIndex = window.AIRPORT_FORECAST_LAZY_INDEX;
+  let playerIndex;
+  try {
+    playerIndex = await client.getIndex(state.seedContext, "player");
+  } catch (error) {
+    el.statusText.textContent = "预测数据加载失败";
+    document.querySelector("main").innerHTML = `<div class="empty">${escapeHtml(error?.message || error)}</div>`;
+    return;
+  }
   const reportCache = new Map();
   let activeIndex = playerIndex;
   let config = playerIndex.config || {};
@@ -219,7 +231,10 @@
   async function ensureCandidateCatalog() {
     if (candidateCatalogPayload || candidateCatalogError) return;
     try {
-      candidateCatalogPayload = await client.loadCandidateCatalog();
+      candidateCatalogPayload = await client.loadCandidateCatalog(
+        state.seedContext,
+        activeIndex.contextSource,
+      );
     } catch (error) {
       candidateCatalogError = error?.message || String(error);
     }
@@ -386,7 +401,7 @@
   async function activateMode(mode) {
     state.mode = mode;
     if (mode === "audit") {
-      activeIndex = await client.loadAuditIndex(playerIndex);
+      activeIndex = await client.getIndex(state.seedContext, "audit");
       await ensureCandidateCatalog();
     } else {
       activeIndex = playerIndex;
@@ -414,20 +429,16 @@
       renderAll();
       return;
     }
-    const cacheKey = `${activeIndex.dataMode}:${reportId}`;
+    const cacheKey = `${activeIndex.contextKey}:${activeIndex.dataMode}:${reportId}`;
     el.statusText.textContent = `加载${reportLabel(reportId)}…`;
     let sourceRows = reportCache.get(cacheKey);
     if (!sourceRows) {
-      sourceRows = await client.loadReport(activeIndex, reportId);
+      sourceRows = await client.loadReport(activeIndex, reportId, state.seedContext);
       reportCache.set(cacheKey, sourceRows);
     }
     if (generation !== loadGeneration) return;
     rows = normalizeRows(sourceRows);
     renderAll();
-  }
-
-  function seeds() {
-    return activeIndex?.seeds || Array.from(new Set(rows.map((row) => row.seed)));
   }
 
   function asOfYears() {
@@ -508,14 +519,6 @@
 
   function infoCard(label, value, note = "") {
     return `<article class="score-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`;
-  }
-
-  function renderSeedOptions() {
-    const values = seeds();
-    if (!values.includes(state.seed)) state.seed = values[0] ?? null;
-    el.seedSelect.innerHTML = values
-      .map((seed) => `<option value="${seed}"${seed === state.seed ? " selected" : ""}>${seed}</option>`)
-      .join("");
   }
 
   function renderReportOptions() {
@@ -815,7 +818,6 @@
     else state.candidateNonce = 0;
     const range = candidateScoreRange();
     const request = {
-      seed: state.seed,
       asOfYear: selectedAsOfYear(),
       tierProfileId: el.candidateTier.value,
       narrativeProfileId: el.candidateStyle.value,
@@ -830,9 +832,23 @@
     candidateBusy = true;
     renderCandidateLab();
     try {
-      const payload = await client.generateCandidate(request);
-      if (payload.releaseId !== candidateCatalogPayload.release.releaseId) {
-        throw new Error("候选生成期间正式 Viewer 发布已经变化，请刷新页面后重试");
+      const payload = await client.generateCandidate(
+        request,
+        state.seedContext,
+        activeIndex.contextSource,
+      );
+      const expectedIdentity = client.sourceIdentity(
+        state.seedContext,
+        activeIndex.contextSource,
+        candidateCatalogPayload.context,
+      );
+      const actualIdentity = client.sourceIdentity(
+        state.seedContext,
+        activeIndex.contextSource,
+        payload.context,
+      );
+      if (actualIdentity !== expectedIdentity) {
+        throw new Error("候选生成期间来源上下文已经变化，请刷新页面后重试");
       }
       state.candidateResult = payload;
       state.reportId = payload.candidate.candidateId;
@@ -866,7 +882,6 @@
   }
 
   function renderAll() {
-    renderSeedOptions();
     renderReportOptions();
     renderTimeline();
     renderSummary();
@@ -883,11 +898,6 @@
       : `${state.mode === "audit" ? "开发审计" : "报告视图"} · ${rows.length} 行 · 按报告懒加载`;
   }
 
-  el.seedSelect.addEventListener("change", () => {
-    state.seed = num(el.seedSelect.value);
-    state.asOfIndex = 0;
-    renderAll();
-  });
   el.modeSelect.addEventListener("change", async () => {
     const previousMode = state.mode;
     try {
@@ -936,8 +946,33 @@
   el.nextCandidate.addEventListener("click", () => generateCandidateReport(true));
   el.leaveCandidate.addEventListener("click", () => leaveCandidateReport());
 
+  function renderContext() {
+    const context = state.seedContext;
+    const source = activeIndex?.contextSource === "viewer_release" ? "Viewer Release" : "Seed 缓存";
+    el.seedContextLabel.textContent = `Seed ${context.seed} · ${context.years} 年 · ${source}`;
+    el.contextChangeNotice.hidden = !state.contextChanged;
+    el.cityMarketsLink.href = seedContext.href("/city-markets", context);
+    el.globalViewerLink.href = seedContext.href("/global-gdp", context);
+  }
+
+  async function refreshContextNotice() {
+    try {
+      const refreshed = await seedContext.refresh();
+      state.contextChanged = refreshed.activeSlotChanged || refreshed.slotMissing;
+    } catch (_error) {
+      state.contextChanged = true;
+    }
+    renderContext();
+  }
+
+  window.addEventListener("focus", refreshContextNotice);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) refreshContextNotice();
+  });
+
   try {
     state.reportId = playerIndex.defaultReportId || state.reportId;
+    renderContext();
     renderReportOptions();
     await ensureReportLoaded(state.reportId);
   } catch (error) {

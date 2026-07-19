@@ -23,7 +23,7 @@
       <div>
         <p class="eyebrow">Unified Local Workspace</p>
         <h1>机场模拟工作台</h1>
-        <p class="lead">从一个入口运行 Seed 动态测试，并查看全球宏观、城市航空市场和有效客流预测。页面只负责导航与展示，不会自动重算或修改现有模型结果。</p>
+        <p class="lead">在首页保存、切换和生成 Seed 世界，再进入全球宏观、城市航空市场、经营测试和预测页面。经营、全球、城市和预测入口已共用活动 Seed；打开后的页面不会被其它标签页静默改写。</p>
       </div>
       <aside class="release-panel" aria-label="当前 Viewer 数据状态">
         <div class="panel-label">当前 Viewer 数据</div>
@@ -38,32 +38,114 @@
       </aside>
     </section>
 
+    <section class="seed-center" aria-labelledby="seedCenterTitle">
+      <div class="seed-center-head">
+        <div>
+          <p class="eyebrow">Seed Workspace</p>
+          <h2 id="seedCenterTitle">统一 Seed 中心</h2>
+          <p>这里保存的是 <strong>Seed + 年数</strong> 槽位。切换槽位不会重算；只有点击“生成当前世界”才会复用后台任务建立或更新缓存。</p>
+        </div>
+        <div class="workspace-health" id="seedWorkspaceState" role="status">正在读取 Seed 工作区…</div>
+      </div>
+
+      <div class="seed-dashboard">
+        <article class="active-seed-panel">
+          <div class="panel-label">当前活动槽位</div>
+          <div class="active-seed-value" id="activeSeedValue">—</div>
+          <dl class="active-seed-meta">
+            <div><dt>年数</dt><dd id="activeYearsValue">—</dd></div>
+            <div><dt>状态</dt><dd id="activeStatusValue">—</dd></div>
+            <div><dt>来源</dt><dd id="activeSourceValue">—</dd></div>
+            <div><dt>Revision</dt><dd id="workspaceRevisionValue">—</dd></div>
+          </dl>
+          <button class="button primary-button" id="generateWorldButton" type="button" disabled>生成当前世界</button>
+          <div class="generation-status" id="generationStatus" aria-live="polite">尚未启动后台任务</div>
+        </article>
+
+        <article class="seed-tools-panel">
+          <div class="seed-create-heading">
+            <div>
+              <h3>创建 Seed 世界</h3>
+              <p>输入已知 Seed，或先生成一个安全随机数。确认创建只保存槽位，不会立即运行模型。</p>
+            </div>
+            <div class="creation-mode" aria-live="polite">
+              <span id="newSeedModeValue">标准游戏</span>
+              <strong id="newSeedYearsValue">60 年</strong>
+            </div>
+          </div>
+
+          <form class="seed-create-form" id="seedCreateForm">
+            <div class="seed-input-control">
+              <label for="importSeedInput">Seed</label>
+              <div class="seed-input-row">
+                <input id="importSeedInput" type="number" min="0" placeholder="例如 424242" inputmode="numeric" aria-describedby="seedInputHint">
+                <button class="button quiet-button" id="suggestRandomSeedButton" type="button" disabled>随机生成</button>
+              </div>
+              <div class="field-hint" id="seedInputHint">随机生成只填入数字；点击“创建并激活”后才会写入工作区。</div>
+            </div>
+            <button class="button primary-button seed-create-button" id="importSeedButton" type="submit" disabled>创建并激活</button>
+          </form>
+
+          <details class="advanced-settings" id="advancedYearsSettings">
+            <summary>高级设置：自定义年数（默认 60 年）</summary>
+            <div class="advanced-settings-body">
+              <label for="importYearsInput">模型年数</label>
+              <input id="importYearsInput" type="number" min="5" max="90" value="60" inputmode="numeric">
+              <p>正常游戏建议保持 60 年。5–90 年只用于短期测试或长期分析；修改年数会形成另一个独立槽位。</p>
+            </div>
+          </details>
+        </article>
+      </div>
+
+      <div class="seed-list-head">
+        <div>
+          <h3>已发现的 Seed 槽位</h3>
+          <p id="cacheUsage">—</p>
+        </div>
+        <div class="retention-controls">
+          <label>缓存保留上限
+            <input id="retentionInput" type="number" min="1" max="50" value="2" inputmode="numeric">
+          </label>
+          <button class="button quiet-button" id="planRetentionButton" type="button" disabled>预览清理</button>
+          <button class="button quiet-button" id="saveRetentionButton" type="button" disabled>只保存上限</button>
+        </div>
+      </div>
+      <div class="retention-plan" id="retentionPlan" hidden>
+        <div id="retentionPlanText"></div>
+        <button class="button danger-button" id="applyRetentionButton" type="button" disabled>确认并应用清理</button>
+      </div>
+      <div class="seed-slot-list" id="seedSlotList" aria-live="polite"></div>
+      <div class="workspace-notice" id="workspaceNotice" role="status" aria-live="polite">
+        经营、全球、城市和预测页均使用首页活动 Seed；打开后的页面保持固定上下文。
+      </div>
+    </section>
+
     <section aria-labelledby="entryTitle">
       <h2 class="section-title" id="entryTitle">选择入口</h2>
       <div class="cards">
-        <a class="card primary" href="/seed-explorer">
+        <a class="card primary" id="seedExplorerLink" href="/seed-explorer">
           <span class="card-kicker">Interactive</span>
           <h2>Seed 动态测试</h2>
-          <p>输入 Seed、生成完整世界线、推进季度并测试机场项目、合同与融资行动。需要计算时由本地 Python 后端统一执行。</p>
-          <span class="card-action">进入动态测试 →</span>
+          <p>使用当前活动 Seed，生成完整世界线、推进季度并测试机场项目、合同与融资行动。需要计算时由本地 Python 后端统一执行。</p>
+          <span class="card-action">进入当前 Seed 动态测试 →</span>
         </a>
-        <a class="card" href="/global-gdp">
+        <a class="card" id="globalViewerLink" href="/global-gdp">
           <span class="card-kicker">Global & Regional</span>
           <h2>全球宏观 Viewer</h2>
           <p>查看全球宏观反馈链、14 个区域、区域对账，以及供城市模型参考的航空需求与供给信号。</p>
-          <span class="card-action">查看全球数据 →</span>
+          <span class="card-action" id="globalViewerAction">查看当前 Seed 全球宏观 →</span>
         </a>
-        <a class="card" href="/city-markets">
+        <a class="card" id="cityMarketsLink" href="/city-markets">
           <span class="card-kicker">City Markets</span>
           <h2>城市航空市场</h2>
           <p>筛选中国大陆 47 个城市，查看单城潜在客流、航司座位投放、有效供给、客群分配与供给周期。</p>
-          <span class="card-action">查看城市市场 →</span>
+          <span class="card-action" id="cityMarketsAction">查看当前 Seed 城市市场 →</span>
         </a>
-        <a class="card" href="/beijing-forecast">
+        <a class="card" id="beijingForecastLink" href="/beijing-forecast">
           <span class="card-kicker">Forecast</span>
           <h2>有效客流预测</h2>
           <p>按预测等级和报告期查看潜在客流、航司供给与最终有效客流预测结果。</p>
-          <span class="card-action">查看预测报告 →</span>
+          <span class="card-action" id="beijingForecastAction">查看当前 Seed 预测 →</span>
         </a>
       </div>
     </section>
@@ -86,7 +168,8 @@
         <h2 class="section-title">使用提示</h2>
         <ul class="tips">
           <li><strong>只是查看：</strong>直接进入三个 Viewer，不会启动计算。</li>
-          <li><strong>运行新 Seed：</strong>进入 Seed 动态测试。</li>
+          <li><strong>生成新 Seed：</strong>先在上方创建槽位，再点击“生成当前世界”。</li>
+          <li><strong>删除数据：</strong>可单独清理缓存/存档，也可用“删除 Seed”完整移除非 Release 世界；当前 Release 不会被这里删除。</li>
           <li><strong>更新静态 Viewer：</strong>仍需运行 orchestrator 并使用 <code>--publish-viewer</code>。</li>
         </ul>
       </div>
@@ -95,6 +178,18 @@
     <footer>本页面仅绑定 127.0.0.1，本机之外无法访问。</footer>
   </main>
 
+  <dialog class="action-dialog" id="actionDialog" aria-labelledby="actionDialogTitle">
+    <form method="dialog">
+      <h2 id="actionDialogTitle">确认操作</h2>
+      <div id="actionDialogBody"></div>
+      <div class="dialog-actions">
+        <button class="button quiet-button" id="actionDialogCancel" value="cancel">取消</button>
+        <button class="button danger-button" id="actionDialogConfirm" value="default">确认</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/static/js/shared/api-client.js"></script>
   <script src="/static/js/home/page.js"></script>
 </body>
 </html>

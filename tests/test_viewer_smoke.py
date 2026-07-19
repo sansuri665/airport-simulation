@@ -120,6 +120,14 @@ class ViewerResourceSmokeTests(unittest.TestCase):
         self.assertIn("/static/js/shared/api-client.js", sources)
         self.assertLess(
             sources.index("/static/js/shared/api-client.js"),
+            sources.index("/static/js/shared/seed-context.js"),
+        )
+        self.assertLess(
+            sources.index("/static/js/shared/seed-context.js"),
+            sources.index("/static/js/seed-explorer/state.js"),
+        )
+        self.assertLess(
+            sources.index("/static/js/seed-explorer/state.js"),
             sources.index("/static/js/seed-explorer/page.js"),
         )
         scripts = [
@@ -130,6 +138,35 @@ class ViewerResourceSmokeTests(unittest.TestCase):
         combined_js = "".join(path.read_text(encoding="utf-8") for path in scripts)
         self.assertIn("apiClient.requestJson", combined_js)
         self.assertNotIn("await fetch(", combined_js)
+        self.assertNotIn("el.seedInput", combined_js)
+        self.assertNotIn("el.yearsInput", combined_js)
+        self.assertNotIn("el.cachedRunSelect", combined_js)
+        self.assertNotIn("el.randomButton", combined_js)
+
+    def test_home_seed_center_uses_shared_api_client_before_main_script(self) -> None:
+        viewer = PAGES_DIR / "airport_home.html"
+        sources = SCRIPT_SOURCE_PATTERN.findall(viewer.read_text(encoding="utf-8"))
+        self.assertIn("/static/js/shared/api-client.js", sources)
+        self.assertLess(
+            sources.index("/static/js/shared/api-client.js"),
+            sources.index("/static/js/home/page.js"),
+        )
+        source = (STATIC_DIR / "js" / "home" / "page.js").read_text(encoding="utf-8")
+        self.assertIn("apiClient.requestJson", source)
+        self.assertNotIn("await fetch(", source)
+        self.assertIn('action: "plan-delete"', source)
+        self.assertIn('requestJson("/api/random-seed"', source)
+        self.assertIn('action: "import"', source)
+        self.assertNotIn('action: "create-random"', source)
+        self.assertIn("expectedRevision", source)
+        self.assertIn('makeButton("删除 Seed", "delete-seed"', source)
+        self.assertIn('for (const target of ["cache", "save"])', source)
+        self.assertIn('action: "remove-slot"', source)
+        self.assertIn("slot.isCurrentViewerRelease", source)
+        self.assertIn(
+            "await Promise.all([loadWorkspace(), loadWorkspaceStatus()]);",
+            source,
+        )
 
     def test_seed_explorer_scripts_are_split_by_responsibility(self) -> None:
         viewer = PAGES_DIR / "seed_explorer_viewer.html"
@@ -193,7 +230,7 @@ class ViewerResourceSmokeTests(unittest.TestCase):
             "/static/js/global-gdp/state.js",
             "/static/js/global-gdp/data-client.js",
             "/static/js/global-gdp/formatters.js",
-            "/static/js/global-gdp/preview-model.js",
+            "/static/js/global-gdp/scenario-model.js",
             "/static/js/global-gdp/controls.js",
             "/static/js/global-gdp/renderers.js",
             "/static/js/global-gdp/page.js",

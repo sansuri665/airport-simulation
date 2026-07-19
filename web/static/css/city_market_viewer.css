@@ -40,6 +40,8 @@ h2 { font-size: 21px; }
 .toolbar input[type="range"] { width: 100%; accent-color: var(--blue); }
 .release-copy { display: flex; gap: 7px; flex-direction: column; }
 .release-copy span { color: var(--blue); font-size: 24px; font-weight: 700; }
+.release-copy small { color: var(--muted); line-height: 1.45; }
+.release-copy .context-change { color: var(--amber); max-width: 560px; }
 .workspace { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 18px; align-items: start; }
 .city-sidebar { position: sticky; top: 12px; max-height: calc(100vh - 24px); display: flex; flex-direction: column; }
 .panel-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding: 18px 20px; border-bottom: 1px solid var(--line); }

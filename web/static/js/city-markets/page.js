@@ -2,6 +2,7 @@
   const state = window.AirportCityMarketState;
   const data = window.AirportCityMarketData;
   const render = window.AirportCityMarketRender;
+  const seedContext = window.AirportSeedContext;
   const byId = (id) => document.getElementById(id);
 
   function setStatus(message, kind = "") {
@@ -74,20 +75,44 @@
     const token = ++state.loadToken;
     setStatus(`正在读取${cityMeta.name}…`);
     try {
-      let city = state.cityCache.get(cityId);
+      const cacheKey = data.cacheKey(state.seedContext, cityId);
+      let city = state.cityCache.get(cacheKey);
       if (!city) {
-        city = await data.loadCity(state.index, cityMeta);
-        state.cityCache.set(cityId, city);
+        city = await data.loadCity(state.index, cityMeta, state.seedContext);
+        state.cityCache.set(cacheKey, city);
       }
       if (token !== state.loadToken) return;
       state.selectedCity = city;
       renderSelectedCity();
-      const releaseYears = Number(window.AIRPORT_VIEWER_RELEASE_INFO?.years)
-        || state.index.finalYear - state.index.startYear;
-      setStatus(`${state.index.cityCount} 城 · ${releaseYears} 年发布期`, "ready");
+      const source = state.index.contextSource === "viewer_release" ? "Viewer Release" : "Seed 缓存";
+      setStatus(`${state.index.cityCount} 城 · ${state.seedContext.years} 年 · ${source}`, "ready");
     } catch (error) {
       if (token !== state.loadToken) return;
       setStatus(error.message || "城市数据读取失败", "error");
+    }
+  }
+
+  function renderContext() {
+    const context = state.seedContext;
+    if (!context) return;
+    const source = state.index?.contextSource === "viewer_release"
+      ? "Viewer Release"
+      : context.cacheStatus === "ready" ? "Seed 计算缓存" : "数据不可用";
+    byId("releaseMeta").textContent = `Seed ${context.seed} · ${context.years} 年`;
+    byId("contextSource").textContent = `${source} · 槽位 ${context.slotId} · revision ${context.workspaceRevision}（当前 ${context.currentWorkspaceRevision}）`;
+    byId("contextChangeNotice").hidden = !state.contextChanged;
+    byId("operationsLink").href = seedContext.href("/seed-explorer", context);
+  }
+
+  async function refreshContext() {
+    try {
+      const refreshed = await seedContext.refresh();
+      state.seedContext = refreshed.context;
+      state.contextChanged = refreshed.activeSlotChanged || refreshed.slotMissing;
+      renderContext();
+    } catch (_error) {
+      state.contextChanged = true;
+      byId("contextChangeNotice").hidden = false;
     }
   }
 
@@ -103,15 +128,16 @@
 
   async function start() {
     try {
-      state.index = data.getIndex();
+      state.seedContext = await seedContext.resolve();
+      state.contextChanged = !state.seedContext.isWorkspaceActive;
+      state.index = await data.getIndex(state.seedContext);
       state.selectedYear = state.index.finalYear;
       const range = byId("yearRange");
       range.min = String(state.index.startYear);
       range.max = String(state.index.finalYear);
       range.value = String(state.selectedYear);
       byId("yearLabel").textContent = `${state.selectedYear} 年`;
-      const release = window.AIRPORT_VIEWER_RELEASE_INFO || {};
-      byId("releaseMeta").textContent = `Seed ${state.index.seed ?? release.seed ?? "—"} · ${state.index.startYear}—${state.index.finalYear}`;
+      renderContext();
       bindControls();
       renderRanking();
       const initial = state.index.cities.find((city) => city.id === "beijing_airport_system") || state.index.cities[0];
@@ -119,8 +145,9 @@
     } catch (error) {
       setStatus(error.message || "页面初始化失败", "error");
       byId("cityTitle").textContent = "城市市场数据不可用";
-      byId("cityMeta").textContent = "请先重新发布 Viewer 数据。";
+      byId("cityMeta").textContent = "请返回首页选择可用槽位；缓存槽位需要先生成当前世界。";
     }
   }
   start();
+  window.setInterval(refreshContext, 2500);
 })();

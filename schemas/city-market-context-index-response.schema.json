@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/city-market-context-index-response.schema.json",
+  "title": "Seed-context city market index response",
+  "type": "object",
+  "required": [
+    "ok", "schemaVersion", "context", "index",
+    "apiSchemaVersion", "modelVersion", "outputSchemaVersion", "pythonVersion", "schemaCatalog"
+  ],
+  "properties": {
+    "ok": { "const": true },
+    "schemaVersion": { "const": "airport-city-market-context-index-v1" },
+    "context": { "$ref": "#/$defs/context" },
+    "index": { "$ref": "city-market-viewer-lazy-index.schema.json" },
+    "apiSchemaVersion": { "type": "string", "minLength": 1 },
+    "modelVersion": { "type": "string", "minLength": 1 },
+    "outputSchemaVersion": { "type": "string", "minLength": 1 },
+    "pythonVersion": { "type": "string", "minLength": 1 },
+    "schemaCatalog": { "const": "/api/schema" }
+  },
+  "$defs": {
+    "context": {
+      "type": "object",
+      "required": ["seed", "years", "slotId", "source", "workspaceRevision", "cacheRunId"],
+      "properties": {
+        "seed": { "type": "integer", "minimum": 0 },
+        "years": { "type": "integer", "minimum": 5, "maximum": 90 },
+        "slotId": { "type": "string", "pattern": "^seed_[0-9]+_years_[0-9]+$" },
+        "source": { "const": "seed_cache" },
+        "workspaceRevision": { "type": "integer", "minimum": 0 },
+        "cacheRunId": { "type": "string", "pattern": "^seed_[0-9]+_years_[0-9]+$" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

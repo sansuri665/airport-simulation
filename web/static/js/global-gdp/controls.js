@@ -42,11 +42,6 @@
           : "全球宏观";
       const sourceText = state.dataLabel ? ` / ${state.dataLabel}` : "";
       el.status.textContent = `${scopeText}: ${config.label} / ${rowCount} rows${sourceText}`;
-      const canGenerateSeed = state.view === "macro" && config.type === "global";
-      el.randomSeedButton.disabled = !canGenerateSeed;
-      el.randomSeedButton.title = canGenerateSeed
-        ? "浏览器近似预览，不写入正式 Run"
-        : "区域模式不生成浏览器预览 Seed";
     }
 
     function applyScope(scope, preferredSeed = state.seed) {
@@ -57,10 +52,9 @@
       state.rows = rowsForScope(nextScope);
       state.selectedIndex = 0;
       state.scenario = null;
-      state.seeds = [...new Set(state.rows.map((row) => row.seed))].sort((a, b) => a - b);
-      state.seed = state.seeds.includes(preferredSeed) ? preferredSeed : state.seeds[0];
+      state.seeds = [state.seedContext.seed];
+      state.seed = state.seedContext.seed;
       refreshScopeOptions();
-      refreshSeedOptions();
       updateScopeStatus();
       render();
     }
@@ -70,7 +64,8 @@
       state.regionSelectionToken = token;
       const options = availableScopeOptions();
       const nextScope = options.some((option) => option.id === scope) ? scope : (options[0]?.id || "global");
-      if (nextScope !== "global" && !state.activeData?.loadedRegionIds?.has(nextScope)) {
+      const regionKey = `${state.seedContext.slotId}:${nextScope}`;
+      if (nextScope !== "global" && !state.activeData?.loadedRegionIds?.has(regionKey)) {
         const label = SCOPE_OPTIONS.find((option) => option.id === nextScope)?.label || nextScope;
         el.status.textContent = `loading: ${label}`;
       }
@@ -81,46 +76,6 @@
       } catch (error) {
         if (token === state.regionSelectionToken) el.status.textContent = error.message;
       }
-    }
-
-    function refreshSeedOptions() {
-      state.seeds = [...new Set(state.rows.map((row) => row.seed))].sort((a, b) => a - b);
-      el.seedSelect.innerHTML = state.seeds.map((seed) => {
-        const suffix = state.dynamicSeeds.has(seed) ? " browser-preview" : "";
-        return `<option value="${seed}">seed ${seed}${suffix}</option>`;
-      }).join("");
-      el.seedSelect.value = String(state.seed);
-    }
-
-    function randomLargeSeed() {
-      let seed = 0;
-      const used = new Set(state.rows.map((row) => row.seed));
-      do {
-        seed = Math.floor(1_000_000 + Math.random() * 999_000_000);
-      } while (used.has(seed));
-      return seed;
-    }
-
-    function generateRandomSeed() {
-      if (scopeConfig().type !== "global") return;
-      const seed = randomLargeSeed();
-      const iterations = 3;
-      const passRows = [buildDynamicMacroChain(seed)];
-      let feedback = {};
-      for (let i = 0; i < iterations; i += 1) {
-        feedback = blendDynamicFeedbackPaths(feedback, deriveDynamicFeedbackPath(passRows[passRows.length - 1]));
-        passRows.push(buildDynamicMacroChain(seed, feedback));
-      }
-      const convergence = summarizeDynamicConvergence(passRows);
-      const rows = annotateDynamicFeedback(passRows[passRows.length - 1], feedback, convergence, iterations);
-      state.rows.push(...rows);
-      state.dynamicSeeds.add(seed);
-      state.seed = seed;
-      state.selectedIndex = 0;
-      state.scenario = null;
-      refreshSeedOptions();
-      el.status.textContent = `浏览器近似预览 Seed ${seed}；未写入正式 Run`;
-      render();
     }
 
     function rowsForSeed() {
@@ -176,9 +131,8 @@
 
     function setupControls() {
       refreshScopeOptions();
-      state.seeds = [...new Set(state.rows.map((row) => row.seed))].sort((a, b) => a - b);
-      state.seed = state.seeds[0];
-      refreshSeedOptions();
+      state.seeds = [state.seedContext.seed];
+      state.seed = state.seedContext.seed;
       updateScopeStatus();
       el.viewSelect.addEventListener("change", async () => {
         state.view = el.viewSelect.value;
@@ -189,13 +143,6 @@
       el.scopeSelect.addEventListener("change", async () => {
         await loadAndApplyScope(el.scopeSelect.value, state.seed);
       });
-      el.seedSelect.addEventListener("change", () => {
-        state.seed = Number(el.seedSelect.value);
-        state.selectedIndex = 0;
-        state.scenario = null;
-        render();
-      });
-      el.randomSeedButton.addEventListener("click", generateRandomSeed);
       el.yearRange.addEventListener("input", () => {
         state.selectedIndex = Number(el.yearRange.value);
         render();

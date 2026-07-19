@@ -13,7 +13,7 @@
   ],
   "properties": {
     "ok": { "type": "boolean" },
-    "apiSchemaVersion": { "const": "seed-explorer-api-v2" },
+    "apiSchemaVersion": { "const": "seed-explorer-api-v3" },
     "modelVersion": { "const": "airport-model-v0.8" },
     "outputSchemaVersion": { "const": "airport-model-output-v1" },
     "pythonVersion": { "type": "string", "minLength": 1 },

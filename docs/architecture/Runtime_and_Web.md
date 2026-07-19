@@ -68,7 +68,8 @@ airport_sim/server/
   routes.py       页面/API 路由、Host/Origin 与安全文件路径
   api_contract.py API 版本元数据、Schema 文件和端点目录
   beijing_operations.py 北京城市需求默认化、季度经营/财务序列化和读取编排
-  forecast_candidates.py 正式发布上下文、审计候选目录和生成请求装配
+  forecast_candidates.py 显式 Release/缓存审计上下文、候选目录和生成请求装配
+  forecast_viewer.py 有效 Seed 缓存的玩家/审计预测索引与报告只读适配
   http.py         JSON、错误、请求体、文件与重定向响应
   jobs.py         有界后台任务
   player_service.py 玩家存档命令、模拟配置/命令、行动缓存和响应装配
@@ -80,6 +81,8 @@ airport_sim/server/
   run_cache.py    Seed 缓存路径、指纹、读写、清单和保留
   run_service.py  缓存复用、Run 加锁/执行、城市聚合和进度顺序
   run_locks.py    每 Run 锁与缓存维护预留
+  seed_workspace.py Seed 槽位注册表、Release/缓存/存档发现与读取能力合成
+  seed_workspace_actions.py revision 写入、删除计划、Run 锁和缓存保留执行
   storage.py      文件、配置缓存与原子写入
   repository.py   玩家存档仓储
   serializers.py  城市结果摘要
@@ -131,9 +134,21 @@ Seed Run 的固定调用顺序是：
 
 北京经营产物由 `beijing_operations.py` 在同一 Run 锁内读取。它负责城市需求缺失字段默认化、季度经营与按年/季度配对的财务行映射、警告和 `playerStartIndex`，并区分 replay 与 `simulate_default` 两种产物目录；replay 缺少必需产物时只按既有规则执行一次强制重试。字段名、字段顺序、舍入、空值和经营 CapEx 回退仍是既有 API 契约。`app.py` 保留所有同名兼容包装器和 mock 点，不复制第二套序列化逻辑。
 
-开发审计候选由 `forecast_candidates.py` 装配。它只读取当前正式 Manifest 记录的来源目录和北京城市市场 CSV，校验 Release/Seed 一致性，然后把原始行与规范化请求交给既有预测候选层；不复制预测公式、评分或叙事逻辑，也不写入候选文件。等级顺序、数据起止年、请求默认值和错误顺序属于现有 API 契约。
+开发审计候选由 `forecast_candidates.py` 装配。请求必须明确携带 `Seed + 年数 + viewer_release/seed_cache`；服务校验工作区槽位和来源身份，再把同一来源的北京城市市场行与规范化请求交给既有预测候选层。它不复制预测公式、评分或叙事逻辑，不写入候选文件，也不会在缓存不可用时偷换当前 Release。
 
 `workspace_service.py` 只把当前 Viewer Manifest、缓存清单、递归存档数量和固定页面地址装配为工作区状态。无 Manifest 或 Manifest 不可读时报告 `unavailable`，不再暗示存在 canonical 浏览器回退；路径继续相对于工作区根并使用 POSIX 表达。`app.py` 对这两个服务继续保留同名装配函数，使路由和测试 patch 点不变。
+
+`seed_workspace.py` 是统一 Seed 入口的读取基础层。它以 `Seed + 年数` 为槽位身份，合并轻量注册表、当前 Release、Seed 缓存和玩家存档，并返回占用、来源、页面能力和保护原因。服务启动时只在注册表缺失时原子初始化；损坏文件会保留并报告警告。
+
+`seed_workspace_actions.py` 承担首页写操作，不包含模型公式。创建、导入和激活只更新原子注册表；“生成当前世界”继续走既有后台 Job 和 `run_service.py`。缓存或存档删除必须使用最新 revision、预览计划和二次确认，并在规范路径边界内取得对应 Run 锁。缓存保留计划只处理 Seed 缓存，不调用会覆盖更大 `output/` 范围的全局清理器。
+
+经营、全球、城市和预测四页已经通过 `web/static/js/shared/seed-context.js` 接入工作区。模块把 URL 中的 `seed + years` 固定为页面身份；只有 URL 两项都缺失时才读取活动槽位并规范化地址。经营页的世界生成、北京经营、玩家行动和存档共用请求构造器；三个只读 Viewer 在发布槽位载入对应 Release，在普通有效缓存槽位调用各自的只读上下文 API。页面拒绝 Seed、年数、槽位或来源不匹配的响应；其它标签页切换活动槽位只产生 revision 提示。
+
+`city_market_viewer.py` 只解析已注册且 `ready` 的 Seed 缓存，在对应 Run 锁内读取 `baseline/city_airport_market_demand/china_mainland/`。索引和单城块分别由两个 GET 接口返回，不写入缓存或 Release。`serializers.py` 中的公共城市投影同时供 API 和正式发布器使用，因此机场容量、最终经营承接等字段不会因来源不同而泄露。
+
+`global_viewer.py` 使用相同边界读取已注册且 `ready` 的 Seed 缓存。首屏索引读取全球主链、区域协调和 14 区轻量目录，单区域接口再按需读取区域宏观、航空需求和运力供给；所有表都验证 Seed / 年数并在同一 Run 锁内读取。正式发布器和缓存接口共用 `serializers.py` 的全球投影，接口不写磁盘，也不会回退到当前 Release。
+
+`forecast_viewer.py` 从有效缓存的原始预测 CSV 分别构造玩家或审计索引与单报告分块。纯投影函数位于 `macro_layers/forecast_system/viewer_assets.py`，正式发布器和 HTTP 适配器共用；玩家端点不会构造或返回隐藏真实未来。报告缓存键包含槽位、来源身份、revision、信息层级和报告 ID。
 
 路由清单由 `routes.route_contract()` 统一记录，并由 `test_server_routes.py` 固定。当前分层如下：
 
@@ -154,20 +169,20 @@ HTTP 分发仍只由 `routes.py` 负责。业务函数由 `app.py` 兼容暴露�
 
 Seed Explorer 通过 `/api/run`、`/api/beijing-operations`、`/api/player-simulation` 和 `/api/sim-save` 与后端交互。正式随机 Seed 来自 `/api/random-seed`。
 
-### 三个只读 Viewer
+### 只读 Viewer
 
-三个 Viewer 只读取：
+预测 Viewer 与全球、城市页的正式发布来源读取：
 
 ```text
 output/current_viewer_manifest.js
 output/viewer_releases/<release_id>/
 ```
 
-全球、城市和预测 Viewer 都要求 Manifest 提供对应版本化脚本，并只从同一 Release 读取索引与分块。没有有效 Manifest、缺少脚本或 Release 资产不完整时，页面显示发布数据不可用；不会访问 `output/` 下的 canonical 索引，也不会静默拼接旧数据。它们不会因为 Seed Explorer 新建了临时缓存而自动切换。
+三个 Viewer 对当前发布槽位都要求 Manifest 提供对应版本化脚本，并只从同一 Release 读取索引与分块；对其它有效缓存槽位则使用只读 API，从现有权威 CSV 现场构造同构协议。预测玩家和审计索引仍是独立请求。所有页面都不会访问 canonical 索引、跨 Seed 复用内存块或静默拼接当前 Release。
 
-### 全球浏览器预览
+### 全球浏览器情景计算
 
-全球宏观页保留一套近似预览模型，用于快速观察页面内 Seed。它不调用正式 Run、不写盘，也不能作为 Python 结果来源。
+全球宏观页已经退出随机 Seed 和动态世界入口。仍有真实消费者的风险场景计算已收敛到 `scenario-model.js`，只显式导出五个场景交互入口；它在固定 Seed 世界上做页面内情景推演，不调用正式 Run、不写盘，也不能作为 Python 结果来源。旧 `preview-model.js` 和 `dynamicSeeds` 状态已退出。
 
 ## 6. HTTP 文件边界
 

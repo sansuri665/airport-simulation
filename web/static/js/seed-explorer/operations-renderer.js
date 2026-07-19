@@ -240,7 +240,7 @@
         el.opsComponentRows.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted)">暂无数据</td></tr>`;
         renderFacilitiesProjectAnalysis();
         el.prevQuarterButton.disabled = true;
-        el.nextQuarterButton.disabled = false;
+        el.nextQuarterButton.disabled = !contextCacheReady();
         return;
       }
 
@@ -375,15 +375,14 @@
     }
 
     async function loadOperations(mode = "replay", restoreSave = null) {
-      const seed = Number(el.seedInput.value);
-      const enteredYears = Number(el.yearsInput.value || 60);
-      const requestedYears = Number.isFinite(enteredYears) ? Math.trunc(enteredYears) : 60;
-      const years = mode === "simulate_default"
-        ? Math.max(PLAYER_SIMULATION_MIN_YEARS, requestedYears)
-        : requestedYears;
-      const expandedForPlayerSimulation = mode === "simulate_default" && years !== requestedYears;
-      if (!Number.isInteger(seed) || seed < 0) {
-        status("请输入有效的非负整数 seed。", "error");
+      const context = requireSeedContext();
+      const {seed, years} = context;
+      if (!contextCacheReady()) {
+        status("当前槽位没有可用经营缓存，请先点击“生成当前世界”。玩家存档不会因此丢失。", "error");
+        return;
+      }
+      if (mode === "simulate_default" && years < PLAYER_SIMULATION_MIN_YEARS) {
+        status(`模拟运营需要 ${PLAYER_SIMULATION_MIN_YEARS} 年标准世界；请在首页为同一 Seed 创建 60 年槽位。`, "error");
         return;
       }
       const requestedActions = mode === "simulate_default"
@@ -395,31 +394,24 @@
       setSelectedOperationMode(mode);
       state.operationMode = mode;
       setOperationModeVisual(mode);
-      if (expandedForPlayerSimulation) {
-        el.yearsInput.value = String(years);
-        el.cachedRunSelect.value = "";
-      }
       setOpsLoading(true, mode);
       status(mode === "simulate_default"
-        ? (expandedForPlayerSimulation
-          ? `当前 ${requestedYears} 年缓存只适合短期分析，正在扩展为 ${years} 年完整经营世界线。`
-          : "正在进入北京模拟运营：使用默认初始配置，不预设贷款和项目。")
-        : "正在加载北京历史运营结果。若该 seed 尚未跑过，会先运行全链路。");
+        ? "正在进入北京模拟运营：使用默认初始配置，不预设贷款和项目。"
+        : "正在加载当前 Seed 的北京历史运营结果。");
       try {
         const payload = await apiClient.requestJson(mode === "simulate_default" ? "/api/player-simulation" : "/api/beijing-operations", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(mode === "simulate_default"
+          body: JSON.stringify(contextRequestBody(mode === "simulate_default"
             ? {
-              seed,
-              years,
               force: el.forceInput.checked,
               playerActions: requestedActions,
               currentQuarterIndex: Number.isFinite(restoredIndex) ? restoredIndex : undefined,
             }
-            : { seed, years, force: el.forceInput.checked, mode }),
+            : {force: el.forceInput.checked, mode})),
         });
         if (!payload.ok) throw new Error(payload.error || "operations failed");
+        assertContextResponse(payload, "经营响应");
         if (payload.mode && payload.mode !== mode) {
           throw new Error(`后端返回了${operationModeLabel(payload.mode)}，不是当前请求的${operationModeLabel(mode)}。请重启动态测试服务。`);
         }
@@ -481,7 +473,7 @@
             ? `模拟运营已进入：服务端已重算至 ${loadedLabel}。`
             : `历史运营已加载：${payload.periodCount} 个季度，从 ${loadedLabel} 开始。`), "ok");
         renderOperations();
-        refreshCachedRuns();
+        refreshSeedContext();
         refreshSimSaveSlots();
       } catch (error) {
         status(String(error.message || error), "error");
@@ -495,15 +487,14 @@
       const payload = await apiClient.requestJson("/api/player-simulation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          seed: state.operations.seed,
-          years: Number(state.operations.years || el.yearsInput.value || 60),
+        body: JSON.stringify(contextRequestBody({
           force: false,
           playerActions: state.playerActions,
           currentQuarterIndex,
-        }),
+        })),
       });
       if (!payload.ok) throw new Error(payload.error || "player simulation failed");
+      assertContextResponse(payload, "玩家行动响应");
       state.operations = payload;
       state.operationMode = "simulate_default";
       state.operationsQuarterIndex = Number(payload.currentQuarterIndex ?? currentQuarterIndex);
@@ -531,10 +522,8 @@
         const payload = await apiClient.requestJson("/api/sim-save", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+          body: JSON.stringify(contextRequestBody({
             action: "save",
-            seed: state.operations.seed,
-            years: Number(state.operations.years || el.yearsInput.value || 60),
             mode: "simulate_default",
             runId: state.operations.runId,
             runDir: state.operations.runDir,
@@ -543,9 +532,10 @@
             contractSignatures: state.contractSignatures,
             contractAffairsContractId: state.contractAffairsContractId,
             playerActions: state.playerActions,
-          }),
+          })),
         });
         if (!payload.ok) throw new Error(payload.error || "save failed");
+        assertContextResponse(payload, "存档保存响应");
         state.simSaveSummary = payload.summary || state.simSaveSummary;
         renderSimSaveSlots();
         status(`当前 seed 存档已保存：${quarter.label}。`, "ok");
@@ -563,17 +553,12 @@
         const payload = await apiClient.requestJson("/api/sim-save", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "load",
-            seed: Number(el.seedInput.value),
-            years: Number(el.yearsInput.value || 60),
-          }),
+          body: JSON.stringify(contextRequestBody({action: "load"})),
         });
         if (!payload.ok) throw new Error(payload.error || "load save failed");
+        assertContextResponse(payload, "存档读取响应");
         const save = payload.save;
         state.simSaveSummary = payload.summary || state.simSaveSummary;
-        el.seedInput.value = String(save.seed);
-        el.yearsInput.value = String(save.years || 60);
         el.forceInput.checked = false;
         await loadOperations("simulate_default", save);
       } catch (error) {

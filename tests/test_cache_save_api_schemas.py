@@ -137,6 +137,13 @@ class CacheSaveApiSchemaTests(unittest.TestCase):
     def test_catalog_registers_current_cache_and_save_schemas(self) -> None:
         expected_schemas = {
             "cachedRuns": "cached-runs-response.schema.json",
+            "seedWorkspaceRegistry": "seed-workspace.schema.json",
+            "seedWorkspace": "seed-workspace-response.schema.json",
+            "seedWorkspaceAction": "seed-workspace-action-response.schema.json",
+            "cityMarketContextIndex": "city-market-context-index-response.schema.json",
+            "cityMarketContextChunk": "city-market-context-chunk-response.schema.json",
+            "forecastContextIndex": "forecast-viewer-context-index-response.schema.json",
+            "forecastContextReport": "forecast-viewer-context-report-response.schema.json",
             "simulationSave": "simulation-save.schema.json",
             "simSave": "sim-save-response.schema.json",
         }
@@ -146,6 +153,12 @@ class CacheSaveApiSchemaTests(unittest.TestCase):
 
         expected_endpoints = {
             "GET /api/cached-runs": "/schemas/cached-runs-response.schema.json",
+            "GET /api/seed-workspace": "/schemas/seed-workspace-response.schema.json",
+            "POST /api/seed-workspace": "/schemas/seed-workspace-action-response.schema.json",
+            "GET /api/city-market-viewer/index": "/schemas/city-market-context-index-response.schema.json",
+            "GET /api/city-market-viewer/chunk": "/schemas/city-market-context-chunk-response.schema.json",
+            "GET /api/forecast-viewer/index": "/schemas/forecast-viewer-context-index-response.schema.json",
+            "GET /api/forecast-viewer/report": "/schemas/forecast-viewer-context-report-response.schema.json",
             "POST /api/sim-save": "/schemas/sim-save-response.schema.json",
         }
         for endpoint, schema_url in expected_endpoints.items():
@@ -202,6 +215,25 @@ class CacheSaveApiSchemaTests(unittest.TestCase):
         validate_named_schema(payload, "simulation-save.schema.json", self.registry)
         self.assertEqual([(Path(temporary_dir) / "would-write.json", payload)], captured)
 
+    def test_persisted_seed_workspace_registry_matches_schema(self) -> None:
+        registry = {
+            "schemaVersion": "airport-seed-workspace-v1",
+            "revision": 1,
+            "activeSlotId": "seed_7_years_12",
+            "slots": [
+                {
+                    "slotId": "seed_7_years_12",
+                    "seed": 7,
+                    "years": 12,
+                    "label": "",
+                    "createdAt": "2026-07-19T00:00:00Z",
+                    "lastUsedAt": "2026-07-19T00:00:00Z",
+                }
+            ],
+        }
+
+        validate_named_schema(registry, "seed-workspace.schema.json", self.registry)
+
     def test_all_current_sim_save_response_shapes_match_one_schema(self) -> None:
         saved = simulation_save()
         occupied = save_summary(occupied=True)
@@ -229,6 +261,62 @@ class CacheSaveApiSchemaTests(unittest.TestCase):
                 payload = self.get_json("/api/cached-runs")
 
         validate_named_schema(payload, "cached-runs-response.schema.json", self.registry)
+
+    def test_real_seed_workspace_route_response_matches_schema(self) -> None:
+        payload = self.get_json("/api/seed-workspace")
+
+        validate_named_schema(payload, "seed-workspace-response.schema.json", self.registry)
+
+    def test_seed_workspace_action_route_and_schema_are_versioned(self) -> None:
+        response = {
+            "ok": True,
+            "schemaVersion": "airport-seed-workspace-action-response-v1",
+            "action": "activate",
+            "changed": True,
+            "workspaceRevision": 4,
+            "activeSlotId": "seed_7_years_12",
+            "message": "当前 Seed 已切换",
+            "slotId": "seed_7_years_12",
+        }
+        with mock.patch.object(local_ui, "seed_workspace_action", return_value=response) as action:
+            payload = self.post_json(
+                "/api/seed-workspace",
+                {
+                    "action": "activate",
+                    "slotId": "seed_7_years_12",
+                    "expectedRevision": 3,
+                },
+            )
+
+        action.assert_called_once()
+        validate_named_schema(payload, "seed-workspace-action-response.schema.json", self.registry)
+
+        preview = local_ui.api_envelope(
+            {
+                "ok": True,
+                "schemaVersion": "airport-seed-workspace-action-response-v1",
+                "action": "plan-delete",
+                "changed": False,
+                "workspaceRevision": 4,
+                "activeSlotId": "seed_7_years_12",
+                "message": "清理预览已生成；尚未删除任何文件",
+                "plan": {
+                    "kind": "delete",
+                    "workspaceRevision": 4,
+                    "slotId": "seed_8_years_12",
+                    "target": "cache",
+                    "path": "output/seed_explorer_runs/seed_8_years_12",
+                    "bytes": 100,
+                    "fileCount": 2,
+                    "modifiedNs": 10,
+                    "blockers": [],
+                    "planId": "a" * 64,
+                    "canExecute": True,
+                    "preserves": ["player_save", "viewer_release"],
+                },
+            }
+        )
+        validate_named_schema(preview, "seed-workspace-action-response.schema.json", self.registry)
 
     def test_real_sim_save_route_covers_status_save_load_and_clear(self) -> None:
         saved = simulation_save()

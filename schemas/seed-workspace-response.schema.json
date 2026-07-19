@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/seed-workspace-response.schema.json",
+  "title": "Unified read-only Seed workspace response",
+  "allOf": [
+    { "$ref": "api-envelope.schema.json" },
+    {
+      "type": "object",
+      "required": [
+        "ok", "schemaVersion", "workspaceRevision", "activeSlotId",
+        "activeSelectionSource", "registry", "retention", "counts",
+        "viewerRelease", "discoveryWarningCount", "discoveryWarnings", "slots"
+      ],
+      "properties": {
+        "ok": { "const": true },
+        "schemaVersion": { "const": "airport-seed-workspace-response-v1" },
+        "workspaceRevision": { "type": "integer", "minimum": 0 },
+        "activeSlotId": {
+          "type": ["string", "null"],
+          "pattern": "^seed_[0-9]+_years_[0-9]+$"
+        },
+        "activeSelectionSource": {
+          "enum": [
+            "none", "registry", "newest_ready_cache", "current_viewer_release",
+            "newest_player_save", "newest_registry_slot"
+          ]
+        },
+        "registry": { "$ref": "#/$defs/registry" },
+        "retention": { "$ref": "#/$defs/retention" },
+        "counts": { "$ref": "#/$defs/counts" },
+        "viewerRelease": { "$ref": "#/$defs/viewerRelease" },
+        "discoveryWarningCount": { "type": "integer", "minimum": 0 },
+        "discoveryWarnings": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "slots": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/slot" }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "registry": {
+      "type": "object",
+      "required": ["schemaVersion", "status", "path", "warningCount", "warnings"],
+      "properties": {
+        "schemaVersion": { "const": "airport-seed-workspace-v1" },
+        "status": { "enum": ["missing", "ready", "degraded", "invalid"] },
+        "path": { "type": "string", "minLength": 1 },
+        "warningCount": { "type": "integer", "minimum": 0 },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "additionalProperties": false
+    },
+    "retention": {
+      "type": "object",
+      "required": [
+        "maxCachedRuns", "pinnedRunIds", "cacheCount", "readyCacheCount",
+        "staleCacheCount", "totalCacheBytes", "totalCacheFileCount"
+      ],
+      "properties": {
+        "maxCachedRuns": { "type": "integer", "minimum": 1 },
+        "pinnedRunIds": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "cacheCount": { "type": "integer", "minimum": 0 },
+        "readyCacheCount": { "type": "integer", "minimum": 0 },
+        "staleCacheCount": { "type": "integer", "minimum": 0 },
+        "totalCacheBytes": { "type": "integer", "minimum": 0 },
+        "totalCacheFileCount": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "counts": {
+      "type": "object",
+      "required": ["slotCount", "playerSaveCount", "invalidSaveCount", "publishedSlotCount"],
+      "properties": {
+        "slotCount": { "type": "integer", "minimum": 0 },
+        "playerSaveCount": { "type": "integer", "minimum": 0 },
+        "invalidSaveCount": { "type": "integer", "minimum": 0 },
+        "publishedSlotCount": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "viewerRelease": {
+      "type": "object",
+      "required": [
+        "mode", "releaseId", "runId", "variant", "seed", "startYear", "years",
+        "modelVersion", "outputSchemaVersion", "generatedAt", "schemaVersion"
+      ],
+      "properties": {
+        "mode": { "enum": ["unavailable", "versioned_release"] },
+        "releaseId": { "type": ["string", "null"] },
+        "runId": { "type": ["string", "null"] },
+        "variant": { "type": ["string", "null"] },
+        "seed": { "type": ["integer", "null"] },
+        "startYear": { "type": ["integer", "null"] },
+        "years": { "type": ["integer", "null"] },
+        "modelVersion": { "type": ["string", "null"] },
+        "outputSchemaVersion": { "type": ["string", "null"] },
+        "generatedAt": { "type": ["string", "null"] },
+        "schemaVersion": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "slot": {
+      "type": "object",
+      "required": [
+        "slotId", "seed", "years", "label", "status", "isActive", "discoveredFrom",
+        "createdAt", "lastUsedAt", "lastActivityAt", "cacheStatus", "cacheRunId",
+        "cachePath", "cacheBytes", "cacheFileCount", "cacheGeneratedAt",
+        "cacheLastWriteTime", "hasBeijingOperations", "isPinnedCache", "saveStatus",
+        "hasPlayerSave", "savePath", "saveBytes", "savedAt", "isCurrentViewerRelease",
+        "releaseId", "releaseRunId", "releaseVariant", "viewerSource", "availableSources",
+        "canOpenOperations", "canOpenGlobal", "canOpenCityMarkets",
+        "canOpenForecastPlayer", "canOpenForecastAudit", "protectedReasons"
+      ],
+      "properties": {
+        "slotId": { "type": "string", "pattern": "^seed_[0-9]+_years_[0-9]+$" },
+        "seed": { "type": "integer", "minimum": 0 },
+        "years": { "type": "integer", "minimum": 5, "maximum": 90 },
+        "label": { "type": "string" },
+        "status": { "enum": ["draft", "published", "ready", "stale", "save_only"] },
+        "isActive": { "type": "boolean" },
+        "discoveredFrom": {
+          "type": "array",
+          "items": { "enum": ["registry", "viewer_release", "seed_cache", "player_save"] },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "createdAt": { "type": "string" },
+        "lastUsedAt": { "type": "string" },
+        "lastActivityAt": { "type": "string" },
+        "cacheStatus": { "enum": ["missing", "ready", "stale"] },
+        "cacheRunId": { "type": ["string", "null"] },
+        "cachePath": { "type": ["string", "null"] },
+        "cacheBytes": { "type": "integer", "minimum": 0 },
+        "cacheFileCount": { "type": "integer", "minimum": 0 },
+        "cacheGeneratedAt": { "type": "string" },
+        "cacheLastWriteTime": { "type": "string" },
+        "hasBeijingOperations": { "type": "boolean" },
+        "isPinnedCache": { "type": "boolean" },
+        "saveStatus": { "enum": ["missing", "ready", "invalid"] },
+        "hasPlayerSave": { "type": "boolean" },
+        "savePath": { "type": ["string", "null"] },
+        "saveBytes": { "type": "integer", "minimum": 0 },
+        "savedAt": { "type": "string" },
+        "isCurrentViewerRelease": { "type": "boolean" },
+        "releaseId": { "type": ["string", "null"] },
+        "releaseRunId": { "type": ["string", "null"] },
+        "releaseVariant": { "type": ["string", "null"] },
+        "viewerSource": { "enum": ["viewer_release", "seed_cache", "unavailable"] },
+        "availableSources": {
+          "type": "array",
+          "items": { "enum": ["viewer_release", "seed_cache", "player_save"] },
+          "uniqueItems": true
+        },
+        "canOpenOperations": { "type": "boolean" },
+        "canOpenGlobal": { "type": "boolean" },
+        "canOpenCityMarkets": { "type": "boolean" },
+        "canOpenForecastPlayer": { "type": "boolean" },
+        "canOpenForecastAudit": { "type": "boolean" },
+        "protectedReasons": {
+          "type": "array",
+          "items": { "enum": ["active_slot", "current_viewer_release", "pinned_cache"] },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

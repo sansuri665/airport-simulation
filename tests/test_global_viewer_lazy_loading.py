@@ -97,19 +97,55 @@ class GlobalViewerLazyLoadingTests(unittest.TestCase):
         self.assertNotIn("macro_run_index.js", html)
         self.assertNotIn("global_viewer_index.js", bootstrap_js)
         self.assertIn("scripts?.global_gdp_viewer", bootstrap_js)
-        self.assertIn("AIRPORT_GLOBAL_VIEWER_LOAD_ERROR", bootstrap_js)
+        self.assertIn("function loadReleaseData()", bootstrap_js)
+        self.assertNotIn("document.write", bootstrap_js)
         self.assertNotIn(" onerror=", bootstrap_js)
         self.assertNotIn("legacyGlobalViewerDataScripts", html)
         self.assertNotIn("legacyGlobalViewerDataScripts", bootstrap_js)
         self.assertIn("async function ensureRegionLoaded(", data_client_js)
         self.assertIn("window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX", data_client_js)
-        self.assertIn("window.REGIONAL_MACRO_DATASETS", data_client_js)
+        self.assertIn("/api/global-viewer/index", data_client_js)
+        self.assertIn("/api/global-viewer/region", data_client_js)
+        self.assertIn("`${data.contextKey}:${regionId}`", data_client_js)
         self.assertNotIn("CSV_PATH", data_client_js)
         self.assertNotIn("regional_macro/${config.id}", data_client_js)
         self.assertNotIn("macro_runs", data_client_js)
         self.assertNotIn("loadArchivedVariantData", data_client_js)
-        self.assertNotIn('cache: "no-store"', data_client_js)
-        self.assertIn("没有按区域分块", data_client_js)
+        self.assertIn('cache: "no-store"', data_client_js)
+        self.assertIn("缺少全球 Viewer 区域索引", data_client_js)
+
+    def test_browser_scenario_model_has_only_explicit_live_consumers(self) -> None:
+        scenario = (STATIC_DIR / "js" / "global-gdp" / "scenario-model.js").read_text(
+            encoding="utf-8"
+        )
+        controls = (STATIC_DIR / "js" / "global-gdp" / "controls.js").read_text(
+            encoding="utf-8"
+        )
+        renderers = (STATIC_DIR / "js" / "global-gdp" / "renderers.js").read_text(
+            encoding="utf-8"
+        )
+
+        for function_name in (
+            "branchRisksForRow",
+            "activeScenarioRows",
+            "simulateBranchRisk",
+            "scenarioDeltaSummary",
+        ):
+            self.assertIn(f"function {function_name}(", scenario)
+            self.assertIn(f"{function_name}(", renderers)
+        self.assertIn("function clearScenario(", scenario)
+        self.assertIn('addEventListener("click", clearScenario)', renderers)
+        self.assertIn("function buildDynamicMacroChain(", scenario)
+        self.assertIn("runDynamicMacroWithPersistentFeedback", scenario)
+        self.assertIn("buildDynamicMacroChain(seed, combinedFeedback)", scenario)
+        self.assertIn("AirportGlobalScenarioModel", scenario)
+        self.assertIn("window.AirportGlobalScenarioModel", renderers)
+        self.assertNotIn("dynamicSeeds", scenario)
+        self.assertNotIn("buildDynamicMacroChain", controls)
+        self.assertNotIn("randomLargeSeed", controls)
+        html = (PAGES_DIR / "global_gdp_viewer.html").read_text(encoding="utf-8")
+        self.assertNotIn('id="seedSelect"', html)
+        self.assertNotIn('id="randomSeedButton"', html)
 
 
 if __name__ == "__main__":

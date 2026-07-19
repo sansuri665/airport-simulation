@@ -14,14 +14,17 @@
         <span class="status" id="dataStatus">loading</span>
       </div>
       <div class="controls">
-        <a class="viewer-link" href="/city-markets">城市市场</a>
+        <a class="viewer-link" id="cityMarketsLink" href="/city-markets">城市市场</a>
+        <div class="context-copy">
+          <strong id="contextMeta">正在解析 Seed…</strong>
+          <small id="contextSource">正在读取工作区上下文…</small>
+          <small class="context-change" id="contextChangeNotice" hidden>首页活动 Seed 已变化；本页仍固定显示当前 URL 的世界。请从首页重新打开以切换。</small>
+        </div>
         <label class="control">视图 <select id="viewSelect">
           <option value="macro">宏观</option>
           <option value="aviation">航空需求</option>
         </select></label>
         <label class="control scope-control">面板 <select id="scopeSelect"></select></label>
-        <label class="control">Seed <select id="seedSelect"></select></label>
-        <button class="preview-button" id="randomSeedButton" type="button" title="浏览器近似预览，不写入正式 Run" aria-label="浏览器近似预览随机 Seed">浏览器预览 ↻</button>
         <label class="control">年份 <input id="yearRange" type="range" min="0" max="0" value="0" /></label>
         <span class="control" id="yearLabel">-</span>
         <div class="segmented" aria-label="chart mode">
@@ -254,11 +257,13 @@
   </div>
 
   <script src="./output/current_viewer_manifest.js"></script>
+  <script src="/static/js/shared/api-client.js"></script>
+  <script src="/static/js/shared/seed-context.js"></script>
   <script src="/static/js/global-gdp/bootstrap.js"></script>
   <script src="/static/js/global-gdp/state.js"></script>
   <script src="/static/js/global-gdp/data-client.js"></script>
   <script src="/static/js/global-gdp/formatters.js"></script>
-  <script src="/static/js/global-gdp/preview-model.js"></script>
+  <script src="/static/js/global-gdp/scenario-model.js"></script>
   <script src="/static/js/global-gdp/controls.js"></script>
   <script src="/static/js/global-gdp/renderers.js"></script>
   <script src="/static/js/global-gdp/page.js"></script>

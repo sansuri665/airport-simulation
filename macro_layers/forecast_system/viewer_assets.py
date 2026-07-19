@@ -251,19 +251,268 @@ def safe_report_filename(report_id: str) -> str:
     return clean.strip("_") or "forecast_report"
 
 
-def _write_chunk(
-    path: Path,
+FORECAST_VIEWER_NULL_FIELDS = frozenset(
+    {
+        "forecast_previous_mid_million",
+        "forecast_turn_window_start_year",
+        "forecast_turn_window_end_year",
+        "debug_hidden_signal_turn_year",
+    }
+)
+
+
+def _chunk_payload(
     *,
     data_mode: str,
     report_id: str,
     rows: list[dict[str, Any]],
-) -> tuple[int, str]:
-    payload = {
+) -> dict[str, Any]:
+    return {
         "schemaVersion": FORECAST_VIEWER_CHUNK_VERSION,
         "dataMode": data_mode,
         "reportId": report_id,
         "rowCount": len(rows),
         "rows": rows,
+    }
+
+
+def _encode_chunk(payload: dict[str, Any]) -> bytes:
+    return json.dumps(
+        payload,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).encode("utf-8")
+
+
+def serialize_viewer_report(
+    rows: list[dict[str, Any]],
+    report_id: str,
+    *,
+    data_mode: str,
+) -> dict[str, Any]:
+    """Project one immutable player or audit report without writing files."""
+
+    clean_report_id = str(report_id or "").strip()
+    if not clean_report_id:
+        raise ValueError("forecast report id is required")
+    if data_mode not in {"player", "audit"}:
+        raise ValueError(f"unsupported forecast Viewer data mode: {data_mode}")
+    report_rows = [
+        row
+        for row in rows
+        if str(row.get("forecast_report_id") or "").strip() == clean_report_id
+    ]
+    if data_mode == "player":
+        projected_rows = [
+            projected
+            for row in report_rows
+            if (projected := forecast_player_row(row)) is not None
+        ]
+    else:
+        projected_rows = [forecast_audit_row(row) for row in report_rows]
+    filename = f"r_{safe_report_filename(clean_report_id)}.json"
+    payload = _chunk_payload(
+        data_mode=data_mode,
+        report_id=clean_report_id,
+        rows=projected_rows,
+    )
+    raw = _encode_chunk(payload)
+    return {
+        "reportId": clean_report_id,
+        "filename": filename,
+        "chunkPayload": payload,
+        "raw": raw,
+        "reportMeta": {
+            "reportId": clean_report_id,
+            "rowCount": len(projected_rows),
+            "file": filename,
+            "sha256": hashlib.sha256(raw).hexdigest(),
+            "bytes": len(raw),
+        },
+    }
+
+
+def _ordered_report_ids(
+    rows: list[dict[str, Any]],
+    config: dict[str, Any],
+) -> list[str]:
+    configured_ids = [
+        str(item.get("forecast_report_id") or "").strip()
+        for item in config.get("forecast_reports", [])
+        if str(item.get("forecast_report_id") or "").strip()
+    ]
+    row_ids = {str(row.get("forecast_report_id") or "").strip() for row in rows}
+    report_ids = [report_id for report_id in configured_ids if report_id in row_ids]
+    report_ids.extend(
+        sorted(
+            report_id
+            for report_id in row_ids
+            if report_id and report_id not in report_ids
+        )
+    )
+    return report_ids
+
+
+def _viewer_index(
+    *,
+    data_mode: str,
+    config: dict[str, Any],
+    reports: list[dict[str, Any]],
+    seeds: list[int],
+    default_report_id: str,
+    chunk_dir_name: str,
+    audit_index_filename: str,
+) -> dict[str, Any]:
+    index = {
+        "schemaVersion": FORECAST_VIEWER_LAZY_INDEX_VERSION,
+        "chunkSchemaVersion": FORECAST_VIEWER_CHUNK_VERSION,
+        "dataMode": data_mode,
+        "config": forecast_viewer_config(config, include_audit=data_mode == "audit"),
+        "totalRows": sum(int(report["rowCount"]) for report in reports),
+        "seeds": seeds,
+        "defaultReportId": default_report_id,
+        "chunkBase": f"./{chunk_dir_name}/",
+        "reports": reports,
+    }
+    if data_mode == "player":
+        index["auditIndexFile"] = audit_index_filename
+    return index
+
+
+def _index_dataset(
+    rows: list[dict[str, Any]],
+    config: dict[str, Any],
+    *,
+    player_reports: list[dict[str, Any]],
+    audit_reports: list[dict[str, Any]],
+) -> dict[str, Any]:
+    market_id = str(config.get("city_airport_market_id") or "city_airport_market")
+    audit_index_filename = f"{market_id}_forecast_audit_index.js"
+    chunk_dir_name = f"{market_id}_forecast_chunks"
+    audit_chunk_dir_name = f"{market_id}_audit_forecast_chunks"
+    seeds = sorted({int(float(row.get("seed", 0))) for row in rows})
+    player_report_ids = [item["reportId"] for item in player_reports]
+    default_report_id = (
+        "public_consensus"
+        if "public_consensus" in player_report_ids
+        else (player_report_ids[0] if player_report_ids else "")
+    )
+    index = _viewer_index(
+        data_mode="player",
+        config=config,
+        reports=player_reports,
+        seeds=seeds,
+        default_report_id=default_report_id,
+        chunk_dir_name=chunk_dir_name,
+        audit_index_filename=audit_index_filename,
+    )
+    audit_index = _viewer_index(
+        data_mode="audit",
+        config=config,
+        reports=audit_reports,
+        seeds=seeds,
+        default_report_id=default_report_id,
+        chunk_dir_name=audit_chunk_dir_name,
+        audit_index_filename=audit_index_filename,
+    )
+    return {
+        "marketId": market_id,
+        "indexFilename": f"{market_id}_forecast_index.js",
+        "auditIndexFilename": audit_index_filename,
+        "chunkDirName": chunk_dir_name,
+        "auditChunkDirName": audit_chunk_dir_name,
+        "index": index,
+        "auditIndex": audit_index,
+    }
+
+
+def serialize_viewer_indices(
+    rows: list[dict[str, Any]],
+    config: dict[str, Any],
+) -> dict[str, Any]:
+    """Build deterministic player/audit indices without retaining all chunks."""
+
+    player_reports: list[dict[str, Any]] = []
+    audit_reports: list[dict[str, Any]] = []
+    for report_id in _ordered_report_ids(rows, config):
+        audit = serialize_viewer_report(rows, report_id, data_mode="audit")
+        audit_reports.append(audit["reportMeta"])
+        player = serialize_viewer_report(rows, report_id, data_mode="player")
+        if player["reportMeta"]["rowCount"]:
+            player_reports.append(player["reportMeta"])
+    return _index_dataset(
+        rows,
+        config,
+        player_reports=player_reports,
+        audit_reports=audit_reports,
+    )
+
+
+def serialize_viewer_index(
+    rows: list[dict[str, Any]],
+    config: dict[str, Any],
+    *,
+    data_mode: str,
+) -> dict[str, Any]:
+    """Build one mode-specific index without projecting the other information tier."""
+
+    if data_mode not in {"player", "audit"}:
+        raise ValueError(f"unsupported forecast Viewer data mode: {data_mode}")
+    reports: list[dict[str, Any]] = []
+    for report_id in _ordered_report_ids(rows, config):
+        serialized = serialize_viewer_report(rows, report_id, data_mode=data_mode)
+        if data_mode == "player" and not serialized["reportMeta"]["rowCount"]:
+            continue
+        reports.append(serialized["reportMeta"])
+    market_id = str(config.get("city_airport_market_id") or "city_airport_market")
+    report_ids = [item["reportId"] for item in reports]
+    default_report_id = (
+        "public_consensus"
+        if "public_consensus" in report_ids
+        else (report_ids[0] if report_ids else "")
+    )
+    return _viewer_index(
+        data_mode=data_mode,
+        config=config,
+        reports=reports,
+        seeds=sorted({int(float(row.get("seed", 0))) for row in rows}),
+        default_report_id=default_report_id,
+        chunk_dir_name=(
+            f"{market_id}_forecast_chunks"
+            if data_mode == "player"
+            else f"{market_id}_audit_forecast_chunks"
+        ),
+        audit_index_filename=f"{market_id}_forecast_audit_index.js",
+    )
+
+
+def viewer_index_scripts(dataset: dict[str, Any]) -> dict[str, str]:
+    """Render the existing Release index scripts from a pure dataset."""
+
+    index_json = json.dumps(
+        dataset["index"],
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    audit_index_json = json.dumps(
+        dataset["auditIndex"],
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    return {
+        "player": (
+            "(() => { const index = "
+            + index_json
+            + "; index.baseUrl = new URL(index.chunkBase, document.currentScript.src).href; "
+            + "index.auditIndexUrl = new URL(index.auditIndexFile, document.currentScript.src).href; "
+            + "window.AIRPORT_FORECAST_LAZY_INDEX = index; })();\n"
+        ),
+        "audit": (
+            "(() => { const index = "
+            + audit_index_json
+            + "; index.baseUrl = new URL(index.chunkBase, document.currentScript.src).href; "
+            + "window.AIRPORT_FORECAST_AUDIT_LAZY_INDEX = index; })();\n"
+        ),
     }
     raw = json.dumps(
         payload,
@@ -280,144 +529,48 @@ def write_viewer_lazy_assets(
     config: dict[str, Any],
 ) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
+    report_ids = _ordered_report_ids(rows, config)
     market_id = str(config.get("city_airport_market_id") or "city_airport_market")
-    index_filename = f"{market_id}_forecast_index.js"
-    audit_index_filename = f"{market_id}_forecast_audit_index.js"
-    chunk_dir_name = f"{market_id}_forecast_chunks"
-    audit_chunk_dir_name = f"{market_id}_audit_forecast_chunks"
-    chunk_dir = output_dir / chunk_dir_name
-    audit_chunk_dir = output_dir / audit_chunk_dir_name
+    chunk_dir = output_dir / f"{market_id}_forecast_chunks"
+    audit_chunk_dir = output_dir / f"{market_id}_audit_forecast_chunks"
     chunk_dir.mkdir(parents=True, exist_ok=True)
     audit_chunk_dir.mkdir(parents=True, exist_ok=True)
-
-    configured_ids = [
-        str(item.get("forecast_report_id") or "").strip()
-        for item in config.get("forecast_reports", [])
-        if str(item.get("forecast_report_id") or "").strip()
-    ]
-    row_ids = {str(row.get("forecast_report_id") or "").strip() for row in rows}
-    report_ids = [report_id for report_id in configured_ids if report_id in row_ids]
-    report_ids.extend(
-        sorted(
-            report_id
-            for report_id in row_ids
-            if report_id and report_id not in report_ids
-        )
-    )
-
     player_reports: list[dict[str, Any]] = []
     audit_reports: list[dict[str, Any]] = []
     for report_id in report_ids:
-        report_rows = [
-            row
-            for row in rows
-            if str(row.get("forecast_report_id") or "") == report_id
-        ]
-        audit_rows = [forecast_audit_row(row) for row in report_rows]
-        audit_filename = f"r_{safe_report_filename(report_id)}.json"
-        audit_bytes, audit_sha256 = _write_chunk(
-            audit_chunk_dir / audit_filename,
-            data_mode="audit",
-            report_id=report_id,
-            rows=audit_rows,
-        )
-        audit_reports.append(
-            {
-                "reportId": report_id,
-                "rowCount": len(audit_rows),
-                "file": audit_filename,
-                "sha256": audit_sha256,
-                "bytes": audit_bytes,
-            }
-        )
-
-        player_rows = [
-            projected
-            for row in report_rows
-            if (projected := forecast_player_row(row)) is not None
-        ]
-        if not player_rows:
-            continue
-        filename = f"r_{safe_report_filename(report_id)}.json"
-        chunk_bytes, chunk_sha256 = _write_chunk(
-            chunk_dir / filename,
-            data_mode="player",
-            report_id=report_id,
-            rows=player_rows,
-        )
-        player_reports.append(
-            {
-                "reportId": report_id,
-                "rowCount": len(player_rows),
-                "file": filename,
-                "sha256": chunk_sha256,
-                "bytes": chunk_bytes,
-            }
-        )
-
-    seeds = sorted({int(float(row.get("seed", 0))) for row in rows})
-    player_report_ids = [item["reportId"] for item in player_reports]
-    default_report_id = (
-        "public_consensus"
-        if "public_consensus" in player_report_ids
-        else (player_report_ids[0] if player_report_ids else "")
+        serialized = serialize_viewer_report(rows, report_id, data_mode="audit")
+        (audit_chunk_dir / serialized["filename"]).write_bytes(serialized["raw"])
+        audit_reports.append(serialized["reportMeta"])
+        serialized = serialize_viewer_report(rows, report_id, data_mode="player")
+        if serialized["reportMeta"]["rowCount"]:
+            (chunk_dir / serialized["filename"]).write_bytes(serialized["raw"])
+            player_reports.append(serialized["reportMeta"])
+    dataset = _index_dataset(
+        rows,
+        config,
+        player_reports=player_reports,
+        audit_reports=audit_reports,
     )
-    index = {
-        "schemaVersion": FORECAST_VIEWER_LAZY_INDEX_VERSION,
-        "chunkSchemaVersion": FORECAST_VIEWER_CHUNK_VERSION,
-        "dataMode": "player",
-        "config": forecast_viewer_config(config),
-        "totalRows": sum(int(report["rowCount"]) for report in player_reports),
-        "seeds": seeds,
-        "defaultReportId": default_report_id,
-        "chunkBase": f"./{chunk_dir_name}/",
-        "auditIndexFile": audit_index_filename,
-        "reports": player_reports,
-    }
-    audit_index = {
-        "schemaVersion": FORECAST_VIEWER_LAZY_INDEX_VERSION,
-        "chunkSchemaVersion": FORECAST_VIEWER_CHUNK_VERSION,
-        "dataMode": "audit",
-        "config": forecast_viewer_config(config, include_audit=True),
-        "totalRows": sum(int(report["rowCount"]) for report in audit_reports),
-        "seeds": seeds,
-        "defaultReportId": default_report_id,
-        "chunkBase": f"./{audit_chunk_dir_name}/",
-        "reports": audit_reports,
-    }
-    index_json = json.dumps(index, ensure_ascii=False, separators=(",", ":"))
-    index_script = (
-        "(() => { const index = "
-        + index_json
-        + "; index.baseUrl = new URL(index.chunkBase, document.currentScript.src).href; "
-        + "index.auditIndexUrl = new URL(index.auditIndexFile, document.currentScript.src).href; "
-        + "window.AIRPORT_FORECAST_LAZY_INDEX = index; })();\n"
-    )
-    (output_dir / index_filename).write_text(index_script, encoding="utf-8")
-    audit_index_json = json.dumps(
-        audit_index,
-        ensure_ascii=False,
-        separators=(",", ":"),
-    )
-    audit_index_script = (
-        "(() => { const index = "
-        + audit_index_json
-        + "; index.baseUrl = new URL(index.chunkBase, document.currentScript.src).href; "
-        + "window.AIRPORT_FORECAST_AUDIT_LAZY_INDEX = index; })();\n"
-    )
-    (output_dir / audit_index_filename).write_text(
-        audit_index_script,
-        encoding="utf-8",
-    )
+    index_filename = dataset["indexFilename"]
+    audit_index_filename = dataset["auditIndexFilename"]
+    scripts = viewer_index_scripts(dataset)
+    (output_dir / index_filename).write_text(scripts["player"], encoding="utf-8")
+    (output_dir / audit_index_filename).write_text(scripts["audit"], encoding="utf-8")
     return {
         "index": str((output_dir / index_filename).as_posix()),
         "auditIndex": str((output_dir / audit_index_filename).as_posix()),
         "chunkDir": str(chunk_dir.as_posix()),
         "auditChunkDir": str(audit_chunk_dir.as_posix()),
-        "totalRows": index["totalRows"],
-        "auditTotalRows": audit_index["totalRows"],
-        "reportCount": len(player_reports),
-        "auditReportCount": len(audit_reports),
-        "chunkBytes": sum(int(report["bytes"]) for report in player_reports),
-        "auditChunkBytes": sum(int(report["bytes"]) for report in audit_reports),
+        "totalRows": dataset["index"]["totalRows"],
+        "auditTotalRows": dataset["auditIndex"]["totalRows"],
+        "reportCount": len(dataset["index"]["reports"]),
+        "auditReportCount": len(dataset["auditIndex"]["reports"]),
+        "chunkBytes": sum(
+            int(report["bytes"])
+            for report in dataset["index"]["reports"]
+        ),
+        "auditChunkBytes": sum(
+            int(report["bytes"])
+            for report in dataset["auditIndex"]["reports"]
+        ),
     }

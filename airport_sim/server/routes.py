@@ -44,6 +44,13 @@ STATIC_CONTENT_TYPES = {
 GET_API_ROUTES = (
     "/api/health",
     "/api/workspace-status",
+    "/api/seed-workspace",
+    "/api/city-market-viewer/index",
+    "/api/city-market-viewer/chunk",
+    "/api/global-viewer/index",
+    "/api/global-viewer/region",
+    "/api/forecast-viewer/index",
+    "/api/forecast-viewer/report",
     "/api/random-seed",
     "/api/forecast-candidate-catalog",
     "/api/task-status",
@@ -55,6 +62,7 @@ POST_API_ROUTES = frozenset(
     {
         "/api/run",
         "/api/run-job",
+        "/api/seed-workspace",
         "/api/beijing-operations",
         "/api/player-simulation",
         "/api/forecast-candidate",
@@ -248,6 +256,105 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
         if path == "/api/workspace-status":
             services.json_response(self, 200, services.workspace_status())
             return
+        if path == "/api/seed-workspace":
+            services.json_response(self, 200, services.seed_workspace_payload())
+            return
+        if path in {
+            "/api/city-market-viewer/index",
+            "/api/city-market-viewer/chunk",
+        }:
+            query = parse_qs(parsed_url.query)
+            try:
+                seed = services.clean_seed(query.get("seed", [""])[0])
+                years = services.clean_years(query.get("years", [""])[0])
+                if path.endswith("/index"):
+                    payload = services.city_market_viewer_index_payload(seed, years)
+                else:
+                    market_id = query.get("city", [""])[0]
+                    payload = services.city_market_viewer_chunk_payload(
+                        seed,
+                        years,
+                        market_id,
+                    )
+                services.json_response(self, 200, payload)
+            except services.CityMarketContextUnavailableError as exc:
+                services.api_error_response(
+                    self,
+                    409,
+                    "city_market_context_unavailable",
+                    str(exc),
+                )
+            except ValueError as exc:
+                services.api_error_response(self, 400, "invalid_request", str(exc))
+            except FileNotFoundError as exc:
+                services.api_error_response(self, 404, "resource_not_found", str(exc))
+            return
+        if path in {
+            "/api/global-viewer/index",
+            "/api/global-viewer/region",
+        }:
+            query = parse_qs(parsed_url.query)
+            try:
+                seed = services.clean_seed(query.get("seed", [""])[0])
+                years = services.clean_years(query.get("years", [""])[0])
+                if path.endswith("/index"):
+                    payload = services.global_viewer_index_payload(seed, years)
+                else:
+                    region_id = query.get("region", [""])[0]
+                    payload = services.global_viewer_region_payload(
+                        seed,
+                        years,
+                        region_id,
+                    )
+                services.json_response(self, 200, payload)
+            except services.GlobalViewerContextUnavailableError as exc:
+                services.api_error_response(
+                    self,
+                    409,
+                    "global_viewer_context_unavailable",
+                    str(exc),
+                )
+            except ValueError as exc:
+                services.api_error_response(self, 400, "invalid_request", str(exc))
+            except FileNotFoundError as exc:
+                services.api_error_response(self, 404, "resource_not_found", str(exc))
+            return
+        if path in {
+            "/api/forecast-viewer/index",
+            "/api/forecast-viewer/report",
+        }:
+            query = parse_qs(parsed_url.query)
+            try:
+                seed = services.clean_seed(query.get("seed", [""])[0])
+                years = services.clean_years(query.get("years", [""])[0])
+                data_mode = query.get("mode", [""])[0]
+                if path.endswith("/index"):
+                    payload = services.forecast_viewer_index_payload(
+                        seed,
+                        years,
+                        data_mode,
+                    )
+                else:
+                    report_id = query.get("report", [""])[0]
+                    payload = services.forecast_viewer_report_payload(
+                        seed,
+                        years,
+                        data_mode,
+                        report_id,
+                    )
+                services.json_response(self, 200, payload)
+            except services.ForecastViewerContextUnavailableError as exc:
+                services.api_error_response(
+                    self,
+                    409,
+                    "forecast_viewer_context_unavailable",
+                    str(exc),
+                )
+            except ValueError as exc:
+                services.api_error_response(self, 400, "invalid_request", str(exc))
+            except FileNotFoundError as exc:
+                services.api_error_response(self, 404, "resource_not_found", str(exc))
+            return
         if path == "/api/random-seed":
             services.json_response(
                 self,
@@ -260,21 +367,34 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
             )
             return
         if path == "/api/forecast-candidate-catalog":
+            query = parse_qs(parsed_url.query)
             try:
+                seed = services.clean_seed(query.get("seed", [""])[0])
+                years = services.clean_years(query.get("years", [""])[0])
+                source = query.get("source", [""])[0]
                 services.json_response(
                     self,
                     200,
-                    {"ok": True, **services.forecast_candidate_catalog_payload()},
+                    {
+                        "ok": True,
+                        **services.forecast_candidate_catalog_payload(
+                            seed,
+                            years,
+                            source,
+                        ),
+                    },
                 )
             except FileNotFoundError as exc:
                 services.api_error_response(self, 404, "resource_not_found", str(exc))
-            except ValueError as exc:
+            except services.ForecastCandidateContextUnavailableError as exc:
                 services.api_error_response(
                     self,
                     409,
-                    "candidate_catalog_unavailable",
+                    "forecast_candidate_context_unavailable",
                     str(exc),
                 )
+            except ValueError as exc:
+                services.api_error_response(self, 400, "invalid_request", str(exc))
             return
         if path == "/api/task-status":
             query = parse_qs(parsed_url.query)
@@ -360,6 +480,13 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
                     services.submit_run_job(seed, years, force),
                 )
                 return
+            if path == "/api/seed-workspace":
+                services.json_response(
+                    self,
+                    200,
+                    services.seed_workspace_action(body),
+                )
+                return
             if path == "/api/sim-save":
                 seed = services.clean_seed(body.get("seed"))
                 years = services.clean_years(body.get("years", 60))
@@ -435,6 +562,13 @@ class SeedExplorerHandler(BaseHTTPRequestHandler):
             )
         except http_utils.RequestTooLargeError as exc:
             services.api_error_response(self, 413, "request_too_large", str(exc))
+        except services.ForecastCandidateContextUnavailableError as exc:
+            services.api_error_response(
+                self,
+                409,
+                "forecast_candidate_context_unavailable",
+                str(exc),
+            )
         except ValueError as exc:
             services.api_error_response(self, 400, "invalid_request", str(exc))
         except FileNotFoundError as exc:

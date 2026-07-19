@@ -1,9 +1,11 @@
 window.AirportSeedExplorerState = {
   data: null,
+  seedContext: null,
+  contextChanged: false,
+  generationJobId: null,
   operations: null,
   operationMode: null,
   selectedOperationMode: "replay",
-  cachedRuns: [],
   simSaveSummary: null,
   operationsQuarterIndex: null,
   opsModule: "report",

@@ -11,31 +11,40 @@
     <aside>
       <div>
         <h1>城市客流 Seed Explorer</h1>
-        <div class="caption">全链路运行后聚合中国大陆城市市场层。第一版只展示潜在客流、航司供给和市场有效客流。</div>
+        <div class="caption">经营测试页固定使用地址中的 Seed 工作区上下文，不会在页面内静默切换世界。</div>
       </div>
-      <div class="controls">
-        <label class="control">Seed <input id="seedInput" inputmode="numeric" value="20260716"></label>
-        <label class="control">年数 <input id="yearsInput" inputmode="numeric" min="5" max="90" step="1" value="60"></label>
-      </div>
-      <label class="control cache-picker">已有缓存
-        <select id="cachedRunSelect">
-          <option value="">正在读取缓存列表...</option>
-        </select>
-      </label>
-      <div class="actions">
-        <button class="primary" id="runButton">运行全链路</button>
-        <button id="randomButton">Python 随机 Seed</button>
+      <a class="seed-center-link" id="seedCenterLink" href="/">← 返回 Seed 中心</a>
+      <section class="seed-context-card" aria-labelledby="seedContextTitle">
+        <div class="seed-context-head">
+          <div>
+            <span class="context-label" id="seedContextTitle">当前经营世界</span>
+            <strong id="contextSeedValue">正在读取…</strong>
+          </div>
+          <span class="context-status" id="contextStatusValue">初始化</span>
+        </div>
+        <dl class="seed-context-meta">
+          <div><dt>年数</dt><dd id="contextYearsValue">—</dd></div>
+          <div><dt>来源</dt><dd id="contextSourceValue">—</dd></div>
+          <div><dt>槽位</dt><dd id="contextSlotValue">—</dd></div>
+          <div><dt>Revision</dt><dd id="contextRevisionValue">—</dd></div>
+        </dl>
+        <div class="context-change-notice" id="contextChangeNotice" hidden>
+          首页当前 Seed 已改变；本页继续使用地址中的世界。要切换请返回 Seed 中心重新进入。
+        </div>
+      </section>
+      <div class="actions generation-actions">
+        <button class="primary" id="runButton" disabled>生成当前世界</button>
       </div>
       <div class="operation-mode-picker">
         <div class="caption">运营口径</div>
         <div class="operation-mode-buttons" role="tablist" aria-label="运营口径">
-          <button type="button" data-operation-mode-option="replay" aria-selected="true">加载历史</button>
-          <button type="button" data-operation-mode-option="simulate_default" aria-selected="false">模拟运营</button>
+          <button type="button" data-operation-mode-option="replay" aria-selected="true" disabled>加载历史</button>
+          <button type="button" data-operation-mode-option="simulate_default" aria-selected="false" disabled>模拟运营</button>
         </div>
         <div class="caption" id="operationModePickerHint">读取已经跑好的历史结果。</div>
       </div>
-      <label class="check"><input id="forceInput" type="checkbox">忽略已有结果，重新生成</label>
-      <div class="status" id="status">相同 seed 和年数会优先读取已有结果；需要刷新时再勾选重新生成。</div>
+      <label class="check"><input id="forceInput" type="checkbox">高级：强制重建当前世界</label>
+      <div class="status" id="status">正在读取首页 Seed 上下文。</div>
       <div class="page-tabs" role="tablist" aria-label="测试页面">
         <button class="tab-button" type="button" data-view="city" aria-selected="true">城市市场</button>
         <button class="tab-button" type="button" data-view="operations" aria-selected="false">北京运营</button>
@@ -105,9 +114,9 @@
             <div class="caption" id="opsCaption">使用当前 seed 的北京季度经营和财务输出；第一版先按季度推进查看报表。</div>
           </div>
           <div class="quarter-actions">
-            <button id="runOpsButton" type="button">运营</button>
-            <button id="prevQuarterButton" type="button">上一季度</button>
-            <button class="primary" id="nextQuarterButton" type="button">下一季度</button>
+            <button id="runOpsButton" type="button" disabled>运营</button>
+            <button id="prevQuarterButton" type="button" disabled>上一季度</button>
+            <button class="primary" id="nextQuarterButton" type="button" disabled>下一季度</button>
           </div>
         </div>
         <div class="ops-mode-banner" id="opsModeBanner">
@@ -116,8 +125,8 @@
         </div>
         <div class="ops-save-bar" id="simSaveBar">
           <span class="ops-save-hint" id="simSaveSummary">当前 seed 存档：未检查</span>
-          <button id="saveSimSlotButton" type="button">保存当前</button>
-          <button id="loadSimSlotButton" type="button">读取存档</button>
+          <button id="saveSimSlotButton" type="button" disabled>保存当前</button>
+          <button id="loadSimSlotButton" type="button" disabled>读取存档</button>
           <span class="ops-save-hint" id="simSaveSlotHint">存档绑定当前 seed；seed 缓存删除后存档也会消失。</span>
         </div>
         <div class="ops-module-tabs" role="tablist" aria-label="北京运营模块">
@@ -975,6 +984,7 @@
     </main>
   </div>
   <script src="/static/js/shared/api-client.js"></script>
+  <script src="/static/js/shared/seed-context.js"></script>
   <script src="/static/js/seed-explorer/state.js"></script>
   <script src="/static/js/seed-explorer/core.js"></script>
   <script src="/static/js/seed-explorer/operations-financial.js"></script>
