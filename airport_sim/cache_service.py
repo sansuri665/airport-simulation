@@ -534,7 +534,7 @@ def clean_cache(*, confirm: bool) -> dict[str, Any]:
         except (OSError, ValueError) as error:
             failed.append(
                 {
-                    "path": "output/macro_runs/macro_run_index.js",
+                    "path": "output/macro_runs/macro_run_index.json",
                     "category": "run_index_refresh",
                     "error": f"{type(error).__name__}: {error}",
                 }

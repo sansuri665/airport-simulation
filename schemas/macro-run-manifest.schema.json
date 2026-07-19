@@ -39,7 +39,7 @@
     "validation": { "$ref": "#/$defs/validation" },
     "run_index": {
       "type": "object",
-      "required": ["index_json", "index_js", "run_count"],
+      "required": ["index_json", "run_count"],
       "properties": {
         "index_json": { "type": "string", "minLength": 1 },
         "index_js": { "type": "string", "minLength": 1 },

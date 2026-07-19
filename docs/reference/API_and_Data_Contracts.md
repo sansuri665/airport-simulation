@@ -169,6 +169,8 @@ POST /api/forecast-candidate
 - `macro-run-manifest.schema.json`
 - `viewer-release-manifest.schema.json`
 
+Viewer Manifest v2 使用 `downstream_csv_copy_count` 记录发布后刷新的独立模型 CSV 数量，不再记录或生成浏览器 canonical 副本。当前正式 Manifest 已完成 v2 实际发布；Schema 继续接受历史 v1 Manifest，新发布只写 v2。`workspace-status-response.schema.json` 的 Viewer 状态只有 `versioned_release` 与 `unavailable`，后者不会触发浏览器回退。
+
 ### API 公共结构与响应
 
 - `api-envelope.schema.json`

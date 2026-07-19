@@ -133,7 +133,7 @@ Seed Run 的固定调用顺序是：
 
 开发审计候选由 `forecast_candidates.py` 装配。它只读取当前正式 Manifest 记录的来源目录和北京城市市场 CSV，校验 Release/Seed 一致性，然后把原始行与规范化请求交给既有预测候选层；不复制预测公式、评分或叙事逻辑，也不写入候选文件。等级顺序、数据起止年、请求默认值和错误顺序属于现有 API 契约。
 
-`workspace_service.py` 只把当前 Viewer Manifest、缓存清单、递归存档数量和固定页面地址装配为工作区状态。无 Manifest 或 Manifest 不可读时仍报告 `legacy_canonical`；路径继续相对于工作区根并使用 POSIX 表达。`app.py` 对这两个服务继续保留同名兼容函数，使路由和测试 patch 点不变。
+`workspace_service.py` 只把当前 Viewer Manifest、缓存清单、递归存档数量和固定页面地址装配为工作区状态。无 Manifest 或 Manifest 不可读时报告 `unavailable`，不再暗示存在 canonical 浏览器回退；路径继续相对于工作区根并使用 POSIX 表达。`app.py` 对这两个服务继续保留同名装配函数，使路由和测试 patch 点不变。
 
 路由清单由 `routes.route_contract()` 统一记录，并由 `test_server_routes.py` 固定。当前分层如下：
 
@@ -156,14 +156,14 @@ Seed Explorer 通过 `/api/run`、`/api/beijing-operations`、`/api/player-simul
 
 ### 三个只读 Viewer
 
-三个 Viewer 优先读取：
+三个 Viewer 只读取：
 
 ```text
 output/current_viewer_manifest.js
 output/viewer_releases/<release_id>/
 ```
 
-全球和预测 Viewer 在没有有效 Manifest 时可读取 `output/` 下的 canonical 当前索引；两者的 canonical 入口仍是轻量索引和按需分块，不存在完整数据或逐脚本回退。发布器不会再把无浏览器消费者的城市、经营、财务、估值 Viewer 脚本或摘要文件复制到 canonical。城市市场 Viewer 只读取同一版本化 release 内的城市索引与分块，避免混用不同发布。三个 Viewer 缺少必需索引时都会显示发布数据不可用，而不会静默拼接旧数据。它们不会因为 Seed Explorer 新建了临时缓存而自动切换。
+全球、城市和预测 Viewer 都要求 Manifest 提供对应版本化脚本，并只从同一 Release 读取索引与分块。没有有效 Manifest、缺少脚本或 Release 资产不完整时，页面显示发布数据不可用；不会访问 `output/` 下的 canonical 索引，也不会静默拼接旧数据。它们不会因为 Seed Explorer 新建了临时缓存而自动切换。
 
 ### 全球浏览器预览
 
@@ -188,7 +188,7 @@ output/viewer_releases/<release_id>/
 | 资源 | `Cache-Control` | gzip |
 |---|---|---|
 | `viewer_releases/<release_id>/` 中的 JSON/JavaScript | `public, max-age=31536000, immutable` | 发布期预生成，按 `Accept-Encoding` 选择 |
-| 当前 Manifest、HTML、普通静态资源、canonical 输出和 Schema | `no-cache` | 不使用旁车 |
+| 当前 Manifest、HTML、普通静态资源、下游模型 CSV 和 Schema | `no-cache` | 不使用旁车 |
 | API JSON | `no-store` | 不使用文件旁车 |
 
 gzip 表示还会发送 `Content-Encoding: gzip` 与 `Vary: Accept-Encoding`，原文件继续保留供不支持 gzip 的客户端使用。旧 Release 不原地修改；只有采用新发布器生成的 Release 才带旁车。

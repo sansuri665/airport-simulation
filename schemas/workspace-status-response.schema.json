@@ -18,7 +18,7 @@
           "type": "object",
           "required": ["mode", "releaseId", "runId", "variant", "generatedAt", "schemaVersion"],
           "properties": {
-            "mode": { "enum": ["legacy_canonical", "versioned_release"] },
+            "mode": { "enum": ["unavailable", "versioned_release"] },
             "releaseId": { "type": ["string", "null"] },
             "runId": { "type": ["string", "null"] },
             "variant": { "type": ["string", "null"] },

@@ -298,8 +298,6 @@
 
     const el = {
       status: document.getElementById("dataStatus"),
-      runSelect: document.getElementById("runSelect"),
-      variantSelect: document.getElementById("variantSelect"),
       viewSelect: document.getElementById("viewSelect"),
       scopeSelect: document.getElementById("scopeSelect"),
       seedSelect: document.getElementById("seedSelect"),
@@ -672,111 +670,6 @@
       }
     }
 
-    function viewerRelativePath(path) {
-      const cleaned = String(path || "")
-        .replace(/\\/g, "/")
-        .replace(/^\.?\//, "")
-        .replace(/^airport\//, "")
-        .replace(/\/$/, "");
-      return `./${cleaned}`;
-    }
-
-    function loadScriptFile(src) {
-      return new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        const separator = src.includes("?") ? "&" : "?";
-        const version = encodeURIComponent(`${window.MACRO_RUN_INDEX?.generated_at || "run"}-${state.loadToken}`);
-        script.src = `${src}${separator}v=${version}`;
-        script.async = false;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error(`无法加载 ${src}`));
-        document.head.appendChild(script);
-      });
-    }
-
-    async function loadArchivedVariantData(variant) {
-      if (!variant?.path) throw new Error("这个情景没有可加载路径");
-      const basePath = viewerRelativePath(variant.path);
-      window.GLOBAL_MACRO_FEEDBACK_DATA = [];
-      await loadScriptFile(`${basePath}/global_macro/global_macro_feedback_viewer_data.js`);
-      const globalRows = normalizeRows(window.GLOBAL_MACRO_FEEDBACK_DATA || []);
-
-      window.REGIONAL_MACRO_RECONCILED_DATA = [];
-      window.REGIONAL_MACRO_RECONCILIATION_DATA = [];
-      await loadScriptFile(`${basePath}/regional_macro_reconciled/regional_macro_reconciled_viewer_data.js`);
-      const reconciledRows = cloneRows(window.REGIONAL_MACRO_RECONCILED_DATA || []);
-      const diagnosticRows = cloneRows(window.REGIONAL_MACRO_RECONCILIATION_DATA || []);
-
-      window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX = null;
-      try {
-        await loadScriptFile(`${basePath}/global_macro/global_viewer_index.js`);
-      } catch (error) {
-        throw new Error("这个历史 Run 没有按区域分块，请重新运行或发布后再查看。");
-      }
-      const lazyIndex = window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX || null;
-      if (!lazyIndex) {
-        throw new Error("这个历史 Run 没有按区域分块，请重新运行或发布后再查看。");
-      }
-      return {
-        globalRows,
-        regionalDatasets: {},
-        aviationDatasets: {},
-        supplyDatasets: {},
-        reconciledRows,
-        diagnosticRows,
-        lazyIndex,
-        lazyBaseUrl: lazyIndex.baseUrl,
-        loadedRegionIds: new Set(),
-        regionLoadPromises: new Map(),
-      };
-    }
-
-    function buildRunOptions() {
-      const archivedRuns = Array.isArray(window.MACRO_RUN_INDEX?.runs) ? window.MACRO_RUN_INDEX.runs : [];
-      return [
-        {
-          id: "current",
-          label: "当前输出",
-          variants: [{ id: "current", label: "当前输出", path: "" }],
-        },
-        ...archivedRuns.map((run) => ({
-          ...run,
-          label: run.seed ? `${run.label} / seed ${run.seed}` : run.label,
-          variants: Array.isArray(run.variants) ? run.variants : [],
-        })),
-      ];
-    }
-
-    function selectedRunOption() {
-      return state.runOptions.find((run) => run.id === state.runId) || state.runOptions[0];
-    }
-
-    function selectedVariantOption() {
-      const run = selectedRunOption();
-      return run?.variants?.find((variant) => variant.id === state.variantId) || run?.variants?.[0];
-    }
-
-    function refreshRunOptions() {
-      state.runOptions = state.runOptions.length ? state.runOptions : buildRunOptions();
-      if (!state.runOptions.some((run) => run.id === state.runId)) state.runId = state.runOptions[0]?.id || "current";
-      el.runSelect.innerHTML = state.runOptions
-        .map((run) => `<option value="${escapeHtml(run.id)}">${escapeHtml(run.label)}</option>`)
-        .join("");
-      el.runSelect.value = state.runId;
-      refreshVariantOptions();
-    }
-
-    function refreshVariantOptions() {
-      const run = selectedRunOption();
-      const variants = run?.variants?.length ? run.variants : [{ id: "current", label: "当前输出", path: "" }];
-      if (!variants.some((variant) => variant.id === state.variantId)) state.variantId = variants[0].id;
-      el.variantSelect.innerHTML = variants
-        .map((variant) => `<option value="${escapeHtml(variant.id)}">${escapeHtml(variant.label || variant.id)}</option>`)
-        .join("");
-      el.variantSelect.value = state.variantId;
-      el.variantSelect.disabled = variants.length <= 1;
-    }
-
     async function applyViewerData(data, preferredScope = state.scope, preferredSeed = state.seed) {
       data.regionalDatasets ||= {};
       data.aviationDatasets ||= {};
@@ -791,33 +684,7 @@
       state.datasets = buildDatasets(data.globalRows || [], data.regionalDatasets || {});
       state.supplyDatasets = buildSupplyDatasets(data.supplyDatasets || {});
       state.aviationDatasets = buildAviationDatasets(data.aviationDatasets || {}, data.supplyDatasets || {});
-      if (!state.datasets.global?.length) throw new Error("选中的 run 没有全球宏观数据");
+      if (!state.datasets.global?.length) throw new Error("当前 Release 没有全球宏观数据");
       if (preferredScope !== "global") await ensureRegionLoaded(data, preferredScope);
       applyScope(preferredScope, preferredSeed);
-    }
-
-    async function applySelectedRunVariant() {
-      const token = state.loadToken + 1;
-      state.loadToken = token;
-      const run = selectedRunOption();
-      const variant = selectedVariantOption();
-      const preferredScope = state.scope;
-      const preferredSeed = state.seed;
-      state.scenario = null;
-
-      if (!run || !variant || run.id === "current") {
-        state.dataLabel = "当前输出";
-        await applyViewerData(state.canonicalData, preferredScope, preferredSeed);
-        return;
-      }
-
-      el.status.textContent = `loading: ${variant.label || variant.id}`;
-      try {
-        const data = await loadArchivedVariantData(variant);
-        if (token !== state.loadToken) return;
-        state.dataLabel = `${run.label} / ${variant.label || variant.id}`;
-        await applyViewerData(data, preferredScope, preferredSeed);
-      } catch (error) {
-        if (token === state.loadToken) el.status.textContent = error.message;
-      }
     }

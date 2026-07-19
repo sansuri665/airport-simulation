@@ -42,11 +42,11 @@
           : "全球宏观";
       const sourceText = state.dataLabel ? ` / ${state.dataLabel}` : "";
       el.status.textContent = `${scopeText}: ${config.label} / ${rowCount} rows${sourceText}`;
-      const canGenerateSeed = state.view === "macro" && config.type === "global" && state.runId === "current";
+      const canGenerateSeed = state.view === "macro" && config.type === "global";
       el.randomSeedButton.disabled = !canGenerateSeed;
       el.randomSeedButton.title = canGenerateSeed
         ? "浏览器近似预览，不写入正式 Run"
-        : "归档 Run 或区域模式不生成浏览器预览 Seed";
+        : "区域模式不生成浏览器预览 Seed";
     }
 
     function applyScope(scope, preferredSeed = state.seed) {
@@ -102,7 +102,7 @@
     }
 
     function generateRandomSeed() {
-      if (scopeConfig().type !== "global" || state.runId !== "current") return;
+      if (scopeConfig().type !== "global") return;
       const seed = randomLargeSeed();
       const iterations = 3;
       const passRows = [buildDynamicMacroChain(seed)];
@@ -175,22 +175,11 @@
     }
 
     function setupControls() {
-      state.runOptions = buildRunOptions();
-      refreshRunOptions();
       refreshScopeOptions();
       state.seeds = [...new Set(state.rows.map((row) => row.seed))].sort((a, b) => a - b);
       state.seed = state.seeds[0];
       refreshSeedOptions();
       updateScopeStatus();
-      el.runSelect.addEventListener("change", () => {
-        state.runId = el.runSelect.value;
-        refreshVariantOptions();
-        applySelectedRunVariant();
-      });
-      el.variantSelect.addEventListener("change", () => {
-        state.variantId = el.variantSelect.value;
-        applySelectedRunVariant();
-      });
       el.viewSelect.addEventListener("change", async () => {
         state.view = el.viewSelect.value;
         state.mode = "both";
@@ -220,4 +209,3 @@
       });
       updateModeButtons();
     }
-

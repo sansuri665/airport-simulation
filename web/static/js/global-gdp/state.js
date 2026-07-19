@@ -11,12 +11,8 @@ window.AirportGlobalViewerState = {
   mode: "both",
   dynamicSeeds: new Set(),
   scenario: null,
-  runOptions: [],
-  runId: "current",
-  variantId: "current",
-  canonicalData: null,
+  releaseData: null,
   activeData: null,
   dataLabel: "当前输出",
-  loadToken: 0,
   regionSelectionToken: 0,
 };

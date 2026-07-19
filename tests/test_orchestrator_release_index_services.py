@@ -70,8 +70,8 @@ class OrchestratorCompatibilityTests(unittest.TestCase):
             kwargs["write_viewer_release_bundles"],
         )
         self.assertIs(
-            orchestrator.copy_variant_to_legacy_viewer,
-            kwargs["copy_variant_to_legacy_viewer"],
+            orchestrator.sync_variant_downstream_csv,
+            kwargs["sync_variant_downstream_csv"],
         )
         self.assertIs(orchestrator.write_json_file, kwargs["write_json_file"])
         self.assertIs(orchestrator.atomic_write_text_file, kwargs["atomic_write_text_file"])
@@ -153,11 +153,11 @@ class ViewerReleaseLifecycleTests(unittest.TestCase):
                 events.append("formalize")
                 source.rename(target)
 
-            def copy_canonical(source: Path, target: Path) -> list[str]:
-                events.append("canonical")
+            def sync_downstream(source: Path, target: Path) -> list[str]:
+                events.append("downstream")
                 release = target / "viewer_releases" / "run_1_baseline_20260718_123456_000000123"
                 self.assertTrue(release.is_dir())
-                return ["canonical-a", "canonical-b"]
+                return ["downstream-a", "downstream-b"]
 
             def write_json(path: Path, payload: dict[str, object]) -> None:
                 events.append("manifest-json")
@@ -177,7 +177,7 @@ class ViewerReleaseLifecycleTests(unittest.TestCase):
                 sha256_file=hash_file,
                 write_viewer_release_gzip_sidecars=gzip_sidecars,
                 replace_directory_with_retry=replace,
-                copy_variant_to_legacy_viewer=copy_canonical,
+                sync_variant_downstream_csv=sync_downstream,
                 manifest_version="manifest-v1",
                 viewer_run_metadata=lambda path: {
                     "seed": 7,
@@ -200,7 +200,7 @@ class ViewerReleaseLifecycleTests(unittest.TestCase):
                 "hash:city.json",
                 "gzip",
                 "formalize",
-                "canonical",
+                "downstream",
                 "manifest-json",
                 "manifest-js",
             ],
@@ -214,8 +214,8 @@ class ViewerReleaseLifecycleTests(unittest.TestCase):
             {"global": "hash-global.js", "city": "hash-city.json"},
             captured_manifest["bundle_sha256"],
         )
-        self.assertEqual(2, captured_manifest["canonical_copy_count"])
-        self.assertEqual(2, result["copied_files"])
+        self.assertEqual(2, captured_manifest["downstream_csv_copy_count"])
+        self.assertEqual(2, result["downstream_csv_files"])
         self.assertEqual(2, result["bundle_count"])
 
     def test_compression_failure_removes_only_staging_before_formalization(self) -> None:
@@ -252,7 +252,7 @@ class ViewerReleaseLifecycleTests(unittest.TestCase):
                         side_effect=OSError("compression failed")
                     ),
                     replace_directory_with_retry=mock.Mock(),
-                    copy_variant_to_legacy_viewer=mock.Mock(),
+                    sync_variant_downstream_csv=mock.Mock(),
                     manifest_version="v1",
                     viewer_run_metadata=mock.Mock(),
                     airport_relative=lambda path: str(path),
@@ -267,7 +267,7 @@ class ViewerReleaseLifecycleTests(unittest.TestCase):
             self.assertTrue(removed[0].name.startswith(".staging_"))
             self.assertFalse(any(release_root.iterdir()))
 
-    def test_canonical_failure_leaves_formal_release_but_not_manifest_pointers(self) -> None:
+    def test_downstream_csv_failure_leaves_formal_release_but_not_manifest_pointers(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
             variant = root / "run" / "baseline"
@@ -301,7 +301,7 @@ class ViewerReleaseLifecycleTests(unittest.TestCase):
                         "gzip_bytes": 0,
                     },
                     replace_directory_with_retry=lambda source, target: source.rename(target),
-                    copy_variant_to_legacy_viewer=mock.Mock(
+                    sync_variant_downstream_csv=mock.Mock(
                         side_effect=RuntimeError("copy failed")
                     ),
                     manifest_version="v1",
@@ -333,7 +333,7 @@ class ViewerReleaseLifecycleTests(unittest.TestCase):
                 "sha256_file": mock.Mock(),
                 "write_viewer_release_gzip_sidecars": mock.Mock(),
                 "replace_directory_with_retry": mock.Mock(),
-                "copy_variant_to_legacy_viewer": mock.Mock(),
+                "sync_variant_downstream_csv": mock.Mock(),
                 "manifest_version": "v1",
                 "viewer_run_metadata": mock.Mock(),
                 "airport_relative": lambda path: str(path),
@@ -463,7 +463,7 @@ class RunIndexServiceTests(unittest.TestCase):
         self.assertEqual(10, payload["runs"][1]["variants"][0]["global_rows"])
         self.assertEqual("macro_runs/newer", payload["runs"][0]["path"])
 
-    def test_write_index_keeps_json_then_compact_js_pointer_order(self) -> None:
+    def test_write_index_writes_machine_readable_json_only(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             output_root = Path(temporary_dir) / "macro_runs"
             events: list[tuple[str, Path, object]] = []
@@ -477,20 +477,14 @@ class RunIndexServiceTests(unittest.TestCase):
                 output_root,
                 build_run_index=lambda root: payload,
                 write_json_file=lambda path, value: events.append(("json", path, value)),
-                atomic_write_text_file=lambda path, value: events.append(("js", path, value)),
                 airport_relative=lambda path: path.relative_to(output_root.parent).as_posix(),
             )
 
-        self.assertEqual(["json", "js"], [event[0] for event in events])
+        self.assertEqual(["json"], [event[0] for event in events])
         self.assertIs(payload, events[0][2])
-        self.assertEqual(
-            'window.MACRO_RUN_INDEX = {"version":"index-v1","generated_at":"now","runs":[{"id":"运行一"}]};\n',
-            events[1][2],
-        )
         self.assertEqual(
             {
                 "index_json": "macro_runs/macro_run_index.json",
-                "index_js": "macro_runs/macro_run_index.js",
                 "run_count": 1,
             },
             result,

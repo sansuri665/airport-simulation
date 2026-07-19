@@ -81,7 +81,7 @@ def publish_variant_to_viewer(
     sha256_file: Callable[[Path], str],
     write_viewer_release_gzip_sidecars: Callable[[Path], dict[str, int]],
     replace_directory_with_retry: Callable[[Path, Path], None],
-    copy_variant_to_legacy_viewer: Callable[[Path, Path], list[str]],
+    sync_variant_downstream_csv: Callable[[Path, Path], list[str]],
     manifest_version: str,
     viewer_run_metadata: Callable[[Path], dict[str, Any]],
     airport_relative: Callable[[Path], str],
@@ -121,8 +121,8 @@ def publish_variant_to_viewer(
         gzip_summary = write_viewer_release_gzip_sidecars(staging_dir)
         replace_directory_with_retry(staging_dir, release_dir)
 
-        # Keep the established canonical output tree for compatibility with older pages/tools.
-        canonical_copied = copy_variant_to_legacy_viewer(
+        # Keep only tabular exports consumed by standalone downstream models.
+        downstream_exports = sync_variant_downstream_csv(
             variant_dir,
             viewer_output_root,
         )
@@ -142,7 +142,7 @@ def publish_variant_to_viewer(
             },
             "bundle_sha256": bundle_hashes,
             "bundle_count": len(bundle_filenames),
-            "canonical_copy_count": len(canonical_copied),
+            "downstream_csv_copy_count": len(downstream_exports),
             **gzip_summary,
         }
         manifest_json_path = viewer_output_root / "current_viewer_manifest.json"
@@ -168,7 +168,7 @@ def publish_variant_to_viewer(
 
     return {
         "viewer_output_root": str(viewer_output_root.as_posix()),
-        "copied_files": len(canonical_copied),
+        "downstream_csv_files": len(downstream_exports),
         "release_id": release_id,
         "release_path": airport_relative(release_dir),
         "release_manifest_json": airport_relative(manifest_json_path),

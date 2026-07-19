@@ -60,7 +60,7 @@ class ServiceCompatibilityTests(unittest.TestCase):
         self.assertIs(local_ui.clean_seed, generate.call_args.kwargs["clean_seed"])
 
     def test_app_workspace_surfaces_delegate_with_existing_mock_points(self) -> None:
-        release_expected = {"mode": "legacy_canonical"}
+        release_expected = {"mode": "unavailable"}
         workspace_expected = {"ok": True, "delegated": True}
         with mock.patch.object(
             workspace_service,
@@ -332,7 +332,7 @@ class ForecastPayloadTests(unittest.TestCase):
 
 
 class WorkspaceServiceTests(unittest.TestCase):
-    def test_missing_or_unreadable_manifest_keeps_legacy_shape_and_order(self) -> None:
+    def test_missing_or_unreadable_manifest_reports_unavailable_with_stable_shape(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             output_root = Path(temporary_dir)
             missing = workspace_service.current_viewer_release_status(
@@ -351,7 +351,7 @@ class WorkspaceServiceTests(unittest.TestCase):
         ]
         self.assertEqual(expected_keys, list(missing))
         self.assertEqual(missing, unreadable)
-        self.assertEqual("legacy_canonical", missing["mode"])
+        self.assertEqual("unavailable", missing["mode"])
         self.assertIsNone(missing["releaseId"])
 
     def test_valid_manifest_maps_only_existing_public_fields(self) -> None:
@@ -391,7 +391,7 @@ class WorkspaceServiceTests(unittest.TestCase):
             (save_root / "a" / "dynamic_test_save.json").write_text("{}", encoding="utf-8")
             (save_root / "b" / "nested" / "dynamic_test_save.json").write_text("{}", encoding="utf-8")
             (save_root / "b" / "other.json").write_text("{}", encoding="utf-8")
-            release = {"mode": "legacy_canonical", "releaseId": None}
+            release = {"mode": "unavailable", "releaseId": None}
             cached = [{"runId": "a"}, {"runId": "b"}]
 
             payload = workspace_service.workspace_status(

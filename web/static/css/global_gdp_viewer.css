@@ -168,14 +168,6 @@
       min-width: 118px;
     }
 
-    .run-control select {
-      min-width: 178px;
-    }
-
-    .variant-control select {
-      min-width: 142px;
-    }
-
     select {
       min-width: 86px;
       border: 0;

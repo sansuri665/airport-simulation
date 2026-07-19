@@ -36,11 +36,11 @@ output/macro_runs/<run_id>/
 
 `macro_layers/orchestrator_run_validation.py` 负责核心 CSV 检查、按稳定路径和表头生成 SHA-256 摘要、区域覆盖、变体行数摘要、顶层 Run Manifest 装配，以及同一 staging Manifest 的“写入 staging 状态—校验—写入 complete 状态”顺序。既有年份上界、错误文本、字段顺序、摘要字节和 `airport-run-validation-v1` 格式均由直接特征测试保护。
 
-`macro_layers/orchestrator_variant_outputs.py` 负责单个 baseline/情景变体的产物写入顺序：全球、区域、协调、航空、运力、城市、预测、季度经营、财务、估值，最后写 downstream skip Manifest。它按原 `REGION_ORDER` 或来源字典插入顺序迭代；空市场继续跳过，缺少 `region_id` 继续落到 `unknown_region`。只有 `artifact_profile == "full"` 时才生成 Viewer JS/懒加载资产并读取 Viewer 配置，`seed-cache` 和其他非 full 值只写 CSV、摘要 JSON 与 skip Manifest。
+`macro_layers/orchestrator_variant_outputs.py` 负责单个 baseline/情景变体的产物写入顺序：全球、区域、协调、航空、运力、城市、预测、季度经营、财务、估值，最后写 downstream skip Manifest。它按原 `REGION_ORDER` 或来源字典插入顺序迭代；空市场继续跳过，缺少 `region_id` 继续落到 `unknown_region`。只有 `artifact_profile == "full"` 时才生成发布器仍会消费的 Viewer 源资产：全球主数据、区域协调主数据、全球/预测/经营轻量索引与分块。47 城和 14 区逐对象 JS，以及经营、财务、估值完整 JS 已停止生成；`seed-cache` 和其他非 full 值仍只写 CSV、摘要 JSON 与 skip Manifest。
 
 `macro_layers/orchestrator_run_lifecycle.py` 负责顶层 Run 生命周期：参数组合拒绝与 `index-only` 短路、Seed/时间戳/Run ID 和 staging 命名、重复 Run 拒绝、构建与 staged 校验、目录原子替换、越界保护下的失败清理、可选 Viewer 发布、Run 索引刷新和最终 Manifest 写入。构建、校验、发布和所有 IO 都由原编排器在调用时注入；发布时先写发布信息、再刷新索引并写最终 Manifest 的既有顺序没有改变。
 
-宏观编排器继续保留 `execute_run`、`write_variant_outputs`、`validate_staged_run`、`build_run_manifest`、`build_run_index`、`write_run_index`、`publish_variant_to_viewer` 及 Viewer 资产辅助函数等兼容入口。Run 索引由 `macro_layers/orchestrator_run_index.py` 实现；高层 Viewer 发布生命周期由 `macro_layers/orchestrator_viewer_release.py` 实现；canonical/Release 资产协议由 `macro_layers/orchestrator_viewer_assets.py` 实现。原编排器当前只负责兼容装配、情景选择和模型层调用；模型调用与变体执行没有移动。
+宏观编排器继续保留当前仍有调用方的 `execute_run`、`write_variant_outputs`、`validate_staged_run`、`build_run_manifest`、`build_run_index`、`write_run_index`、`publish_variant_to_viewer` 及 Viewer 资产辅助入口。Run 索引由 `macro_layers/orchestrator_run_index.py` 实现；高层 Viewer 发布生命周期由 `macro_layers/orchestrator_viewer_release.py` 实现；Release 资产与下游 CSV 导出协议由 `macro_layers/orchestrator_viewer_assets.py` 实现。旧 canonical 浏览器复制和精确树裁剪门面已随回退链一起删除；模型调用与变体执行没有移动。
 
 ## 3. Seed Explorer 缓存
 
@@ -139,31 +139,32 @@ output/current_viewer_manifest.json
 output/current_viewer_manifest.js
 ```
 
-新 release 先在 staging 目录完成数据包、SHA-256 和 JSON/JavaScript gzip 旁车，再正式化 release 目录、复制 canonical 兼容数据，最后原子替换当前 Manifest 指针。压缩或复制失败时旧 Manifest 不切换，页面因此只会看到完整旧版本或完整新版本。
+新 release 先在 staging 目录完成数据包、SHA-256 和 JSON/JavaScript gzip 旁车，再正式化 release 目录、刷新独立模型命令需要的下游 CSV，最后原子替换当前 Manifest 指针。压缩或下游 CSV 同步失败时旧 Manifest 不切换，页面因此只会看到完整旧版本或完整新版本。发布器不再向 canonical 目录复制任何浏览器 JS、索引或分块。
 
-该高层顺序由 `orchestrator_viewer_release.py` 单独控制：三个 bundle 的文件名与写入顺序保持不变，JSON Manifest 仍先写，`current_viewer_manifest.js` 仍是最后的原子指针。`orchestrator_viewer_assets.py` 负责被它调用的低层资产协议，包括平面/递归/精确树复制、数据块先于兼容索引、bundle 内容与缺失文件回退、路径 URL、SHA-256，以及 `mtime=0`、空文件名、level 9 的确定性 gzip。精确树裁剪在删除前解析目标路径，拒绝越出目标 Viewer 树。
+该高层顺序由 `orchestrator_viewer_release.py` 单独控制：三个 bundle 的文件名与写入顺序保持不变，JSON Manifest 仍先写，`current_viewer_manifest.js` 仍是最后的原子指针。`orchestrator_viewer_assets.py` 负责低层 Release 资产、下游 CSV 白名单、路径 URL、SHA-256，以及 `mtime=0`、空文件名、level 9 的确定性 gzip。全球 bundle 缺少全球主数据、协调主数据或轻量区域索引时会直接拒绝发布，不再构造逐区域旧脚本回退包。
 
-原编排器保留全部同名包装器，并逐项注入现有复制、路径、哈希、gzip 和原子写入函数，因此既有测试 mock 点、直接脚本入口、公开 URL 和字节协议不变。两个拆出模块分别管理高层生命周期与低层资产规则，避免日后修改保留策略时误碰 bundle 内容，或修改资产内容时误碰 Manifest 切换顺序。
+原编排器只保留当前发布协议所需的包装器，并逐项注入复制、路径、哈希、gzip 和原子写入函数。两个拆出模块分别管理高层生命周期与低层资产规则，避免日后修改保留策略时误碰 bundle 内容，或修改资产内容时误碰 Manifest 切换顺序。
 
-Manifest 记录 release、Run、变体、Seed、起始年、年数、模型与输出 Schema 版本、生成时间，以及三个 Viewer 数据包的路径、数量和哈希；新发布还记录 gzip 文件数、原始字节数和压缩字节数。首页通过 `/api/workspace-status` 展示发布信息。
+Manifest 记录 release、Run、变体、Seed、起始年、年数、模型与输出 Schema 版本、生成时间，以及三个 Viewer 数据包的路径、数量和哈希；v2 新发布还记录下游 CSV 同步数量、gzip 文件数、原始字节数和压缩字节数。Schema 继续接受已经存在的 v1 Manifest，但新发布只写 `airport-viewer-release-manifest-v2`。首页通过 `/api/workspace-status` 展示发布信息。
 
-## 6. 版本化发布与 canonical 指针
+## 6. Release-only 与下游 CSV 导出
 
-全球与预测 Viewer 的读取顺序是：
+三个只读 Viewer 的读取边界是：
 
 ```text
 有效 current_viewer_manifest
   -> 版本化 release 数据
-  -> 若 Manifest 不存在，再读取 canonical 的当前索引
+Manifest 缺失、无对应脚本或 Release 不完整
+  -> 明确报告发布不可用
 ```
 
-canonical 目录包括 `output/global_macro/`、`output/city_airport_quarterly_operations/`、`output/city_airport_potential_passenger_forecast/` 等。它们不是第二套正式模型。发布器只复制两类有消费者的文件：全球/预测 Viewer 在无 Manifest 时需要的索引、分块与主数据脚本，以及独立模型命令会继续读取的下游 CSV。Release 已经取代的城市、经营、财务与估值 Viewer 脚本，摘要 JSON、诊断副本、SVG 和完整预测 CSV 不再复制到 canonical。
+浏览器不再读取 `output/global_macro/`、`output/city_airport_potential_passenger_forecast/` 等 canonical 路径。发布器只继续刷新独立模型命令会读取的下游 CSV，例如全球、区域、航空、城市市场、季度经营和财务 CSV；这些表格是命令串联输入，不是第二套 Viewer 发布。
 
-城市市场 Viewer 不使用 canonical；经营、财务和估值 canonical 只保留独立命令串联需要的 CSV。有效客流预测的 canonical 入口仍是轻量玩家/审计索引和报告分块，不生成完整预测 JS。发布器内的白名单是兼容协议的一部分，新增 canonical 文件必须先指出真实消费者并补契约测试。
+新增下游导出文件必须先指出真实命令消费者并补契约测试。浏览器数据只能加入版本化 Release；不能恢复“Manifest 不可用就尝试旧目录”的隐式混用。
 
 城市市场 Viewer 不使用跨 release 回退。当前 release 在索引中保存 47 城各年的轻量排名点，只在用户选择城市时读取 `city_market_viewer_chunks/c_<market_id>.json` 的完整客群与供给状态。页面不生成 47 城合计。
 
-预测发布缺少玩家轻量索引时视为不完整，release 构建会失败；页面也会明确报错，不能静默混用旧整包数据。
+预测发布缺少玩家轻量索引、全球发布缺少轻量区域索引时都视为不完整，release 构建会失败；页面也会明确报错，不能静默混用旧整包或 canonical 数据。
 
 ## 7. 三个 Viewer 的按需加载边界
 
@@ -178,7 +179,7 @@ canonical 目录包括 `output/global_macro/`、`output/city_airport_quarterly_o
   r_<report_id>.json
 ```
 
-页面默认只加载玩家目录，其中包含 12 份普通报告的叙事、预测路径、区间和修订，不包含隐藏真值、完整评分和神级报告。选择报告时只读取对应玩家块。显式切换“开发审计”后，页面才加载独立审计索引和审计块；审计共 13 份报告，并包含真实路径与评分拆解。审计字段也使用显式白名单，旧滞后曲线等 CSV 兼容列不会进入浏览器。两个目录都记录默认报告、稳定顺序、行数、字节数和 SHA-256。canonical 与 release 先复制两组数据块和审计索引，最后切换玩家索引或 Manifest 指针。
+页面默认只加载玩家目录，其中包含 12 份普通报告的叙事、预测路径、区间和修订，不包含隐藏真值、完整评分和神级报告。选择报告时只读取对应玩家块。显式切换“开发审计”后，页面才加载独立审计索引和审计块；审计共 13 份报告，并包含真实路径与评分拆解。审计字段也使用显式白名单，旧滞后曲线等 CSV 兼容列不会进入浏览器。两个目录都记录默认报告、稳定顺序、行数、字节数和 SHA-256；Release 先准备数据块和审计索引，最后通过 Manifest 切换玩家 bundle。
 
 ### 7.2 全球宏观：按区域
 
@@ -188,7 +189,7 @@ global_viewer_chunks/
   r_<region_id>.json
 ```
 
-首屏只载入全球主链、区域协调结果和轻量区域目录。切换区域时，一个数据块同时提供区域宏观、航空需求和运力供给；同一页面会话再次访问会复用内存数据。release 与 canonical 都先准备 14 个区域块，再切换索引。旧历史 Run 若没有新版区域目录会显示需要重新运行或发布，不再回退逐脚本加载。
+首屏只载入全球主链、区域协调结果和轻量区域目录。切换区域时，一个数据块同时提供区域宏观、航空需求和运力供给；同一页面会话再次访问会复用内存数据。Release 先准备 14 个区域块，再通过 Manifest 切换 bundle。旧历史 Run 若没有新版区域目录会显示需要重新运行或发布，不再回退逐脚本或 canonical 加载。
 
 ### 7.3 城市市场：按城市
 
@@ -200,7 +201,7 @@ city_market_viewer_chunks/
 
 索引包含按所选年份排序所需的需求与航司供给口径；城市块包含完整 60 年潜在客流、航司供给、供给约束后需求、五类客群分配与航司供给状态。页面在城市标题下提供“总客流 + 五客群”六个口径，摘要、轨迹、供给解读和年度表共用同一选择。机场容量和最终经营承接不进入该 Viewer 协议。切换城市时按需读取并在当前页面会话中复用。
 
-### 7.4 北京经营：经营/财务为核心，估值延迟
+### 7.4 北京经营源资产
 
 ```text
 <market_id>_operations_index.js
@@ -208,7 +209,7 @@ city_market_viewer_chunks/
   d_valuation.json
 ```
 
-季度经营和财务状态共同组成首屏核心包，因为损益、现金、折旧和资产负债表需要一起就绪。估值只在首次打开“估值曲线”时加载，并在当前会话复用。canonical 发布先复制估值块，最后复制轻量目录；没有新目录时回退三个完整 JS。
+`full` Run 暂时保留经营轻量索引和估值分块，供以后恢复独立经营数据客户端时使用；当前公开北京经营页面已退役，Seed Explorer 通过 API 读取经营和财务 CSV。经营、财务和估值完整 JS 已停止生成，也不会发布到 canonical。若以后重新引入经营 Viewer，应直接进入版本化 Release，不恢复三个完整 JS 回退。
 
 ## 8. 数据安全原则
 

@@ -184,7 +184,7 @@ class ForecastLazyLoadingTests(unittest.TestCase):
                 )
             )
 
-    def test_atomic_viewer_release_uses_lazy_index_and_copies_chunks(self) -> None:
+    def test_atomic_viewer_release_uses_lazy_index_without_canonical_copy(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             temporary_root = Path(temporary_dir)
             variant = test_viewer_release.build_minimal_variant(temporary_root)
@@ -231,16 +231,13 @@ class ForecastLazyLoadingTests(unittest.TestCase):
                 ).is_file()
             )
             canonical_dir = viewer_root / "city_airport_potential_passenger_forecast" / "china_mainland"
-            self.assertTrue(
-                (canonical_dir / "beijing_airport_system_forecast_index.js").is_file()
+            self.assertFalse(
+                (canonical_dir / "beijing_airport_system_forecast_index.js").exists()
             )
-            self.assertEqual(2, len(list((canonical_dir / chunk_dir_name).glob("*.json"))))
-            self.assertEqual(
-                3,
-                len(list((canonical_dir / audit_chunk_dir_name).glob("*.json"))),
-            )
-            self.assertFalse(stale_chunk.exists())
-            self.assertFalse(obsolete_full_js.exists())
+            self.assertEqual([stale_chunk], list((canonical_dir / chunk_dir_name).glob("*.json")))
+            self.assertFalse((canonical_dir / audit_chunk_dir_name).exists())
+            self.assertTrue(stale_chunk.exists())
+            self.assertTrue(obsolete_full_js.exists())
 
     def test_forecast_viewer_requires_lazy_loader_without_full_data_fallback(self) -> None:
         html = (PAGES_DIR / "beijing_potential_passenger_forecast_viewer.html").read_text(encoding="utf-8")
@@ -256,7 +253,8 @@ class ForecastLazyLoadingTests(unittest.TestCase):
         self.assertIn("/static/js/beijing-forecast/data-client.js", html)
         self.assertIn("/static/js/beijing-forecast/renderers.js", html)
         self.assertIn("AIRPORT_FORECAST_DATA_READY", bootstrap_js)
-        self.assertIn("beijing_airport_system_forecast_index.js", bootstrap_js)
+        self.assertIn("scripts?.beijing_potential_passenger_forecast_viewer", bootstrap_js)
+        self.assertNotIn("beijing_airport_system_forecast_index.js", bootstrap_js)
         self.assertNotIn("legacyBeijingForecastDataScripts", html)
         self.assertNotIn("potential_passenger_forecast_viewer_data.js", html)
         self.assertNotIn("potential_passenger_forecast_viewer_data.js", bootstrap_js)

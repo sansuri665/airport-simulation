@@ -46,7 +46,7 @@ Get-NetTCPConnection -LocalPort 8776 -State Listen
 常见判断：
 
 - `/static/...` 为 404：前端文件或 HTML 引用路径不一致；检查 `web/static/`。
-- `/output/...` 为 404：当前发布或 canonical 数据不完整。
+- `/output/viewer_releases/...` 为 404：当前 Manifest 指向的 Release 不完整或已被误删。
 - JSON 块加载错误：记录缺失的报告、区域或 `d_valuation.json` 路径，不要改成空数组掩盖问题。
 - 页面标题正常但图表为空：先查看页头状态文字和 Viewer Manifest，而不是先怀疑模型数值。
 
@@ -56,7 +56,7 @@ Get-NetTCPConnection -LocalPort 8776 -State Listen
 Invoke-RestMethod http://127.0.0.1:8776/api/workspace-status | ConvertTo-Json -Depth 8
 ```
 
-若 `viewerRelease.mode` 是 `versioned_release`，核对 Manifest 中的 release 是否存在；若是 `legacy_canonical`，页面依赖 canonical 输出。不要手工编辑 Manifest 指针，应该从完整 Run 重新发布。
+若 `viewerRelease.mode` 是 `versioned_release`，核对 Manifest 中的 Release 和对应 bundle 是否存在；若是 `unavailable`，应从完整 Run 重新发布。页面已没有 canonical 回退，不要手工编辑 Manifest 指针或把旧索引复制回输出目录。
 
 ## 5. 生成了新 Run，但三个 Viewer 仍是旧数据
 

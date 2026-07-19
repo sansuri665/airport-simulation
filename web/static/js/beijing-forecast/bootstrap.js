@@ -7,9 +7,11 @@ window.AIRPORT_FORECAST_DATA_READY = (() => {
     document.head.appendChild(script);
   });
   const releaseScript = window.AIRPORT_VIEWER_MANIFEST?.scripts?.beijing_potential_passenger_forecast_viewer;
-  const canonicalIndex = "./output/city_airport_potential_passenger_forecast/china_mainland/beijing_airport_system_forecast_index.js";
   return (async () => {
-    await loadScript(releaseScript || canonicalIndex);
+    if (!releaseScript) {
+      throw new Error("当前 Viewer Manifest 没有预测 Viewer Release");
+    }
+    await loadScript(releaseScript);
     if (!window.AIRPORT_FORECAST_LAZY_INDEX) {
       throw new Error("预测发布未注册轻量索引");
     }

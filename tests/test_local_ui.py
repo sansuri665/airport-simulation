@@ -119,7 +119,7 @@ class LocalUIIntegrationTests(unittest.TestCase):
         self.assertEqual(local_ui.MODEL_VERSION, payload["modelVersion"])
         self.assertEqual(local_ui.OUTPUT_SCHEMA_VERSION, payload["outputSchemaVersion"])
         self.assertIn("pythonVersion", payload)
-        self.assertIn(payload["viewerRelease"]["mode"], {"legacy_canonical", "versioned_release"})
+        self.assertIn(payload["viewerRelease"]["mode"], {"unavailable", "versioned_release"})
         self.assertEqual("/seed-explorer", payload["pages"]["seedExplorer"])
         self.assertEqual("/city-markets", payload["pages"]["cityMarkets"])
         self.assertGreaterEqual(payload["cachedRunCount"], 0)

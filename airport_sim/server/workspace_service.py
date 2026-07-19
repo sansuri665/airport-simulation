@@ -22,7 +22,7 @@ def current_viewer_release_status(
             manifest = {}
     release_id = str(manifest.get("release_id") or "").strip()
     return {
-        "mode": "versioned_release" if release_id else "legacy_canonical",
+        "mode": "versioned_release" if release_id else "unavailable",
         "releaseId": release_id or None,
         "runId": manifest.get("run_id"),
         "variant": manifest.get("variant"),

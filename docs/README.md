@@ -98,6 +98,7 @@
 | --- | --- |
 | [Testing_and_Safe_Changes.md](development/Testing_and_Safe_Changes.md) | 固定 Seed、API、Schema、UI 和结构重构保护 |
 | [Troubleshooting.md](development/Troubleshooting.md) | 端口、Python、缓存、页面和数据问题排查 |
+| [GitHub_Publishing_and_Recovery.md](development/GitHub_Publishing_and_Recovery.md) | GitHub 发布前检查、HTTPS/SSH 回退、默认分支切换和 CI 验证 |
 | [Documentation_Standard.md](development/Documentation_Standard.md) | 文档归属、写法、更新和淘汰规则 |
 
 ### `plans/`
@@ -110,7 +111,8 @@
 
 | 文档 | 说明 |
 | --- | --- |
-| [v0719-preview2.md](releases/v0719-preview2.md) | v0719 Preview2 的兼容边界退役、API v2、Git 分支和验收说明 |
+| [v0719-preview3.md](releases/v0719-preview3.md) | v0719 Preview3 的 Release-only、Manifest v2、gzip 实际发布和 Git 阶段边界 |
+| [v0719-preview2.md](releases/v0719-preview2.md) | v0719 Preview2 的兼容边界退役、API v2、Git 分支，以及标签后 Release-only/空间收敛验收说明 |
 | [v0719-preview.md](releases/v0719-preview.md) | v0719 Preview 的提交边界、已完成技术债和未合并说明 |
 
 ## 当前事实由什么决定

@@ -71,7 +71,7 @@ output/macro_runs/<run_id>/<variant>/global_macro/
 
 完整 Run 不会一边计算一边覆盖正式目录。编排器先在临时 staging 目录生成基准路径和可选情景路径，再校验 CSV 的 seed、年份、年度索引、表头、行数以及 14 区覆盖。只有全部通过后才把 staging 目录整体切换为最终 Run；同名 Run 已存在时会拒绝覆盖。
 
-切换成功后，编排器更新 `macro_run_index.json/js`。如果明确要求发布 Viewer，还会把选定 variant 复制为带校验和的发布目录，再更新当前 Viewer manifest。`artifact-profile=seed-cache` 只保留 Seed Explorer/API 所需数据，不生成完整 Viewer 资源，也不能同时执行 Viewer 发布。
+切换成功后，编排器更新供命令和清理工具使用的 `macro_run_index.json`。如果明确要求发布 Viewer，还会把选定 variant 复制为带校验和的发布目录，再更新当前 Viewer manifest。全球页不再直接浏览 Run，也不加载 Run 索引 JS；`artifact-profile=seed-cache` 只保留 Seed Explorer/API 所需数据，不生成 Viewer 资源，也不能同时执行 Viewer 发布。
 
 输出可分为以下几组：
 

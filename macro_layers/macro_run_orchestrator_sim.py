@@ -47,14 +47,12 @@ FINANCIAL_STATE_FIELDS = financial_state_layer.FINANCIAL_STATE_FIELDS
 load_financial_state_config = financial_state_layer.load_config
 simulate_financial_state = financial_state_layer.simulate_financial_state
 summarize_financial_state = financial_state_layer.summarize
-write_financial_state_viewer_data_js = financial_state_layer.write_viewer_data_js
 
 CITY_AIRPORT_DEMAND_FIELDS = city_market_layer.CITY_AIRPORT_DEMAND_FIELDS
 CITY_MARKET_CONFIGS = city_market_layer.CITY_MARKET_CONFIGS
 merge_city_airport_inputs = city_market_layer.merge_region_inputs
 simulate_city_airport_demand = city_market_layer.simulate_city_airport_demand
 summarize_city_airport_seed = city_market_layer.summarize_market_seed
-write_city_airport_viewer_data_js = city_market_layer.write_viewer_data_js
 
 POTENTIAL_PASSENGER_FORECAST_CONFIG_DIR = potential_forecast_layer.DEFAULT_CONFIG_DIR
 POTENTIAL_PASSENGER_FORECAST_FIELDS = potential_forecast_layer.POTENTIAL_PASSENGER_FORECAST_FIELDS
@@ -68,14 +66,12 @@ QUARTERLY_OPERATIONS_FIELDS = quarterly_operations_layer.QUARTERLY_OPERATIONS_FI
 load_quarterly_operations_config = quarterly_operations_layer.load_config
 simulate_quarterly_operations = quarterly_operations_layer.simulate_quarterly_operations
 summarize_quarterly_operations = quarterly_operations_layer.summarize
-write_quarterly_operations_viewer_data_js = quarterly_operations_layer.write_viewer_data_js
 
 VALUATION_FORECAST_CONFIG_DIR = valuation_layer.DEFAULT_CONFIG_DIR
 VALUATION_FORECAST_FIELDS = valuation_layer.VALUATION_FORECAST_FIELDS
 load_valuation_forecast_config = valuation_layer.load_config
 simulate_valuation_forecast = valuation_layer.simulate_valuation_forecast
 summarize_valuation_forecast = valuation_layer.summarize
-write_valuation_forecast_viewer_data_js = valuation_layer.write_viewer_data_js
 
 COMBINED_MACRO_FEEDBACK_FIELDS = global_feedback_layer.COMBINED_MACRO_FEEDBACK_FIELDS
 annotate_feedback_records = global_feedback_layer.annotate_feedback_records
@@ -90,21 +86,18 @@ AIR_SUPPLY_FIELDS = air_supply_layer.AIR_SUPPLY_FIELDS
 AIR_SUPPLY_REGION_CONFIGS = air_supply_layer.AIR_SUPPLY_REGION_CONFIGS
 simulate_region_air_supply = air_supply_layer.simulate_region_air_supply
 summarize_supply_seed = air_supply_layer.summarize_region_seed
-write_supply_viewer_data_js = air_supply_layer.write_viewer_data_js
 
 AVIATION_DEMAND_FIELDS = aviation_demand_layer.AVIATION_DEMAND_FIELDS
 AVIATION_REGION_CONFIGS = aviation_demand_layer.AVIATION_REGION_CONFIGS
 merge_region_inputs = aviation_demand_layer.merge_region_inputs
 simulate_region_aviation_demand = aviation_demand_layer.simulate_region_aviation_demand
 summarize_aviation_seed = aviation_demand_layer.summarize_region_seed
-write_aviation_viewer_data_js = aviation_demand_layer.write_viewer_data_js
 
 REGION_CONFIGS = regional_macro_layer.REGION_CONFIGS
 REGIONAL_MACRO_FIELDS = regional_macro_layer.REGIONAL_MACRO_FIELDS
 build_global_params = regional_macro_layer.build_global_params
 simulate_region_for_global_path = regional_macro_layer.simulate_region_for_global_path
 summarize_region_seed = regional_macro_layer.summarize_region_seed
-write_regional_viewer_data_js = regional_macro_layer.write_viewer_data_js
 
 DIAGNOSTIC_FIELDS = reconciliation_layer.DIAGNOSTIC_FIELDS
 REGION_ORDER = reconciliation_layer.REGION_ORDER
@@ -125,7 +118,7 @@ MODEL_VERSION = "airport-model-v0.8"
 AIRPORT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = AIRPORT_DIR / "output" / "macro_runs"
 DEFAULT_VIEWER_OUTPUT_ROOT = AIRPORT_DIR / "output"
-VIEWER_RELEASE_MANIFEST_VERSION = "airport-viewer-release-manifest-v1"
+VIEWER_RELEASE_MANIFEST_VERSION = "airport-viewer-release-manifest-v2"
 VIEWER_GZIP_SUFFIXES = frozenset({".js", ".json"})
 VIEWER_GZIP_MIN_BYTES = 1024
 VIEWER_GZIP_CHUNK_BYTES = 1024 * 1024
@@ -586,18 +579,18 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_OUTPUT_ROOT,
         help="Run archive root. Defaults to <airport>/output/macro_runs regardless of the current working directory.",
     )
-    parser.add_argument("--index-only", action="store_true", help="Refresh macro_run_index.js without running simulation.")
+    parser.add_argument("--index-only", action="store_true", help="Refresh macro_run_index.json without running simulation.")
     parser.add_argument(
         "--publish-viewer",
         choices=("none", "baseline", "scenario"),
         default="none",
-        help="Also copy one variant to <airport>/output so global_gdp_viewer.html reads it.",
+        help="Also publish one variant as the current versioned Viewer Release under <airport>/output.",
     )
     parser.add_argument(
         "--viewer-output-root",
         type=Path,
         default=DEFAULT_VIEWER_OUTPUT_ROOT,
-        help="Canonical viewer data root. Defaults to <airport>/output regardless of the current working directory.",
+        help="Viewer Release publication root. Defaults to <airport>/output regardless of the current working directory.",
     )
     parser.add_argument(
         "--artifact-profile",
@@ -1803,29 +1796,16 @@ def write_variant_outputs(
         financial_state_fields=FINANCIAL_STATE_FIELDS,
         valuation_forecast_fields=VALUATION_FORECAST_FIELDS,
         potential_passenger_forecast_config_dir=POTENTIAL_PASSENGER_FORECAST_CONFIG_DIR,
-        financial_state_config_dir=FINANCIAL_STATE_CONFIG_DIR,
-        valuation_forecast_config_dir=VALUATION_FORECAST_CONFIG_DIR,
         load_potential_passenger_forecast_config=load_potential_passenger_forecast_config,
-        load_financial_state_config=load_financial_state_config,
-        load_valuation_forecast_config=load_valuation_forecast_config,
         write_csv_file=write_csv_file,
         write_json_file=write_json_file,
         write_global_viewer_data_js=write_global_viewer_data_js,
-        write_regional_viewer_data_js=write_regional_viewer_data_js,
         write_reconciliation_viewer_js=write_reconciliation_viewer_js,
-        write_aviation_viewer_data_js=write_aviation_viewer_data_js,
-        write_supply_viewer_data_js=write_supply_viewer_data_js,
         write_global_viewer_lazy_assets=write_global_viewer_lazy_assets,
-        write_city_airport_viewer_data_js=write_city_airport_viewer_data_js,
         load_city_configs_by_market=load_city_configs_by_market,
         write_potential_passenger_forecast_lazy_assets=(
             write_potential_passenger_forecast_lazy_assets
         ),
-        write_quarterly_operations_viewer_data_js=(
-            write_quarterly_operations_viewer_data_js
-        ),
-        write_financial_state_viewer_data_js=write_financial_state_viewer_data_js,
-        write_valuation_forecast_viewer_data_js=write_valuation_forecast_viewer_data_js,
         write_operations_viewer_lazy_assets=write_operations_viewer_lazy_assets,
     )
     variant_output_service.write_variant_outputs(
@@ -1861,24 +1841,12 @@ def copy_tree_files(source_dir: Path, target_dir: Path) -> list[str]:
     )
 
 
-def copy_tree_files_exact(source_dir: Path, target_dir: Path) -> list[str]:
-    """Copy a generated tree and remove files absent from the new source tree."""
-    return viewer_assets_service.copy_tree_files_exact(
-        source_dir,
-        target_dir,
-        copy_tree_files=copy_tree_files,
-        resolve_path=lambda path: path.resolve(),
-    )
-
-
-def copy_variant_to_legacy_viewer(variant_dir: Path, viewer_output_root: Path) -> list[str]:
-    return viewer_assets_service.copy_variant_to_legacy_viewer(
+def sync_variant_downstream_csv(variant_dir: Path, output_root: Path) -> list[str]:
+    return viewer_assets_service.sync_variant_downstream_csv(
         variant_dir,
-        viewer_output_root,
+        output_root,
         copy_file=shutil.copy2,
         copy_files=copy_files,
-        copy_tree_files=copy_tree_files,
-        copy_tree_files_exact=copy_tree_files_exact,
     )
 
 
@@ -1907,7 +1875,6 @@ def build_global_viewer_bundle(variant_dir: Path, release_id: str) -> str:
     return viewer_assets_service.build_global_viewer_bundle(
         variant_dir,
         release_id,
-        region_order=REGION_ORDER,
         viewer_script_source=viewer_script_source,
         viewer_release_info_script=viewer_release_info_script,
     )
@@ -1983,7 +1950,7 @@ def publish_variant_to_viewer(variant_dir: Path, viewer_output_root: Path) -> di
         sha256_file=sha256_file,
         write_viewer_release_gzip_sidecars=write_viewer_release_gzip_sidecars,
         replace_directory_with_retry=replace_directory_with_retry,
-        copy_variant_to_legacy_viewer=copy_variant_to_legacy_viewer,
+        sync_variant_downstream_csv=sync_variant_downstream_csv,
         manifest_version=VIEWER_RELEASE_MANIFEST_VERSION,
         viewer_run_metadata=viewer_run_metadata,
         airport_relative=airport_relative,
@@ -2014,7 +1981,6 @@ def write_run_index(output_root: Path) -> dict[str, Any]:
         output_root,
         build_run_index=build_run_index,
         write_json_file=write_json_file,
-        atomic_write_text_file=atomic_write_text_file,
         airport_relative=airport_relative,
     )
 

@@ -80,11 +80,8 @@ class GlobalViewerLazyLoadingTests(unittest.TestCase):
             self.assertIn("AIRPORT_GLOBAL_VIEWER_LAZY_INDEX", bundle)
             self.assertNotIn('REGIONAL_MACRO_DATASETS["china_mainland"]', bundle)
             self.assertEqual(len(orchestrator.REGION_ORDER), len(list((release_dir / "global_viewer_chunks").glob("*.json"))))
-            self.assertTrue((viewer_root / "global_macro" / "global_viewer_index.js").is_file())
-            self.assertEqual(
-                len(orchestrator.REGION_ORDER),
-                len(list((viewer_root / "global_macro" / "global_viewer_chunks").glob("*.json"))),
-            )
+            self.assertFalse((viewer_root / "global_macro" / "global_viewer_index.js").exists())
+            self.assertFalse((viewer_root / "global_macro" / "global_viewer_chunks").exists())
 
     def test_viewer_requires_region_loader_without_legacy_script_fallback(self) -> None:
         html = (PAGES_DIR / "global_gdp_viewer.html").read_text(encoding="utf-8")
@@ -97,8 +94,11 @@ class GlobalViewerLazyLoadingTests(unittest.TestCase):
         self.assertIn(f'<script src="{bootstrap_script}"></script>', html)
         self.assertIn(f'<script src="{data_client_script}"></script>', html)
         self.assertIn(f'<script src="{page_script}"></script>', html)
-        self.assertIn("global_viewer_index.js", bootstrap_js)
+        self.assertNotIn("macro_run_index.js", html)
+        self.assertNotIn("global_viewer_index.js", bootstrap_js)
+        self.assertIn("scripts?.global_gdp_viewer", bootstrap_js)
         self.assertIn("AIRPORT_GLOBAL_VIEWER_LOAD_ERROR", bootstrap_js)
+        self.assertNotIn(" onerror=", bootstrap_js)
         self.assertNotIn("legacyGlobalViewerDataScripts", html)
         self.assertNotIn("legacyGlobalViewerDataScripts", bootstrap_js)
         self.assertIn("async function ensureRegionLoaded(", data_client_js)
@@ -106,6 +106,8 @@ class GlobalViewerLazyLoadingTests(unittest.TestCase):
         self.assertIn("window.REGIONAL_MACRO_DATASETS", data_client_js)
         self.assertNotIn("CSV_PATH", data_client_js)
         self.assertNotIn("regional_macro/${config.id}", data_client_js)
+        self.assertNotIn("macro_runs", data_client_js)
+        self.assertNotIn("loadArchivedVariantData", data_client_js)
         self.assertNotIn('cache: "no-store"', data_client_js)
         self.assertIn("没有按区域分块", data_client_js)
 

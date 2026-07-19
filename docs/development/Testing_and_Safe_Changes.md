@@ -36,14 +36,14 @@ CI 会在 Windows 和 Linux 上安装当前项目的 editable package，再执�
 | 预测报告叙事 | `test_forecast_narrative_model.py` | 8 种共享风格、四类标签、中文元数据、非数值伴飞、报告继承、神级精确与玩家/审计隔离 |
 | 城市航司周期 | `test_airline_supply_dynamics_profiles.py` | 47 城模板、经营阶段、过剩/波谷分布、年度调节上限和空置运力边界 |
 | 正式 Run、生命周期、变体产物与 staged 校验 | `test_atomic_run.py`、`test_orchestrator_run_lifecycle_service.py`、`test_orchestrator_variant_outputs_service.py`、`test_orchestrator_run_validation_service.py` | 参数拒绝、index-only、Run/staging 命名、重复拒绝、失败清理边界、发布/索引/Manifest 顺序、11 类 CSV 字段/路径和 full/seed-cache 写入顺序、摘要/skip、CSV 校验与原子正式化 |
-| 编排器发布、资产与索引 | `test_orchestrator_release_index_services.py`、`test_orchestrator_viewer_assets_service.py`、`test_viewer_release.py` | 高层正式化/canonical/Manifest 指针顺序、资产复制与裁剪边界、块先于索引、bundle 回退、URL/SHA-256/确定性 gzip，以及 Run 索引排序/过滤/标签和 JSON→JS 写入 |
+| 编排器发布、资产与索引 | `test_orchestrator_release_index_services.py`、`test_orchestrator_viewer_assets_service.py`、`test_viewer_release.py` | 高层正式化/下游 CSV/Manifest 指针顺序、Release-only 必需资产、浏览器 canonical 禁止、URL/SHA-256/确定性 gzip，以及 Run JSON 索引排序、过滤和标签 |
 | API 与文件协议 | `test_api_snapshot.py`、`test_local_ui.py`、`test_server_routes.py`、`test_http_file_response.py`、`test_cache_save_api_schemas.py` | 固定 Seed JSON、26 个公开路由、缓存清单、存档四动作、已退役路由的 404、请求边界、流式响应、ETag/304、缓存分层和 gzip 协商 |
 | 预测候选与工作区 | `test_forecast_workspace_services.py`、`test_forecast_candidate_generator.py` | 正式 Release/Seed 校验、CSV 行序、候选请求默认值与错误顺序、Manifest 映射、缓存/存档计数和相对路径 |
 | Schema 与配置 | `test_json_schemas.py`、`test_cache_save_api_schemas.py`、`test_config_validation.py` | 2020-12 Schema、真实响应/Manifest、缓存与存档对象/响应，以及 59 份配置的结构、范围、引用、守恒和曲线契约 |
 | Run、缓存、北京经营、玩家服务与存档 | `test_run_cache_service.py`、`test_beijing_operations_service.py`、`test_player_simulation_service.py`、`test_player_action_domains.py`、`test_cache_service.py`、`test_safety_baseline.py` | 缓存命中/锁内复查/执行顺序、北京字段/舍入/空值/财务配对/警告、replay 重试、玩家存档序列化、行动顺序/覆盖/拒绝、项目冷却和冻结配置、两层命令、失败 Manifest、指纹协议和保留 |
 | 后台任务 | `test_background_jobs.py` | 去重、状态、活动上限和错误裁剪 |
-| Viewer 发布 | `test_viewer_release.py` | 数据包哈希、gzip 旁车、兼容复制、失败时不切换指针 |
-| 按需加载 | 三个 `test_*_lazy_loading.py` | 报告/区域/估值分块、哈希、玩家/审计隔离与必需索引 |
+| Viewer 发布 | `test_viewer_release.py` | 数据包哈希、gzip 旁车、下游 CSV 同步、无 canonical 浏览器副本、失败时不切换指针 |
+| 按需加载 | 三个 `test_*_lazy_loading.py` | 报告/区域/城市分块、哈希、玩家/审计隔离、Release-only 启动与必需索引 |
 | 前端结构 | `test_viewer_smoke.py`、`test_viewer_dom_contract.py` | 资源存在、脚本顺序、关键 DOM `id` 唯一 |
 | 包与命令 | `test_airport_sim_cli.py`、`test_package_imports.py` | 唯一统一入口和任意工作目录导入 |
 

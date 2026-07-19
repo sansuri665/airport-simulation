@@ -43,20 +43,12 @@ class ViewerAssetsCompatibilityTests(unittest.TestCase):
 
         with mock.patch.object(
             viewer_assets,
-            "copy_tree_files_exact",
+            "sync_variant_downstream_csv",
             return_value=expected,
-        ) as exact:
-            self.assertIs(expected, orchestrator.copy_tree_files_exact(source, target))
-        self.assertIs(orchestrator.copy_tree_files, exact.call_args.kwargs["copy_tree_files"])
-
-        with mock.patch.object(
-            viewer_assets,
-            "copy_variant_to_legacy_viewer",
-            return_value=expected,
-        ) as legacy:
-            self.assertIs(expected, orchestrator.copy_variant_to_legacy_viewer(source, target))
-        self.assertIs(orchestrator.copy_files, legacy.call_args.kwargs["copy_files"])
-        self.assertIs(orchestrator.copy_tree_files_exact, legacy.call_args.kwargs["copy_tree_files_exact"])
+        ) as downstream:
+            self.assertIs(expected, orchestrator.sync_variant_downstream_csv(source, target))
+        self.assertIs(orchestrator.shutil.copy2, downstream.call_args.kwargs["copy_file"])
+        self.assertIs(orchestrator.copy_files, downstream.call_args.kwargs["copy_files"])
 
     def test_bundle_metadata_and_url_surfaces_keep_existing_mock_points(self) -> None:
         variant = Path("run/baseline")
@@ -85,7 +77,6 @@ class ViewerAssetsCompatibilityTests(unittest.TestCase):
             return_value="global-bundle",
         ) as global_bundle:
             self.assertEqual("global-bundle", orchestrator.build_global_viewer_bundle(variant, "r1"))
-        self.assertEqual(orchestrator.REGION_ORDER, global_bundle.call_args.kwargs["region_order"])
         self.assertIs(orchestrator.viewer_script_source, global_bundle.call_args.kwargs["viewer_script_source"])
 
         with mock.patch.object(viewer_assets, "viewer_script_url", return_value="./asset") as url:
@@ -179,150 +170,20 @@ class CopyUtilityTests(unittest.TestCase):
         self.assertEqual([], copied)
         self.assertFalse(target.exists())
 
-    def test_exact_tree_prunes_only_stale_files_and_preserves_expected_files(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_dir:
-            root = Path(temporary_dir)
-            source = root / "source"
-            target = root / "target"
-            write_text(source / "keep.json", "new")
-            write_text(source / "nested" / "keep.js", "new nested")
-            write_text(target / "keep.json", "old")
-            write_text(target / "nested" / "keep.js", "old nested")
-            write_text(target / "stale.json", "stale")
-            write_text(target / "nested" / "stale.js", "stale nested")
-
-            copied = viewer_assets.copy_tree_files_exact(
-                source,
-                target,
-                copy_tree_files=lambda src, dst: viewer_assets.copy_tree_files(
-                    src,
-                    dst,
-                    copy_file=shutil.copy2,
-                ),
-                resolve_path=lambda path: path.resolve(),
-            )
-
-            self.assertEqual("new", (target / "keep.json").read_text(encoding="utf-8"))
-            self.assertEqual("new nested", (target / "nested" / "keep.js").read_text(encoding="utf-8"))
-            self.assertFalse((target / "stale.json").exists())
-            self.assertFalse((target / "nested" / "stale.js").exists())
-        self.assertEqual(2, len(copied))
-
-    def test_exact_tree_refuses_to_prune_resolved_path_outside_target(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_dir:
-            root = Path(temporary_dir)
-            source = root / "source"
-            target = root / "target"
-            source.mkdir()
-            stale = target / "stale.js"
-            write_text(stale, "stale")
-            outside = root / "outside.js"
-
-            def resolve(path: Path) -> Path:
-                return outside if path == stale else path.absolute()
-
-            with self.assertRaisesRegex(ValueError, "outside Viewer tree"):
-                viewer_assets.copy_tree_files_exact(
-                    source,
-                    target,
-                    copy_tree_files=lambda src, dst: [],
-                    resolve_path=resolve,
-                )
-            self.assertTrue(stale.is_file())
-
-
-class LegacyCanonicalCopyTests(unittest.TestCase):
-    def test_chunks_are_copied_before_global_and_forecast_indexes(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_dir:
-            root = Path(temporary_dir)
-            variant = root / "variant"
-            viewer = root / "viewer"
-            write_text(variant / "global_macro" / "data.js", "global")
-            write_text(variant / "global_macro" / "global_viewer_chunks" / "r.json", "chunk")
-            write_text(variant / "global_macro" / "global_viewer_index.js", "index")
-
-            forecast = variant / "city_airport_potential_passenger_forecast" / "china_mainland"
-            write_text(forecast / "data.js", "forecast data")
-            write_text(forecast / "beijing_forecast_chunks" / "report.json", "report")
-            write_text(forecast / "beijing_forecast_index.js", "forecast index")
-            obsolete = (
-                viewer
-                / "city_airport_potential_passenger_forecast"
-                / "china_mainland"
-                / "beijing_airport_system_potential_passenger_forecast_viewer_data.js"
-            )
-            write_text(obsolete, "obsolete")
-
-            operations = variant / "city_airport_quarterly_operations" / "china_mainland"
-            write_text(operations / "data.js", "operations data")
-            write_text(operations / "beijing_operations_chunks" / "valuation.json", "valuation")
-            write_text(operations / "beijing_operations_index.js", "operations index")
-            events: list[str] = []
-
-            def copy_file(source: Path, target: Path) -> None:
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source, target)
-                events.append(source.name)
-
-            def copy_tree(source: Path, target: Path) -> list[str]:
-                events.append(source.name)
-                return viewer_assets.copy_tree_files(source, target, copy_file=shutil.copy2)
-
-            def copy_exact(source: Path, target: Path) -> list[str]:
-                events.append(source.name)
-                return viewer_assets.copy_tree_files_exact(
-                    source,
-                    target,
-                    copy_tree_files=lambda src, dst: viewer_assets.copy_tree_files(
-                        src,
-                        dst,
-                        copy_file=shutil.copy2,
-                    ),
-                    resolve_path=lambda path: path.resolve(),
-                )
-
-            viewer_assets.copy_variant_to_legacy_viewer(
-                variant,
-                viewer,
-                copy_file=copy_file,
-                copy_files=lambda source, target, pattern="*": [],
-                copy_tree_files=copy_tree,
-                copy_tree_files_exact=copy_exact,
-            )
-
-            self.assertFalse(obsolete.exists())
-            self.assertLess(events.index("global_viewer_chunks"), events.index("global_viewer_index.js"))
-            self.assertLess(events.index("beijing_forecast_chunks"), events.index("beijing_forecast_index.js"))
-            self.assertFalse(
-                (
-                    viewer
-                    / "city_airport_potential_passenger_forecast"
-                    / "china_mainland"
-                    / "data.js"
-                ).exists()
-            )
-            self.assertFalse(
-                (
-                    viewer
-                    / "city_airport_quarterly_operations"
-                    / "china_mainland"
-                    / "beijing_operations_index.js"
-                ).exists()
-            )
-
-    def test_only_runtime_fallbacks_and_standalone_cli_inputs_are_copied(self) -> None:
+class DownstreamCsvExportTests(unittest.TestCase):
+    def test_only_standalone_model_inputs_are_copied(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
             variant = root / "variant"
             viewer = root / "viewer"
             fixtures = {
                 "global_macro/global_macro_feedback_seed_sweep.csv": True,
-                "global_macro/global_macro_feedback_viewer_data.js": True,
+                "global_macro/global_macro_feedback_viewer_data.js": False,
                 "global_macro/global_macro_feedback_seed_sweep.json": False,
                 "regional_macro/r1/r1_regional_macro_seed_sweep.csv": True,
                 "regional_macro/r1/r1_regional_macro_viewer_data.js": False,
                 "regional_macro_reconciled/regional_macro_reconciled_seed_sweep.csv": True,
-                "regional_macro_reconciled/regional_macro_reconciled_viewer_data.js": True,
+                "regional_macro_reconciled/regional_macro_reconciled_viewer_data.js": False,
                 "regional_macro_reconciled/regional_macro_reconciled_summary.json": False,
                 "regional_aviation_demand/r1/r1_aviation_demand_seed_sweep.csv": True,
                 "regional_aviation_demand/r1/r1_aviation_demand_viewer_data.js": False,
@@ -339,7 +200,7 @@ class LegacyCanonicalCopyTests(unittest.TestCase):
             for relative in fixtures:
                 write_text(variant / relative, relative)
 
-            viewer_assets.copy_variant_to_legacy_viewer(
+            viewer_assets.sync_variant_downstream_csv(
                 variant,
                 viewer,
                 copy_file=shutil.copy2,
@@ -348,21 +209,6 @@ class LegacyCanonicalCopyTests(unittest.TestCase):
                     target,
                     pattern,
                     copy_file=shutil.copy2,
-                ),
-                copy_tree_files=lambda source, target: viewer_assets.copy_tree_files(
-                    source,
-                    target,
-                    copy_file=shutil.copy2,
-                ),
-                copy_tree_files_exact=lambda source, target: viewer_assets.copy_tree_files_exact(
-                    source,
-                    target,
-                    copy_tree_files=lambda src, dst: viewer_assets.copy_tree_files(
-                        src,
-                        dst,
-                        copy_file=shutil.copy2,
-                    ),
-                    resolve_path=lambda path: path.resolve(),
                 ),
             )
 
@@ -435,35 +281,39 @@ class BundleContentTests(unittest.TestCase):
             valid,
         )
 
-    def test_global_bundle_prefers_lazy_index_and_legacy_fallback_keeps_region_order(self) -> None:
+    def test_global_bundle_requires_release_only_assets(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             variant = Path(temporary_dir) / "variant"
             lazy = variant / "global_macro" / "global_viewer_index.js"
+            global_data = variant / "global_macro" / "global_macro_feedback_viewer_data.js"
+            reconciled = (
+                variant
+                / "regional_macro_reconciled"
+                / "regional_macro_reconciled_viewer_data.js"
+            )
             write_text(lazy, "window.LAZY = true;")
+            write_text(global_data, "window.GLOBAL = true;")
+            write_text(reconciled, "window.RECONCILED = true;")
             release_info = lambda release_id, path: "window.RELEASE = true;\n"
             lazy_bundle = viewer_assets.build_global_viewer_bundle(
                 variant,
                 "r1",
-                region_order=("b", "a"),
                 viewer_script_source=viewer_assets.viewer_script_source,
                 viewer_release_info_script=release_info,
             )
             lazy.unlink()
-            legacy_bundle = viewer_assets.build_global_viewer_bundle(
-                variant,
-                "r1",
-                region_order=("b", "a"),
-                viewer_script_source=viewer_assets.viewer_script_source,
-                viewer_release_info_script=release_info,
-            )
+            with self.assertRaisesRegex(FileNotFoundError, "Release-only global Viewer assets"):
+                viewer_assets.build_global_viewer_bundle(
+                    variant,
+                    "r1",
+                    viewer_script_source=viewer_assets.viewer_script_source,
+                    viewer_release_info_script=release_info,
+                )
 
         self.assertIn("window.LAZY = true;", lazy_bundle)
-        self.assertNotIn("REGIONAL_MACRO_DATASETS[\"b\"]", lazy_bundle)
-        self.assertLess(
-            legacy_bundle.index('REGIONAL_MACRO_DATASETS["b"]'),
-            legacy_bundle.index('REGIONAL_MACRO_DATASETS["a"]'),
-        )
-        self.assertTrue(legacy_bundle.endswith("window.RELEASE = true;\n"))
+        self.assertIn("window.GLOBAL = true;", lazy_bundle)
+        self.assertIn("window.RECONCILED = true;", lazy_bundle)
+        self.assertTrue(lazy_bundle.endswith("window.RELEASE = true;\n"))
 
     def test_city_and_forecast_bundles_keep_headers_release_info_and_missing_index_error(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:

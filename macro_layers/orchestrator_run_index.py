@@ -134,18 +134,13 @@ def write_run_index(
     *,
     build_run_index: Callable[[Path], dict[str, Any]],
     write_json_file: Callable[[Path, dict[str, Any]], None],
-    atomic_write_text_file: Callable[[Path, str], None],
     airport_relative: Callable[[Path], str],
 ) -> dict[str, Any]:
     output_root.mkdir(parents=True, exist_ok=True)
     payload = build_run_index(output_root)
     json_path = output_root / "macro_run_index.json"
-    js_path = output_root / "macro_run_index.js"
     write_json_file(json_path, payload)
-    js_payload = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
-    atomic_write_text_file(js_path, f"window.MACRO_RUN_INDEX = {js_payload};\n")
     return {
         "index_json": airport_relative(json_path),
-        "index_js": airport_relative(js_path),
         "run_count": len(payload["runs"]),
     }

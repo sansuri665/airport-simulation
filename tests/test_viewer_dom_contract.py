@@ -37,8 +37,6 @@ class ViewerDomContractTests(unittest.TestCase):
         },
         "web/pages/global_gdp_viewer.html": {
             "dataStatus",
-            "runSelect",
-            "variantSelect",
             "viewSelect",
             "scopeSelect",
             "seedSelect",

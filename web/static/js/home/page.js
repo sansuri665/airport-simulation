@@ -13,9 +13,9 @@ const text = (id, value) => {
         text("serviceStateText", "本地服务正常");
         text(
           "releaseMode",
-          release.mode === "versioned_release" ? "版本化发布" : "兼容数据模式"
+          release.mode === "versioned_release" ? "版本化发布" : "发布不可用"
         );
-        text("releaseRun", release.runId || (release.mode === "legacy_canonical" ? "当前 canonical 输出" : "—"));
+        text("releaseRun", release.runId || "—");
         text("releaseVariant", release.variant || "—");
         text("releaseSeed", release.seed ?? "—");
         text("releaseModel", release.modelVersion || `服务 ${status.modelVersion}`);

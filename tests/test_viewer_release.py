@@ -63,6 +63,10 @@ def build_minimal_variant(root: Path) -> Path:
         'window.GLOBAL_MACRO_FEEDBACK_DATA = [{"seed": 7, "year": 2025}];',
     )
     write_script(
+        variant / "global_macro" / "global_viewer_index.js",
+        "window.AIRPORT_GLOBAL_VIEWER_LAZY_INDEX = {regions: []};",
+    )
+    write_script(
         variant / "regional_macro" / "china_mainland" / "china_mainland_regional_macro_viewer_data.js",
         'window.REGIONAL_MACRO_DATA = [{"region_id": "china_mainland", "seed": 7}];',
     )
@@ -142,6 +146,12 @@ class AtomicViewerReleaseTests(unittest.TestCase):
             self.assertEqual(orchestrator.OUTPUT_SCHEMA_VERSION, manifest["output_schema_version"])
             self.assertEqual(3, manifest["bundle_count"])
             self.assertEqual(3, result["bundle_count"])
+            self.assertIn("downstream_csv_copy_count", manifest)
+            self.assertNotIn("canonical_copy_count", manifest)
+            self.assertEqual(
+                manifest["downstream_csv_copy_count"],
+                result["downstream_csv_files"],
+            )
             self.assertGreater(manifest["gzip_file_count"], 0)
             self.assertGreater(manifest["gzip_raw_bytes"], manifest["gzip_bytes"])
             self.assertEqual(manifest["gzip_file_count"], result["gzip_file_count"])
@@ -163,7 +173,8 @@ class AtomicViewerReleaseTests(unittest.TestCase):
             global_bundle = temporary_root / manifest["scripts"]["global_gdp_viewer"].removeprefix("./")
             global_content = global_bundle.read_text(encoding="utf-8")
             self.assertIn("GLOBAL_MACRO_FEEDBACK_DATA", global_content)
-            self.assertIn('REGIONAL_MACRO_DATASETS["china_mainland"]', global_content)
+            self.assertIn("AIRPORT_GLOBAL_VIEWER_LAZY_INDEX", global_content)
+            self.assertNotIn('REGIONAL_MACRO_DATASETS["china_mainland"]', global_content)
             self.assertIn(result["release_id"], (viewer_root / "current_viewer_manifest.js").read_text(encoding="utf-8"))
 
             city_bundle = temporary_root / manifest["scripts"]["city_market_viewer"].removeprefix("./")
@@ -189,8 +200,17 @@ class AtomicViewerReleaseTests(unittest.TestCase):
                     / "beijing_airport_system_quarterly_operations_viewer_data.js"
                 ).exists()
             )
+            self.assertFalse((viewer_root / "global_macro" / "global_viewer_index.js").exists())
+            self.assertFalse(
+                (
+                    viewer_root
+                    / "city_airport_potential_passenger_forecast"
+                    / "china_mainland"
+                    / "beijing_airport_system_forecast_index.js"
+                ).exists()
+            )
 
-    def test_manifest_pointer_is_unchanged_when_compatibility_copy_fails(self) -> None:
+    def test_manifest_pointer_is_unchanged_when_downstream_csv_sync_fails(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             temporary_root = Path(temporary_dir)
             variant = build_minimal_variant(temporary_root)
@@ -203,7 +223,7 @@ class AtomicViewerReleaseTests(unittest.TestCase):
                 mock.patch.object(orchestrator, "AIRPORT_DIR", temporary_root),
                 mock.patch.object(
                     orchestrator,
-                    "copy_variant_to_legacy_viewer",
+                    "sync_variant_downstream_csv",
                     side_effect=RuntimeError("copy failed"),
                 ),
             ):

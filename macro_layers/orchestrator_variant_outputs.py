@@ -22,25 +22,14 @@ class VariantOutputDependencies:
     financial_state_fields: Collection[str]
     valuation_forecast_fields: Collection[str]
     potential_passenger_forecast_config_dir: Path
-    financial_state_config_dir: Path
-    valuation_forecast_config_dir: Path
     load_potential_passenger_forecast_config: Any
-    load_financial_state_config: Any
-    load_valuation_forecast_config: Any
     write_csv_file: Callable[[Path, list[dict[str, Any]], Collection[str]], None]
     write_json_file: Callable[[Path, dict[str, Any]], None]
     write_global_viewer_data_js: Callable[[Path, list[dict[str, Any]]], None]
-    write_regional_viewer_data_js: Callable[[Path, list[dict[str, Any]]], None]
     write_reconciliation_viewer_js: Callable[..., None]
-    write_aviation_viewer_data_js: Callable[[Path, list[dict[str, Any]]], None]
-    write_supply_viewer_data_js: Callable[[Path, list[dict[str, Any]]], None]
     write_global_viewer_lazy_assets: Callable[..., Any]
-    write_city_airport_viewer_data_js: Callable[[Path, list[dict[str, Any]]], None]
     load_city_configs_by_market: Callable[[Path, Any], dict[str, dict[str, Any]]]
     write_potential_passenger_forecast_lazy_assets: Callable[..., Any]
-    write_quarterly_operations_viewer_data_js: Callable[[Path, list[dict[str, Any]]], None]
-    write_financial_state_viewer_data_js: Callable[..., None]
-    write_valuation_forecast_viewer_data_js: Callable[..., None]
     write_operations_viewer_lazy_assets: Callable[..., Any]
 
 
@@ -117,12 +106,6 @@ def write_variant_outputs(
                 ],
             },
         )
-        if write_viewer_artifacts:
-            dependencies.write_regional_viewer_data_js(
-                region_dir / f"{region_id}_regional_macro_viewer_data.js",
-                rows,
-            )
-
     dependencies.write_csv_file(
         reconciled_dir / "regional_macro_reconciled_seed_sweep.csv",
         regional_result["reconciled_rows"],
@@ -187,12 +170,6 @@ def write_variant_outputs(
                 ],
             },
         )
-        if write_viewer_artifacts:
-            dependencies.write_aviation_viewer_data_js(
-                region_dir / f"{region_id}_aviation_demand_viewer_data.js",
-                rows,
-            )
-
     for region_id, rows in regional_result.get(
         "supply_rows_by_region",
         {},
@@ -219,12 +196,6 @@ def write_variant_outputs(
                 ],
             },
         )
-        if write_viewer_artifacts:
-            dependencies.write_supply_viewer_data_js(
-                region_dir / f"{region_id}_air_capacity_supply_viewer_data.js",
-                rows,
-            )
-
     if write_viewer_artifacts:
         dependencies.write_global_viewer_lazy_assets(global_dir, regional_result)
 
@@ -258,12 +229,6 @@ def write_variant_outputs(
                 ],
             },
         )
-        if write_viewer_artifacts:
-            dependencies.write_city_airport_viewer_data_js(
-                region_dir / f"{market_id}_city_airport_demand_viewer_data.js",
-                rows,
-            )
-
     for market_id, rows in regional_result.get(
         "potential_passenger_forecast_rows_by_market",
         {},
@@ -330,12 +295,6 @@ def write_variant_outputs(
                 "summary": summary,
             },
         )
-        if write_viewer_artifacts:
-            dependencies.write_quarterly_operations_viewer_data_js(
-                region_dir / f"{market_id}_quarterly_operations_viewer_data.js",
-                rows,
-            )
-
     for market_id, rows in regional_result.get(
         "financial_state_rows_by_market",
         {},
@@ -363,17 +322,6 @@ def write_variant_outputs(
                 "summary": summary,
             },
         )
-        if write_viewer_artifacts:
-            financial_config = dependencies.load_city_configs_by_market(
-                dependencies.financial_state_config_dir,
-                dependencies.load_financial_state_config,
-            ).get(market_id, {})
-            dependencies.write_financial_state_viewer_data_js(
-                region_dir / f"{market_id}_financial_state_viewer_data.js",
-                rows,
-                financial_config,
-            )
-
     for market_id, rows in regional_result.get(
         "valuation_forecast_rows_by_market",
         {},
@@ -401,17 +349,6 @@ def write_variant_outputs(
                 "summary": summary,
             },
         )
-        if write_viewer_artifacts:
-            valuation_config = dependencies.load_city_configs_by_market(
-                dependencies.valuation_forecast_config_dir,
-                dependencies.load_valuation_forecast_config,
-            ).get(market_id, {})
-            dependencies.write_valuation_forecast_viewer_data_js(
-                region_dir / f"{market_id}_valuation_forecast_viewer_data.js",
-                rows,
-                valuation_config,
-            )
-
     if write_viewer_artifacts:
         for market_id, quarterly_rows in regional_result.get(
             "quarterly_operations_rows_by_market",

@@ -5,10 +5,12 @@
   "type": "object",
   "required": [
     "schema_version", "release_id", "run_id", "variant", "generated_at", "source_variant", "release_path",
-    "scripts", "bundle_sha256", "bundle_count", "canonical_copy_count"
+    "scripts", "bundle_sha256", "bundle_count"
   ],
   "properties": {
-    "schema_version": { "const": "airport-viewer-release-manifest-v1" },
+    "schema_version": {
+      "enum": ["airport-viewer-release-manifest-v1", "airport-viewer-release-manifest-v2"]
+    },
     "release_id": { "type": "string", "minLength": 1 },
     "run_id": { "type": "string", "minLength": 1 },
     "variant": { "type": "string", "minLength": 1 },
@@ -31,6 +33,7 @@
     },
     "bundle_count": { "type": "integer", "minimum": 3 },
     "canonical_copy_count": { "type": "integer", "minimum": 0 },
+    "downstream_csv_copy_count": { "type": "integer", "minimum": 0 },
     "gzip_file_count": { "type": "integer", "minimum": 0 },
     "gzip_raw_bytes": { "type": "integer", "minimum": 0 },
     "gzip_bytes": { "type": "integer", "minimum": 0 }

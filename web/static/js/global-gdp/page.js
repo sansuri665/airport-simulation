@@ -2,9 +2,9 @@
 
     loadRows()
       .then(async (rows) => {
-        state.canonicalData = captureViewerData(rows);
+        state.releaseData = captureViewerData(rows);
         state.dataLabel = "当前输出";
-        await applyViewerData(state.canonicalData, "global", null);
+        await applyViewerData(state.releaseData, "global", null);
         setupControls();
         render();
       })

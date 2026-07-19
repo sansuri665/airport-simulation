@@ -160,25 +160,14 @@ def make_dependencies(
         financial_state_fields=fields["financial_fields"],
         valuation_forecast_fields=fields["valuation_fields"],
         potential_passenger_forecast_config_dir=Path("forecast-config"),
-        financial_state_config_dir=Path("financial-config"),
-        valuation_forecast_config_dir=Path("valuation-config"),
         load_potential_passenger_forecast_config="forecast-loader",
-        load_financial_state_config="financial-loader",
-        load_valuation_forecast_config="valuation-loader",
         write_csv_file=record("csv"),
         write_json_file=record("json"),
         write_global_viewer_data_js=record("global_viewer"),
-        write_regional_viewer_data_js=record("regional_viewer"),
         write_reconciliation_viewer_js=record("reconciliation_viewer"),
-        write_aviation_viewer_data_js=record("aviation_viewer"),
-        write_supply_viewer_data_js=record("supply_viewer"),
         write_global_viewer_lazy_assets=record("global_lazy"),
-        write_city_airport_viewer_data_js=record("city_viewer"),
         load_city_configs_by_market=load_configs,
         write_potential_passenger_forecast_lazy_assets=record("forecast_lazy"),
-        write_quarterly_operations_viewer_data_js=record("operations_viewer"),
-        write_financial_state_viewer_data_js=record("financial_viewer"),
-        write_valuation_forecast_viewer_data_js=record("valuation_viewer"),
         write_operations_viewer_lazy_assets=record("operations_lazy"),
     )
 
@@ -212,21 +201,12 @@ class VariantOutputCompatibilityTests(unittest.TestCase):
             "write_csv_file": orchestrator.write_csv_file,
             "write_json_file": orchestrator.write_json_file,
             "write_global_viewer_data_js": orchestrator.write_global_viewer_data_js,
-            "write_regional_viewer_data_js": orchestrator.write_regional_viewer_data_js,
             "write_reconciliation_viewer_js": orchestrator.write_reconciliation_viewer_js,
-            "write_aviation_viewer_data_js": orchestrator.write_aviation_viewer_data_js,
-            "write_supply_viewer_data_js": orchestrator.write_supply_viewer_data_js,
             "write_global_viewer_lazy_assets": orchestrator.write_global_viewer_lazy_assets,
-            "write_city_airport_viewer_data_js": orchestrator.write_city_airport_viewer_data_js,
             "load_city_configs_by_market": orchestrator.load_city_configs_by_market,
             "write_potential_passenger_forecast_lazy_assets": (
                 orchestrator.write_potential_passenger_forecast_lazy_assets
             ),
-            "write_quarterly_operations_viewer_data_js": (
-                orchestrator.write_quarterly_operations_viewer_data_js
-            ),
-            "write_financial_state_viewer_data_js": orchestrator.write_financial_state_viewer_data_js,
-            "write_valuation_forecast_viewer_data_js": orchestrator.write_valuation_forecast_viewer_data_js,
             "write_operations_viewer_lazy_assets": orchestrator.write_operations_viewer_lazy_assets,
         }
         for name, expected in expected_functions.items():
@@ -237,14 +217,6 @@ class VariantOutputCompatibilityTests(unittest.TestCase):
         self.assertIs(
             orchestrator.load_potential_passenger_forecast_config,
             dependencies.load_potential_passenger_forecast_config,
-        )
-        self.assertIs(
-            orchestrator.load_financial_state_config,
-            dependencies.load_financial_state_config,
-        )
-        self.assertIs(
-            orchestrator.load_valuation_forecast_config,
-            dependencies.load_valuation_forecast_config,
         )
 
     def test_new_variant_output_module_is_a_seed_cache_dependency(self) -> None:
@@ -262,14 +234,10 @@ class VariantOutputOrderTests(unittest.TestCase):
     def test_full_profile_keeps_writer_order_paths_and_base_field_mapping(self) -> None:
         events: list[tuple[str, tuple[object, ...]]] = []
         forecast_config = {"kind": "forecast-config"}
-        financial_config = {"kind": "financial-config"}
-        valuation_config = {"kind": "valuation-config"}
         dependencies = make_dependencies(
             events,
             config_maps={
                 Path("forecast-config"): {"m1": forecast_config},
-                Path("financial-config"): {"m1": financial_config},
-                Path("valuation-config"): {"m1": valuation_config},
             },
         )
         variant_dir = Path("variant")
@@ -288,16 +256,16 @@ class VariantOutputOrderTests(unittest.TestCase):
         self.assertEqual(
             [
                 "csv", "json", "global_viewer",
-                "csv", "json", "regional_viewer",
+                "csv", "json",
                 "csv", "csv", "json", "json", "reconciliation_viewer",
-                "csv", "json", "aviation_viewer",
-                "csv", "json", "supply_viewer",
+                "csv", "json",
+                "csv", "json",
                 "global_lazy",
-                "csv", "json", "city_viewer",
+                "csv", "json",
                 "csv", "json", "load_configs", "forecast_lazy",
-                "csv", "json", "operations_viewer",
-                "csv", "json", "load_configs", "financial_viewer",
-                "csv", "json", "load_configs", "valuation_viewer",
+                "csv", "json",
+                "csv", "json",
+                "csv", "json",
                 "operations_lazy",
                 "json",
             ],
@@ -338,23 +306,14 @@ class VariantOutputOrderTests(unittest.TestCase):
             [args[0].relative_to(variant_dir).as_posix() for args in csv_events],
         )
         self.assertIs(forecast_config, next(args for name, args in events if name == "forecast_lazy")[2])
-        self.assertIs(financial_config, next(args for name, args in events if name == "financial_viewer")[2])
-        self.assertIs(valuation_config, next(args for name, args in events if name == "valuation_viewer")[2])
 
     def test_non_full_profiles_write_no_viewer_assets_and_do_not_load_configs(self) -> None:
         forbidden = {
             "global_viewer",
-            "regional_viewer",
             "reconciliation_viewer",
-            "aviation_viewer",
-            "supply_viewer",
             "global_lazy",
-            "city_viewer",
             "load_configs",
             "forecast_lazy",
-            "operations_viewer",
-            "financial_viewer",
-            "valuation_viewer",
             "operations_lazy",
         }
         for profile in ("seed-cache", "unknown-profile"):
@@ -489,14 +448,10 @@ class VariantOutputPayloadTests(unittest.TestCase):
             "m3": [{"region_id": "r3", "operations": 3}],
         }
         forecast_m2 = {"forecast": 2}
-        financial_m1 = {"financial": 1}
-        valuation_m2 = {"valuation": 2}
         dependencies = make_dependencies(
             events,
             config_maps={
                 Path("forecast-config"): {"m2": forecast_m2},
-                Path("financial-config"): {"m1": financial_m1},
-                Path("valuation-config"): {"m2": valuation_m2},
             },
         )
 
@@ -515,20 +470,12 @@ class VariantOutputPayloadTests(unittest.TestCase):
         self.assertEqual(
             [
                 Path("forecast-config"), Path("forecast-config"),
-                Path("financial-config"), Path("financial-config"),
-                Path("valuation-config"), Path("valuation-config"),
             ],
             [args[0] for args in load_events],
         )
         forecast_events = [args for name, args in events if name == "forecast_lazy"]
         self.assertIs(forecast_m2, forecast_events[0][2])
         self.assertEqual({}, forecast_events[1][2])
-        financial_events = [args for name, args in events if name == "financial_viewer"]
-        self.assertEqual({}, financial_events[0][2])
-        self.assertIs(financial_m1, financial_events[1][2])
-        valuation_events = [args for name, args in events if name == "valuation_viewer"]
-        self.assertIs(valuation_m2, valuation_events[0][2])
-        self.assertEqual({}, valuation_events[1][2])
 
         operations_events = [args for name, args in events if name == "operations_lazy"]
         self.assertEqual(["m1", "m3"], [args[1] for args in operations_events])
