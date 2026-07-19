@@ -11,6 +11,7 @@ FORECAST_RELATIVE_CSV = Path(
     "baseline/city_airport_potential_passenger_forecast/china_mainland/"
     "beijing_airport_system_potential_passenger_forecast_seed_sweep.csv"
 )
+RUN_MANIFEST_RELATIVE_PATH = Path("manifest.json")
 DATA_MODES = frozenset({"player", "audit"})
 
 
@@ -85,10 +86,36 @@ def _forecast_rows(
     seed: int,
     years: int,
     ensure_inside: Callable[[Path, Path], Path],
+    read_json: Callable[[Path], dict[str, Any]],
     read_csv: Callable[[Path], list[dict[str, str]]],
     decode_rows: Callable[..., list[dict[str, Any]]],
     null_fields: frozenset[str],
 ) -> list[dict[str, Any]]:
+    manifest_path = ensure_inside(
+        run_dir,
+        run_dir / RUN_MANIFEST_RELATIVE_PATH,
+    )
+    if not manifest_path.is_file():
+        raise FileNotFoundError(f"Seed 缓存缺少 Run Manifest: {manifest_path}")
+    manifest = read_json(manifest_path)
+    try:
+        manifest_seed = int(manifest.get("seed"))
+        start_year = int(manifest.get("start_year"))
+        manifest_years = int(manifest.get("years"))
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise ForecastViewerContextUnavailableError(
+            "北京预测缓存 Manifest 缺少可校验的 Seed 或年份上下文"
+        ) from exc
+    if manifest_seed != seed:
+        raise ForecastViewerContextUnavailableError(
+            "北京预测缓存 Manifest Seed 与请求上下文不一致"
+        )
+    if manifest_years != years:
+        raise ForecastViewerContextUnavailableError(
+            "北京预测缓存年数与请求上下文不一致"
+        )
+    final_year = start_year + manifest_years
+
     csv_path = ensure_inside(run_dir, run_dir / FORECAST_RELATIVE_CSV)
     if not csv_path.is_file():
         raise FileNotFoundError(f"Seed 缓存缺少北京预测 CSV: {csv_path}")
@@ -107,8 +134,15 @@ def _forecast_rows(
         raise ForecastViewerContextUnavailableError("北京预测缓存 Seed 与请求上下文不一致")
     if not as_of_years or not forecast_years:
         raise ForecastViewerContextUnavailableError("北京预测缓存年份为空")
-    if max(forecast_years) - min(as_of_years) != years:
-        raise ForecastViewerContextUnavailableError("北京预测缓存年数与请求上下文不一致")
+    if (
+        min(as_of_years) < start_year
+        or max(as_of_years) > final_year
+        or min(forecast_years) < start_year
+        or max(forecast_years) > final_year
+    ):
+        raise ForecastViewerContextUnavailableError(
+            "北京预测缓存年份超出 Run Manifest 时间范围"
+        )
     return rows
 
 
@@ -122,6 +156,7 @@ def index_payload(
     run_id_for: Callable[[int, int], str],
     ensure_inside: Callable[[Path, Path], Path],
     lock_for_run: Callable[[str], ContextManager[None]],
+    read_json: Callable[[Path], dict[str, Any]],
     read_csv: Callable[[Path], list[dict[str, str]]],
     read_config: Callable[[Path], dict[str, Any]],
     config_path: Path,
@@ -146,6 +181,7 @@ def index_payload(
             seed=seed,
             years=years,
             ensure_inside=ensure_inside,
+            read_json=read_json,
             read_csv=read_csv,
             decode_rows=decode_rows,
             null_fields=null_fields,
@@ -178,6 +214,7 @@ def report_payload(
     run_id_for: Callable[[int, int], str],
     ensure_inside: Callable[[Path, Path], Path],
     lock_for_run: Callable[[str], ContextManager[None]],
+    read_json: Callable[[Path], dict[str, Any]],
     read_csv: Callable[[Path], list[dict[str, str]]],
     decode_rows: Callable[..., list[dict[str, Any]]],
     null_fields: frozenset[str],
@@ -201,6 +238,7 @@ def report_payload(
             seed=seed,
             years=years,
             ensure_inside=ensure_inside,
+            read_json=read_json,
             read_csv=read_csv,
             decode_rows=decode_rows,
             null_fields=null_fields,
