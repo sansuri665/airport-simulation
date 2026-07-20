@@ -58,26 +58,31 @@ class FixedSeedCharacterizationTests(unittest.TestCase):
     """Protect the current numerical model before structural refactoring."""
 
     EXPECTED = {
-        "global": (13, "c68446bfb269bbbbf1809c210c14dc9b5375708c8b78b2a0f54ef1b97008570b"),
-        "reconciled": (182, "0f7cc109c94ff7460d5d23204ed4913cdb255ff6fbd380222a9a78cdc9623feb"),
-        "aviation_china": (13, "2937efb00e477fda05ec25f1c088dbfab5b998c51c3e3002e802897577638969"),
-        "supply_china": (13, "c65d63da0a55e2303a51d3a05f44668165eecf12f9ac2a4d2d11f4a9b41ba887"),
-        "city_beijing": (13, "a27d58f756384a3ac66ceefddd54d5e46ef3e3c4cfc0c08d77004849c9c4dcc7"),
-        "forecast_beijing": (361, "a38a80b0b00fc7bb6c832b05f4303b9aa7261d2fb5783ff20609fb13b9f68e7b"),
-        "operations_beijing": (52, "749300a1e9b449e3a342b5b72b1804af1a97d173351c285087d80b446222a674"),
-        "finance_beijing": (52, "b36baa4d427a65d39f067753349af5a39c3d7719f2dccc75f95b6349250f20fd"),
-        "valuation_beijing": (32, "6f8d2c2855c52d1203ff0d0b68962a3fd54817f10b0f4cfd337ff43ff6ad11f0"),
+        # Baseline refreshed for macro-feedback-interface-v0.2 + regional-macro-
+        # reconciliation-interface-v0.4 (Working Guide sub-Goal 1.1 + 1.2). 1.1 stops
+        # the orchestrator from zeroing macro raw diagnostics and intensity; 1.2
+        # re-clamps reconciled regional fields to their published boundaries. Both
+        # change the fixed-Seed numerical path by design.
+        "global": (13, "55a20cec54c9db2de0751313861cff98cf47dcb371f06b909f607d5940b35d26"),
+        "reconciled": (182, "83aecfa3cffe408a07dfd71ddec5f41983bf06d5d10bc414f95bed74acadbc80"),
+        "aviation_china": (13, "e160c8ce8c338e5ff9cc2fcc30f820aabc05026f7988aeb204197322a27d744c"),
+        "supply_china": (13, "a686d0021dc591929f88f3720fd140a619b62ef923f8b66959e04e67e9a611a9"),
+        "city_beijing": (13, "cf485116d025ac1c1d8538bd79915252fa4df4816b613549547fb5c1d8cf1b7f"),
+        "forecast_beijing": (361, "9392dad5022de20c6cd66a256feb592565dacb8ec118e871f82384d9e1505c2b"),
+        "operations_beijing": (52, "741b1546f0f7e90b9f080c67ceff982614f5f0907aca5fd08f78954ab0d3d094"),
+        "finance_beijing": (52, "8e577a6601c6787756f1a23f73b5f5f82e33a9c969b41da72c84d0da321f884b"),
+        "valuation_beijing": (32, "dd81336cae764475f6e6e1343ca9df5099657f1bac3785c08e5b306f6dfecf81"),
     }
     CANONICAL_PYTHON_313_EXPECTED = {
-        "global": (13, "bc8049043a8a3e05fd70c1d57d9419ecccdab5f5dce2997201e577b146350f4b"),
-        "reconciled": (182, "58a32aa5e4880708d6ac20d7818880833111d95bcbe7431f260b08642801d432"),
-        "aviation_china": (13, "d99ebde1fbf861304227889e48311b2496a82302921d05db900fd169d958e7fb"),
-        "supply_china": (13, "dcca960c482f1266b7329bf2bc083a62818dbfd9062683271b40b8c93f777875"),
-        "city_beijing": (13, "11f9767973c1060628dce7c83ed744edc6d803a77d10bc690cae9d90c7bcbc00"),
-        "forecast_beijing": (361, "a38a80b0b00fc7bb6c832b05f4303b9aa7261d2fb5783ff20609fb13b9f68e7b"),
-        "operations_beijing": (52, "749300a1e9b449e3a342b5b72b1804af1a97d173351c285087d80b446222a674"),
-        "finance_beijing": (52, "5490edf7550563cc7c9536c8477ac45d618f583931eb14b4fccc931dcecd9afd"),
-        "valuation_beijing": (32, "6f8d2c2855c52d1203ff0d0b68962a3fd54817f10b0f4cfd337ff43ff6ad11f0"),
+        "global": (13, "8dad361613c6831594a106176c98b66a7ed588cde8c31df4cfadb47b6e5d4514"),
+        "reconciled": (182, "51b091f048d2ac87c6c72a935d2e00845f9545f68bebf5a8cde364c806f8c7e8"),
+        "aviation_china": (13, "3fba22440eea685563e7cb649f06fbed83e0811f8ebbf5c90ff4a92f804bb17c"),
+        "supply_china": (13, "b6d6beb1c378f6b09cbc9b5ecc21a9e84035672b9195a06881e36548d8864fbf"),
+        "city_beijing": (13, "8c0069aa5cd2cf64f43ae42d120b7a20f4fa72098fc1d85643b1efeef55f97cc"),
+        "forecast_beijing": (361, "9392dad5022de20c6cd66a256feb592565dacb8ec118e871f82384d9e1505c2b"),
+        "operations_beijing": (52, "741b1546f0f7e90b9f080c67ceff982614f5f0907aca5fd08f78954ab0d3d094"),
+        "finance_beijing": (52, "13e7bf8c0b18ac9ac6ca0fda2c0eba548eb70de2bea3999c057d12edb3e1dbdc"),
+        "valuation_beijing": (32, "dd81336cae764475f6e6e1343ca9df5099657f1bac3785c08e5b306f6dfecf81"),
     }
 
     @classmethod

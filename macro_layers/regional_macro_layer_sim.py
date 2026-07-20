@@ -49,6 +49,20 @@ REGIONAL_MACRO_INTERFACE_VERSION = "regional-macro-interface-v0.3"
 REGIONAL_BRANCH_TRANSMISSION_VERSION = "regional-branch-transmission-v0.1"
 REGIONAL_STRUCTURAL_SEED_VERSION = "regional-structural-seed-v0.1"
 
+# Published hard bounds shared by the raw regional layer and the reconciliation
+# layer. Policy-rate bounds remain region-specific and live on RegionalMacroParams.
+REGIONAL_RECONCILED_FIELD_BOUNDS: dict[str, tuple[float, float]] = {
+    "regional_headline_inflation_pct": (-1.0, 8.8),
+    "regional_core_inflation_pct": (-0.2, 6.8),
+    "regional_10y_yield_pct": (0.05, 11.0),
+    "regional_macro_stress_index": (0.0, 100.0),
+    "regional_energy_cost_pressure_index": (0.0, 100.0),
+    "regional_equity_valuation_pe": (7.0, 34.0),
+    "regional_hy_spread_bps": (150.0, 2_200.0),
+    "regional_ig_spread_bps": (55.0, 620.0),
+    "regional_equity_return_pct": (-42.0, 48.0),
+}
+
 
 REGIONAL_MACRO_FIELDS = [
     "regional_macro_param_version",
@@ -1945,7 +1959,10 @@ def simulate_region_for_global_path(
         )
         raw_headline = clamp(smooth(prev_headline, raw_headline, 0.48), -0.8, 8.5)
         inflation_adjustment = clamp((global_headline - raw_headline) * anchor_strength * 0.74, -0.75, 0.75)
-        regional_headline = clamp(raw_headline + inflation_adjustment, -1.0, 8.8)
+        regional_headline = clamp(
+            raw_headline + inflation_adjustment,
+            *REGIONAL_RECONCILED_FIELD_BOUNDS["regional_headline_inflation_pct"],
+        )
 
         raw_core = (
             0.66 * global_core
@@ -1956,7 +1973,12 @@ def simulate_region_for_global_path(
             )
             + inflation_noise * 0.45
         )
-        regional_core = clamp(smooth(prev_core, raw_core, 0.40) + inflation_adjustment * 0.42 + branch_inflation * 0.36, -0.2, 6.8)
+        regional_core = clamp(
+            smooth(prev_core, raw_core, 0.40)
+            + inflation_adjustment * 0.42
+            + branch_inflation * 0.36,
+            *REGIONAL_RECONCILED_FIELD_BOUNDS["regional_core_inflation_pct"],
+        )
         regional_energy = clamp(
             0.72 * global_energy + 0.20 * oil_yoy * region.energy_import_sensitivity + inflation_noise * 1.8 + branch_energy * 0.22,
             -8.0,
@@ -2052,7 +2074,14 @@ def simulate_region_for_global_path(
             + branch_policy * 0.45
             + branch_credit / 550.0
         )
-        regional_10y = clamp(raw_10y + (global_10y - raw_10y) * anchor_strength * 0.68 * region.rate_anchor_weight, 0.05, 11.0)
+        regional_10y = clamp(
+            raw_10y
+            + (global_10y - raw_10y)
+            * anchor_strength
+            * 0.68
+            * region.rate_anchor_weight,
+            *REGIONAL_RECONCILED_FIELD_BOUNDS["regional_10y_yield_pct"],
+        )
         regional_real_10y = regional_10y - regional_expectation
         regional_term_spread = clamp(
             global_term_spread
@@ -2101,8 +2130,14 @@ def simulate_region_for_global_path(
             - 17.5 * policy_support_index
         )
         credit_adjustment = clamp((global_hy - raw_hy) * anchor_strength * 0.52, -140.0, 140.0)
-        regional_ig = clamp(raw_ig + credit_adjustment * 0.18 + branch_credit * 0.24, 55.0, 620.0)
-        regional_hy = clamp(raw_hy + credit_adjustment + branch_credit, 150.0, 2_200.0)
+        regional_ig = clamp(
+            raw_ig + credit_adjustment * 0.18 + branch_credit * 0.24,
+            *REGIONAL_RECONCILED_FIELD_BOUNDS["regional_ig_spread_bps"],
+        )
+        regional_hy = clamp(
+            raw_hy + credit_adjustment + branch_credit,
+            *REGIONAL_RECONCILED_FIELD_BOUNDS["regional_hy_spread_bps"],
+        )
         default_risk = clamp(
             0.72 * global_default
             + 0.030 * max(0.0, regional_hy - 450.0)
@@ -2181,7 +2216,10 @@ def simulate_region_for_global_path(
             + asset_noise
         )
         equity_adjustment = clamp((global_equity_return - raw_equity_return) * anchor_strength * 0.42, -5.5, 5.5)
-        regional_equity_return = clamp(raw_equity_return + equity_adjustment, -42.0, 48.0)
+        regional_equity_return = clamp(
+            raw_equity_return + equity_adjustment,
+            *REGIONAL_RECONCILED_FIELD_BOUNDS["regional_equity_return_pct"],
+        )
         regional_equity_valuation_pe = clamp(
             global_equity_valuation_pe
             + 0.24 * (regional_growth - global_growth)
@@ -2189,8 +2227,7 @@ def simulate_region_for_global_path(
             - 0.55 * max(0.0, regional_real_10y - global_real_10y)
             - 0.0025 * max(0.0, regional_hy - global_hy)
             + 0.025 * branch_asset,
-            7.0,
-            34.0,
+            *REGIONAL_RECONCILED_FIELD_BOUNDS["regional_equity_valuation_pe"],
         )
         raw_bond_return = (
             region.bond_global_beta * global_bond_return
@@ -2223,8 +2260,7 @@ def simulate_region_for_global_path(
             - 0.05 * (regional_currency - 100.0)
             + 2.2 * region.energy_import_sensitivity
             + branch_energy,
-            0.0,
-            100.0,
+            *REGIONAL_RECONCILED_FIELD_BOUNDS["regional_energy_cost_pressure_index"],
         )
         terms_of_trade = clamp(
             50.0
@@ -2277,8 +2313,7 @@ def simulate_region_for_global_path(
             + 0.10 * max(0.0, regional_headline - 3.2) * 10.0
             + 0.04 * geopolitical_risk
             + branch_stress * 0.45,
-            0.0,
-            100.0,
+            *REGIONAL_RECONCILED_FIELD_BOUNDS["regional_macro_stress_index"],
         )
 
         adjustment_index = (

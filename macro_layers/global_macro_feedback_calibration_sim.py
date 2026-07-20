@@ -57,7 +57,7 @@ simulate_yield_curve_for_policy_path = yield_curve_layer.simulate_yield_curve_fo
 
 
 MACRO_FEEDBACK_PARAM_VERSION = "global-macro-feedback-calibration-v0.1"
-MACRO_FEEDBACK_INTERFACE_VERSION = "macro-feedback-interface-v0.1"
+MACRO_FEEDBACK_INTERFACE_VERSION = "macro-feedback-interface-v0.2"
 
 
 MACRO_FEEDBACK_FIELDS = [
@@ -132,6 +132,41 @@ class MacroFeedbackParams:
 
 def smooth(old: float, target: float, speed: float) -> float:
     return old * (1.0 - speed) + target * speed
+
+
+# Diagnostic fields produced by the feedback calibration layer. These describe
+# the macro feedback itself; scenario branch impulses must never be folded into
+# them when the two feedback paths are merged in the orchestrator.
+MACRO_FEEDBACK_RAW_FIELDS = (
+    "macro_feedback_growth_raw_pct",
+    "macro_feedback_stress_raw",
+    "macro_feedback_inflation_raw_pct",
+    "macro_feedback_policy_raw_pct",
+)
+
+
+def macro_feedback_intensity_from_applied(
+    growth_applied: float,
+    stress_applied: float,
+    inflation_applied: float,
+    policy_applied: float,
+) -> float:
+    """Recompute the macro feedback intensity index from the final applied impulses.
+
+    The intensity index measures how active macro feedback is in a given year. It is
+    a function of the applied macro impulses only, so it is recomputed here from the
+    macro-applied values whenever feedback paths are merged instead of carrying a
+    possibly-stale blended value. Scenario branch impulses do not contribute, so a
+    scenario cannot masquerade as macro feedback intensity.
+    """
+    return clamp(
+        24.0 * abs(growth_applied)
+        + 2.0 * max(0.0, stress_applied)
+        + 18.0 * abs(inflation_applied)
+        + 18.0 * abs(policy_applied),
+        0.0,
+        100.0,
+    )
 
 
 def calibrated_gdp_params(args: argparse.Namespace) -> GDPParams:
@@ -314,13 +349,11 @@ def derive_feedback_path(records: list[dict[str, Any]], params: MacroFeedbackPar
             params.max_policy_tightening_pct,
         )
 
-        intensity = clamp(
-            24.0 * abs(growth_applied)
-            + 2.0 * max(0.0, stress_applied)
-            + 18.0 * abs(inflation_applied)
-            + 18.0 * abs(policy_applied),
-            0.0,
-            100.0,
+        intensity = macro_feedback_intensity_from_applied(
+            growth_applied,
+            stress_applied,
+            inflation_applied,
+            policy_applied,
         )
         feedback_by_year[target_index] = {
             "feedback_growth_impulse_pct": growth_applied,

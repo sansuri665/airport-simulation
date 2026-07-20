@@ -80,6 +80,8 @@ simulate_valuation_forecast = valuation_layer.simulate_valuation_forecast
 summarize_valuation_forecast = valuation_layer.summarize
 
 COMBINED_MACRO_FEEDBACK_FIELDS = global_feedback_layer.COMBINED_MACRO_FEEDBACK_FIELDS
+MACRO_FEEDBACK_RAW_FIELDS = global_feedback_layer.MACRO_FEEDBACK_RAW_FIELDS
+macro_feedback_intensity_from_applied = global_feedback_layer.macro_feedback_intensity_from_applied
 annotate_feedback_records = global_feedback_layer.annotate_feedback_records
 blend_feedback_paths = global_feedback_layer.blend_feedback_paths
 convergence_summary = global_feedback_layer.convergence_summary
@@ -140,6 +142,14 @@ FEEDBACK_NUMERIC_FIELDS = (
     "feedback_inflation_impulse_pct",
     "feedback_policy_impulse_pct",
 )
+
+# Macro feedback diagnostic fields carried alongside the applied impulses. The raw
+# diagnostics describe the macro calibration layer's own measurement of stress; they
+# are preserved verbatim from the macro feedback path and never blended with scenario
+# impulses. The intensity index is recomputed from the merged macro-applied impulses
+# (see merge_feedback_paths) rather than carried, so a scenario cannot masquerade as
+# macro feedback intensity.
+MACRO_FEEDBACK_INTENSITY_FIELD = "macro_feedback_intensity_index"
 
 SCENARIO_NUMERIC_FIELDS = (
     "scenario_impact_years",
@@ -1323,13 +1333,42 @@ def merge_feedback_paths(
         row: dict[str, Any] = {}
         macro_row = macro_feedback.get(year_index, {})
         scenario_row = (scenario_feedback or {}).get(year_index, {})
+
+        # Applied impulses are additive: the final run receives macro feedback plus
+        # any active scenario branch impulse. Keep both the macro-only and the
+        # merged totals so downstream intensity can be recomputed from macro alone.
+        macro_growth_applied = to_float(macro_row.get("feedback_growth_impulse_pct"))
+        macro_stress_applied = to_float(macro_row.get("feedback_financial_stress_impulse"))
+        macro_inflation_applied = to_float(macro_row.get("feedback_inflation_impulse_pct"))
+        macro_policy_applied = to_float(macro_row.get("feedback_policy_impulse_pct"))
         for field in FEEDBACK_NUMERIC_FIELDS:
             value = to_float(macro_row.get(field)) + to_float(scenario_row.get(field))
             if value:
                 row[field] = compact_float(value)
+
         sources = [str(item) for item in (macro_row.get("feedback_source"), scenario_row.get("feedback_source")) if item]
         if sources:
             row["feedback_source"] = "+".join(dict.fromkeys(sources))
+
+        # Macro raw diagnostics describe the calibration layer's own measurement of
+        # macro stress. Preserve them verbatim from the macro path; never let a
+        # scenario impulse masquerade as a macro raw value. Years without macro
+        # feedback keep zero raw values, matching annotate_feedback_records.
+        for field in MACRO_FEEDBACK_RAW_FIELDS:
+            row[field] = compact_float(to_float(macro_row.get(field)))
+
+        # The intensity index is recomputed from the final applied macro impulses
+        # (macro-only, not scenario) so it reflects how active macro feedback is,
+        # not how loud an overlaid scenario branch is.
+        row[MACRO_FEEDBACK_INTENSITY_FIELD] = compact_float(
+            macro_feedback_intensity_from_applied(
+                macro_growth_applied,
+                macro_stress_applied,
+                macro_inflation_applied,
+                macro_policy_applied,
+            )
+        )
+
         for field in SCENARIO_FIELDS:
             if field in scenario_row:
                 row[field] = scenario_row[field]

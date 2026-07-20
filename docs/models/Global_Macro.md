@@ -86,6 +86,8 @@ output/macro_runs/<run_id>/<variant>/global_macro/
 | 能源 | `brent_oil_price_usd`、`energy_cost_pressure_index` | 美元/桶、模型内部指数 |
 | 反馈与岔路 | `macro_feedback_*`、`branch_risk_*`、`scenario_*` | 反馈诊断、风险观察和情景状态 |
 
+`macro_feedback_intensity_index` 和四个 `macro_feedback_*_raw*` 字段只描述宏观反馈校准层自身；情景岔路的额外冲击不会混入这些 raw 诊断。最终 applied impulse 仍可同时包含宏观反馈与情景冲击，二者通过来源和情景字段区分。区域层读取宏观反馈强度计算政策不确定性，因此编排器必须保留这些诊断字段，不能只保留 applied impulse。
+
 ## 与其他模块的关系
 
 全球结果是区域宏观层的唯一共同锚。区域层读取全球增长、通胀、利率、收益率、美元、信用、资产、油价以及岔路字段，生成 14 个有差异的区域路径。全球层不直接计算城市客流、机场容量、收入或估值。

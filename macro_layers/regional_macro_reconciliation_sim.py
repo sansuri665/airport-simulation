@@ -19,10 +19,30 @@ from typing import Any
 
 regional_macro_layer = import_module(f"{_SIBLING_PREFIX}regional_macro_layer_sim")
 REGION_CONFIGS = regional_macro_layer.REGION_CONFIGS
+RECONCILED_FIELD_BOUNDS = regional_macro_layer.REGIONAL_RECONCILED_FIELD_BOUNDS
 
 
-RECONCILIATION_PARAM_VERSION = "regional-macro-reconciliation-v0.3"
-RECONCILIATION_INTERFACE_VERSION = "regional-macro-reconciliation-interface-v0.3"
+RECONCILIATION_PARAM_VERSION = "regional-macro-reconciliation-v0.4"
+RECONCILIATION_INTERFACE_VERSION = "regional-macro-reconciliation-interface-v0.4"
+
+
+def reconciled_field_bounds(region_id: str) -> dict[str, tuple[float, float]]:
+    """Bounds for reconciled regional fields, including per-region policy-rate limits."""
+    config = REGION_CONFIGS[region_id]
+    bounds = dict(RECONCILED_FIELD_BOUNDS)
+    bounds["regional_policy_rate_pct"] = (
+        float(config.policy_floor_pct),
+        float(config.policy_ceiling_pct),
+    )
+    return bounds
+
+
+def clamp_reconciled_value(region_id: str, field: str, value: float) -> float:
+    bounds = reconciled_field_bounds(region_id).get(field)
+    if bounds is None:
+        return value
+    floor, ceiling = bounds
+    return clamp(value, floor, ceiling)
 
 
 REGION_ORDER = [
@@ -229,6 +249,28 @@ DIAGNOSTIC_FIELDS = [
     "weighted_regional_energy_cost_reconciled_index",
     "energy_cost_gap_raw_index",
     "energy_cost_gap_reconciled_index",
+    "headline_inflation_reconciliation_adjustment_pp",
+    "core_inflation_reconciliation_adjustment_pp",
+    "policy_rate_reconciliation_adjustment_pp",
+    "ten_year_reconciliation_adjustment_pp",
+    "hy_reconciliation_adjustment_bps",
+    "ig_reconciliation_adjustment_bps",
+    "stress_reconciliation_adjustment_index",
+    "equity_return_reconciliation_adjustment_pp",
+    "equity_valuation_pe_reconciliation_adjustment",
+    "energy_reconciliation_adjustment_index",
+    "headline_inflation_clamped_region_count",
+    "core_inflation_clamped_region_count",
+    "policy_rate_clamped_region_count",
+    "ten_year_clamped_region_count",
+    "hy_clamped_region_count",
+    "ig_clamped_region_count",
+    "macro_stress_clamped_region_count",
+    "equity_return_clamped_region_count",
+    "equity_valuation_pe_clamped_region_count",
+    "energy_cost_clamped_region_count",
+    "fields_with_clamped_regions",
+    "total_field_clamps",
     "reconciliation_quality",
     "largest_region_id",
     "largest_region_share_pct",
@@ -303,10 +345,6 @@ def key_for(row: dict[str, Any]) -> tuple[int, int]:
 
 def weighted_average(items: list[dict[str, Any]], key: str, share_key: str = "share_reconciled") -> float:
     return sum(item[share_key] * as_float(item["regional"], key) for item in items)
-
-
-def weighted_adjusted_average(items: list[dict[str, Any]], key: str, adjustment: float, share_key: str = "share_reconciled") -> float:
-    return sum(item[share_key] * (as_float(item["regional"], key) + adjustment) for item in items)
 
 
 def quality_label(growth_gap: float, inflation_gap: float, hy_gap: float, stress_gap: float, level_gap: float) -> str:
@@ -466,16 +504,51 @@ def build_reconciliation(
         equity_pe_adjustment = clamp((equity_pe_anchor - equity_pe_raw) * 0.45, -2.50, 2.50)
         energy_adjustment = clamp((energy_anchor - energy_raw) * 0.58, -8.0, 8.0)
 
-        headline_reconciled = weighted_adjusted_average(items, "regional_headline_inflation_pct", headline_adjustment)
-        core_reconciled = weighted_adjusted_average(items, "regional_core_inflation_pct", core_adjustment)
-        policy_reconciled = weighted_adjusted_average(items, "regional_policy_rate_pct", policy_adjustment)
-        ten_year_reconciled = weighted_adjusted_average(items, "regional_10y_yield_pct", ten_year_adjustment)
-        hy_reconciled = weighted_adjusted_average(items, "regional_hy_spread_bps", hy_adjustment)
-        ig_reconciled = weighted_adjusted_average(items, "regional_ig_spread_bps", ig_adjustment)
-        stress_reconciled = weighted_adjusted_average(items, "regional_macro_stress_index", stress_adjustment)
-        equity_reconciled = weighted_adjusted_average(items, "regional_equity_return_pct", equity_adjustment)
-        equity_pe_reconciled = weighted_adjusted_average(items, "regional_equity_valuation_pe", equity_pe_adjustment)
-        energy_reconciled = weighted_adjusted_average(items, "regional_energy_cost_pressure_index", energy_adjustment)
+        # Apply the soft reconciliation adjustment per region, then re-clamp each
+        # region's reconciled value to its published field boundary. The clamped
+        # per-region values are what downstream models and the Viewer read, and they
+        # are what the weighted reconciled aggregates are computed from. Counting
+        # how many regions were clipped gives a transparent diagnostic without
+        # chasing zero residual by forcing every region onto the same boundary.
+        reconciled_clamp_counts: dict[str, int] = {}
+
+        def reconcile_field(field: str, adjustment: float) -> float:
+            """Per-region clamp-then-weight; returns the weighted reconciled aggregate.
+
+            Also stashes each region's clamped reconciled value on its item under
+            ``f"{field}_reconciled_clamped"`` so the regional output rows can reuse
+            the exact value the diagnostic was computed from, and records the count
+            of regions whose value had to be clipped back inside the boundary.
+            """
+            clamp_count = 0
+            weighted_total = 0.0
+            for item in items:
+                region_id = item["region_id"]
+                raw_value = as_float(item["regional"], field)
+                adjusted = raw_value + adjustment
+                clamped = clamp_reconciled_value(region_id, field, adjusted)
+                if clamped != adjusted:
+                    clamp_count += 1
+                item[f"{field}_reconciled_clamped"] = clamped
+                weighted_total += item["share_reconciled"] * clamped
+            reconciled_clamp_counts[field] = clamp_count
+            return weighted_total
+
+        headline_reconciled = reconcile_field("regional_headline_inflation_pct", headline_adjustment)
+        core_reconciled = reconcile_field("regional_core_inflation_pct", core_adjustment)
+        policy_reconciled = reconcile_field("regional_policy_rate_pct", policy_adjustment)
+        ten_year_reconciled = reconcile_field("regional_10y_yield_pct", ten_year_adjustment)
+        hy_reconciled = reconcile_field("regional_hy_spread_bps", hy_adjustment)
+        ig_reconciled = reconcile_field("regional_ig_spread_bps", ig_adjustment)
+        stress_reconciled = reconcile_field("regional_macro_stress_index", stress_adjustment)
+        equity_reconciled = reconcile_field("regional_equity_return_pct", equity_adjustment)
+        equity_pe_reconciled = reconcile_field("regional_equity_valuation_pe", equity_pe_adjustment)
+        energy_reconciled = reconcile_field("regional_energy_cost_pressure_index", energy_adjustment)
+
+        regions_clamped_by_field = sum(
+            1 for count in reconciled_clamp_counts.values() if count > 0
+        )
+        total_field_clamps = sum(reconciled_clamp_counts.values())
 
         quality = quality_label(
             weighted_growth_reconciled - global_growth,
@@ -558,6 +631,28 @@ def build_reconciliation(
                     "weighted_regional_energy_cost_reconciled_index": energy_reconciled,
                     "energy_cost_gap_raw_index": energy_raw - energy_anchor,
                     "energy_cost_gap_reconciled_index": energy_reconciled - energy_anchor,
+                    "headline_inflation_reconciliation_adjustment_pp": headline_adjustment,
+                    "core_inflation_reconciliation_adjustment_pp": core_adjustment,
+                    "policy_rate_reconciliation_adjustment_pp": policy_adjustment,
+                    "ten_year_reconciliation_adjustment_pp": ten_year_adjustment,
+                    "hy_reconciliation_adjustment_bps": hy_adjustment,
+                    "ig_reconciliation_adjustment_bps": ig_adjustment,
+                    "stress_reconciliation_adjustment_index": stress_adjustment,
+                    "equity_return_reconciliation_adjustment_pp": equity_adjustment,
+                    "equity_valuation_pe_reconciliation_adjustment": equity_pe_adjustment,
+                    "energy_reconciliation_adjustment_index": energy_adjustment,
+                    "headline_inflation_clamped_region_count": reconciled_clamp_counts["regional_headline_inflation_pct"],
+                    "core_inflation_clamped_region_count": reconciled_clamp_counts["regional_core_inflation_pct"],
+                    "policy_rate_clamped_region_count": reconciled_clamp_counts["regional_policy_rate_pct"],
+                    "ten_year_clamped_region_count": reconciled_clamp_counts["regional_10y_yield_pct"],
+                    "hy_clamped_region_count": reconciled_clamp_counts["regional_hy_spread_bps"],
+                    "ig_clamped_region_count": reconciled_clamp_counts["regional_ig_spread_bps"],
+                    "macro_stress_clamped_region_count": reconciled_clamp_counts["regional_macro_stress_index"],
+                    "equity_return_clamped_region_count": reconciled_clamp_counts["regional_equity_return_pct"],
+                    "equity_valuation_pe_clamped_region_count": reconciled_clamp_counts["regional_equity_valuation_pe"],
+                    "energy_cost_clamped_region_count": reconciled_clamp_counts["regional_energy_cost_pressure_index"],
+                    "fields_with_clamped_regions": regions_clamped_by_field,
+                    "total_field_clamps": total_field_clamps,
                     "reconciliation_quality": quality,
                     "largest_region_id": ranked[0]["region_id"],
                     "largest_region_share_pct": ranked[0]["share_reconciled"] * 100.0,
@@ -618,25 +713,25 @@ def build_reconciliation(
                         "regional_growth_contribution_pp_raw": item["raw_growth_contribution"],
                         "regional_growth_contribution_pp_reconciled": item["reconciled_growth_contribution"],
                         "regional_headline_inflation_pct_raw": as_float(row, "regional_headline_inflation_pct"),
-                        "regional_headline_inflation_pct_reconciled": as_float(row, "regional_headline_inflation_pct") + headline_adjustment,
+                        "regional_headline_inflation_pct_reconciled": item["regional_headline_inflation_pct_reconciled_clamped"],
                         "regional_core_inflation_pct_raw": as_float(row, "regional_core_inflation_pct"),
-                        "regional_core_inflation_pct_reconciled": as_float(row, "regional_core_inflation_pct") + core_adjustment,
+                        "regional_core_inflation_pct_reconciled": item["regional_core_inflation_pct_reconciled_clamped"],
                         "regional_policy_rate_pct_raw": as_float(row, "regional_policy_rate_pct"),
-                        "regional_policy_rate_pct_reconciled": as_float(row, "regional_policy_rate_pct") + policy_adjustment,
+                        "regional_policy_rate_pct_reconciled": item["regional_policy_rate_pct_reconciled_clamped"],
                         "regional_10y_yield_pct_raw": as_float(row, "regional_10y_yield_pct"),
-                        "regional_10y_yield_pct_reconciled": as_float(row, "regional_10y_yield_pct") + ten_year_adjustment,
+                        "regional_10y_yield_pct_reconciled": item["regional_10y_yield_pct_reconciled_clamped"],
                         "regional_hy_spread_bps_raw": as_float(row, "regional_hy_spread_bps"),
-                        "regional_hy_spread_bps_reconciled": as_float(row, "regional_hy_spread_bps") + hy_adjustment,
+                        "regional_hy_spread_bps_reconciled": item["regional_hy_spread_bps_reconciled_clamped"],
                         "regional_ig_spread_bps_raw": as_float(row, "regional_ig_spread_bps"),
-                        "regional_ig_spread_bps_reconciled": as_float(row, "regional_ig_spread_bps") + ig_adjustment,
+                        "regional_ig_spread_bps_reconciled": item["regional_ig_spread_bps_reconciled_clamped"],
                         "regional_macro_stress_index_raw": as_float(row, "regional_macro_stress_index"),
-                        "regional_macro_stress_index_reconciled": as_float(row, "regional_macro_stress_index") + stress_adjustment,
+                        "regional_macro_stress_index_reconciled": item["regional_macro_stress_index_reconciled_clamped"],
                         "regional_equity_return_pct_raw": as_float(row, "regional_equity_return_pct"),
-                        "regional_equity_return_pct_reconciled": as_float(row, "regional_equity_return_pct") + equity_adjustment,
+                        "regional_equity_return_pct_reconciled": item["regional_equity_return_pct_reconciled_clamped"],
                         "regional_equity_valuation_pe_raw": as_float(row, "regional_equity_valuation_pe"),
-                        "regional_equity_valuation_pe_reconciled": as_float(row, "regional_equity_valuation_pe") + equity_pe_adjustment,
+                        "regional_equity_valuation_pe_reconciled": item["regional_equity_valuation_pe_reconciled_clamped"],
                         "regional_energy_cost_pressure_index_raw": as_float(row, "regional_energy_cost_pressure_index"),
-                        "regional_energy_cost_pressure_index_reconciled": as_float(row, "regional_energy_cost_pressure_index") + energy_adjustment,
+                        "regional_energy_cost_pressure_index_reconciled": item["regional_energy_cost_pressure_index_reconciled_clamped"],
                         "regional_growth_regime": row.get("regional_growth_regime", ""),
                         "regional_macro_regime": row.get("regional_macro_regime", ""),
                         **copy_branch_fields(row),
