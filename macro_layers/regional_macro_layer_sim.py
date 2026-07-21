@@ -36,6 +36,7 @@ calibrated_gdp_params = feedback_layer.calibrated_gdp_params
 calibrated_oil_params = feedback_layer.calibrated_oil_params
 convergence_summary = feedback_layer.convergence_summary
 derive_feedback_path = feedback_layer.derive_feedback_path
+run_convergence_aware_feedback_loop = feedback_layer.run_convergence_aware_feedback_loop
 run_full_chain = feedback_layer.run_full_chain
 smooth = feedback_layer.smooth
 write_csv = feedback_layer.write_csv
@@ -1740,6 +1741,13 @@ def build_global_params(args: argparse.Namespace) -> dict[str, Any]:
         initial_gdp=args.initial_gdp,
         volatility_scale=args.volatility_scale,
     )
+    feedback_defaults = MacroFeedbackParams()
+    feedback_iterations = int(
+        getattr(args, "feedback_iterations", feedback_defaults.feedback_iterations)
+    )
+    min_feedback_iterations = int(
+        getattr(args, "min_feedback_iterations", feedback_defaults.min_feedback_iterations)
+    )
     return {
         "gdp_params": calibrated_gdp_params(gdp_args),
         "inflation_params": InflationParams(
@@ -1757,12 +1765,41 @@ def build_global_params(args: argparse.Namespace) -> dict[str, Any]:
         "credit_spread_params": calibrated_credit_params(),
         "asset_price_params": calibrated_asset_params(),
         "oil_commodity_params": calibrated_oil_params(),
-        "feedback_params": MacroFeedbackParams(feedback_iterations=args.feedback_iterations),
+        # Both bounds flow into MacroFeedbackParams so the convergence-aware
+        # loop has a single source of truth regardless of which entry point
+        # (orchestrator vs. standalone regional script) built the params.
+        "feedback_params": MacroFeedbackParams(
+            feedback_iterations=feedback_iterations,
+            min_feedback_iterations=min_feedback_iterations,
+            max_feedback_iterations=max(1, feedback_iterations),
+        ),
+        "feedback_iterations": feedback_iterations,
+        "min_feedback_iterations": min_feedback_iterations,
     }
 
 
-def run_global_macro_for_seed(seed: int, params: dict[str, Any], feedback_iterations: int) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    records = run_full_chain(
+def run_global_macro_for_seed(
+    seed: int,
+    params: dict[str, Any],
+    feedback_iterations: int,
+    *,
+    min_feedback_iterations: int | None = None,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Run the global macro chain with the convergence-aware feedback loop.
+
+    The legacy signature ``(seed, params, feedback_iterations)`` is preserved so
+    existing callers/tests keep working; the loop itself now goes through
+    ``run_convergence_aware_feedback_loop`` (Working Guide sub-Goal 2), which
+    enforces the min/max iteration bounds and the consecutive-pass tolerances
+    instead of always running exactly ``feedback_iterations`` passes.
+    """
+    feedback_params: MacroFeedbackParams = params["feedback_params"]
+    if min_feedback_iterations is None:
+        min_feedback_iterations = int(
+            params.get("min_feedback_iterations", feedback_params.min_feedback_iterations)
+        )
+
+    initial_records = run_full_chain(
         seed,
         gdp_params=params["gdp_params"],
         inflation_params=params["inflation_params"],
@@ -1773,17 +1810,9 @@ def run_global_macro_for_seed(seed: int, params: dict[str, Any], feedback_iterat
         asset_price_params=params["asset_price_params"],
         oil_commodity_params=params["oil_commodity_params"],
     )
-    pass_records = [records]
-    feedback_path: dict[int, dict[str, Any]] = {}
-    feedback_params: MacroFeedbackParams = params["feedback_params"]
-    for _ in range(feedback_iterations):
-        raw_feedback_path = derive_feedback_path(records, feedback_params)
-        feedback_path = blend_feedback_paths(
-            feedback_path,
-            raw_feedback_path,
-            feedback_params.feedback_iteration_relaxation,
-        )
-        records = run_full_chain(
+
+    def run_pass(macro_feedback: dict[int, dict[str, Any]], _iteration: int) -> list[dict[str, Any]]:
+        return run_full_chain(
             seed,
             gdp_params=params["gdp_params"],
             inflation_params=params["inflation_params"],
@@ -1793,11 +1822,18 @@ def run_global_macro_for_seed(seed: int, params: dict[str, Any], feedback_iterat
             credit_spread_params=params["credit_spread_params"],
             asset_price_params=params["asset_price_params"],
             oil_commodity_params=params["oil_commodity_params"],
-            feedback_path=feedback_path,
+            feedback_path=macro_feedback if macro_feedback else None,
         )
-        pass_records.append(records)
-    convergence = convergence_summary(pass_records, seed, feedback_params)
-    return annotate_feedback_records(records, feedback_path, feedback_iterations, convergence), convergence
+
+    records, macro_feedback, convergence = run_convergence_aware_feedback_loop(
+        seed=seed,
+        feedback_params=feedback_params,
+        initial_records=initial_records,
+        run_pass=run_pass,
+        min_iterations=min_feedback_iterations,
+        max_iterations=max(1, feedback_iterations),
+    )
+    return annotate_feedback_records(records, macro_feedback, feedback_iterations, convergence), convergence
 
 
 def simulate_region_for_global_path(
@@ -2498,7 +2534,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--start-year", type=int, default=2025, help="Calendar year for the initial observation.")
     parser.add_argument("--initial-gdp", type=float, default=110.0, help="Initial global GDP in trillion USD.")
     parser.add_argument("--volatility-scale", type=float, default=1.55, help="Scales global GDP cycle amplitude and random shocks.")
-    parser.add_argument("--feedback-iterations", type=int, default=3, help="Global feedback calibration reruns.")
+    parser.add_argument("--feedback-iterations", type=int, default=16, help="Maximum global feedback calibration reruns.")
+    parser.add_argument(
+        "--min-feedback-iterations",
+        type=int,
+        default=3,
+        help="Minimum feedback passes before the convergence check is applied.",
+    )
     parser.add_argument("--seed", type=int, default=None, help="Run one seed only.")
     parser.add_argument("--seeds", type=int, nargs="*", default=None, help="Run an explicit list of seeds.")
     parser.add_argument("--seed-start", type=int, default=1, help="First seed when --seed/--seeds is omitted.")
@@ -2520,7 +2562,8 @@ def main() -> int:
         raise SystemExit("--volatility-scale must be positive")
     if args.feedback_iterations < 0:
         raise SystemExit("--feedback-iterations must be non-negative")
-
+    if args.min_feedback_iterations < 0:
+        raise SystemExit("--min-feedback-iterations must be non-negative")
     region = REGION_CONFIGS[args.region]
     seeds = resolve_seeds(args)
     global_params = build_global_params(args)
@@ -2529,7 +2572,12 @@ def main() -> int:
     convergence_by_seed: dict[int, dict[str, Any]] = {}
     all_records: list[dict[str, Any]] = []
     for seed in seeds:
-        global_records, convergence = run_global_macro_for_seed(seed, global_params, args.feedback_iterations)
+        global_records, convergence = run_global_macro_for_seed(
+            seed,
+            global_params,
+            args.feedback_iterations,
+            min_feedback_iterations=args.min_feedback_iterations,
+        )
         regional_records = simulate_region_for_global_path(global_records, region, seed)
         records_by_seed[seed] = regional_records
         convergence_by_seed[seed] = convergence

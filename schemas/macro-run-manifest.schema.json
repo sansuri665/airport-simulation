@@ -6,15 +6,16 @@
   "required": [
     "schema_version", "model_version", "output_schema_version", "orchestrator_version",
     "python_version", "python_implementation", "run_id", "seed", "start_year", "years",
-    "feedback_iterations", "volatility_scale", "initial_gdp", "output_dir", "variants",
+    "feedback_iterations", "min_feedback_iterations", "volatility_scale", "initial_gdp",
+    "output_dir", "variants",
     "scenario", "scenario_variant", "branch_scenario_profile_count",
     "branch_scenario_profile_ids", "published", "run_state", "validation", "run_index"
   ],
   "properties": {
     "schema_version": { "const": "airport-macro-run-manifest-v1" },
-    "model_version": { "const": "airport-model-v0.8" },
+    "model_version": { "const": "airport-model-v0.9" },
     "output_schema_version": { "const": "airport-model-output-v1" },
-    "orchestrator_version": { "const": "macro-run-orchestrator-v0.6" },
+    "orchestrator_version": { "const": "macro-run-orchestrator-v0.7" },
     "python_version": { "type": "string", "minLength": 1 },
     "python_implementation": { "type": "string", "minLength": 1 },
     "run_id": { "type": "string", "minLength": 1 },
@@ -22,6 +23,7 @@
     "start_year": { "type": "integer" },
     "years": { "type": "integer", "minimum": 1 },
     "feedback_iterations": { "type": "integer", "minimum": 1 },
+    "min_feedback_iterations": { "type": "integer", "minimum": 0 },
     "volatility_scale": { "type": "number" },
     "initial_gdp": { "type": "number" },
     "output_dir": { "type": "string", "minLength": 1 },
@@ -71,7 +73,102 @@
         "financial_state_rows": { "type": "integer", "minimum": 0 },
         "valuation_rows": { "type": "integer", "minimum": 0 },
         "city_airport_downstream_skips": { "type": "integer", "minimum": 0 },
-        "active_global_scenario_rows": { "type": "integer", "minimum": 0 }
+        "active_global_scenario_rows": { "type": "integer", "minimum": 0 },
+        "convergence": { "$ref": "#/$defs/convergence" }
+      },
+      "additionalProperties": true
+    },
+    "convergence": {
+      "type": "object",
+      "required": [
+        "converged", "last_pass_converged", "consecutive_converged_passes",
+        "iterations_run", "min_iterations", "max_iterations",
+        "convergence_reason", "delta_bounced",
+        "last_pass_delta_index", "max_pass_delta_index",
+        "convergence_tolerance_version", "feedback_relaxation_strategy",
+        "fixed_point_verification_version",
+        "fixed_point_residual_checked", "fixed_point_residual_converged",
+        "fixed_point_residual_delta_index", "fixed_point_residual_diagnostic",
+        "pass_diagnostics"
+      ],
+      "properties": {
+        "converged": { "type": "boolean" },
+        "last_pass_converged": { "type": "boolean" },
+        "consecutive_converged_passes": { "type": "integer", "minimum": 0 },
+        "iterations_run": { "type": "integer", "minimum": 0 },
+        "min_iterations": { "type": "integer", "minimum": 0 },
+        "max_iterations": { "type": "integer", "minimum": 1 },
+        "convergence_reason": {
+          "type": "string",
+          "enum": [
+            "converged",
+            "max_iterations_reached",
+            "min_iterations_not_met",
+            "fixed_point_residual_not_met",
+            "not_converged",
+            "no_passes"
+          ]
+        },
+        "delta_bounced": { "type": "boolean" },
+        "last_pass_delta_index": { "type": "number", "minimum": 0 },
+        "max_pass_delta_index": { "type": "number", "minimum": 0 },
+        "convergence_tolerance_version": {
+          "const": "macro-feedback-convergence-tolerances-v0.1"
+        },
+        "feedback_relaxation_strategy": {
+          "const": "constant-relaxation-with-residual-check-v1"
+        },
+        "fixed_point_verification_version": {
+          "const": "macro-feedback-fixed-point-residual-v1"
+        },
+        "fixed_point_residual_checked": { "type": "boolean" },
+        "fixed_point_residual_converged": { "type": "boolean" },
+        "fixed_point_residual_delta_index": { "type": "number", "minimum": 0 },
+        "fixed_point_residual_diagnostic": {
+          "anyOf": [
+            { "$ref": "#/$defs/passDiagnostic" },
+            { "type": "null" }
+          ]
+        },
+        "pass_diagnostics": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/passDiagnostic" }
+        }
+      },
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": { "properties": { "converged": { "const": true } } },
+          "then": {
+            "properties": {
+              "fixed_point_residual_checked": { "const": true },
+              "fixed_point_residual_converged": { "const": true },
+              "fixed_point_residual_diagnostic": { "$ref": "#/$defs/passDiagnostic" }
+            }
+          }
+        }
+      ]
+    },
+    "passDiagnostic": {
+      "type": "object",
+      "required": [
+        "from_pass", "to_pass", "pass_converged", "comparison_complete",
+        "pass_delta_index", "convergence_tolerance_version",
+        "previous_boundary_hits", "current_boundary_hits",
+        "convergence_tolerances"
+      ],
+      "properties": {
+        "from_pass": { "type": "integer", "minimum": 0 },
+        "to_pass": { "type": "integer", "minimum": 1 },
+        "pass_converged": { "type": "boolean" },
+        "comparison_complete": { "type": "boolean" },
+        "pass_delta_index": { "type": "number", "minimum": 0 },
+        "convergence_tolerance_version": {
+          "const": "macro-feedback-convergence-tolerances-v0.1"
+        },
+        "previous_boundary_hits": { "type": "object" },
+        "current_boundary_hits": { "type": "object" },
+        "convergence_tolerances": { "type": "object", "minProperties": 8 }
       },
       "additionalProperties": true
     },

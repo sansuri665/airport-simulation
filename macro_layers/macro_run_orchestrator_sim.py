@@ -86,6 +86,7 @@ annotate_feedback_records = global_feedback_layer.annotate_feedback_records
 blend_feedback_paths = global_feedback_layer.blend_feedback_paths
 convergence_summary = global_feedback_layer.convergence_summary
 derive_feedback_path = global_feedback_layer.derive_feedback_path
+run_convergence_aware_feedback_loop = global_feedback_layer.run_convergence_aware_feedback_loop
 run_full_chain = global_feedback_layer.run_full_chain
 summarize_seed = global_feedback_layer.summarize_seed
 
@@ -116,11 +117,11 @@ clamp = simulation_utils.clamp
 round_record = simulation_utils.round_record
 
 
-ORCHESTRATOR_VERSION = "macro-run-orchestrator-v0.6"
+ORCHESTRATOR_VERSION = "macro-run-orchestrator-v0.7"
 RUN_INDEX_VERSION = "macro-run-index-v0.5"
 RUN_MANIFEST_SCHEMA_VERSION = "airport-macro-run-manifest-v1"
 OUTPUT_SCHEMA_VERSION = "airport-model-output-v1"
-MODEL_VERSION = "airport-model-v0.8"
+MODEL_VERSION = "airport-model-v0.9"
 AIRPORT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = AIRPORT_DIR / "output" / "macro_runs"
 DEFAULT_VIEWER_OUTPUT_ROOT = AIRPORT_DIR / "output"
@@ -541,7 +542,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--years", type=int, default=60)
     parser.add_argument("--initial-gdp", type=float, default=100.0)
     parser.add_argument("--volatility-scale", type=float, default=1.0)
-    parser.add_argument("--feedback-iterations", type=int, default=3)
+    parser.add_argument(
+        "--feedback-iterations",
+        type=int,
+        default=16,
+        help="Maximum feedback calibration reruns. The loop stops early once the convergence contract is met.",
+    )
+    parser.add_argument(
+        "--min-feedback-iterations",
+        type=int,
+        default=3,
+        help="Minimum feedback passes before the convergence check is applied.",
+    )
     parser.add_argument(
         "--scenario-state",
         choices=("none", "occurred", "counterfactual", "probabilistic"),
@@ -1404,10 +1416,14 @@ def run_global_variant(
 ) -> dict[str, Any]:
     params = build_global_params(args)
     feedback_params = params["feedback_params"]
-    macro_feedback: dict[int, dict[str, Any]] = {}
-    combined_feedback = merge_feedback_paths(macro_feedback, scenario_feedback)
+    feedback_iterations = int(params["feedback_iterations"])
 
-    records = run_full_chain(
+    # Pass 0 has no derived macro feedback yet, but an active scenario path is
+    # already present. Every later pass keeps the same scenario impulses and
+    # adds the newly solved macro feedback, preserving the historical scenario
+    # merge semantics while the shared solver controls only the macro path.
+    combined_feedback = merge_feedback_paths({}, scenario_feedback)
+    initial_records = run_full_chain(
         seed,
         gdp_params=params["gdp_params"],
         inflation_params=params["inflation_params"],
@@ -1419,17 +1435,14 @@ def run_global_variant(
         oil_commodity_params=params["oil_commodity_params"],
         feedback_path=combined_feedback if combined_feedback else None,
     )
-    pass_records = [records]
 
-    for _iteration in range(max(0, args.feedback_iterations)):
-        derived = derive_feedback_path(records, feedback_params)
-        macro_feedback = blend_feedback_paths(
-            macro_feedback,
-            derived,
-            feedback_params.feedback_iteration_relaxation,
-        )
-        combined_feedback = merge_feedback_paths(macro_feedback, scenario_feedback)
-        records = run_full_chain(
+    def run_pass(macro_feedback: dict[int, dict[str, Any]], _iteration: int) -> list[dict[str, Any]]:
+        # Merge the macro feedback with any active scenario branch impulses
+        # before rerunning the chain. The helper owns the macro blend; this
+        # callable owns the scenario merge so the convergence contract is
+        # evaluated on the same combined path the Viewer will read.
+        merged = merge_feedback_paths(macro_feedback, scenario_feedback)
+        return run_full_chain(
             seed,
             gdp_params=params["gdp_params"],
             inflation_params=params["inflation_params"],
@@ -1439,15 +1452,23 @@ def run_global_variant(
             credit_spread_params=params["credit_spread_params"],
             asset_price_params=params["asset_price_params"],
             oil_commodity_params=params["oil_commodity_params"],
-            feedback_path=combined_feedback if combined_feedback else None,
+            feedback_path=merged if merged else None,
         )
-        pass_records.append(records)
 
-    convergence = convergence_summary(pass_records, seed, feedback_params)
+    records, macro_feedback, convergence = run_convergence_aware_feedback_loop(
+        seed=seed,
+        feedback_params=feedback_params,
+        initial_records=initial_records,
+        run_pass=run_pass,
+        min_iterations=getattr(args, "min_feedback_iterations", None),
+        max_iterations=max(1, feedback_iterations),
+    )
+
+    combined_feedback = merge_feedback_paths(macro_feedback, scenario_feedback)
     annotated = annotate_feedback_records(
         records,
         combined_feedback,
-        args.feedback_iterations,
+        feedback_iterations,
         convergence,
     )
     annotated = apply_path_metadata(annotated, variant, scenario_feedback)

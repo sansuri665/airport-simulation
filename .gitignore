@@ -9,3 +9,10 @@ __pycache__/
 .ruff_cache/
 .DS_Store
 Thumbs.db
+
+# Transient Web-model handoff transport. Keep handoff/README.md tracked;
+# generated outbound bundles, returned artifacts, and extraction workspaces
+# must never become project source or Git history.
+handoff/outbox/
+handoff/inbox/
+handoff/work/

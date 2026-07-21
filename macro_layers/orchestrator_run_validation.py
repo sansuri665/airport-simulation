@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import copy
+import math
 from collections.abc import Callable, Collection, Mapping
 from pathlib import Path
 from typing import Any
@@ -26,6 +28,75 @@ COUNT_PATTERNS = {
 
 FULL_REGION_FIELDS = frozenset(
     {"regional_rows", "reconciled_rows", "aviation_rows", "supply_rows"}
+)
+
+
+CURRENT_CONVERGENCE_TOLERANCE_VERSION = (
+    "macro-feedback-convergence-tolerances-v0.1"
+)
+CURRENT_FEEDBACK_RELAXATION_STRATEGY = (
+    "constant-relaxation-with-residual-check-v1"
+)
+CURRENT_FIXED_POINT_VERIFICATION_VERSION = (
+    "macro-feedback-fixed-point-residual-v1"
+)
+PUBLISH_CONVERGENCE_FIELD_CONTRACTS = (
+    (
+        "realized_growth_pct",
+        "max_growth_delta_pct",
+        "mean_growth_delta_pct",
+        "convergence_growth_tolerance_pct",
+        0.15,
+    ),
+    (
+        "headline_inflation_pct",
+        "max_inflation_delta_pct",
+        "mean_inflation_delta_pct",
+        "convergence_inflation_tolerance_pct",
+        0.20,
+    ),
+    (
+        "global_policy_rate_pct",
+        "max_policy_rate_delta_pct",
+        "mean_policy_rate_delta_pct",
+        "convergence_policy_tolerance_pct",
+        0.25,
+    ),
+    (
+        "global_2y_yield_pct",
+        "max_2y_yield_delta_pct",
+        "mean_2y_yield_delta_pct",
+        "convergence_2y_tolerance_pct",
+        0.25,
+    ),
+    (
+        "global_10y_yield_pct",
+        "max_10y_yield_delta_pct",
+        "mean_10y_yield_delta_pct",
+        "convergence_10y_tolerance_pct",
+        0.25,
+    ),
+    (
+        "global_dollar_index",
+        "max_dollar_index_delta",
+        "mean_dollar_index_delta",
+        "convergence_dollar_tolerance_index",
+        1.5,
+    ),
+    (
+        "global_high_yield_spread_bps",
+        "max_hy_spread_delta_bps",
+        "mean_hy_spread_delta_bps",
+        "convergence_hy_tolerance_bps",
+        100.0,
+    ),
+    (
+        "brent_oil_price_usd",
+        "max_brent_delta_usd",
+        "mean_brent_delta_usd",
+        "convergence_oil_tolerance_usd",
+        20.0,
+    ),
 )
 
 
@@ -318,6 +389,59 @@ def build_variant_manifest(
     }
     if active_global_scenario_rows is not None:
         payload["active_global_scenario_rows"] = active_global_scenario_rows
+    # Convergence contract (Working Guide sub-Goal 2). Publication must be
+    # auditable from the Manifest alone, so retain the complete adjacent-pass
+    # diagnostics rather than only copying a headline boolean. Exact boolean
+    # checks keep malformed truthy legacy values from becoming publishable.
+    convergence = global_result.get("convergence")
+    if isinstance(convergence, dict):
+        pass_diagnostics = convergence.get("pass_diagnostics")
+        payload["convergence"] = {
+            "converged": convergence.get("converged") is True,
+            "last_pass_converged": convergence.get("last_pass_converged") is True,
+            "consecutive_converged_passes": int(
+                convergence.get("consecutive_converged_passes", 0)
+            ),
+            "iterations_run": int(convergence.get("iterations_run", 0)),
+            "min_iterations": int(convergence.get("min_iterations", 0)),
+            "max_iterations": int(convergence.get("max_iterations", 0)),
+            "convergence_reason": str(
+                convergence.get("convergence_reason", "not_converged")
+            ),
+            "delta_bounced": convergence.get("delta_bounced") is True,
+            "last_pass_delta_index": float(
+                convergence.get("last_pass_delta_index", 0.0)
+            ),
+            "max_pass_delta_index": float(
+                convergence.get("max_pass_delta_index", 0.0)
+            ),
+            "convergence_tolerance_version": str(
+                convergence.get("convergence_tolerance_version", "")
+            ),
+            "feedback_relaxation_strategy": str(
+                convergence.get("feedback_relaxation_strategy", "")
+            ),
+            "fixed_point_verification_version": str(
+                convergence.get("fixed_point_verification_version", "")
+            ),
+            "fixed_point_residual_checked": (
+                convergence.get("fixed_point_residual_checked") is True
+            ),
+            "fixed_point_residual_converged": (
+                convergence.get("fixed_point_residual_converged") is True
+            ),
+            "fixed_point_residual_delta_index": float(
+                convergence.get("fixed_point_residual_delta_index", 0.0)
+            ),
+            "fixed_point_residual_diagnostic": copy.deepcopy(
+                convergence.get("fixed_point_residual_diagnostic")
+            ),
+            "pass_diagnostics": (
+                copy.deepcopy(pass_diagnostics)
+                if isinstance(pass_diagnostics, list)
+                else []
+            ),
+        }
     return payload
 
 
@@ -350,6 +474,7 @@ def build_run_manifest(
         "start_year": args.start_year,
         "years": args.years,
         "feedback_iterations": args.feedback_iterations,
+        "min_feedback_iterations": getattr(args, "min_feedback_iterations", 3),
         "volatility_scale": args.volatility_scale,
         "initial_gdp": args.initial_gdp,
         "output_dir": str(final_run_dir.as_posix()),
@@ -362,6 +487,89 @@ def build_run_manifest(
     }
 
 
+def _finite_manifest_number(value: Any) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    number = float(value)
+    return number if math.isfinite(number) else None
+
+
+def _auditable_converged_pass_diagnostic(
+    diagnostic: Any,
+) -> bool:
+    """Validate one publish-authorising adjacent-pass diagnostic.
+
+    Publication must not trust a copied headline boolean. The diagnostic must
+    identify a complete adjacent comparison, carry the current strict tolerance
+    source, retain both boundary-count snapshots, and show all eight max/mean
+    deltas under their authoritative limits.
+    """
+    if not isinstance(diagnostic, dict):
+        return False
+    if diagnostic.get("pass_converged") is not True:
+        return False
+    if diagnostic.get("comparison_complete") is not True:
+        return False
+    if (
+        diagnostic.get("convergence_tolerance_version")
+        != CURRENT_CONVERGENCE_TOLERANCE_VERSION
+    ):
+        return False
+
+    from_pass = diagnostic.get("from_pass")
+    to_pass = diagnostic.get("to_pass")
+    if (
+        isinstance(from_pass, bool)
+        or not isinstance(from_pass, int)
+        or isinstance(to_pass, bool)
+        or not isinstance(to_pass, int)
+        or to_pass != from_pass + 1
+    ):
+        return False
+
+    if _finite_manifest_number(diagnostic.get("pass_delta_index")) is None:
+        return False
+    for boundary_key in ("previous_boundary_hits", "current_boundary_hits"):
+        boundary_hits = diagnostic.get(boundary_key)
+        if not isinstance(boundary_hits, dict):
+            return False
+        total_hits = _finite_manifest_number(
+            boundary_hits.get("total_boundary_hits")
+        )
+        if total_hits is None or total_hits < 0:
+            return False
+
+    tolerances = diagnostic.get("convergence_tolerances")
+    if not isinstance(tolerances, dict):
+        return False
+    for (
+        field,
+        max_delta_key,
+        mean_delta_key,
+        parameter_name,
+        expected_tolerance,
+    ) in PUBLISH_CONVERGENCE_FIELD_CONTRACTS:
+        contract = tolerances.get(field)
+        if not isinstance(contract, dict):
+            return False
+        if contract.get("parameter") != parameter_name:
+            return False
+        tolerance = _finite_manifest_number(contract.get("max_abs_delta"))
+        max_delta = _finite_manifest_number(diagnostic.get(max_delta_key))
+        mean_delta = _finite_manifest_number(diagnostic.get(mean_delta_key))
+        if (
+            tolerance != expected_tolerance
+            or max_delta is None
+            or mean_delta is None
+            or max_delta < 0
+            or mean_delta < 0
+            or mean_delta > max_delta
+            or max_delta > tolerance
+        ):
+            return False
+    return True
+
+
 def requested_publish_variant(
     args: Any,
     manifest: dict[str, Any],
@@ -369,11 +577,128 @@ def requested_publish_variant(
     if args.publish_viewer == "none":
         return None
     if args.publish_viewer == "baseline":
-        return "baseline"
-    scenario_variant = str(manifest.get("scenario_variant") or "").strip()
-    if not scenario_variant:
+        publish_name = "baseline"
+    else:
+        scenario_variant = str(manifest.get("scenario_variant") or "").strip()
+        if not scenario_variant:
+            raise ValueError(
+                "--publish-viewer scenario requires --scenario-state occurred, "
+                "counterfactual, or probabilistic"
+            )
+        publish_name = scenario_variant
+
+    # Publication is an explicit action on the current manifest contract.
+    # Compatibility-reading a legacy archive must not silently authorize its
+    # republication, so missing metadata fails closed. ``none`` returned above
+    # remains the supported way to retain a diagnostic Run without publishing.
+    variants = manifest.get("variants")
+    if not isinstance(variants, dict):
         raise ValueError(
-            "--publish-viewer scenario requires --scenario-state occurred, "
-            "counterfactual, or probabilistic"
+            f"--publish-viewer refused: variant '{publish_name}' has no variants "
+            "manifest block with a macro feedback convergence summary. Keep the "
+            "Run archived with --publish-viewer none and regenerate it with the "
+            "current orchestrator before publishing."
         )
-    return scenario_variant
+    variant_meta = variants.get(publish_name)
+    if not isinstance(variant_meta, dict):
+        raise ValueError(
+            f"--publish-viewer refused: variant '{publish_name}' is missing from "
+            "the Run manifest, so its macro feedback convergence cannot be "
+            "verified. Keep the Run archived with --publish-viewer none."
+        )
+    convergence = variant_meta.get("convergence")
+    if not isinstance(convergence, dict):
+        raise ValueError(
+            f"--publish-viewer refused: variant '{publish_name}' has no macro "
+            "feedback convergence summary. Legacy archive compatibility does "
+            "not authorize republication; regenerate the Run or use "
+            "--publish-viewer none."
+        )
+    if convergence.get("converged") is not True:
+        reason = str(convergence.get("convergence_reason", "not_converged"))
+        iterations_run = convergence.get("iterations_run")
+        max_iterations = convergence.get("max_iterations")
+        raise ValueError(
+            f"--publish-viewer refused: variant '{publish_name}' did not "
+            f"satisfy the macro feedback convergence contract "
+            f"(reason={reason}, iterations_run={iterations_run}, "
+            f"max_iterations={max_iterations}). Keep the diagnostic Run "
+            "archived with --publish-viewer none and inspect its pass "
+            "diagnostics before rerunning."
+        )
+
+    iterations_run = convergence.get("iterations_run")
+    min_iterations = convergence.get("min_iterations")
+    max_iterations = convergence.get("max_iterations")
+    consecutive_converged = convergence.get("consecutive_converged_passes")
+    last_delta_index = _finite_manifest_number(
+        convergence.get("last_pass_delta_index")
+    )
+    max_delta_index = _finite_manifest_number(
+        convergence.get("max_pass_delta_index")
+    )
+    fixed_point_residual_delta_index = _finite_manifest_number(
+        convergence.get("fixed_point_residual_delta_index")
+    )
+    if (
+        convergence.get("convergence_reason") != "converged"
+        or convergence.get("convergence_tolerance_version")
+        != CURRENT_CONVERGENCE_TOLERANCE_VERSION
+        or convergence.get("feedback_relaxation_strategy")
+        != CURRENT_FEEDBACK_RELAXATION_STRATEGY
+        or convergence.get("fixed_point_verification_version")
+        != CURRENT_FIXED_POINT_VERIFICATION_VERSION
+        or convergence.get("fixed_point_residual_checked") is not True
+        or convergence.get("fixed_point_residual_converged") is not True
+        or isinstance(iterations_run, bool)
+        or not isinstance(iterations_run, int)
+        or isinstance(min_iterations, bool)
+        or not isinstance(min_iterations, int)
+        or isinstance(max_iterations, bool)
+        or not isinstance(max_iterations, int)
+        or isinstance(consecutive_converged, bool)
+        or not isinstance(consecutive_converged, int)
+        or min_iterations < 3
+        or iterations_run < min_iterations
+        or max_iterations < iterations_run
+        or consecutive_converged < 2
+        or not isinstance(convergence.get("delta_bounced"), bool)
+        or last_delta_index is None
+        or max_delta_index is None
+        or fixed_point_residual_delta_index is None
+        or last_delta_index < 0
+        or max_delta_index < last_delta_index
+        or fixed_point_residual_delta_index < 0
+    ):
+        raise ValueError(
+            f"--publish-viewer refused: variant '{publish_name}' has an "
+            "incomplete or stale macro feedback convergence summary. Regenerate "
+            "the Run with the current strict convergence contract or use "
+            "--publish-viewer none."
+        )
+
+    pass_diagnostics = convergence.get("pass_diagnostics")
+    fixed_point_residual = convergence.get("fixed_point_residual_diagnostic")
+    final_two = pass_diagnostics[-2:] if isinstance(pass_diagnostics, list) else []
+    if (
+        convergence.get("last_pass_converged") is not True
+        or not isinstance(pass_diagnostics, list)
+        or len(pass_diagnostics) != iterations_run
+        or len(final_two) != 2
+        or not all(_auditable_converged_pass_diagnostic(item) for item in final_two)
+        or final_two[0]["to_pass"] != final_two[1]["from_pass"]
+        or final_two[1]["to_pass"] != iterations_run
+        or not _auditable_converged_pass_diagnostic(fixed_point_residual)
+        or fixed_point_residual["from_pass"] != iterations_run
+        or fixed_point_residual["to_pass"] != iterations_run + 1
+        or float(fixed_point_residual["pass_delta_index"])
+        != fixed_point_residual_delta_index
+    ):
+        raise ValueError(
+            f"--publish-viewer refused: variant '{publish_name}' lacks two "
+            "auditable final adjacent-pass diagnostics that satisfy every "
+            "authoritative convergence tolerance. Legacy archive compatibility "
+            "does not authorize republication; regenerate the Run or use "
+            "--publish-viewer none."
+        )
+    return publish_name

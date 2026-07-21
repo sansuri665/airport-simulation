@@ -36,6 +36,7 @@
 4. [API 与数据契约](reference/API_and_Data_Contracts.md)
 5. [测试与安全修改](development/Testing_and_Safe_Changes.md)
 6. [文档维护规则](development/Documentation_Standard.md)
+7. [网页模型 Handoff 规范](development/Web_Model_Handoff.md)
 
 ### 想把北京样板扩展到其它城市
 
@@ -100,6 +101,7 @@
 | [Testing_and_Safe_Changes.md](development/Testing_and_Safe_Changes.md) | 固定 Seed、API、Schema、UI 和结构重构保护 |
 | [Troubleshooting.md](development/Troubleshooting.md) | 端口、Python、缓存、页面和数据问题排查 |
 | [GitHub_Publishing_and_Recovery.md](development/GitHub_Publishing_and_Recovery.md) | GitHub 发布前检查、HTTPS/SSH 回退、默认分支切换和 CI 验证 |
+| [Web_Model_Handoff.md](development/Web_Model_Handoff.md) | 与网页版强模型交换上下文充分的单 Goal 代码包、接收补丁并在本地验收的边界 |
 | [Documentation_Standard.md](development/Documentation_Standard.md) | 文档归属、写法、更新和淘汰规则 |
 
 ### `plans/`
@@ -132,6 +134,8 @@
 | 未来方向 | `plans/Roadmap.md` 及其引用的实施计划 |
 
 文档负责解释这些事实，但不替代它们。
+
+当本地强模型额度需要分配给多个项目时，边界清楚但实现量较大的子 Goal 可以通过网页版 Pro Handoff 完成初稿。主仓库负责冻结契约、提供可运行且上下文充分的纯源码包，并保留最终验收权。未上传 GitHub 的本地小版本不必反复刷新所有发布文档，但正在使用的临时路线文档仍要记录真实进度；详细规则见 [网页模型 Handoff 规范](development/Web_Model_Handoff.md) 与 [文档维护规则](development/Documentation_Standard.md)。
 
 ## 当前项目边界
 

@@ -44,6 +44,73 @@ def validation_manifest(**variant_meta: int) -> dict[str, object]:
     }
 
 
+def auditable_pass_diagnostic(from_pass: int, to_pass: int) -> dict[str, object]:
+    diagnostic: dict[str, object] = {
+        "from_pass": from_pass,
+        "to_pass": to_pass,
+        "pass_converged": True,
+        "comparison_complete": True,
+        "pass_delta_index": 0.0,
+        "convergence_tolerance_version": (
+            run_validation.CURRENT_CONVERGENCE_TOLERANCE_VERSION
+        ),
+        "previous_boundary_hits": {"total_boundary_hits": 0},
+        "current_boundary_hits": {"total_boundary_hits": 0},
+        "convergence_tolerances": {},
+    }
+    tolerances = diagnostic["convergence_tolerances"]
+    assert isinstance(tolerances, dict)
+    for (
+        field,
+        max_delta_key,
+        mean_delta_key,
+        parameter_name,
+        tolerance,
+    ) in run_validation.PUBLISH_CONVERGENCE_FIELD_CONTRACTS:
+        diagnostic[max_delta_key] = 0.0
+        diagnostic[mean_delta_key] = 0.0
+        tolerances[field] = {
+            "parameter": parameter_name,
+            "max_abs_delta": tolerance,
+        }
+    return diagnostic
+
+
+def auditable_convergence_summary() -> dict[str, object]:
+    fixed_point_residual = auditable_pass_diagnostic(7, 8)
+    return {
+        "converged": True,
+        "last_pass_converged": True,
+        "consecutive_converged_passes": 2,
+        "convergence_reason": "converged",
+        "iterations_run": 7,
+        "min_iterations": 3,
+        "max_iterations": 16,
+        "delta_bounced": False,
+        "last_pass_delta_index": 0.0,
+        "max_pass_delta_index": 0.0,
+        "convergence_tolerance_version": (
+            run_validation.CURRENT_CONVERGENCE_TOLERANCE_VERSION
+        ),
+        "feedback_relaxation_strategy": (
+            run_validation.CURRENT_FEEDBACK_RELAXATION_STRATEGY
+        ),
+        "fixed_point_verification_version": (
+            run_validation.CURRENT_FIXED_POINT_VERIFICATION_VERSION
+        ),
+        "fixed_point_residual_checked": True,
+        "fixed_point_residual_converged": True,
+        "fixed_point_residual_delta_index": fixed_point_residual[
+            "pass_delta_index"
+        ],
+        "fixed_point_residual_diagnostic": fixed_point_residual,
+        "pass_diagnostics": [
+            auditable_pass_diagnostic(from_pass, from_pass + 1)
+            for from_pass in range(7)
+        ],
+    }
+
+
 class RunValidationCompatibilityTests(unittest.TestCase):
     def test_csv_helpers_delegate_with_current_csv_and_callback_surfaces(self) -> None:
         path = Path("rows.csv")
@@ -397,12 +464,75 @@ class ManifestConstructionTests(unittest.TestCase):
         self.assertNotIn("active_global_scenario_rows", baseline)
         self.assertEqual(1, scenario["active_global_scenario_rows"])
 
+    def test_variant_manifest_retains_auditable_convergence_diagnostics(self) -> None:
+        convergence = auditable_convergence_summary()
+        convergence.update(
+            {
+                "delta_bounced": False,
+                "last_pass_delta_index": 1.0,
+                "max_pass_delta_index": 9.0,
+            }
+        )
+        diagnostics = convergence["pass_diagnostics"]
+        assert isinstance(diagnostics, list)
+        manifest = run_validation.build_variant_manifest(
+            Path("final"),
+            "baseline",
+            {"rows": [1], "convergence": convergence},
+            {"regional_rows_by_region": {}, "reconciled_rows": []},
+        )
+
+        summary = manifest["convergence"]
+        self.assertTrue(summary["converged"])
+        self.assertEqual(
+            run_validation.CURRENT_CONVERGENCE_TOLERANCE_VERSION,
+            summary["convergence_tolerance_version"],
+        )
+        self.assertEqual(
+            run_validation.CURRENT_FEEDBACK_RELAXATION_STRATEGY,
+            summary["feedback_relaxation_strategy"],
+        )
+        self.assertEqual(
+            run_validation.CURRENT_FIXED_POINT_VERIFICATION_VERSION,
+            summary["fixed_point_verification_version"],
+        )
+        self.assertTrue(summary["fixed_point_residual_checked"])
+        self.assertTrue(summary["fixed_point_residual_converged"])
+        self.assertIsNot(
+            convergence["fixed_point_residual_diagnostic"],
+            summary["fixed_point_residual_diagnostic"],
+        )
+        self.assertEqual(diagnostics, summary["pass_diagnostics"])
+        self.assertIsNot(diagnostics, summary["pass_diagnostics"])
+        diagnostics[-1]["pass_converged"] = False
+        self.assertTrue(summary["pass_diagnostics"][-1]["pass_converged"])
+
+    def test_variant_manifest_does_not_coerce_truthy_convergence_flags(self) -> None:
+        manifest = run_validation.build_variant_manifest(
+            Path("final"),
+            "baseline",
+            {
+                "rows": [1],
+                "convergence": {
+                    "converged": "true",
+                    "last_pass_converged": 1,
+                    "delta_bounced": "false",
+                },
+            },
+            {"regional_rows_by_region": {}, "reconciled_rows": []},
+        )
+        summary = manifest["convergence"]
+        self.assertFalse(summary["converged"])
+        self.assertFalse(summary["last_pass_converged"])
+        self.assertFalse(summary["delta_bounced"])
+
     def test_run_manifest_preserves_field_order_defaults_versions_and_profile_ids(self) -> None:
         args = argparse.Namespace(
             artifact_profile="seed-cache",
             start_year=2025,
             years=60,
             feedback_iterations=3,
+            min_feedback_iterations=3,
             volatility_scale=1.25,
             initial_gdp=100.0,
         )
@@ -440,6 +570,7 @@ class ManifestConstructionTests(unittest.TestCase):
                 "start_year",
                 "years",
                 "feedback_iterations",
+                "min_feedback_iterations",
                 "volatility_scale",
                 "initial_gdp",
                 "output_dir",
@@ -460,7 +591,14 @@ class ManifestConstructionTests(unittest.TestCase):
         self.assertIsNone(manifest["published"])
 
     def test_publish_variant_selection_keeps_none_baseline_scenario_and_error_paths(self) -> None:
-        manifest = {"scenario_variant": " scenario_1 "}
+        converged = auditable_convergence_summary()
+        manifest = {
+            "scenario_variant": " scenario_1 ",
+            "variants": {
+                "baseline": {"convergence": converged},
+                "scenario_1": {"convergence": converged},
+            },
+        }
         self.assertIsNone(
             run_validation.requested_publish_variant(
                 argparse.Namespace(publish_viewer="none"),

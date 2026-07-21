@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import threading
@@ -58,12 +59,17 @@ class FixedSeedCharacterizationTests(unittest.TestCase):
     """Protect the current numerical model before structural refactoring."""
 
     EXPECTED = {
-        # Baseline refreshed for macro-feedback-interface-v0.2 + regional-macro-
-        # reconciliation-interface-v0.4 (Working Guide sub-Goal 1.1 + 1.2). 1.1 stops
-        # the orchestrator from zeroing macro raw diagnostics and intensity; 1.2
-        # re-clamps reconciled regional fields to their published boundaries. Both
-        # change the fixed-Seed numerical path by design.
-        "global": (13, "55a20cec54c9db2de0751313861cff98cf47dcb371f06b909f607d5940b35d26"),
+        # Baseline refreshed for macro-feedback-interface-v0.4 + convergence
+        # contract (Working Guide sub-Goal 2). The global-feedback calibration
+        # loop is now convergence-aware and writes additional annotation fields
+        # (macro_feedback_iterations_run, min/max_iterations, last_pass_converged,
+        # consecutive_converged_passes, convergence_reason, delta_bounced). With
+        # feedback_iterations=1 the loop body is unchanged so downstream regional
+        # and reconciled rows are byte-identical. Only the global rows carry the
+        # new annotation fields, including the undamped fixed-point residual
+        # status; operations rows are unaffected because the
+        # quarterly operations layer does not read macro_feedback fields.
+        "global": (13, "ef5bc1ea509c82f36b9ac72797ad6068065031c8207f6b965a3140b6278a6b54"),
         "reconciled": (182, "83aecfa3cffe408a07dfd71ddec5f41983bf06d5d10bc414f95bed74acadbc80"),
         "aviation_china": (13, "e160c8ce8c338e5ff9cc2fcc30f820aabc05026f7988aeb204197322a27d744c"),
         "supply_china": (13, "a686d0021dc591929f88f3720fd140a619b62ef923f8b66959e04e67e9a611a9"),
@@ -74,7 +80,7 @@ class FixedSeedCharacterizationTests(unittest.TestCase):
         "valuation_beijing": (32, "dd81336cae764475f6e6e1343ca9df5099657f1bac3785c08e5b306f6dfecf81"),
     }
     CANONICAL_PYTHON_313_EXPECTED = {
-        "global": (13, "8dad361613c6831594a106176c98b66a7ed588cde8c31df4cfadb47b6e5d4514"),
+        "global": (13, "c3086ad45b0a00dbff0b930e6e3d873d1adeb630fb0c0c912b6a7fb4c1b93e3e"),
         "reconciled": (182, "51b091f048d2ac87c6c72a935d2e00845f9545f68bebf5a8cde364c806f8c7e8"),
         "aviation_china": (13, "3fba22440eea685563e7cb649f06fbed83e0811f8ebbf5c90ff4a92f804bb17c"),
         "supply_china": (13, "b6d6beb1c378f6b09cbc9b5ecc21a9e84035672b9195a06881e36548d8864fbf"),
@@ -117,6 +123,28 @@ class FixedSeedCharacterizationTests(unittest.TestCase):
     def test_python_313_canonical_float_representation(self) -> None:
         actual = {name: (len(rows), raw_rows_digest(rows)) for name, rows in self.parts.items()}
         self.assertEqual(self.CANONICAL_PYTHON_313_EXPECTED, actual)
+
+    def test_operations_digest_is_stable_across_python_hash_seeds(self) -> None:
+        child_code = (
+            "from tests.test_safety_baseline import "
+            "FixedSeedCharacterizationTests as T, rows_digest; "
+            "T.setUpClass(); print(rows_digest(T.parts['operations_beijing']))"
+        )
+        digests = []
+        for hash_seed in (0, 3):
+            environment = os.environ.copy()
+            environment["PYTHONHASHSEED"] = str(hash_seed)
+            completed = subprocess.run(
+                [sys.executable, "-c", child_code],
+                cwd=ROOT_DIR,
+                env=environment,
+                check=True,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+            )
+            digests.append(completed.stdout.strip())
+        self.assertEqual([self.EXPECTED["operations_beijing"][1]] * 2, digests)
 
 
 class RuntimeSafetyTests(unittest.TestCase):

@@ -56,8 +56,27 @@ YieldCurveParams = yield_curve_layer.YieldCurveParams
 simulate_yield_curve_for_policy_path = yield_curve_layer.simulate_yield_curve_for_policy_path
 
 
-MACRO_FEEDBACK_PARAM_VERSION = "global-macro-feedback-calibration-v0.1"
-MACRO_FEEDBACK_INTERFACE_VERSION = "macro-feedback-interface-v0.2"
+MACRO_FEEDBACK_PARAM_VERSION = "global-macro-feedback-calibration-v0.3"
+MACRO_FEEDBACK_INTERFACE_VERSION = "macro-feedback-interface-v0.4"
+CONVERGENCE_TOLERANCE_VERSION = "macro-feedback-convergence-tolerances-v0.1"
+FEEDBACK_RELAXATION_STRATEGY_VERSION = "constant-relaxation-with-residual-check-v1"
+FIXED_POINT_VERIFICATION_VERSION = "macro-feedback-fixed-point-residual-v1"
+MINIMUM_FEEDBACK_ITERATIONS = 3
+MINIMUM_CONSECUTIVE_CONVERGED_PASSES = 2
+
+
+FEEDBACK_BLEND_NUMERIC_FIELDS = (
+    "feedback_growth_impulse_pct",
+    "feedback_output_gap_impulse_pct",
+    "feedback_financial_stress_impulse",
+    "feedback_inflation_impulse_pct",
+    "feedback_policy_impulse_pct",
+    "macro_feedback_intensity_index",
+    "macro_feedback_growth_raw_pct",
+    "macro_feedback_stress_raw",
+    "macro_feedback_inflation_raw_pct",
+    "macro_feedback_policy_raw_pct",
+)
 
 
 MACRO_FEEDBACK_FIELDS = [
@@ -70,9 +89,19 @@ MACRO_FEEDBACK_FIELDS = [
     "macro_feedback_inflation_raw_pct",
     "macro_feedback_policy_raw_pct",
     "macro_feedback_iterations_requested",
+    "macro_feedback_iterations_run",
+    "macro_feedback_min_iterations",
+    "macro_feedback_max_iterations",
     "macro_feedback_converged",
+    "macro_feedback_last_pass_converged",
+    "macro_feedback_consecutive_converged_passes",
+    "macro_feedback_convergence_reason",
+    "macro_feedback_delta_bounced",
     "macro_feedback_last_pass_delta_index",
     "macro_feedback_max_pass_delta_index",
+    "macro_feedback_fixed_point_residual_checked",
+    "macro_feedback_fixed_point_residual_converged",
+    "macro_feedback_fixed_point_residual_delta_index",
     "macro_feedback_note",
 ]
 
@@ -105,8 +134,15 @@ COMBINED_MACRO_FEEDBACK_FIELDS = COMBINED_OIL_COMMODITY_FIELDS + MACRO_FEEDBACK_
 @dataclass(frozen=True)
 class MacroFeedbackParams:
     feedback_lag_years: int = 1
-    feedback_iterations: int = 3
-    feedback_iteration_relaxation: float = 0.25
+    feedback_iterations: int = 16
+    # The first feedback rerun remains a full update for compatibility with
+    # feedback_iterations=1. Later reruns use this constant deterministic
+    # relaxation. The default is also a full update: the official 80-seed,
+    # 60-year audit converges within the 16-pass cap, while a diminishing step
+    # can make adjacent passes look stable merely because the step approaches
+    # zero. A separate undamped residual pass therefore verifies the fixed
+    # point before any run may be marked converged.
+    feedback_iteration_relaxation: float = 1.0
     feedback_smoothing: float = 0.42
     stress_smoothing: float = 0.38
     inflation_smoothing: float = 0.40
@@ -121,17 +157,51 @@ class MacroFeedbackParams:
     max_inflation_push_pct: float = 1.35
     max_policy_easing_pct: float = -1.00
     max_policy_tightening_pct: float = 1.25
-    convergence_growth_tolerance_pct: float = 0.65
-    convergence_inflation_tolerance_pct: float = 0.75
-    convergence_policy_tolerance_pct: float = 1.15
-    convergence_hy_tolerance_bps: float = 300.0
-    convergence_oil_tolerance_usd: float = 135.0
+    # Convergence contract: at least three feedback passes, followed by two
+    # consecutive adjacent-pass checks satisfying every authoritative field
+    # tolerance. The composite index is diagnostic-only.
+    min_feedback_iterations: int = MINIMUM_FEEDBACK_ITERATIONS
+    max_feedback_iterations: int = 16
+    convergence_consecutive_passes: int = 2
+    convergence_growth_tolerance_pct: float = 0.15
+    convergence_inflation_tolerance_pct: float = 0.20
+    convergence_policy_tolerance_pct: float = 0.25
+    convergence_2y_tolerance_pct: float = 0.25
+    convergence_10y_tolerance_pct: float = 0.25
+    convergence_dollar_tolerance_index: float = 1.5
+    convergence_hy_tolerance_bps: float = 100.0
+    convergence_oil_tolerance_usd: float = 20.0
+    # Diagnostic-only composite index tolerance; no longer a gating condition on
+    # its own — the per-field thresholds above are the authoritative check. Kept
+    # so existing diagnostics remain comparable across the version bump.
     convergence_delta_index_tolerance: float = 75.0
-
 
 
 def smooth(old: float, target: float, speed: float) -> float:
     return old * (1.0 - speed) + target * speed
+
+
+def feedback_relaxation_for_iteration(
+    params: MacroFeedbackParams,
+    iteration: int,
+) -> float:
+    """Return the deterministic constant feedback relaxation for one rerun.
+
+    ``iteration`` is zero-based. Iteration 0 deliberately applies the full
+    derived feedback path so ``feedback_iterations=1`` keeps its historical
+    one-rerun numerical semantics. Later iterations use the configured constant
+    step. Convergence is never inferred from the damped adjacent delta alone;
+    the solver separately evaluates one undamped fixed-point residual pass.
+    """
+    if iteration < 0:
+        raise ValueError("feedback iteration must be non-negative")
+    if iteration == 0:
+        return 1.0
+
+    initial = float(params.feedback_iteration_relaxation)
+    if not 0.0 < initial <= 1.0:
+        raise ValueError("feedback_iteration_relaxation must be in (0, 1]")
+    return initial
 
 
 # Diagnostic fields produced by the feedback calibration layer. These describe
@@ -167,6 +237,58 @@ def macro_feedback_intensity_from_applied(
         0.0,
         100.0,
     )
+
+
+# Published hard boundaries for the global rate/yield/dollar/FCI fields. These
+# mirror the clamp() calls inside the yield-curve, dollar-liquidity and policy
+# layers. The convergence contract records how many rows of each pass sit exactly
+# on a boundary. These counts identify boundary-limited comparisons for audit;
+# they do not prove that equal clamped values share the same unclamped target.
+# Working Guide sub-Goal 4.1 can later add those target diagnostics.
+GLOBAL_BOUNDARY_FIELDS: tuple[tuple[str, float, float], ...] = (
+    ("global_2y_yield_pct", -0.35, 10.50),
+    ("global_10y_yield_pct", -0.35, 10.50),
+    ("global_short_rate_pct", -0.35, 10.50),
+    ("global_dollar_index", 82.0, 124.0),
+    ("global_financial_conditions_index", -4.0, 4.0),
+)
+
+_BOUNDARY_EPSILON = 1e-6
+
+
+def count_boundary_hits(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Count rows sitting on a published floor or cap for each boundary field.
+
+    Returns a dict with one entry per field plus a total. This lightweight
+    diagnostic marks comparisons that are boundary-limited without pretending
+    to recover the unclamped targets (that is sub-Goal 4.1). The authoritative
+    convergence gate remains the eight published output-field deltas.
+    """
+    per_field: dict[str, dict[str, int]] = {}
+    total_floor_hits = 0
+    total_cap_hits = 0
+    for field, floor, cap in GLOBAL_BOUNDARY_FIELDS:
+        floor_hits = 0
+        cap_hits = 0
+        for row in records:
+            value = as_float(row, field)
+            if value <= floor + _BOUNDARY_EPSILON:
+                floor_hits += 1
+            elif value >= cap - _BOUNDARY_EPSILON:
+                cap_hits += 1
+        per_field[field] = {
+            "floor_hits": floor_hits,
+            "cap_hits": cap_hits,
+            "boundary_hits": floor_hits + cap_hits,
+        }
+        total_floor_hits += floor_hits
+        total_cap_hits += cap_hits
+    return {
+        "per_field": per_field,
+        "total_floor_hits": total_floor_hits,
+        "total_cap_hits": total_cap_hits,
+        "total_boundary_hits": total_floor_hits + total_cap_hits,
+    }
 
 
 def calibrated_gdp_params(args: argparse.Namespace) -> GDPParams:
@@ -382,32 +504,26 @@ def blend_feedback_paths(
     current: Mapping[int, Mapping[str, Any]],
     relaxation: float,
 ) -> dict[int, dict[str, Any]]:
+    """Blend feedback inputs in deterministic key and field order."""
+    if not 0.0 < relaxation <= 1.0:
+        raise ValueError("feedback relaxation must be in (0, 1]")
     if not previous:
-        return {key: dict(value) for key, value in current.items()}
+        return {key: dict(current[key]) for key in sorted(current)}
 
     blended: dict[int, dict[str, Any]] = {}
-    keys = set(previous) | set(current)
-    numeric_fields = {
-        "feedback_growth_impulse_pct",
-        "feedback_output_gap_impulse_pct",
-        "feedback_financial_stress_impulse",
-        "feedback_inflation_impulse_pct",
-        "feedback_policy_impulse_pct",
-        "macro_feedback_intensity_index",
-        "macro_feedback_growth_raw_pct",
-        "macro_feedback_stress_raw",
-        "macro_feedback_inflation_raw_pct",
-        "macro_feedback_policy_raw_pct",
-    }
-    for key in keys:
+    for key in sorted(set(previous) | set(current)):
         old = previous.get(key, {})
         new = current.get(key, {})
         row: dict[str, Any] = {}
-        for field in numeric_fields:
+        for field in FEEDBACK_BLEND_NUMERIC_FIELDS:
             old_value = as_float(old, field)
             new_value = as_float(new, field)
             row[field] = old_value * (1.0 - relaxation) + new_value * relaxation
-        row["feedback_source"] = str(new.get("feedback_source") or old.get("feedback_source") or "lagged_macro_feedback")
+        row["feedback_source"] = str(
+            new.get("feedback_source")
+            or old.get("feedback_source")
+            or "lagged_macro_feedback"
+        )
         blended[key] = row
     return blended
 
@@ -848,6 +964,10 @@ def annotate_feedback_records(
     convergence: Mapping[str, Any],
 ) -> list[dict[str, Any]]:
     annotated: list[dict[str, Any]] = []
+    iterations_run = int(convergence.get("iterations_run", convergence.get("iterations", iteration)))
+    iterations_requested = int(iteration)
+    min_iterations = int(convergence.get("min_iterations", iterations_requested))
+    max_iterations = int(convergence.get("max_iterations", iterations_requested))
     for row in records:
         feedback = feedback_path.get(int(row["year_index"]), {})
         note = "none" if not feedback else str(feedback.get("feedback_source", "lagged_macro_feedback"))
@@ -857,16 +977,41 @@ def annotate_feedback_records(
                     **row,
                     "macro_feedback_param_version": MACRO_FEEDBACK_PARAM_VERSION,
                     "macro_feedback_interface_version": MACRO_FEEDBACK_INTERFACE_VERSION,
-                    "macro_feedback_iteration": iteration,
+                    "macro_feedback_iteration": iterations_run,
                     "macro_feedback_intensity_index": as_float(feedback, "macro_feedback_intensity_index"),
                     "macro_feedback_growth_raw_pct": as_float(feedback, "macro_feedback_growth_raw_pct"),
                     "macro_feedback_stress_raw": as_float(feedback, "macro_feedback_stress_raw"),
                     "macro_feedback_inflation_raw_pct": as_float(feedback, "macro_feedback_inflation_raw_pct"),
                     "macro_feedback_policy_raw_pct": as_float(feedback, "macro_feedback_policy_raw_pct"),
-                    "macro_feedback_iterations_requested": iteration,
+                    "macro_feedback_iterations_requested": iterations_requested,
+                    "macro_feedback_iterations_run": iterations_run,
+                    "macro_feedback_min_iterations": min_iterations,
+                    "macro_feedback_max_iterations": max_iterations,
                     "macro_feedback_converged": str(convergence.get("converged", False)).lower(),
+                    "macro_feedback_last_pass_converged": str(
+                        convergence.get("last_pass_converged", False)
+                    ).lower(),
+                    "macro_feedback_consecutive_converged_passes": int(
+                        convergence.get("consecutive_converged_passes", 0)
+                    ),
+                    "macro_feedback_convergence_reason": str(
+                        convergence.get("convergence_reason", "not_converged")
+                    ),
+                    "macro_feedback_delta_bounced": str(
+                        convergence.get("delta_bounced", False)
+                    ).lower(),
                     "macro_feedback_last_pass_delta_index": as_float(convergence, "last_pass_delta_index"),
                     "macro_feedback_max_pass_delta_index": as_float(convergence, "max_pass_delta_index"),
+                    "macro_feedback_fixed_point_residual_checked": str(
+                        convergence.get("fixed_point_residual_checked", False)
+                    ).lower(),
+                    "macro_feedback_fixed_point_residual_converged": str(
+                        convergence.get("fixed_point_residual_converged", False)
+                    ).lower(),
+                    "macro_feedback_fixed_point_residual_delta_index": as_float(
+                        convergence,
+                        "fixed_point_residual_delta_index",
+                    ),
                     "macro_feedback_note": note,
                 }
             )
@@ -883,37 +1028,113 @@ def compare_pass_records(
     current: list[dict[str, Any]],
     params: MacroFeedbackParams,
 ) -> dict[str, Any]:
+    previous_indices = [int(row["year_index"]) for row in previous]
+    current_indices = [int(row["year_index"]) for row in current]
     previous_by_index = {int(row["year_index"]): row for row in previous}
     current_by_index = {int(row["year_index"]): row for row in current}
-    shared_indices = sorted(set(previous_by_index) & set(current_by_index))
+    previous_positive = {index for index in previous_indices if index > 0}
+    current_positive = {index for index in current_indices if index > 0}
+    shared_indices = sorted(previous_positive & current_positive)
     rows = [
         (previous_by_index[index], current_by_index[index])
         for index in shared_indices
-        if index > 0
     ]
+    comparison_complete = bool(shared_indices) and (
+        previous_positive == current_positive
+        and len(previous_indices) == len(set(previous_indices))
+        and len(current_indices) == len(set(current_indices))
+    )
 
     def max_abs_delta(field: str) -> float:
         if not rows:
             return 0.0
-        return max(abs(as_float(curr, field) - as_float(prev, field)) for prev, curr in rows)
+        return max(
+            abs(as_float(curr, field) - as_float(prev, field))
+            for prev, curr in rows
+        )
 
     def mean_abs_delta(field: str) -> float:
         if not rows:
             return 0.0
-        return mean(abs(as_float(curr, field) - as_float(prev, field)) for prev, curr in rows)
+        return mean(
+            abs(as_float(curr, field) - as_float(prev, field))
+            for prev, curr in rows
+        )
 
     max_growth = max_abs_delta("realized_growth_pct")
     max_inflation = max_abs_delta("headline_inflation_pct")
     max_policy = max_abs_delta("global_policy_rate_pct")
+    max_2y = max_abs_delta("global_2y_yield_pct")
+    max_10y = max_abs_delta("global_10y_yield_pct")
+    max_dollar = max_abs_delta("global_dollar_index")
     max_hy = max_abs_delta("global_high_yield_spread_bps")
     max_oil = max_abs_delta("brent_oil_price_usd")
+    convergence_tolerances = {
+        "realized_growth_pct": {
+            "parameter": "convergence_growth_tolerance_pct",
+            "unit": "percentage_point",
+            "max_abs_delta": params.convergence_growth_tolerance_pct,
+        },
+        "headline_inflation_pct": {
+            "parameter": "convergence_inflation_tolerance_pct",
+            "unit": "percentage_point",
+            "max_abs_delta": params.convergence_inflation_tolerance_pct,
+        },
+        "global_policy_rate_pct": {
+            "parameter": "convergence_policy_tolerance_pct",
+            "unit": "percentage_point",
+            "max_abs_delta": params.convergence_policy_tolerance_pct,
+        },
+        "global_2y_yield_pct": {
+            "parameter": "convergence_2y_tolerance_pct",
+            "unit": "percentage_point",
+            "max_abs_delta": params.convergence_2y_tolerance_pct,
+        },
+        "global_10y_yield_pct": {
+            "parameter": "convergence_10y_tolerance_pct",
+            "unit": "percentage_point",
+            "max_abs_delta": params.convergence_10y_tolerance_pct,
+        },
+        "global_dollar_index": {
+            "parameter": "convergence_dollar_tolerance_index",
+            "unit": "index_point",
+            "max_abs_delta": params.convergence_dollar_tolerance_index,
+        },
+        "global_high_yield_spread_bps": {
+            "parameter": "convergence_hy_tolerance_bps",
+            "unit": "basis_point",
+            "max_abs_delta": params.convergence_hy_tolerance_bps,
+        },
+        "brent_oil_price_usd": {
+            "parameter": "convergence_oil_tolerance_usd",
+            "unit": "usd",
+            "max_abs_delta": params.convergence_oil_tolerance_usd,
+        },
+    }
+    max_deltas_by_field = {
+        "realized_growth_pct": max_growth,
+        "headline_inflation_pct": max_inflation,
+        "global_policy_rate_pct": max_policy,
+        "global_2y_yield_pct": max_2y,
+        "global_10y_yield_pct": max_10y,
+        "global_dollar_index": max_dollar,
+        "global_high_yield_spread_bps": max_hy,
+        "brent_oil_price_usd": max_oil,
+    }
+    # Composite delta index is diagnostic-only. The per-field tolerances below
+    # are the authoritative convergence check.
     delta_index = (
         22.0 * max_growth
         + 18.0 * max_inflation
         + 16.0 * max_policy
+        + 10.0 * max_2y
+        + 10.0 * max_10y
+        + 1.5 * max_dollar
         + max_hy / 8.0
         + max_oil / 6.0
     )
+    previous_boundary_hits = count_boundary_hits(previous)
+    current_boundary_hits = count_boundary_hits(current)
     return {
         "seed": seed,
         "from_pass": from_pass,
@@ -924,23 +1145,79 @@ def compare_pass_records(
         "mean_inflation_delta_pct": round(mean_abs_delta("headline_inflation_pct"), 4),
         "max_policy_rate_delta_pct": round(max_policy, 4),
         "mean_policy_rate_delta_pct": round(mean_abs_delta("global_policy_rate_pct"), 4),
+        "max_2y_yield_delta_pct": round(max_2y, 4),
+        "mean_2y_yield_delta_pct": round(mean_abs_delta("global_2y_yield_pct"), 4),
+        "max_10y_yield_delta_pct": round(max_10y, 4),
+        "mean_10y_yield_delta_pct": round(mean_abs_delta("global_10y_yield_pct"), 4),
+        "max_dollar_index_delta": round(max_dollar, 4),
+        "mean_dollar_index_delta": round(mean_abs_delta("global_dollar_index"), 4),
         "max_hy_spread_delta_bps": round(max_hy, 4),
         "mean_hy_spread_delta_bps": round(mean_abs_delta("global_high_yield_spread_bps"), 4),
         "max_brent_delta_usd": round(max_oil, 4),
         "mean_brent_delta_usd": round(mean_abs_delta("brent_oil_price_usd"), 4),
         "pass_delta_index": round(delta_index, 4),
-        "pass_converged": (
-            delta_index <= params.convergence_delta_index_tolerance
-            and max_growth <= params.convergence_growth_tolerance_pct
-            and max_inflation <= params.convergence_inflation_tolerance_pct
-            and max_policy <= params.convergence_policy_tolerance_pct
-            and max_hy <= params.convergence_hy_tolerance_bps
-            and max_oil <= params.convergence_oil_tolerance_usd
+        "convergence_tolerance_version": CONVERGENCE_TOLERANCE_VERSION,
+        "convergence_tolerances": convergence_tolerances,
+        "compared_year_count": len(shared_indices),
+        "comparison_complete": comparison_complete,
+        "missing_from_previous": sorted(current_positive - previous_positive),
+        "missing_from_current": sorted(previous_positive - current_positive),
+        "previous_boundary_hits": previous_boundary_hits,
+        "current_boundary_hits": current_boundary_hits,
+        "pass_converged": comparison_complete
+        and all(
+            max_deltas_by_field[field] <= float(contract["max_abs_delta"])
+            for field, contract in convergence_tolerances.items()
         ),
     }
 
 
-def convergence_summary(pass_records: list[list[dict[str, Any]]], seed: int, params: MacroFeedbackParams) -> dict[str, Any]:
+def attach_fixed_point_verification(
+    convergence: dict[str, Any],
+    diagnostic: dict[str, Any],
+) -> dict[str, Any]:
+    """Attach an undamped one-step residual check to a convergence candidate.
+
+    Adjacent deltas are not sufficient when feedback inputs are relaxed: a
+    small step can make two paths close even while the feedback mapping remains
+    far from its fixed point. The diagnostic compares the candidate output with
+    a shadow pass driven by the candidate's fully derived feedback path.
+    """
+    verified = diagnostic.get("pass_converged") is True
+    result = dict(convergence)
+    result.update(
+        {
+            "fixed_point_verification_version": FIXED_POINT_VERIFICATION_VERSION,
+            "fixed_point_residual_checked": True,
+            "fixed_point_residual_converged": verified,
+            "fixed_point_residual_delta_index": float(
+                diagnostic.get("pass_delta_index", 0.0)
+            ),
+            "fixed_point_residual_diagnostic": diagnostic,
+        }
+    )
+    if not verified:
+        result["converged"] = False
+        result["convergence_reason"] = "fixed_point_residual_not_met"
+    return result
+
+
+def convergence_summary(
+    pass_records: list[list[dict[str, Any]]],
+    seed: int,
+    params: MacroFeedbackParams,
+    *,
+    min_iterations: int | None = None,
+    max_iterations: int | None = None,
+    pass_relaxations: list[float] | None = None,
+) -> dict[str, Any]:
+    """Summarise adjacent-pass convergence under the authoritative contract."""
+    effective_min, effective_max = resolve_iteration_bounds(
+        params,
+        min_iterations=min_iterations,
+        max_iterations=max_iterations,
+    )
+
     diagnostics = [
         compare_pass_records(
             seed=seed,
@@ -952,18 +1229,209 @@ def convergence_summary(pass_records: list[list[dict[str, Any]]], seed: int, par
         )
         for index in range(1, len(pass_records))
     ]
-    last = diagnostics[-1] if diagnostics else {
-        "pass_delta_index": 0.0,
-        "pass_converged": True,
-    }
-    return {
+    if pass_relaxations is not None:
+        if len(pass_relaxations) != len(diagnostics):
+            raise ValueError("pass_relaxations must match every pairwise diagnostic")
+        for index, diagnostic in enumerate(diagnostics):
+            diagnostic["feedback_relaxation"] = round(
+                float(pass_relaxations[index]),
+                8,
+            )
+    iterations_run = len(pass_records) - 1
+
+    common = {
         "seed": seed,
-        "iterations": len(pass_records) - 1,
-        "converged": bool(last["pass_converged"]),
-        "last_pass_delta_index": float(last["pass_delta_index"]),
-        "max_pass_delta_index": max((float(item["pass_delta_index"]) for item in diagnostics), default=0.0),
+        "iterations": iterations_run,
+        "iterations_run": iterations_run,
+        "min_iterations": effective_min,
+        "max_iterations": effective_max,
+        "convergence_tolerance_version": CONVERGENCE_TOLERANCE_VERSION,
+        "feedback_relaxation_strategy": FEEDBACK_RELAXATION_STRATEGY_VERSION,
+        "fixed_point_verification_version": FIXED_POINT_VERIFICATION_VERSION,
+        "fixed_point_residual_checked": False,
+        "fixed_point_residual_converged": False,
+        "fixed_point_residual_delta_index": 0.0,
+        "fixed_point_residual_diagnostic": None,
         "pass_diagnostics": diagnostics,
     }
+    if not diagnostics:
+        return {
+            **common,
+            "converged": False,
+            "last_pass_converged": False,
+            "consecutive_converged_passes": 0,
+            "convergence_reason": "no_passes",
+            "delta_bounced": False,
+            "last_pass_delta_index": 0.0,
+            "max_pass_delta_index": 0.0,
+        }
+
+    consecutive_required = max(
+        MINIMUM_CONSECUTIVE_CONVERGED_PASSES,
+        int(params.convergence_consecutive_passes),
+    )
+    trailing_converged = [
+        bool(diag["pass_converged"])
+        for diag in diagnostics[-consecutive_required:]
+    ]
+    consecutive_converged_passes = 0
+    for converged in reversed(trailing_converged):
+        if not converged:
+            break
+        consecutive_converged_passes += 1
+    last_pass_converged = bool(diagnostics[-1]["pass_converged"])
+    min_iterations_met = iterations_run >= effective_min
+    all_required_converged = (
+        len(trailing_converged) >= consecutive_required
+        and all(trailing_converged)
+    )
+
+    if all_required_converged and min_iterations_met:
+        convergence_reason = "converged"
+    elif not min_iterations_met:
+        convergence_reason = "min_iterations_not_met"
+    elif iterations_run >= effective_max:
+        convergence_reason = "max_iterations_reached"
+    else:
+        convergence_reason = "not_converged"
+
+    delta_bounced = False
+    if len(diagnostics) >= 2:
+        delta_bounced = bool(
+            float(diagnostics[-1]["pass_delta_index"])
+            > float(diagnostics[-2]["pass_delta_index"])
+        )
+
+    return {
+        **common,
+        "converged": bool(all_required_converged and min_iterations_met),
+        "last_pass_converged": last_pass_converged,
+        "consecutive_converged_passes": consecutive_converged_passes,
+        "convergence_reason": convergence_reason,
+        "delta_bounced": delta_bounced,
+        "last_pass_delta_index": float(diagnostics[-1]["pass_delta_index"]),
+        "max_pass_delta_index": max(
+            float(item["pass_delta_index"])
+            for item in diagnostics
+        ),
+    }
+
+
+def resolve_iteration_bounds(
+    feedback_params: MacroFeedbackParams,
+    *,
+    min_iterations: int | None = None,
+    max_iterations: int | None = None,
+) -> tuple[int, int]:
+    """Resolve bounds without weakening the three-pass convergence gate.
+
+    A legacy maximum of zero is normalised to one feedback rerun. If max is
+    below the authoritative minimum, the loop still runs exactly max passes and
+    reports ``min_iterations_not_met``; it never lowers the contract to fit the
+    requested cap.
+    """
+    effective_min = int(
+        min_iterations
+        if min_iterations is not None
+        else feedback_params.min_feedback_iterations
+    )
+    effective_max = int(
+        max_iterations
+        if max_iterations is not None
+        else feedback_params.max_feedback_iterations
+    )
+    if effective_min < 0:
+        raise ValueError("min feedback iterations must be non-negative")
+    if effective_max < 0:
+        raise ValueError("max feedback iterations must be non-negative")
+    effective_min = max(MINIMUM_FEEDBACK_ITERATIONS, effective_min)
+    effective_max = max(1, effective_max)
+    return effective_min, effective_max
+
+
+def run_convergence_aware_feedback_loop(
+    *,
+    seed: int,
+    feedback_params: MacroFeedbackParams,
+    initial_records: list[dict[str, Any]],
+    run_pass: Any,
+    min_iterations: int | None = None,
+    max_iterations: int | None = None,
+) -> tuple[list[dict[str, Any]], dict[int, dict[str, Any]], dict[str, Any]]:
+    """Run the shared deterministic feedback fixed-point solver.
+
+    Convergence can be reported only after the three-pass minimum gate, two
+    consecutive adjacent all-field checks, and an undamped shadow pass proving
+    that the candidate path's fixed-point residual also satisfies every field
+    tolerance. Final records always come from the last accepted complete model
+    pass; the shadow pass is diagnostic-only. A caller may request fewer than
+    three reruns for compatibility diagnostics, but such a run cannot be marked
+    converged.
+    """
+    effective_min, effective_max = resolve_iteration_bounds(
+        feedback_params,
+        min_iterations=min_iterations,
+        max_iterations=max_iterations,
+    )
+    pass_records = [initial_records]
+    macro_feedback: dict[int, dict[str, Any]] = {}
+    pass_relaxations: list[float] = []
+    convergence: dict[str, Any] | None = None
+
+    for iteration in range(effective_max):
+        derived = derive_feedback_path(pass_records[-1], feedback_params)
+        relaxation = feedback_relaxation_for_iteration(feedback_params, iteration)
+        macro_feedback = blend_feedback_paths(
+            macro_feedback,
+            derived,
+            relaxation,
+        )
+        pass_relaxations.append(relaxation)
+        records = run_pass(macro_feedback, iteration)
+        pass_records.append(records)
+        if iteration + 1 >= effective_min:
+            convergence = convergence_summary(
+                pass_records,
+                seed,
+                feedback_params,
+                min_iterations=effective_min,
+                max_iterations=effective_max,
+                pass_relaxations=pass_relaxations,
+            )
+            if convergence["converged"]:
+                verification_feedback = derive_feedback_path(
+                    records,
+                    feedback_params,
+                )
+                verification_records = run_pass(
+                    verification_feedback,
+                    iteration + 1,
+                )
+                verification_diagnostic = compare_pass_records(
+                    seed=seed,
+                    from_pass=iteration + 1,
+                    to_pass=iteration + 2,
+                    previous=records,
+                    current=verification_records,
+                    params=feedback_params,
+                )
+                convergence = attach_fixed_point_verification(
+                    convergence,
+                    verification_diagnostic,
+                )
+                if convergence["converged"]:
+                    break
+
+    if convergence is None:
+        convergence = convergence_summary(
+            pass_records,
+            seed,
+            feedback_params,
+            min_iterations=effective_min,
+            max_iterations=effective_max,
+            pass_relaxations=pass_relaxations,
+        )
+    return pass_records[-1], macro_feedback, convergence
 
 
 def summarize_seed(records: list[dict[str, Any]]) -> dict[str, Any]:
@@ -1068,7 +1536,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--start-year", type=int, default=2025, help="Calendar year for the initial observation.")
     parser.add_argument("--initial-gdp", type=float, default=110.0, help="Initial global GDP in trillion USD.")
     parser.add_argument("--volatility-scale", type=float, default=1.55, help="Scales GDP cycle amplitude and random shocks.")
-    parser.add_argument("--feedback-iterations", type=int, default=3, help="Number of feedback calibration reruns after the baseline pass.")
+    parser.add_argument(
+        "--feedback-iterations",
+        type=int,
+        default=16,
+        help="Maximum feedback calibration reruns. The loop stops early once the convergence contract is met.",
+    )
+    parser.add_argument(
+        "--min-feedback-iterations",
+        type=int,
+        default=3,
+        help="Minimum feedback passes before the convergence check is applied.",
+    )
     parser.add_argument("--seed", type=int, default=None, help="Run one seed only.")
     parser.add_argument("--seeds", type=int, nargs="*", default=None, help="Run an explicit list of seeds.")
     parser.add_argument("--seed-start", type=int, default=1, help="First seed when --seed/--seeds is omitted.")
@@ -1087,6 +1566,8 @@ def main() -> int:
         raise SystemExit("--volatility-scale must be positive")
     if args.feedback_iterations < 0:
         raise SystemExit("--feedback-iterations must be non-negative")
+    if args.min_feedback_iterations < 0:
+        raise SystemExit("--min-feedback-iterations must be non-negative")
 
     gdp_params = calibrated_gdp_params(args)
     inflation_params = InflationParams(
@@ -1104,12 +1585,16 @@ def main() -> int:
     credit_spread_params = calibrated_credit_params()
     asset_price_params = calibrated_asset_params()
     oil_commodity_params = calibrated_oil_params()
-    feedback_params = MacroFeedbackParams(feedback_iterations=args.feedback_iterations)
+    feedback_params = MacroFeedbackParams(
+        feedback_iterations=args.feedback_iterations,
+        min_feedback_iterations=args.min_feedback_iterations,
+        max_feedback_iterations=max(1, args.feedback_iterations),
+    )
 
     records_by_seed: dict[int, list[dict[str, Any]]] = {}
     convergence_by_seed: dict[int, dict[str, Any]] = {}
     for seed in seeds:
-        records = run_full_chain(
+        initial_records = run_full_chain(
             seed,
             gdp_params=gdp_params,
             inflation_params=inflation_params,
@@ -1120,16 +1605,9 @@ def main() -> int:
             asset_price_params=asset_price_params,
             oil_commodity_params=oil_commodity_params,
         )
-        pass_records = [records]
-        feedback_path: dict[int, dict[str, Any]] = {}
-        for _ in range(args.feedback_iterations):
-            raw_feedback_path = derive_feedback_path(records, feedback_params)
-            feedback_path = blend_feedback_paths(
-                feedback_path,
-                raw_feedback_path,
-                feedback_params.feedback_iteration_relaxation,
-            )
-            records = run_full_chain(
+
+        def run_pass(macro_feedback: dict[int, dict[str, Any]], _iteration: int) -> list[dict[str, Any]]:
+            return run_full_chain(
                 seed,
                 gdp_params=gdp_params,
                 inflation_params=inflation_params,
@@ -1139,10 +1617,17 @@ def main() -> int:
                 credit_spread_params=credit_spread_params,
                 asset_price_params=asset_price_params,
                 oil_commodity_params=oil_commodity_params,
-                feedback_path=feedback_path,
+                feedback_path=macro_feedback if macro_feedback else None,
             )
-            pass_records.append(records)
-        convergence = convergence_summary(pass_records, seed, feedback_params)
+
+        records, feedback_path, convergence = run_convergence_aware_feedback_loop(
+            seed=seed,
+            feedback_params=feedback_params,
+            initial_records=initial_records,
+            run_pass=run_pass,
+            min_iterations=args.min_feedback_iterations,
+            max_iterations=max(1, args.feedback_iterations),
+        )
         convergence_by_seed[seed] = convergence
         records_by_seed[seed] = annotate_feedback_records(records, feedback_path, args.feedback_iterations, convergence)
 
@@ -1184,7 +1669,8 @@ def main() -> int:
             "model_note": {
                 "scope": "This is a feedback-calibrated orchestrator, not a global event detector.",
                 "method": "The stack first generates a complete macro path, derives lagged feedback from existing *_impulse fields, then reruns the path with GDP, inflation, and policy feedback inputs for the configured number of passes.",
-                "convergence": "Pass diagnostics compare GDP growth, headline inflation, policy rate, HY spread, and Brent oil price across consecutive passes.",
+                "convergence": "Adjacent-pass diagnostics compare growth, headline inflation, policy rate, 2Y yield, 10Y yield, dollar index, HY spread, and Brent oil against the strict versioned tolerances; two consecutive passing diagnostics are required.",
+                "solver": "Feedback inputs use a deterministic constant relaxation; convergence additionally requires an undamped fixed-point residual pass, while output rows remain the final accepted complete model pass.",
                 "calibration": "GDP smoothing, credit convexity, bank lending sentiment, equity valuation pressure, and oil return smoothing are calibrated to avoid overly jumpy or permanently stressed paths.",
                 "future_connection": "A later event layer can classify and inject named global events on top of this feedback scheduler.",
             },

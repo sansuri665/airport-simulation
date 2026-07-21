@@ -33,7 +33,7 @@ JSON 响应会附加当前协议与运行环境：
 ```json
 {
   "apiSchemaVersion": "seed-explorer-api-v3",
-  "modelVersion": "airport-model-v0.8",
+  "modelVersion": "airport-model-v0.9",
   "outputSchemaVersion": "airport-model-output-v1",
   "pythonVersion": "3.13.x",
   "schemaCatalog": "/api/schema"
@@ -250,6 +250,8 @@ POST /api/forecast-candidate
 - `viewer-release-manifest.schema.json`
 
 Viewer Manifest v2 使用 `downstream_csv_copy_count` 记录发布后刷新的独立模型 CSV 数量，不再记录或生成浏览器 canonical 副本。当前正式 Manifest 已完成 v2 实际发布；Schema 继续接受历史 v1 Manifest，新发布只写 v2。`workspace-status-response.schema.json` 的 Viewer 状态只有 `versioned_release` 与 `unavailable`，后者不会触发浏览器回退。
+
+新生成的 Macro Run Manifest 会为每个 variant 保存版本化反馈收敛摘要，包括完整 `pass_diagnostics[]`、常量反馈更新策略和 `fixed_point_residual_diagnostic`。发布 baseline 或 scenario 时，服务端要求至少 3 次回跑、最后两个相邻 Pass 逐字段通过，并要求候选路径的无松弛影子 Pass 同样通过八字段门槛。旧 Manifest 仍可作为归档读取，但缺少当前残差验证、诊断链或版本标识时不得重新发布；`--publish-viewer none` 可保留未收敛诊断 Run。
 
 ### API 公共结构与响应
 

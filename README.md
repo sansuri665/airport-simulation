@@ -131,6 +131,8 @@ py -3.13 -m unittest discover -s tests -q
 
 如果准备把北京样板扩展到其它城市，先阅读 [北京样板与新增完整经营城市指南](docs/reference/Beijing_Template_and_New_City_Guide.md)。
 
+在本地强模型额度需要分配给多个项目时，边界清楚、实现量较大的子 Goal 可以交给网页版 Pro 先完成实现。任务包保持单一目标，但应包含足够的源码、测试、配置契约、背景与正反样例；主仓库仍负责独立审查和完整验收。未上传 GitHub 的本地小版本不要求维护全套发布文档，但跨多个子 Goal 的临时路线文档必须持续记录真实进度。具体规范见 [网页模型 Handoff](docs/development/Web_Model_Handoff.md) 与 [文档维护规则](docs/development/Documentation_Standard.md)。
+
 ## 当前边界
 
 - 全球、区域、航空和中国大陆城市市场已经形成完整模拟链。

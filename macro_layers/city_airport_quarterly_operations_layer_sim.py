@@ -2073,7 +2073,10 @@ def bounded_component_allocation(
     clean_demand = {name: max(0.0, demand.get(name, 0.0)) for name in COMPONENTS}
     allocation = {name: 0.0 for name in COMPONENTS}
     remaining = min(max(0.0, total), sum(clean_demand.values()))
-    active = {name for name in COMPONENTS if clean_demand[name] > 1e-12}
+    # Keep the published component order. A set changes floating-point summation
+    # order across PYTHONHASHSEED values and previously moved one rounded VFR
+    # passenger value by 0.0001 in otherwise identical fixed-seed runs.
+    active = [name for name in COMPONENTS if clean_demand[name] > 1e-12]
     while remaining > 1e-12 and active:
         weights = {name: max(0.0, preferred.get(name, 0.0)) for name in active}
         weight_total = sum(weights.values())
