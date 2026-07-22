@@ -11,6 +11,8 @@ write_json = simulation_io.write_json
 clamp = simulation_utils.clamp
 resolve_seeds = simulation_utils.resolve_seeds
 round_record = simulation_utils.round_record
+require_finite = simulation_utils.require_finite
+require_in_range = simulation_utils.require_in_range
 
 import argparse
 import json
@@ -28,7 +30,7 @@ GDPParams = global_gdp_layer.GDPParams
 simulate_global_gdp = global_gdp_layer.simulate_global_gdp
 
 
-INFLATION_PARAM_VERSION = "global-inflation-layer-v0.1"
+INFLATION_PARAM_VERSION = "global-inflation-layer-v0.2"
 INFLATION_INTERFACE_VERSION = "inflation-feedback-interface-v0.1"
 
 
@@ -97,6 +99,23 @@ class InflationParams:
     min_headline_pct: float = -1.5
     max_core_pct: float = 7.0
     min_core_pct: float = -0.5
+
+
+def validate_initial_parameters(params: InflationParams) -> None:
+    require_in_range(
+        "initial_headline_pct",
+        params.initial_headline_pct,
+        params.min_headline_pct,
+        params.max_headline_pct,
+    )
+    require_in_range(
+        "initial_core_pct",
+        params.initial_core_pct,
+        params.min_core_pct,
+        params.max_core_pct,
+    )
+    require_finite("initial_expectation_pct", params.initial_expectation_pct)
+    require_finite("initial_wage_pressure_pct", params.initial_wage_pressure_pct)
 
 
 @dataclass
@@ -227,12 +246,13 @@ def simulate_inflation_for_gdp_path(
     gdp_records: list[dict[str, Any]],
     params: InflationParams,
 ) -> list[dict[str, Any]]:
+    validate_initial_parameters(params)
     rng = random.Random(seed + params.inflation_seed_offset)
     state = InflationState(
-        headline_inflation_pct=params.initial_headline_pct + rng.uniform(-0.25, 0.25),
-        core_inflation_pct=params.initial_core_pct + rng.uniform(-0.18, 0.18),
-        inflation_expectation_pct=params.initial_expectation_pct + rng.uniform(-0.12, 0.12),
-        wage_pressure_pct=params.initial_wage_pressure_pct + rng.uniform(-0.20, 0.20),
+        headline_inflation_pct=params.initial_headline_pct,
+        core_inflation_pct=params.initial_core_pct,
+        inflation_expectation_pct=params.initial_expectation_pct,
+        wage_pressure_pct=params.initial_wage_pressure_pct,
     )
 
     combined: list[dict[str, Any]] = []

@@ -11,6 +11,7 @@ write_json = simulation_io.write_json
 clamp = simulation_utils.clamp
 resolve_seeds = simulation_utils.resolve_seeds
 round_record = simulation_utils.round_record
+require_in_range = simulation_utils.require_in_range
 
 import argparse
 import json
@@ -31,8 +32,8 @@ as_float = inflation_layer.as_float
 simulate_inflation_for_gdp_path = inflation_layer.simulate_inflation_for_gdp_path
 
 
-POLICY_PARAM_VERSION = "global-policy-rate-layer-v0.1"
-POLICY_INTERFACE_VERSION = "policy-feedback-interface-v0.1"
+POLICY_PARAM_VERSION = "global-policy-rate-layer-v0.2"
+POLICY_INTERFACE_VERSION = "policy-feedback-interface-v0.2"
 
 
 POLICY_FIELDS = [
@@ -88,6 +89,15 @@ class PolicyRateParams:
     qe_build_speed: float = 0.34
     qe_policy_floor_pct: float = 1.25
     qe_shadow_rate_beta: float = 0.025
+
+
+def validate_initial_parameters(params: PolicyRateParams) -> None:
+    require_in_range(
+        "initial_policy_rate_pct",
+        params.initial_policy_rate_pct,
+        params.min_policy_rate_pct,
+        params.max_policy_rate_pct,
+    )
 
 
 @dataclass
@@ -200,6 +210,7 @@ def simulate_policy_for_macro_path(
     records: list[dict[str, Any]],
     params: PolicyRateParams,
 ) -> list[dict[str, Any]]:
+    validate_initial_parameters(params)
     state = PolicyRateState(
         policy_rate_pct=params.initial_policy_rate_pct,
         previous_policy_rate_pct=params.initial_policy_rate_pct,

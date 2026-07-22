@@ -33,8 +33,8 @@ JSON 响应会附加当前协议与运行环境：
 ```json
 {
   "apiSchemaVersion": "seed-explorer-api-v3",
-  "modelVersion": "airport-model-v0.11",
-  "outputSchemaVersion": "airport-model-output-v3",
+  "modelVersion": "airport-model-v0.12",
+  "outputSchemaVersion": "airport-model-output-v4",
   "pythonVersion": "3.13.x",
   "schemaCatalog": "/api/schema"
 }
@@ -175,6 +175,16 @@ financial_conditions_consecutive_boundary_years
 `expected_short_rate_10y_pct` 是可观察名义政策短端预期，默认下限 `0.05%`；`expected_shadow_short_rate_10y_pct` 是可有限为负的 QE 影子状态。`global_dollar_index` 字段名为兼容保留，唯一正式定义是“美元资金条件指数/代理”，不是严格 DXY。全球 Viewer lazy index 与 region chunk 协议同步升级到 v2。
 
 边界布尔值来自真实裁剪点：最终状态边界使用平滑后的未裁剪候选，目标边界使用公式目标候选。连续年数按实际边界应用连续累计，脱离边界即归零。
+
+### 3.7 次级饱和诊断字段
+
+信用、资产与能源层对以下七个字段统一发布真实未裁剪目标、floor/cap applied、`boundary_state` 和连续边界年数：`global_credit_spread_index`、`credit_availability_index`、`credit_impairment_stock_index`、`equity_earnings_index`、`equity_risk_premium_pct`、`brent_oil_price_usd`、`energy_cost_pressure_index`。`boundary_state` 的正式枚举为 `none`、`floor`、`cap`、`soft_floor`、`soft_cap`。软边界保留未裁剪目标用于区分严重程度；固定 0–100 指数仍有外层安全边界；盈利指数没有固定常数上限。
+
+### 3.8 统一宏观起点与前缀契约
+
+`airport-model-output-v4` 保留 v3 的收益率—美元和次级饱和字段，并统一全球八层的 `year_index=0` 语义。第 0 行是配置起点，不是第一年结束值：stock/level 字段直接等于版本化参数初值，change/yoy/flow 为零或明确的基期定义，事件与风险状态为 `initial`/`none`，边界布尔值为 false。第一次年度转移和第一次随机 draw 都发生在 `year_index=1`；不得为兼容旧 digest 在起点预抽样或丢弃随机数。
+
+同一 Seed 和参数下，`years=0/1/2/60` 的较短结果必须是较长结果的逐字段严格前缀。`years=0` 返回 1 行，`years=1` 返回 2 行；公共年份数量契约没有改变。全球行中的 `macro_feedback_*` 行级收敛字段是该年度达到逐字段固定点的前缀稳定诊断，Run/Manifest 中的收敛摘要仍是发布授权的权威 run-level 结论。区域第 0 行只读消费相同的全球增长、缺口、通胀、政策率、10Y 和 HY 起点锚，不改写区域公式。Viewer 时间轴将第 0 行标为“起点”。贷款字段贯通不属于本版本。
 
 ## 4. POST 接口
 

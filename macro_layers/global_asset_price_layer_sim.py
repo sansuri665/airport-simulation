@@ -11,9 +11,12 @@ write_json = simulation_io.write_json
 clamp = simulation_utils.clamp
 resolve_seeds = simulation_utils.resolve_seeds
 round_record = simulation_utils.round_record
+require_in_range = simulation_utils.require_in_range
+require_positive = simulation_utils.require_positive
 
 import argparse
 import json
+import math
 import random
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -48,19 +51,31 @@ YieldCurveParams = yield_curve_layer.YieldCurveParams
 simulate_yield_curve_for_policy_path = yield_curve_layer.simulate_yield_curve_for_policy_path
 
 
-ASSET_PRICE_PARAM_VERSION = "global-asset-price-layer-v0.1"
-ASSET_PRICE_INTERFACE_VERSION = "asset-price-feedback-interface-v0.1"
+ASSET_PRICE_PARAM_VERSION = "global-asset-price-layer-v0.3"
+ASSET_PRICE_INTERFACE_VERSION = "asset-price-feedback-interface-v0.3"
+ASSET_PRICE_BOUNDARY_VERSION = "asset-price-boundary-repair-v1"
 
 
 ASSET_PRICE_FIELDS = [
     "asset_price_param_version",
     "asset_price_interface_version",
+    "asset_price_boundary_version",
     "global_equity_index",
     "equity_total_return_pct",
     "equity_earnings_index",
+    "unclamped_equity_earnings_index_target",
+    "equity_earnings_index_floor_applied",
+    "equity_earnings_index_cap_applied",
+    "equity_earnings_index_boundary_state",
+    "equity_earnings_index_consecutive_boundary_years",
     "equity_eps_growth_pct",
     "equity_valuation_pe",
     "equity_risk_premium_pct",
+    "unclamped_equity_risk_premium_pct_target",
+    "equity_risk_premium_pct_floor_applied",
+    "equity_risk_premium_pct_cap_applied",
+    "equity_risk_premium_pct_boundary_state",
+    "equity_risk_premium_pct_consecutive_boundary_years",
     "equity_drawdown_pct",
     "global_sovereign_bond_index",
     "sovereign_bond_total_return_pct",
@@ -109,6 +124,18 @@ class AssetPriceParams:
     noise_scale: float = 0.90
 
 
+def validate_initial_parameters(params: AssetPriceParams) -> None:
+    for name, value in (
+        ("initial_equity_index", params.initial_equity_index),
+        ("initial_equity_earnings_index", params.initial_equity_earnings_index),
+        ("initial_sovereign_bond_index", params.initial_sovereign_bond_index),
+        ("initial_corporate_bond_index", params.initial_corporate_bond_index),
+        ("initial_portfolio_60_40_index", params.initial_portfolio_60_40_index),
+    ):
+        require_positive(name, value)
+    require_in_range("initial_equity_pe", params.initial_equity_pe, params.min_pe, params.max_pe)
+
+
 @dataclass
 class AssetPriceState:
     equity_index: float = 100.0
@@ -127,12 +154,23 @@ class AssetPriceState:
 class AssetPriceRecord:
     asset_price_param_version: str
     asset_price_interface_version: str
+    asset_price_boundary_version: str
     global_equity_index: float
     equity_total_return_pct: float
     equity_earnings_index: float
+    unclamped_equity_earnings_index_target: float
+    equity_earnings_index_floor_applied: bool
+    equity_earnings_index_cap_applied: bool
+    equity_earnings_index_boundary_state: str
+    equity_earnings_index_consecutive_boundary_years: int
     equity_eps_growth_pct: float
     equity_valuation_pe: float
     equity_risk_premium_pct: float
+    unclamped_equity_risk_premium_pct_target: float
+    equity_risk_premium_pct_floor_applied: bool
+    equity_risk_premium_pct_cap_applied: bool
+    equity_risk_premium_pct_boundary_state: str
+    equity_risk_premium_pct_consecutive_boundary_years: int
     equity_drawdown_pct: float
     global_sovereign_bond_index: float
     sovereign_bond_total_return_pct: float
@@ -151,6 +189,27 @@ class AssetPriceRecord:
 
 def smooth(old: float, target: float, speed: float) -> float:
     return old * (1.0 - speed) + target * speed
+
+
+def hard_boundary_state(value: float, floor: float, cap: float | None) -> tuple[bool, bool, str]:
+    floor_applied = value < floor
+    cap_applied = cap is not None and value > cap
+    if floor_applied:
+        return True, False, "floor"
+    if cap_applied:
+        return False, True, "cap"
+    return False, False, "none"
+
+
+def advance_boundary_run(previous: int, state: str) -> int:
+    return previous + 1 if state != "none" else 0
+
+
+def soft_upper_saturate(value: float, knee: float, asymptote: float) -> float:
+    if value <= knee:
+        return value
+    width = asymptote - knee
+    return knee + width * (1.0 - math.exp(-(value - knee) / width))
 
 
 def pct_change(current: float, previous: float) -> float:
@@ -218,6 +277,7 @@ def simulate_asset_prices_for_credit_path(
     records: list[dict[str, Any]],
     params: AssetPriceParams,
 ) -> list[dict[str, Any]]:
+    validate_initial_parameters(params)
     if not records:
         return []
 
@@ -234,6 +294,10 @@ def simulate_asset_prices_for_credit_path(
     )
 
     combined: list[dict[str, Any]] = []
+    boundary_runs = {
+        "equity_earnings_index": 0,
+        "equity_risk_premium_pct": 0,
+    }
 
     for row in records:
         year_index = int(row["year_index"])
@@ -263,6 +327,44 @@ def simulate_asset_prices_for_credit_path(
         liquidity_equity_impulse = as_float(row, "liquidity_to_equity_impulse")
         credit_regime = str(row.get("credit_regime", "none"))
 
+        if year_index == 0:
+            initial_record = AssetPriceRecord(
+                asset_price_param_version=ASSET_PRICE_PARAM_VERSION,
+                asset_price_interface_version=ASSET_PRICE_INTERFACE_VERSION,
+                asset_price_boundary_version=ASSET_PRICE_BOUNDARY_VERSION,
+                global_equity_index=params.initial_equity_index,
+                equity_total_return_pct=0.0,
+                equity_earnings_index=params.initial_equity_earnings_index,
+                unclamped_equity_earnings_index_target=params.initial_equity_earnings_index,
+                equity_earnings_index_floor_applied=False,
+                equity_earnings_index_cap_applied=False,
+                equity_earnings_index_boundary_state="none",
+                equity_earnings_index_consecutive_boundary_years=0,
+                equity_eps_growth_pct=0.0,
+                equity_valuation_pe=params.initial_equity_pe,
+                equity_risk_premium_pct=4.8,
+                unclamped_equity_risk_premium_pct_target=4.8,
+                equity_risk_premium_pct_floor_applied=False,
+                equity_risk_premium_pct_cap_applied=False,
+                equity_risk_premium_pct_boundary_state="none",
+                equity_risk_premium_pct_consecutive_boundary_years=0,
+                equity_drawdown_pct=0.0,
+                global_sovereign_bond_index=params.initial_sovereign_bond_index,
+                sovereign_bond_total_return_pct=0.0,
+                global_corporate_bond_index=params.initial_corporate_bond_index,
+                corporate_bond_total_return_pct=0.0,
+                global_60_40_portfolio_index=params.initial_portfolio_60_40_index,
+                portfolio_60_40_total_return_pct=0.0,
+                asset_volatility_index=0.0,
+                asset_risk_regime="initial",
+                asset_to_gdp_wealth_impulse=0.0,
+                asset_to_policy_financial_conditions_impulse=0.0,
+                asset_to_credit_risk_appetite_impulse=0.0,
+                asset_to_inflation_wealth_demand_impulse=0.0,
+            )
+            combined.append(round_record({**row, **asdict(initial_record)}))
+            continue
+
         margin_pressure = max(0.0, headline - 4.0) * 0.65 + max(0.0, core - 3.5) * 0.35
         earnings_growth_target = (
             params.base_earnings_growth_pct
@@ -278,9 +380,22 @@ def simulate_asset_prices_for_credit_path(
             + rng.gauss(0.0, params.noise_scale)
         )
         eps_growth = clamp(smooth(0.0, earnings_growth_target, params.earnings_growth_smooth), -24.0, 28.0)
-        earnings_index = clamp(state.equity_earnings_index * (1.0 + eps_growth / 100.0), 45.0, 460.0)
+        unclamped_equity_earnings_index_target = (
+            state.equity_earnings_index * (1.0 + eps_growth / 100.0)
+        )
+        equity_earnings_index_floor_applied = (
+            unclamped_equity_earnings_index_target < 45.0
+        )
+        equity_earnings_index_cap_applied = False
+        equity_earnings_index_boundary_state = (
+            "floor" if equity_earnings_index_floor_applied else "none"
+        )
+        earnings_index = max(45.0, unclamped_equity_earnings_index_target)
+        boundary_runs["equity_earnings_index"] = advance_boundary_run(
+            boundary_runs["equity_earnings_index"], equity_earnings_index_boundary_state
+        )
 
-        equity_risk_premium = clamp(
+        unclamped_equity_risk_premium_pct_target = (
             4.8
             + 0.018 * max(0.0, hy_spread - 420.0)
             + 0.035 * max(0.0, default_risk - 35.0)
@@ -288,9 +403,29 @@ def simulate_asset_prices_for_credit_path(
             + 0.65 * max(0.0, credit_equity_impulse)
             + 0.007 * credit_impairment
             - 0.012 * max(0.0, liquidity_index - 55.0)
-            - 0.018 * max(0.0, risk_appetite - 50.0),
-            2.5,
-            12.0,
+            - 0.018 * max(0.0, risk_appetite - 50.0)
+        )
+        if unclamped_equity_risk_premium_pct_target < 2.5:
+            equity_risk_premium_pct_floor_applied = True
+            equity_risk_premium_pct_cap_applied = False
+            equity_risk_premium_pct_boundary_state = "floor"
+            equity_risk_premium = 2.5
+        elif unclamped_equity_risk_premium_pct_target > 8.0:
+            equity_risk_premium_pct_floor_applied = False
+            equity_risk_premium_pct_cap_applied = True
+            equity_risk_premium_pct_boundary_state = "soft_cap"
+            equity_risk_premium = soft_upper_saturate(
+                unclamped_equity_risk_premium_pct_target, 8.0, 11.8
+            )
+        else:
+            equity_risk_premium_pct_floor_applied = False
+            equity_risk_premium_pct_cap_applied = False
+            equity_risk_premium_pct_boundary_state = "none"
+            equity_risk_premium = unclamped_equity_risk_premium_pct_target
+        equity_risk_premium = clamp(equity_risk_premium, 2.5, 12.0)
+        boundary_runs["equity_risk_premium_pct"] = advance_boundary_run(
+            boundary_runs["equity_risk_premium_pct"],
+            equity_risk_premium_pct_boundary_state,
         )
         pe_target = (
             params.base_pe
@@ -424,12 +559,23 @@ def simulate_asset_prices_for_credit_path(
         record = AssetPriceRecord(
             asset_price_param_version=ASSET_PRICE_PARAM_VERSION,
             asset_price_interface_version=ASSET_PRICE_INTERFACE_VERSION,
+            asset_price_boundary_version=ASSET_PRICE_BOUNDARY_VERSION,
             global_equity_index=equity_index,
             equity_total_return_pct=equity_return,
             equity_earnings_index=earnings_index,
+            unclamped_equity_earnings_index_target=unclamped_equity_earnings_index_target,
+            equity_earnings_index_floor_applied=equity_earnings_index_floor_applied,
+            equity_earnings_index_cap_applied=equity_earnings_index_cap_applied,
+            equity_earnings_index_boundary_state=equity_earnings_index_boundary_state,
+            equity_earnings_index_consecutive_boundary_years=boundary_runs["equity_earnings_index"],
             equity_eps_growth_pct=eps_growth,
             equity_valuation_pe=pe,
             equity_risk_premium_pct=equity_risk_premium,
+            unclamped_equity_risk_premium_pct_target=unclamped_equity_risk_premium_pct_target,
+            equity_risk_premium_pct_floor_applied=equity_risk_premium_pct_floor_applied,
+            equity_risk_premium_pct_cap_applied=equity_risk_premium_pct_cap_applied,
+            equity_risk_premium_pct_boundary_state=equity_risk_premium_pct_boundary_state,
+            equity_risk_premium_pct_consecutive_boundary_years=boundary_runs["equity_risk_premium_pct"],
             equity_drawdown_pct=equity_drawdown,
             global_sovereign_bond_index=sovereign_bond_index,
             sovereign_bond_total_return_pct=sovereign_return,

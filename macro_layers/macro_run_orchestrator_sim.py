@@ -117,11 +117,11 @@ clamp = simulation_utils.clamp
 round_record = simulation_utils.round_record
 
 
-ORCHESTRATOR_VERSION = "macro-run-orchestrator-v0.9"
+ORCHESTRATOR_VERSION = "macro-run-orchestrator-v0.10"
 RUN_INDEX_VERSION = "macro-run-index-v0.5"
 RUN_MANIFEST_SCHEMA_VERSION = "airport-macro-run-manifest-v1"
-OUTPUT_SCHEMA_VERSION = "airport-model-output-v3"
-MODEL_VERSION = "airport-model-v0.11"
+OUTPUT_SCHEMA_VERSION = "airport-model-output-v4"
+MODEL_VERSION = "airport-model-v0.12"
 AIRPORT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = AIRPORT_DIR / "output" / "macro_runs"
 DEFAULT_VIEWER_OUTPUT_ROOT = AIRPORT_DIR / "output"
@@ -1472,9 +1472,11 @@ def run_global_variant(
         convergence,
     )
     annotated = apply_path_metadata(annotated, variant, scenario_feedback)
+    public_convergence = dict(convergence)
+    public_convergence.pop("row_convergence_annotations", None)
     return {
         "rows": [round_record(row) for row in annotated],
-        "convergence": convergence,
+        "convergence": public_convergence,
         "params": params,
         "summary": summarize_seed(annotated),
     }

@@ -15,7 +15,9 @@
       state.selectedIndex = Math.max(0, Math.min(state.selectedIndex, rows.length - 1));
       el.yearRange.max = String(rows.length - 1);
       el.yearRange.value = String(state.selectedIndex);
-      el.yearLabel.textContent = String(selectedRow(rows).year);
+      el.yearLabel.textContent = state.selectedIndex === 0
+        ? `${selectedRow(rows).year} · 起点`
+        : String(selectedRow(rows).year);
       if (state.view === "aviation") {
         renderAviationStats(rows);
         renderAviationDetail(rows);
@@ -50,6 +52,15 @@
 
     function makeStat(label, value, sub = "-", tone = "") {
       return { label, value, sub, tone };
+    }
+
+    function boundarySummary(row, field, formatter = fmtIndex) {
+      const rawField = `unclamped_${field}_target`;
+      const stateField = `${field}_boundary_state`;
+      const runField = `${field}_consecutive_boundary_years`;
+      const stateValue = row[stateField] || "none";
+      const runValue = Number(row[runField] || 0);
+      return `target ${formatter(row[rawField])} · ${stateValue}${runValue ? ` ${runValue}y` : ""}`;
     }
 
     const DETAIL_IDS = [
@@ -412,31 +423,31 @@
         credit: () => hasCredit(row) ? [
           makeStat("HY 利差", fmtBps(row.global_high_yield_spread_bps), row.credit_regime || "n/a"),
           makeStat("IG 利差", fmtBps(row.global_investment_grade_spread_bps), `HY-IG ${fmtBps(hyIgGap)}`),
-          makeStat("利差变化", fmtBps(row.credit_spread_change_bps), `index ${fmtIndex(row.global_credit_spread_index)}`),
+          makeStat("利差变化", fmtBps(row.credit_spread_change_bps), `index ${fmtIndex(row.global_credit_spread_index)} · ${boundarySummary(row, "global_credit_spread_index")}`),
           makeStat("违约风险", fmtIndex(row.default_risk_index), `bank stress ${fmtIndex(row.bank_credit_stress_index)}`),
-          makeStat("信用可得性", fmtIndex(row.credit_availability_index), `standards ${fmtIndex(row.lending_standards_index)}`),
+          makeStat("信用可得性", fmtIndex(row.credit_availability_index), `${boundarySummary(row, "credit_availability_index")} · standards ${fmtIndex(row.lending_standards_index)}`),
           makeStat("银行放贷意愿", fmtIndex(row.bank_lending_sentiment_index), `balance stress ${fmtIndex(row.bank_balance_sheet_stress_index)}`),
-          makeStat("信用疤痕", fmtIndex(row.credit_impairment_stock_index), "slow repair stock"),
+          makeStat("信用疤痕", fmtIndex(row.credit_impairment_stock_index), boundarySummary(row, "credit_impairment_stock_index")),
           makeStat("凸性压力", fmtIndex(row.credit_convexity_pressure_index), `refi ${fmtIndex(row.corporate_refinancing_pressure_index)}`),
           makeStat("GDP 拖累", fmtPct(row.credit_to_gdp_drag_placeholder), `policy easing ${fmtPct(row.credit_to_policy_easing_pressure)}`, growthClass(row.credit_to_gdp_drag_placeholder)),
         ] : unavailableStats("信用利差", row),
         asset: () => hasAsset(row) ? [
           makeStat("股票指数", fmtIndex(row.global_equity_index), row.asset_risk_regime || "n/a"),
           makeStat("股票回报", fmtPct(row.equity_total_return_pct), `drawdown ${fmtPct(row.equity_drawdown_pct)}`, growthClass(row.equity_total_return_pct)),
-          makeStat("盈利指数", fmtIndex(row.equity_earnings_index), `EPS ${fmtPct(row.equity_eps_growth_pct)}`),
-          makeStat("估值 PE", fmtIndex(row.equity_valuation_pe), `ERP ${fmtLevelPct(row.equity_risk_premium_pct)}`),
+          makeStat("盈利指数", fmtIndex(row.equity_earnings_index), `${boundarySummary(row, "equity_earnings_index")} · EPS ${fmtPct(row.equity_eps_growth_pct)}`),
+          makeStat("估值 PE", fmtIndex(row.equity_valuation_pe), `ERP ${fmtLevelPct(row.equity_risk_premium_pct)} · ${boundarySummary(row, "equity_risk_premium_pct", fmtLevelPct)}`),
           makeStat("主权债指数", fmtIndex(row.global_sovereign_bond_index), `return ${fmtPct(row.sovereign_bond_total_return_pct)}`, growthClass(row.sovereign_bond_total_return_pct)),
           makeStat("企业债指数", fmtIndex(row.global_corporate_bond_index), `return ${fmtPct(row.corporate_bond_total_return_pct)}`, growthClass(row.corporate_bond_total_return_pct)),
           makeStat("60/40 指数", fmtIndex(row.global_60_40_portfolio_index), `return ${fmtPct(row.portfolio_60_40_total_return_pct)}`, growthClass(row.portfolio_60_40_total_return_pct)),
           makeStat("财富冲击", fmtPct(row.asset_to_gdp_wealth_impulse), `vol ${fmtIndex(row.asset_volatility_index)}`, growthClass(row.asset_to_gdp_wealth_impulse)),
         ] : unavailableStats("资产价格", row),
         oil: () => hasOil(row) ? [
-          makeStat(oilLabel, fmtOilMetric(row), row.oil_regime || "n/a"),
+          makeStat(oilLabel, fmtOilMetric(row), `${row.oil_regime || "n/a"} · ${boundarySummary(row, "brent_oil_price_usd", (value) => `$${fmtIndex(value)}`)}`),
           makeStat("油价 YoY", fmtPct(row.oil_yoy_change_pct), `index ${fmtIndex(row.global_oil_price_index)}`, growthClass(row.oil_yoy_change_pct)),
           makeStat("商品指数", fmtIndex(row.broad_commodity_index), `YoY ${fmtPct(row.commodity_yoy_change_pct)}`, growthClass(row.commodity_yoy_change_pct)),
           makeStat("需求压力", fmtIndex(row.oil_demand_pressure_index), `GDP ${fmtPct(row.realized_growth_pct)}`),
           makeStat("供给冲击", fmtIndex(row.oil_supply_shock_index), `inventory ${fmtIndex(row.oil_inventory_pressure_index)}`),
-          makeStat("能源成本压力", fmtIndex(row.energy_cost_pressure_index), `headline ${fmtPct(row.oil_to_headline_inflation_impulse)}`),
+          makeStat("能源成本压力", fmtIndex(row.energy_cost_pressure_index), `${boundarySummary(row, "energy_cost_pressure_index")} · headline ${fmtPct(row.oil_to_headline_inflation_impulse)}`),
           makeStat("金融压力", fmtIndex(row.oil_financial_pressure_index), `credit ${fmtPct(row.oil_to_credit_stress_impulse)}`),
           makeStat("GDP 拖累", fmtPct(row.oil_to_gdp_drag_placeholder), `policy ${fmtPct(row.oil_to_policy_pressure_impulse)}`, growthClass(row.oil_to_gdp_drag_placeholder)),
         ] : unavailableStats("石油商品", row),

@@ -11,9 +11,11 @@ write_json = simulation_io.write_json
 clamp = simulation_utils.clamp
 resolve_seeds = simulation_utils.resolve_seeds
 round_record = simulation_utils.round_record
+require_in_range = simulation_utils.require_in_range
 
 import argparse
 import json
+import math
 import random
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -44,26 +46,43 @@ YieldCurveParams = yield_curve_layer.YieldCurveParams
 simulate_yield_curve_for_policy_path = yield_curve_layer.simulate_yield_curve_for_policy_path
 
 
-CREDIT_SPREAD_PARAM_VERSION = "global-credit-spread-layer-v0.2"
-CREDIT_SPREAD_INTERFACE_VERSION = "credit-spread-feedback-interface-v0.2"
+CREDIT_SPREAD_PARAM_VERSION = "global-credit-spread-layer-v0.4"
+CREDIT_SPREAD_INTERFACE_VERSION = "credit-spread-feedback-interface-v0.4"
+CREDIT_SPREAD_BOUNDARY_VERSION = "credit-spread-boundary-repair-v1"
 
 
 CREDIT_SPREAD_FIELDS = [
     "credit_spread_param_version",
     "credit_spread_interface_version",
+    "credit_spread_boundary_version",
     "global_investment_grade_spread_bps",
     "global_high_yield_spread_bps",
     "global_credit_spread_index",
+    "unclamped_global_credit_spread_index_target",
+    "global_credit_spread_index_floor_applied",
+    "global_credit_spread_index_cap_applied",
+    "global_credit_spread_index_boundary_state",
+    "global_credit_spread_index_consecutive_boundary_years",
     "credit_spread_change_bps",
     "default_risk_index",
     "lending_standards_index",
     "credit_availability_index",
+    "unclamped_credit_availability_index_target",
+    "credit_availability_index_floor_applied",
+    "credit_availability_index_cap_applied",
+    "credit_availability_index_boundary_state",
+    "credit_availability_index_consecutive_boundary_years",
     "corporate_refinancing_pressure_index",
     "bank_credit_stress_index",
     "bank_lending_sentiment_index",
     "bank_balance_sheet_stress_index",
     "credit_convexity_pressure_index",
     "credit_impairment_stock_index",
+    "unclamped_credit_impairment_stock_index_target",
+    "credit_impairment_stock_index_floor_applied",
+    "credit_impairment_stock_index_cap_applied",
+    "credit_impairment_stock_index_boundary_state",
+    "credit_impairment_stock_index_consecutive_boundary_years",
     "credit_regime",
     "credit_to_gdp_drag_placeholder",
     "credit_to_equity_risk_premium_impulse",
@@ -120,6 +139,31 @@ class CreditSpreadParams:
     credit_seed_offset: int = 12_700_091
 
 
+def validate_initial_parameters(params: CreditSpreadParams) -> None:
+    require_in_range(
+        "initial_ig_spread_bps",
+        params.initial_ig_spread_bps,
+        params.min_ig_spread_bps,
+        params.max_ig_spread_bps,
+    )
+    require_in_range(
+        "initial_hy_spread_bps",
+        params.initial_hy_spread_bps,
+        params.min_hy_spread_bps,
+        params.max_hy_spread_bps,
+    )
+    for name, value in (
+        ("initial_default_risk_index", params.initial_default_risk_index),
+        ("initial_lending_standards_index", params.initial_lending_standards_index),
+        ("initial_credit_availability_index", params.initial_credit_availability_index),
+        ("initial_bank_credit_stress_index", params.initial_bank_credit_stress_index),
+        ("initial_bank_lending_sentiment_index", params.initial_bank_lending_sentiment_index),
+        ("initial_bank_balance_sheet_stress_index", params.initial_bank_balance_sheet_stress_index),
+        ("initial_credit_impairment_stock_index", params.initial_credit_impairment_stock_index),
+    ):
+        require_in_range(name, value, 0.0, 100.0)
+
+
 @dataclass
 class CreditSpreadState:
     ig_spread_bps: float = 115.0
@@ -137,19 +181,35 @@ class CreditSpreadState:
 class CreditSpreadRecord:
     credit_spread_param_version: str
     credit_spread_interface_version: str
+    credit_spread_boundary_version: str
     global_investment_grade_spread_bps: float
     global_high_yield_spread_bps: float
     global_credit_spread_index: float
+    unclamped_global_credit_spread_index_target: float
+    global_credit_spread_index_floor_applied: bool
+    global_credit_spread_index_cap_applied: bool
+    global_credit_spread_index_boundary_state: str
+    global_credit_spread_index_consecutive_boundary_years: int
     credit_spread_change_bps: float
     default_risk_index: float
     lending_standards_index: float
     credit_availability_index: float
+    unclamped_credit_availability_index_target: float
+    credit_availability_index_floor_applied: bool
+    credit_availability_index_cap_applied: bool
+    credit_availability_index_boundary_state: str
+    credit_availability_index_consecutive_boundary_years: int
     corporate_refinancing_pressure_index: float
     bank_credit_stress_index: float
     bank_lending_sentiment_index: float
     bank_balance_sheet_stress_index: float
     credit_convexity_pressure_index: float
     credit_impairment_stock_index: float
+    unclamped_credit_impairment_stock_index_target: float
+    credit_impairment_stock_index_floor_applied: bool
+    credit_impairment_stock_index_cap_applied: bool
+    credit_impairment_stock_index_boundary_state: str
+    credit_impairment_stock_index_consecutive_boundary_years: int
     credit_regime: str
     credit_to_gdp_drag_placeholder: float
     credit_to_equity_risk_premium_impulse: float
@@ -161,6 +221,34 @@ class CreditSpreadRecord:
 
 def smooth(old: float, target: float, speed: float) -> float:
     return old * (1.0 - speed) + target * speed
+
+
+def hard_boundary_state(value: float, floor: float, cap: float) -> tuple[bool, bool, str]:
+    floor_applied = value < floor
+    cap_applied = value > cap
+    if floor_applied:
+        return True, False, "floor"
+    if cap_applied:
+        return False, True, "cap"
+    return False, False, "none"
+
+
+def advance_boundary_run(previous: int, state: str) -> int:
+    return previous + 1 if state != "none" else 0
+
+
+def soft_upper_saturate(value: float, knee: float, asymptote: float) -> float:
+    if value <= knee:
+        return value
+    width = asymptote - knee
+    return knee + width * (1.0 - math.exp(-(value - knee) / width))
+
+
+def soft_lower_saturate(value: float, knee: float, asymptote: float) -> float:
+    if value >= knee:
+        return value
+    width = knee - asymptote
+    return knee - width * (1.0 - math.exp(-(knee - value) / width))
 
 
 def piecewise_credit_convexity_pressure(hy_spread: float) -> float:
@@ -235,6 +323,7 @@ def simulate_credit_spreads_for_dollar_path(
     records: list[dict[str, Any]],
     params: CreditSpreadParams,
 ) -> list[dict[str, Any]]:
+    validate_initial_parameters(params)
     if not records:
         return []
 
@@ -253,6 +342,11 @@ def simulate_credit_spreads_for_dollar_path(
     )
 
     combined: list[dict[str, Any]] = []
+    boundary_runs = {
+        "global_credit_spread_index": 0,
+        "credit_availability_index": 0,
+        "credit_impairment_stock_index": 0,
+    }
 
     for row in records:
         year_index = int(row["year_index"])
@@ -278,6 +372,57 @@ def simulate_credit_spreads_for_dollar_path(
         inversion_pressure = as_float(row, "curve_inversion_pressure")
         term_premium = as_float(row, "term_premium_pct")
         impairment_memory = state.credit_impairment_stock_index
+
+        if year_index == 0:
+            initial_spread_index = (
+                (params.initial_ig_spread_bps - 70.0) / 4.2
+                + (params.initial_hy_spread_bps - 280.0) / 13.0
+                + 0.22 * params.initial_default_risk_index
+                + 0.16 * params.initial_lending_standards_index
+            )
+            initial_record = CreditSpreadRecord(
+                credit_spread_param_version=CREDIT_SPREAD_PARAM_VERSION,
+                credit_spread_interface_version=CREDIT_SPREAD_INTERFACE_VERSION,
+                credit_spread_boundary_version=CREDIT_SPREAD_BOUNDARY_VERSION,
+                global_investment_grade_spread_bps=params.initial_ig_spread_bps,
+                global_high_yield_spread_bps=params.initial_hy_spread_bps,
+                global_credit_spread_index=initial_spread_index,
+                unclamped_global_credit_spread_index_target=initial_spread_index,
+                global_credit_spread_index_floor_applied=False,
+                global_credit_spread_index_cap_applied=False,
+                global_credit_spread_index_boundary_state="none",
+                global_credit_spread_index_consecutive_boundary_years=0,
+                credit_spread_change_bps=0.0,
+                default_risk_index=params.initial_default_risk_index,
+                lending_standards_index=params.initial_lending_standards_index,
+                credit_availability_index=params.initial_credit_availability_index,
+                unclamped_credit_availability_index_target=params.initial_credit_availability_index,
+                credit_availability_index_floor_applied=False,
+                credit_availability_index_cap_applied=False,
+                credit_availability_index_boundary_state="none",
+                credit_availability_index_consecutive_boundary_years=0,
+                corporate_refinancing_pressure_index=0.0,
+                bank_credit_stress_index=params.initial_bank_credit_stress_index,
+                bank_lending_sentiment_index=params.initial_bank_lending_sentiment_index,
+                bank_balance_sheet_stress_index=params.initial_bank_balance_sheet_stress_index,
+                credit_convexity_pressure_index=piecewise_credit_convexity_pressure(
+                    params.initial_hy_spread_bps
+                ),
+                credit_impairment_stock_index=params.initial_credit_impairment_stock_index,
+                unclamped_credit_impairment_stock_index_target=params.initial_credit_impairment_stock_index,
+                credit_impairment_stock_index_floor_applied=False,
+                credit_impairment_stock_index_cap_applied=False,
+                credit_impairment_stock_index_boundary_state="none",
+                credit_impairment_stock_index_consecutive_boundary_years=0,
+                credit_regime="initial",
+                credit_to_gdp_drag_placeholder=0.0,
+                credit_to_equity_risk_premium_impulse=0.0,
+                credit_to_policy_easing_pressure=0.0,
+                credit_to_inflation_demand_drag_placeholder=0.0,
+                credit_to_oil_demand_impulse=0.0,
+            )
+            combined.append(round_record({**row, **asdict(initial_record)}))
+            continue
 
         growth_shortfall = max(0.0, potential_growth - gdp_growth)
         recession_signal = max(0.0, -gdp_growth)
@@ -414,15 +559,36 @@ def simulate_credit_spreads_for_dollar_path(
 
         weighted_spread = 0.35 * ig_spread + 0.65 * hy_spread
         spread_change = weighted_spread - state.previous_weighted_spread_bps
-        credit_spread_index = clamp(
+        unclamped_credit_spread_index_target = (
             (ig_spread - 70.0) / 4.2
             + (hy_spread - 280.0) / 13.0
             + 0.22 * default_risk
-            + 0.16 * lending_standards,
-            0.0,
-            100.0,
+            + 0.16 * lending_standards
         )
-        credit_availability = clamp(
+        if unclamped_credit_spread_index_target < 0.0:
+            global_credit_spread_index_floor_applied = True
+            global_credit_spread_index_cap_applied = False
+            global_credit_spread_index_boundary_state = "floor"
+            credit_spread_index = 0.0
+        elif unclamped_credit_spread_index_target > 78.0:
+            global_credit_spread_index_floor_applied = False
+            global_credit_spread_index_cap_applied = True
+            global_credit_spread_index_boundary_state = "soft_cap"
+            credit_spread_index = soft_upper_saturate(
+                unclamped_credit_spread_index_target, 78.0, 99.0
+            )
+        else:
+            global_credit_spread_index_floor_applied = False
+            global_credit_spread_index_cap_applied = False
+            global_credit_spread_index_boundary_state = "none"
+            credit_spread_index = unclamped_credit_spread_index_target
+        credit_spread_index = clamp(credit_spread_index, 0.0, 100.0)
+        boundary_runs["global_credit_spread_index"] = advance_boundary_run(
+            boundary_runs["global_credit_spread_index"],
+            global_credit_spread_index_boundary_state,
+        )
+
+        unclamped_credit_availability_index_target = (
             100.0
             - 0.56 * lending_standards
             - 0.35 * default_risk
@@ -431,9 +597,29 @@ def simulate_credit_spreads_for_dollar_path(
             - 0.12 * impairment_memory
             + 0.30 * max(0.0, bank_lending_sentiment - 50.0)
             + 0.28 * (liquidity_index - 50.0)
-            + 0.12 * max(0.0, risk_appetite - 50.0),
-            0.0,
-            100.0,
+            + 0.12 * max(0.0, risk_appetite - 50.0)
+        )
+        if unclamped_credit_availability_index_target < 8.0:
+            credit_availability_index_floor_applied = True
+            credit_availability_index_cap_applied = False
+            credit_availability_index_boundary_state = "soft_floor"
+            credit_availability = soft_lower_saturate(
+                unclamped_credit_availability_index_target, 8.0, 0.5
+            )
+        elif unclamped_credit_availability_index_target > 100.0:
+            credit_availability_index_floor_applied = False
+            credit_availability_index_cap_applied = True
+            credit_availability_index_boundary_state = "cap"
+            credit_availability = 100.0
+        else:
+            credit_availability_index_floor_applied = False
+            credit_availability_index_cap_applied = False
+            credit_availability_index_boundary_state = "none"
+            credit_availability = unclamped_credit_availability_index_target
+        credit_availability = clamp(credit_availability, 0.0, 100.0)
+        boundary_runs["credit_availability_index"] = advance_boundary_run(
+            boundary_runs["credit_availability_index"],
+            credit_availability_index_boundary_state,
         )
         impairment_inflow = clamp(
             0.025 * max(0.0, hy_spread - 560.0)
@@ -453,10 +639,32 @@ def simulate_credit_spreads_for_dollar_path(
             + 0.08 * max(0.0, liquidity_impulse)
             + 0.03 * max(0.0, liquidity_index - 60.0)
         )
-        credit_impairment_stock = clamp(
-            impairment_memory * params.credit_impairment_persistence + impairment_inflow - repair_relief,
-            0.0,
-            100.0,
+        unclamped_credit_impairment_stock_index_target = (
+            impairment_memory * params.credit_impairment_persistence
+            + impairment_inflow
+            - repair_relief
+        )
+        if unclamped_credit_impairment_stock_index_target < 0.0:
+            credit_impairment_stock_index_floor_applied = True
+            credit_impairment_stock_index_cap_applied = False
+            credit_impairment_stock_index_boundary_state = "floor"
+            credit_impairment_stock = 0.0
+        elif unclamped_credit_impairment_stock_index_target > 88.0:
+            credit_impairment_stock_index_floor_applied = False
+            credit_impairment_stock_index_cap_applied = True
+            credit_impairment_stock_index_boundary_state = "soft_cap"
+            credit_impairment_stock = soft_upper_saturate(
+                unclamped_credit_impairment_stock_index_target, 88.0, 99.0
+            )
+        else:
+            credit_impairment_stock_index_floor_applied = False
+            credit_impairment_stock_index_cap_applied = False
+            credit_impairment_stock_index_boundary_state = "none"
+            credit_impairment_stock = unclamped_credit_impairment_stock_index_target
+        credit_impairment_stock = clamp(credit_impairment_stock, 0.0, 100.0)
+        boundary_runs["credit_impairment_stock_index"] = advance_boundary_run(
+            boundary_runs["credit_impairment_stock_index"],
+            credit_impairment_stock_index_boundary_state,
         )
         refinancing_pressure = clamp(
             0.035 * max(0.0, hy_spread - 350.0)
@@ -545,19 +753,35 @@ def simulate_credit_spreads_for_dollar_path(
         record = CreditSpreadRecord(
             credit_spread_param_version=CREDIT_SPREAD_PARAM_VERSION,
             credit_spread_interface_version=CREDIT_SPREAD_INTERFACE_VERSION,
+            credit_spread_boundary_version=CREDIT_SPREAD_BOUNDARY_VERSION,
             global_investment_grade_spread_bps=ig_spread,
             global_high_yield_spread_bps=hy_spread,
             global_credit_spread_index=credit_spread_index,
+            unclamped_global_credit_spread_index_target=unclamped_credit_spread_index_target,
+            global_credit_spread_index_floor_applied=global_credit_spread_index_floor_applied,
+            global_credit_spread_index_cap_applied=global_credit_spread_index_cap_applied,
+            global_credit_spread_index_boundary_state=global_credit_spread_index_boundary_state,
+            global_credit_spread_index_consecutive_boundary_years=boundary_runs["global_credit_spread_index"],
             credit_spread_change_bps=spread_change,
             default_risk_index=default_risk,
             lending_standards_index=lending_standards,
             credit_availability_index=credit_availability,
+            unclamped_credit_availability_index_target=unclamped_credit_availability_index_target,
+            credit_availability_index_floor_applied=credit_availability_index_floor_applied,
+            credit_availability_index_cap_applied=credit_availability_index_cap_applied,
+            credit_availability_index_boundary_state=credit_availability_index_boundary_state,
+            credit_availability_index_consecutive_boundary_years=boundary_runs["credit_availability_index"],
             corporate_refinancing_pressure_index=refinancing_pressure,
             bank_credit_stress_index=bank_credit_stress,
             bank_lending_sentiment_index=bank_lending_sentiment,
             bank_balance_sheet_stress_index=bank_balance_sheet_stress,
             credit_convexity_pressure_index=credit_convexity_pressure,
             credit_impairment_stock_index=credit_impairment_stock,
+            unclamped_credit_impairment_stock_index_target=unclamped_credit_impairment_stock_index_target,
+            credit_impairment_stock_index_floor_applied=credit_impairment_stock_index_floor_applied,
+            credit_impairment_stock_index_cap_applied=credit_impairment_stock_index_cap_applied,
+            credit_impairment_stock_index_boundary_state=credit_impairment_stock_index_boundary_state,
+            credit_impairment_stock_index_consecutive_boundary_years=boundary_runs["credit_impairment_stock_index"],
             credit_regime=regime,
             credit_to_gdp_drag_placeholder=credit_to_gdp_drag,
             credit_to_equity_risk_premium_impulse=equity_risk_premium,

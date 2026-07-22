@@ -1,13 +1,81 @@
 {
-  "snapshotSchemaVersion": "seed-explorer-api-snapshot-v1",
   "apiSchemaVersion": "seed-explorer-api-v3",
-  "modelVersion": "airport-model-v0.11",
-  "outputSchemaVersion": "airport-model-output-v3",
-  "schemaCatalog": "/api/schema",
-  "seed": 20261324,
-  "years": 12,
+  "beijingOperations": {
+    "finalQuarter": {
+      "annualServed": 154.168,
+      "endCash": 76408.8636,
+      "gamePhase": "player_operation",
+      "grossDebt": 0.0,
+      "label": "2037 Q4",
+      "operatingProfit": 1577.6504,
+      "playerDecisionEnabled": true,
+      "quarterServed": 36.2212,
+      "totalAssets": 148244.1636,
+      "totalRevenue": 5997.7137,
+      "warnings": []
+    },
+    "firstQuarter": {
+      "annualServed": 118.0692,
+      "endCash": 18860.7325,
+      "gamePhase": "startup_operating_history",
+      "grossDebt": 0.0,
+      "label": "2025 Q1",
+      "operatingProfit": 860.7325,
+      "playerDecisionEnabled": false,
+      "quarterServed": 30.5135,
+      "totalAssets": 128967.9646,
+      "totalRevenue": 4777.3365,
+      "warnings": []
+    },
+    "nestedKeyCounts": {
+      "capacity": 15,
+      "demand": 11,
+      "finance": 49,
+      "operations": 62,
+      "projects": 41
+    },
+    "nestedKeysSha256": "26b6f63ce6dfdd2250c937218cee794e9518fb511f847a9bf6bcd515c5503fa6",
+    "periodCount": 52,
+    "playerStartIndex": 20,
+    "playerStartQuarter": {
+      "annualServed": 129.3677,
+      "endCash": 44708.7009,
+      "gamePhase": "player_operation",
+      "grossDebt": 5000.0,
+      "label": "2030 Q1",
+      "operatingProfit": 1159.9987,
+      "playerDecisionEnabled": true,
+      "quarterServed": 33.3401,
+      "totalAssets": 137539.1473,
+      "totalRevenue": 5418.6483,
+      "warnings": []
+    },
+    "quarterKeys": [
+      "index",
+      "year",
+      "quarter",
+      "label",
+      "gamePhase",
+      "playerDecisionEnabled",
+      "demand",
+      "capacity",
+      "operations",
+      "finance",
+      "projects",
+      "warnings"
+    ],
+    "sha256": "9379a1125e17901874d64e37fe39f32abef395dd3864a0f15028b0d5e8934432"
+  },
   "cityMarket": {
-    "sha256": "a2a4f54f475c5cf18f830cae6dc5b646b2a264076a8ee221c8ee05ec2ff032e8",
+    "beijing": {
+      "effectiveCagrPct": 2.248,
+      "finalAirlineSupply": 154.168,
+      "finalBottleneck": "airline_supply_limited",
+      "finalEffective": 154.168,
+      "finalPotential": 158.6008,
+      "finalSupplyGap": 4.4328,
+      "id": "beijing_airport_system"
+    },
     "cityCount": 47,
     "cityKeys": [
       "id",
@@ -28,6 +96,15 @@
       "bottleneckYears",
       "points"
     ],
+    "leader": {
+      "effectiveCagrPct": 2.3417,
+      "finalAirlineSupply": 165.2546,
+      "finalBottleneck": "airline_supply_limited",
+      "finalEffective": 165.2546,
+      "finalPotential": 169.9305,
+      "finalSupplyGap": 4.6759,
+      "id": "shanghai_airport_system"
+    },
     "pointKeys": [
       "year",
       "potential",
@@ -60,89 +137,12 @@
       "supplyShockImpulsePct",
       "components"
     ],
-    "leader": {
-      "id": "shanghai_airport_system",
-      "finalPotential": 168.3443,
-      "finalAirlineSupply": 170.0113,
-      "finalEffective": 168.3443,
-      "finalSupplyGap": 0.0,
-      "effectiveCagrPct": 2.5241,
-      "finalBottleneck": "demand_limited"
-    },
-    "beijing": {
-      "id": "beijing_airport_system",
-      "finalPotential": 157.012,
-      "finalAirlineSupply": 158.1503,
-      "finalEffective": 157.012,
-      "finalSupplyGap": 0.0,
-      "effectiveCagrPct": 2.4295,
-      "finalBottleneck": "demand_limited"
-    }
+    "sha256": "491d9d694950420fa833fc70d15a410aa320009f0f9cc0e587808bb18164578b"
   },
-  "beijingOperations": {
-    "sha256": "17ca7eccb3408d64f9e82810cc346d961d625b0909d8ae8aebe3a01f9e81facb",
-    "periodCount": 52,
-    "playerStartIndex": 20,
-    "quarterKeys": [
-      "index",
-      "year",
-      "quarter",
-      "label",
-      "gamePhase",
-      "playerDecisionEnabled",
-      "demand",
-      "capacity",
-      "operations",
-      "finance",
-      "projects",
-      "warnings"
-    ],
-    "nestedKeysSha256": "26b6f63ce6dfdd2250c937218cee794e9518fb511f847a9bf6bcd515c5503fa6",
-    "nestedKeyCounts": {
-      "demand": 11,
-      "capacity": 15,
-      "operations": 62,
-      "finance": 49,
-      "projects": 41
-    },
-    "firstQuarter": {
-      "label": "2025 Q1",
-      "gamePhase": "startup_operating_history",
-      "playerDecisionEnabled": false,
-      "annualServed": 117.7151,
-      "quarterServed": 30.421,
-      "totalRevenue": 4731.9791,
-      "operatingProfit": 825.1842,
-      "endCash": 18825.1842,
-      "totalAssets": 128932.4163,
-      "grossDebt": 0.0,
-      "warnings": []
-    },
-    "playerStartQuarter": {
-      "label": "2030 Q1",
-      "gamePhase": "player_operation",
-      "playerDecisionEnabled": true,
-      "annualServed": 128.0832,
-      "quarterServed": 33.0007,
-      "totalRevenue": 5324.6734,
-      "operatingProfit": 1102.4681,
-      "endCash": 43986.2818,
-      "totalAssets": 136816.7282,
-      "grossDebt": 5000.0,
-      "warnings": []
-    },
-    "finalQuarter": {
-      "label": "2037 Q4",
-      "gamePhase": "player_operation",
-      "playerDecisionEnabled": true,
-      "annualServed": 157.012,
-      "quarterServed": 36.7835,
-      "totalRevenue": 6041.8505,
-      "operatingProfit": 1570.4024,
-      "endCash": 74505.8755,
-      "totalAssets": 146341.1755,
-      "grossDebt": 0.0,
-      "warnings": []
-    }
-  }
+  "modelVersion": "airport-model-v0.12",
+  "outputSchemaVersion": "airport-model-output-v4",
+  "schemaCatalog": "/api/schema",
+  "seed": 20261324,
+  "snapshotSchemaVersion": "seed-explorer-api-snapshot-v1",
+  "years": 12
 }

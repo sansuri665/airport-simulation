@@ -11,9 +11,11 @@ write_json = simulation_io.write_json
 clamp = simulation_utils.clamp
 resolve_seeds = simulation_utils.resolve_seeds
 round_record = simulation_utils.round_record
+require_finite = simulation_utils.require_finite
 
 import argparse
 import json
+import math
 import random
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -52,14 +54,21 @@ YieldCurveParams = yield_curve_layer.YieldCurveParams
 simulate_yield_curve_for_policy_path = yield_curve_layer.simulate_yield_curve_for_policy_path
 
 
-OIL_COMMODITY_PARAM_VERSION = "global-oil-commodity-layer-v0.1"
-OIL_COMMODITY_INTERFACE_VERSION = "oil-commodity-feedback-interface-v0.1"
+OIL_COMMODITY_PARAM_VERSION = "global-oil-commodity-layer-v0.3"
+OIL_COMMODITY_INTERFACE_VERSION = "oil-commodity-feedback-interface-v0.3"
+OIL_COMMODITY_BOUNDARY_VERSION = "oil-commodity-boundary-repair-v1"
 
 
 OIL_COMMODITY_FIELDS = [
     "oil_commodity_param_version",
     "oil_commodity_interface_version",
+    "oil_commodity_boundary_version",
     "brent_oil_price_usd",
+    "unclamped_brent_oil_price_usd_target",
+    "brent_oil_price_usd_floor_applied",
+    "brent_oil_price_usd_cap_applied",
+    "brent_oil_price_usd_boundary_state",
+    "brent_oil_price_usd_consecutive_boundary_years",
     "global_oil_price_index",
     "oil_yoy_change_pct",
     "broad_commodity_index",
@@ -68,6 +77,11 @@ OIL_COMMODITY_FIELDS = [
     "oil_supply_shock_index",
     "oil_inventory_pressure_index",
     "energy_cost_pressure_index",
+    "unclamped_energy_cost_pressure_index_target",
+    "energy_cost_pressure_index_floor_applied",
+    "energy_cost_pressure_index_cap_applied",
+    "energy_cost_pressure_index_boundary_state",
+    "energy_cost_pressure_index_consecutive_boundary_years",
     "oil_financial_pressure_index",
     "oil_regime",
     "oil_to_headline_inflation_impulse",
@@ -103,6 +117,21 @@ class OilCommodityParams:
     noise_scale: float = 1.0
 
 
+def validate_initial_parameters(params: OilCommodityParams) -> None:
+    for name, value, floor in (
+        ("initial_brent_price_usd", params.initial_brent_price_usd, params.oil_price_floor_usd),
+        ("initial_oil_price_index", params.initial_oil_price_index, params.oil_index_floor),
+        (
+            "initial_broad_commodity_index",
+            params.initial_broad_commodity_index,
+            params.broad_commodity_floor,
+        ),
+    ):
+        require_finite(name, value)
+        if value < floor:
+            raise ValueError(f"{name} must be at least {floor}")
+
+
 @dataclass
 class OilCommodityState:
     brent_price_usd: float = 82.0
@@ -122,7 +151,13 @@ class OilCommodityState:
 class OilCommodityRecord:
     oil_commodity_param_version: str
     oil_commodity_interface_version: str
+    oil_commodity_boundary_version: str
     brent_oil_price_usd: float
+    unclamped_brent_oil_price_usd_target: float
+    brent_oil_price_usd_floor_applied: bool
+    brent_oil_price_usd_cap_applied: bool
+    brent_oil_price_usd_boundary_state: str
+    brent_oil_price_usd_consecutive_boundary_years: int
     global_oil_price_index: float
     oil_yoy_change_pct: float
     broad_commodity_index: float
@@ -131,6 +166,11 @@ class OilCommodityRecord:
     oil_supply_shock_index: float
     oil_inventory_pressure_index: float
     energy_cost_pressure_index: float
+    unclamped_energy_cost_pressure_index_target: float
+    energy_cost_pressure_index_floor_applied: bool
+    energy_cost_pressure_index_cap_applied: bool
+    energy_cost_pressure_index_boundary_state: str
+    energy_cost_pressure_index_consecutive_boundary_years: int
     oil_financial_pressure_index: float
     oil_regime: str
     oil_to_headline_inflation_impulse: float
@@ -143,6 +183,29 @@ class OilCommodityRecord:
 
 def smooth(old: float, target: float, speed: float) -> float:
     return old * (1.0 - speed) + target * speed
+
+
+def hard_boundary_state(
+    value: float, floor: float, cap: float | None
+) -> tuple[bool, bool, str]:
+    floor_applied = value < floor
+    cap_applied = cap is not None and value > cap
+    if floor_applied:
+        return True, False, "floor"
+    if cap_applied:
+        return False, True, "cap"
+    return False, False, "none"
+
+
+def advance_boundary_run(previous: int, state: str) -> int:
+    return previous + 1 if state != "none" else 0
+
+
+def soft_upper_saturate(value: float, knee: float, asymptote: float) -> float:
+    if value <= knee:
+        return value
+    width = asymptote - knee
+    return knee + width * (1.0 - math.exp(-(value - knee) / width))
 
 
 def compound_index_with_soft_drag(
@@ -248,6 +311,7 @@ def simulate_oil_commodities_for_asset_path(
     records: list[dict[str, Any]],
     params: OilCommodityParams,
 ) -> list[dict[str, Any]]:
+    validate_initial_parameters(params)
     if not records:
         return []
 
@@ -260,6 +324,10 @@ def simulate_oil_commodities_for_asset_path(
     )
 
     combined: list[dict[str, Any]] = []
+    boundary_runs = {
+        "brent_oil_price_usd": 0,
+        "energy_cost_pressure_index": 0,
+    }
     for row in records:
         year_index = int(row["year_index"])
         gdp_growth = as_float(row, "realized_growth_pct")
@@ -280,6 +348,41 @@ def simulate_oil_commodities_for_asset_path(
         credit_oil_impulse = as_float(row, "credit_to_oil_demand_impulse")
         equity_return = as_float(row, "equity_total_return_pct")
         asset_volatility = as_float(row, "asset_volatility_index", 18.0)
+
+        if year_index == 0:
+            initial_record = OilCommodityRecord(
+                oil_commodity_param_version=OIL_COMMODITY_PARAM_VERSION,
+                oil_commodity_interface_version=OIL_COMMODITY_INTERFACE_VERSION,
+                oil_commodity_boundary_version=OIL_COMMODITY_BOUNDARY_VERSION,
+                brent_oil_price_usd=params.initial_brent_price_usd,
+                unclamped_brent_oil_price_usd_target=params.initial_brent_price_usd,
+                brent_oil_price_usd_floor_applied=False,
+                brent_oil_price_usd_cap_applied=False,
+                brent_oil_price_usd_boundary_state="none",
+                brent_oil_price_usd_consecutive_boundary_years=0,
+                global_oil_price_index=params.initial_oil_price_index,
+                oil_yoy_change_pct=0.0,
+                broad_commodity_index=params.initial_broad_commodity_index,
+                commodity_yoy_change_pct=0.0,
+                oil_demand_pressure_index=state.demand_pressure_index,
+                oil_supply_shock_index=state.supply_shock_index,
+                oil_inventory_pressure_index=state.inventory_pressure_index,
+                energy_cost_pressure_index=state.energy_cost_pressure_index,
+                unclamped_energy_cost_pressure_index_target=state.energy_cost_pressure_index,
+                energy_cost_pressure_index_floor_applied=False,
+                energy_cost_pressure_index_cap_applied=False,
+                energy_cost_pressure_index_boundary_state="none",
+                energy_cost_pressure_index_consecutive_boundary_years=0,
+                oil_financial_pressure_index=0.0,
+                oil_regime="initial",
+                oil_to_headline_inflation_impulse=0.0,
+                oil_to_gdp_drag_placeholder=0.0,
+                oil_to_credit_stress_impulse=0.0,
+                oil_to_policy_pressure_impulse=0.0,
+                commodity_to_terms_of_trade_impulse=0.0,
+            )
+            combined.append(round_record({**row, **asdict(initial_record)}))
+            continue
 
         maybe_update_supply_event(
             state=state,
@@ -347,7 +450,11 @@ def simulate_oil_commodities_for_asset_path(
             28.0,
         )
 
-        price_level_gravity = -0.12 * max(0.0, state.brent_price_usd - 135.0) + 0.20 * max(0.0, 62.0 - state.brent_price_usd)
+        price_level_gravity = (
+            -0.12 * max(0.0, state.brent_price_usd - 135.0)
+            + 0.20 * max(0.0, 62.0 - state.brent_price_usd)
+            + 0.10 * max(0.0, 42.0 - state.brent_price_usd) ** 2
+        )
         oil_return_target = (
             1.2
             + 0.35 * headline
@@ -361,12 +468,35 @@ def simulate_oil_commodities_for_asset_path(
         )
         if year_index == 0:
             oil_yoy = 0.0
+            unclamped_brent_oil_price_usd_target = params.initial_brent_price_usd
             brent_price = params.initial_brent_price_usd
             oil_index = params.initial_oil_price_index
         else:
-            oil_yoy = clamp(smooth(state.oil_return_pct, oil_return_target, params.oil_return_speed), -42.0, 85.0)
-            brent_price = max(params.oil_price_floor_usd, state.brent_price_usd * (1.0 + oil_yoy / 100.0))
-            oil_index = max(params.oil_index_floor, state.oil_price_index * (1.0 + oil_yoy / 100.0))
+            oil_yoy = clamp(
+                smooth(state.oil_return_pct, oil_return_target, params.oil_return_speed),
+                -42.0,
+                85.0,
+            )
+            unclamped_brent_oil_price_usd_target = (
+                state.brent_price_usd * (1.0 + oil_yoy / 100.0)
+            )
+            brent_price = max(
+                params.oil_price_floor_usd, unclamped_brent_oil_price_usd_target
+            )
+            oil_index = max(
+                params.oil_index_floor,
+                state.oil_price_index * (1.0 + oil_yoy / 100.0),
+            )
+        (
+            brent_oil_price_usd_floor_applied,
+            brent_oil_price_usd_cap_applied,
+            brent_oil_price_usd_boundary_state,
+        ) = hard_boundary_state(
+            unclamped_brent_oil_price_usd_target, params.oil_price_floor_usd, None
+        )
+        boundary_runs["brent_oil_price_usd"] = advance_boundary_run(
+            boundary_runs["brent_oil_price_usd"], brent_oil_price_usd_boundary_state
+        )
 
         commodity_return_target = (
             0.46 * oil_yoy
@@ -400,10 +530,32 @@ def simulate_oil_commodities_for_asset_path(
             + 0.28 * inventory_pressure
             + 0.18 * supply_shock
         )
-        energy_pressure = clamp(
-            smooth(state.energy_cost_pressure_index, energy_pressure_target, params.energy_cost_pressure_speed),
-            0.0,
-            100.0,
+        unclamped_energy_cost_pressure_index_target = smooth(
+            state.energy_cost_pressure_index,
+            energy_pressure_target,
+            params.energy_cost_pressure_speed,
+        )
+        if unclamped_energy_cost_pressure_index_target < 0.0:
+            energy_cost_pressure_index_floor_applied = True
+            energy_cost_pressure_index_cap_applied = False
+            energy_cost_pressure_index_boundary_state = "floor"
+            energy_pressure = 0.0
+        elif unclamped_energy_cost_pressure_index_target > 82.0:
+            energy_cost_pressure_index_floor_applied = False
+            energy_cost_pressure_index_cap_applied = True
+            energy_cost_pressure_index_boundary_state = "soft_cap"
+            energy_pressure = soft_upper_saturate(
+                unclamped_energy_cost_pressure_index_target, 82.0, 99.0
+            )
+        else:
+            energy_cost_pressure_index_floor_applied = False
+            energy_cost_pressure_index_cap_applied = False
+            energy_cost_pressure_index_boundary_state = "none"
+            energy_pressure = unclamped_energy_cost_pressure_index_target
+        energy_pressure = clamp(energy_pressure, 0.0, 100.0)
+        boundary_runs["energy_cost_pressure_index"] = advance_boundary_run(
+            boundary_runs["energy_cost_pressure_index"],
+            energy_cost_pressure_index_boundary_state,
         )
 
         regime = classify_oil_regime(
@@ -462,7 +614,15 @@ def simulate_oil_commodities_for_asset_path(
         record = OilCommodityRecord(
             oil_commodity_param_version=OIL_COMMODITY_PARAM_VERSION,
             oil_commodity_interface_version=OIL_COMMODITY_INTERFACE_VERSION,
+            oil_commodity_boundary_version=OIL_COMMODITY_BOUNDARY_VERSION,
             brent_oil_price_usd=brent_price,
+            unclamped_brent_oil_price_usd_target=unclamped_brent_oil_price_usd_target,
+            brent_oil_price_usd_floor_applied=brent_oil_price_usd_floor_applied,
+            brent_oil_price_usd_cap_applied=brent_oil_price_usd_cap_applied,
+            brent_oil_price_usd_boundary_state=brent_oil_price_usd_boundary_state,
+            brent_oil_price_usd_consecutive_boundary_years=boundary_runs[
+                "brent_oil_price_usd"
+            ],
             global_oil_price_index=oil_index,
             oil_yoy_change_pct=oil_yoy,
             broad_commodity_index=commodity_index,
@@ -471,6 +631,13 @@ def simulate_oil_commodities_for_asset_path(
             oil_supply_shock_index=supply_shock,
             oil_inventory_pressure_index=inventory_pressure,
             energy_cost_pressure_index=energy_pressure,
+            unclamped_energy_cost_pressure_index_target=unclamped_energy_cost_pressure_index_target,
+            energy_cost_pressure_index_floor_applied=energy_cost_pressure_index_floor_applied,
+            energy_cost_pressure_index_cap_applied=energy_cost_pressure_index_cap_applied,
+            energy_cost_pressure_index_boundary_state=energy_cost_pressure_index_boundary_state,
+            energy_cost_pressure_index_consecutive_boundary_years=boundary_runs[
+                "energy_cost_pressure_index"
+            ],
             oil_financial_pressure_index=financial_pressure,
             oil_regime=regime,
             oil_to_headline_inflation_impulse=headline_impulse,

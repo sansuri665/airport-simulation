@@ -80,16 +80,18 @@ class YieldCurveDiagnosticTests(unittest.TestCase):
             max_shadow_expected_short_rate_pct=0.5,
             max_term_premium_pct=0.10,
         )
-        row = policy_path(
-            [8.0],
+        rows = policy_path(
+            [0.4, 8.0],
             neutral=6.0,
             headline=7.0,
             expectation=4.0,
             output_gap=3.0,
             stress=70.0,
             stance=3.0,
-        )[0]
-        result = yields.simulate_yield_curve_for_policy_path([row], params)[0]
+        )
+        # year_index=0 is now the configured initial state; diagnose the first
+        # real transition at year_index=1.
+        result = yields.simulate_yield_curve_for_policy_path(rows, params)[1]
 
         self.assertGreater(result["unclamped_short_rate_target_pct"], params.max_yield_pct)
         self.assertTrue(result["short_rate_cap_applied"])
@@ -255,7 +257,9 @@ class DirectionMatrixTests(unittest.TestCase):
             yields.YieldCurveParams(),
         )
         self.assertTrue(any(row["global_2y_yield_pct"] > row["global_10y_yield_pct"] for row in inverted))
-        self.assertTrue(all(row["term_spread_10y_2y_pct"] < 0.0 for row in inverted))
+        self.assertTrue(
+            all(row["term_spread_10y_2y_pct"] < 0.0 for row in inverted[1:])
+        )
 
     def test_qe_and_inflation_directions(self) -> None:
         no_qe = yields.simulate_yield_curve_for_policy_path(

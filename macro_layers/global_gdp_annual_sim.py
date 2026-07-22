@@ -10,6 +10,8 @@ write_csv = simulation_io.write_csv
 write_json = simulation_io.write_json
 clamp = simulation_utils.clamp
 resolve_seeds = simulation_utils.resolve_seeds
+require_finite = simulation_utils.require_finite
+require_positive = simulation_utils.require_positive
 
 import argparse
 import json
@@ -21,7 +23,7 @@ from statistics import mean
 from typing import Any, Mapping
 
 
-PARAM_VERSION = "global-gdp-cycle-v0.5"
+PARAM_VERSION = "global-gdp-cycle-v0.6"
 EVENT_INTERFACE_VERSION = "macro-event-interface-v0.1"
 OUTPUT_GAP_MEASUREMENT_VERSION = "gdp-gap-measurement-v1"
 GROWTH_STEP_LIMITER_VERSION = "soft-log-target-step-with-hard-realized-bound-v1"
@@ -142,6 +144,12 @@ class GDPParams:
     boom_chance_per_year: float = 0.060
     max_positive_growth_pct: float = 9.5
     max_negative_growth_pct: float = -8.5
+
+
+def validate_initial_parameters(params: GDPParams) -> None:
+    require_positive("initial_gdp_trillion_usd", params.initial_gdp_trillion_usd)
+    require_positive("initial_index", params.initial_index)
+    require_finite("base_trend_growth_pct", params.base_trend_growth_pct)
 
 
 @dataclass
@@ -626,24 +634,27 @@ def simulate_global_gdp(
     params: GDPParams,
     feedback_by_year_index: Mapping[int, Mapping[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
+    validate_initial_parameters(params)
     rng = random.Random(seed)
-    cycle_specs = draw_cycle_specs(rng, params.volatility_scale)
+    cycle_specs: dict[str, CycleSpec] | None = None
     state = GDPState(
         potential_index=params.initial_index,
         real_index=params.initial_index,
-        output_gap_pct=rng.uniform(-1.2, 1.2),
-        financial_stress_index=rng.uniform(8.0, 22.0),
+        output_gap_pct=0.0,
+        financial_stress_index=10.0,
         trend_growth_pct=params.base_trend_growth_pct,
-        cycle_memory={name: 0.0 for name in cycle_specs},
+        cycle_memory={},
     )
 
     records: list[dict[str, Any]] = []
     previous_real_index = state.real_index
 
     for t in range(params.years + 1):
-        feedback = feedback_for_year(feedback_by_year_index, t)
+        feedback = feedback_for_year(
+            None if t == 0 else feedback_by_year_index, t
+        )
         if t == 0:
-            productivity_wave = 50.0 + 50.0 * sin_wave(t, cycle_specs["long_wave"].period_years, cycle_specs["long_wave"].phase)
+            productivity_wave = 50.0
             event_stub = MacroEventStub()
             record = YearRecord(
                 year_index=t,
@@ -688,6 +699,10 @@ def simulate_global_gdp(
             )
             records.append(round_record(record))
             continue
+
+        if cycle_specs is None:
+            cycle_specs = draw_cycle_specs(rng, params.volatility_scale)
+            state.cycle_memory = {name: 0.0 for name in cycle_specs}
 
         trend_growth = long_run_trend(t, params, rng)
         inventory = cycle_component(t, cycle_specs["inventory"], state, rng)

@@ -11,6 +11,7 @@ write_json = simulation_io.write_json
 clamp = simulation_utils.clamp
 resolve_seeds = simulation_utils.resolve_seeds
 round_record = simulation_utils.round_record
+require_in_range = simulation_utils.require_in_range
 
 import argparse
 import json
@@ -40,8 +41,8 @@ YieldCurveParams = yield_curve_layer.YieldCurveParams
 simulate_yield_curve_for_policy_path = yield_curve_layer.simulate_yield_curve_for_policy_path
 
 
-DOLLAR_LIQUIDITY_PARAM_VERSION = "global-dollar-liquidity-layer-v0.3"
-DOLLAR_LIQUIDITY_INTERFACE_VERSION = "dollar-liquidity-feedback-interface-v0.2"
+DOLLAR_LIQUIDITY_PARAM_VERSION = "global-dollar-liquidity-layer-v0.4"
+DOLLAR_LIQUIDITY_INTERFACE_VERSION = "dollar-liquidity-feedback-interface-v0.3"
 DOLLAR_LIQUIDITY_BOUNDARY_VERSION = "dollar-liquidity-boundaries-v1"
 
 
@@ -121,6 +122,24 @@ class DollarLiquidityParams:
     min_financial_conditions_index: float = -4.0
     max_financial_conditions_index: float = 4.0
     dollar_seed_offset: int = 9_500_117
+
+
+def validate_initial_parameters(params: DollarLiquidityParams) -> None:
+    require_in_range(
+        "initial_dollar_index",
+        params.initial_dollar_index,
+        params.min_dollar_index,
+        params.max_dollar_index,
+    )
+    require_in_range("initial_liquidity_index", params.initial_liquidity_index, 0.0, 100.0)
+    require_in_range(
+        "initial_financial_conditions_index",
+        params.initial_financial_conditions_index,
+        params.min_financial_conditions_index,
+        params.max_financial_conditions_index,
+    )
+    require_in_range("initial_risk_appetite_index", params.initial_risk_appetite_index, 0.0, 100.0)
+    require_in_range("initial_em_stress_index", params.initial_em_stress_index, 0.0, 100.0)
 
 
 @dataclass
@@ -226,6 +245,7 @@ def simulate_dollar_liquidity_for_yield_path(
     records: list[dict[str, Any]],
     params: DollarLiquidityParams,
 ) -> list[dict[str, Any]]:
+    validate_initial_parameters(params)
     if not records:
         return []
 
@@ -264,6 +284,39 @@ def simulate_dollar_liquidity_for_yield_path(
         yield_curve_dollar_impulse = as_float(row, "yield_curve_to_dollar_impulse")
         yield_curve_credit_impulse = as_float(row, "yield_curve_to_credit_impulse")
         equity_valuation_impulse = as_float(row, "yield_curve_to_equity_valuation_impulse")
+
+        if year_index == 0:
+            initial_record = DollarLiquidityRecord(
+                dollar_liquidity_param_version=DOLLAR_LIQUIDITY_PARAM_VERSION,
+                dollar_liquidity_interface_version=DOLLAR_LIQUIDITY_INTERFACE_VERSION,
+                dollar_liquidity_boundary_version=DOLLAR_LIQUIDITY_BOUNDARY_VERSION,
+                global_dollar_index=params.initial_dollar_index,
+                unclamped_dollar_target_index=params.initial_dollar_index,
+                dollar_floor_applied=False,
+                dollar_cap_applied=False,
+                dollar_consecutive_boundary_years=0,
+                dollar_yoy_change_pct=0.0,
+                dollar_momentum_index=0.0,
+                global_liquidity_index=params.initial_liquidity_index,
+                liquidity_impulse_index=0.0,
+                global_financial_conditions_index=params.initial_financial_conditions_index,
+                unclamped_financial_conditions_target_index=params.initial_financial_conditions_index,
+                financial_conditions_floor_applied=False,
+                financial_conditions_cap_applied=False,
+                financial_conditions_consecutive_boundary_years=0,
+                risk_appetite_index=params.initial_risk_appetite_index,
+                em_stress_index=params.initial_em_stress_index,
+                dollar_funding_stress_index=params.initial_em_stress_index,
+                dollar_liquidity_regime="initial",
+                dollar_to_import_inflation_impulse=0.0,
+                dollar_to_oil_pressure_impulse=0.0,
+                dollar_to_gdp_drag_placeholder=0.0,
+                dollar_to_credit_tightening_impulse=0.0,
+                liquidity_to_equity_impulse=0.0,
+                liquidity_to_credit_easing_impulse=0.0,
+            )
+            combined.append(round_record({**row, **asdict(initial_record)}))
+            continue
 
         safe_haven_pressure = clamp(crisis_intensity + max(0.0, stress - 48.0) / 52.0, 0.0, 1.6)
         dollar_target = (

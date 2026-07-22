@@ -23,6 +23,12 @@
 
 `years=60` 会得到 `year_index=0..60`，即 61 个年度观测。第 0 行是起点，不是“第一年运行结束”。
 
+### 统一配置起点
+
+全球 GDP、通胀、政策率、收益率、美元资金条件、信用、资产和油气八层都从 `year_index=0` 的参数初值构造初始行。该行不执行年度转移、不推进事件状态，也不消费任何一层 RNG draw；第一次完整更新位于 `year_index=1`。因此同一 Seed 下 `years=0/1/2/60` 的短路径必须是长路径的严格前缀。不同 Seed 的第 0 行除 `seed` 身份字段外完全相同。区域层继续只读接收这组全球起点锚，Viewer 将其显示为“起点”。
+
+为维持严格前缀，全球年度行上的 `macro_feedback_*` 收敛字段只描述逐年度、前缀稳定的相邻 Pass 稳定性。行级 `macro_feedback_fixed_point_residual_*` 固定保留为未检查；真正的无松弛固定点残差只在完整 Run 上计算，并由 Run/Manifest 收敛摘要作为发布护栏的权威结论。
+
 ## 处理过程
 
 全球层按固定顺序运行：
@@ -49,7 +55,7 @@ GDP 输出同时发布两种不能互换的缺口：
 - `gdp_level_gap_pct = 100 × ln(real_gdp_index / potential_gdp_index)` 是由同一已发布行的实际与潜在 GDP 指数严格反推的**水平缺口会计诊断**。
 - `output_gap_measurement_residual_pct` 是前两者之差，用来公开状态估计与水平会计口径的偏离，不表示数值错误。
 
-第 0 行仍是起点：实际和潜在指数都为 100，而估计周期缺口可以因初始化而非零。该起点语义未在本阶段改写。区域行继续有自身的 `regional_output_gap_pct`，同时传播全球锚的严格水平缺口与测量残差，避免把区域估计状态误标成由区域水平严格反推的缺口。
+第 0 行是统一配置起点：实际和潜在指数都为 100，估计周期缺口和严格水平缺口均为 0；第一次状态更新与随机冲击发生在第 1 行。区域行继续有自身的 `regional_output_gap_pct`，同时传播全球锚的严格水平缺口与测量残差，避免把区域估计状态误标成由区域水平严格反推的缺口。
 
 ### 缺口恢复与增长斜率护栏
 
@@ -131,6 +137,8 @@ output/macro_runs/<run_id>/<variant>/global_macro/
 GDP v0.5 还发布：`unclamped_output_gap_target_pct`、缺口上下界布尔值、`unclamped_target_growth_pct`、`soft_limited_target_growth_pct`、`growth_step_limit_pct`、软限制/硬边界布尔值、硬边界方向和连续命中年数。`growth_step_limit_pct` 表示本年实际使用的**实际增长步长硬安全边界**，不是软限制膝点。
 
 收益率—美元 v0.3 另外发布 `expected_shadow_short_rate_10y_pct`、短端/2Y/10Y/期限溢价/美元代理/FCI 的真实未裁剪目标、边界布尔值和连续命中年数。接口继续保留唯一的 `global_dollar_index` 字段，不新增同义“DXY”字段。
+
+次级饱和 v1 对 ERP、能源压力、信用利差指数、信贷可得性、信用减值存量、盈利指数和 Brent 统一发布 `unclamped_<field>_target`、floor/cap applied、`boundary_state` 与连续命中年数。`soft_cap`/`soft_floor` 表示内部风险刻度已软压缩，外层契约硬边界仍保留；盈利指数不再使用固定 460 上限。
 
 ## 与其他模块的关系
 

@@ -90,17 +90,17 @@ def header_digest(fields: list[str]) -> str:
 class LongHorizonModelContractTests(unittest.TestCase):
     """Protect long-run structure and scenario semantics before deeper refactors."""
 
-    # Refreshed for Working Guide sub-Goal 4. The yield/dollar path changes by
-    # design while frozen Goal 3 GDP dynamics remain intact, so fixed-seed global
-    # and scenario semantic digests change deterministically. Downstream formulas
-    # remain unchanged; their outputs inherit the repaired funding path.
+    # Refreshed for Working Guide sub-Goal 5. The global eight-layer initial
+    # row is now a true configuration point and the first RNG draw occurs at
+    # year_index=1, so every later fixed-seed path changes deterministically.
+    # Downstream formulas remain unchanged and inherit the new global prefix.
     EXPECTED_SEMANTIC_DIGESTS = {
-        "baseline": "7f8f2574c714c93b30601f2f966f8b466ca9b7df6ba2408eec52649e2272a561",
-        "occurred": "3a73f29cf1a4254cc23248b265fef59e23d46a26afee6a26b4d0f5380da3c21a",
-        "probabilistic": "af65eb22fc9c293e8697334efa9f0ce5bac3a1fc94ad9f8216b670b0af767ed3",
+        "baseline": "cf368ed0ca9fab02823ec96b3967cfff7414ab15ad4cdecd92b1c5321ef62d66",
+        "occurred": "d7e4bc4b1166d4ecfb240db8a597f84beaa1a7205bb864a0ea62cc1ff3bb5bf2",
+        "probabilistic": "7e780d1d7a094388672bc8bb2d5fcd4270bfdcd12eee65b77a6da73516a44da8",
     }
     EXPECTED_HEADERS = {
-        "global": (280, "ed16f4b1577a5c96bf3ec91f0a27c0540da3e91fab6443efe6b787675b853604"),
+        "global": (318, "f8fb9fd53c33cadebfaad783d14515bb2aea498f5942c5b83fea46ad80aeb5dc"),
         "reconciled": (97, "ae063d7f3b6e3e85a59b45450644f19121ce2c222b8c21c03f69830617de6d1f"),
         "city_beijing": (195, "256b25a80228eab581df0db695c5c94deee6bab54e03536c9238c7981c3e303b"),
         "operations_beijing": (261, "69db9b46ab78437b00a929cb8d3804de3d00a590a0f165c8f8472a51c3914358"),
@@ -156,27 +156,27 @@ class LongHorizonModelContractTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            ("false_dawn", 17, 2042),
+            ("false_dawn", 19, 2044),
             (
                 self.occurred_selection["risk"]["id"],
                 self.occurred_selection["trigger_index"],
                 self.occurred_selection["trigger_year"],
             ),
         )
-        self.assertEqual([18, 19, 20, 21, 22, 23, 24], sorted(self.occurred_path))
+        self.assertEqual([20, 21, 22, 23, 24, 25, 26], sorted(self.occurred_path))
         self.assertEqual(
-            [("false_dawn", 13, 2038)],
+            [("soft_landing_success", 2, 2027)],
             [
                 (event["risk"]["id"], event["trigger_index"], event["trigger_year"])
                 for event in self.probabilistic_events
             ],
         )
         self.assertEqual(
-            [14, 15, 16, 17, 18, 19, 20],
+            [3, 4, 5, 6],
             sorted(self.probabilistic_path),
         )
         self.assertEqual(7, orchestrator.active_scenario_rows(self.occurred))
-        self.assertEqual(7, orchestrator.active_scenario_rows(self.probabilistic))
+        self.assertEqual(4, orchestrator.active_scenario_rows(self.probabilistic))
 
     def test_60_year_regional_and_city_structure_is_complete(self) -> None:
         expected_regions = set(orchestrator.REGION_ORDER)

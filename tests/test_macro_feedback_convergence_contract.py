@@ -1004,6 +1004,13 @@ class EndToEndConvergenceContractTests(unittest.TestCase):
         self.assertTrue(rows)
         for row in rows:
             self.assertTrue(required_fields.issubset(row))
+            self.assertIn(
+                row["macro_feedback_convergence_reason"],
+                {"row_adjacent_pass_converged", "row_adjacent_pass_not_converged"},
+            )
+            self.assertEqual("false", row["macro_feedback_fixed_point_residual_checked"])
+            self.assertEqual("false", row["macro_feedback_fixed_point_residual_converged"])
+            self.assertEqual(0.0, row["macro_feedback_fixed_point_residual_delta_index"])
 
     def test_determinism_two_runs_produce_identical_rows(self) -> None:
         args = self._args()
@@ -1484,15 +1491,20 @@ class EightySeedConvergenceAuditTests(unittest.TestCase):
                     implied_potential_growth = (
                         potential_index / float(previous["potential_gdp_index"]) - 1.0
                     ) * 100.0
+                    # Both level indices and published growth are rounded to
+                    # four decimals. The exact 80-seed worst case after the
+                    # unified initial row is 0.0001344 percentage points, so
+                    # 0.00014 is the tight rounding envelope rather than an
+                    # economic tolerance.
                     self.assertAlmostEqual(
                         implied_growth,
                         float(row["realized_growth_pct"]),
-                        delta=0.00013,
+                        delta=0.00014,
                     )
                     self.assertAlmostEqual(
                         implied_potential_growth,
                         float(row["potential_growth_pct"]),
-                        delta=0.00013,
+                        delta=0.00014,
                     )
 
     def test_bounce_and_over_eight_are_reported_as_diagnostics(self) -> None:

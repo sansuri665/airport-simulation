@@ -974,6 +974,122 @@ def annotate_branch_risks(records: list[dict[str, Any]]) -> list[dict[str, Any]]
     return annotated
 
 
+def build_row_convergence_annotations(
+    pass_records: list[list[dict[str, Any]]],
+    params: MacroFeedbackParams,
+    *,
+    min_iterations: int,
+    max_iterations: int,
+) -> dict[int, dict[str, Any]]:
+    """Build prefix-stable, row-local convergence annotations.
+
+    Run-level convergence remains authoritative in the returned convergence
+    object and manifest. Row annotations intentionally describe the earliest
+    pass at which that specific year stabilized, so common-year rows remain
+    strict prefixes across different requested horizons.
+    """
+
+    contracts = (
+        ("realized_growth_pct", params.convergence_growth_tolerance_pct, 22.0),
+        ("headline_inflation_pct", params.convergence_inflation_tolerance_pct, 18.0),
+        ("global_policy_rate_pct", params.convergence_policy_tolerance_pct, 16.0),
+        ("global_2y_yield_pct", params.convergence_2y_tolerance_pct, 10.0),
+        ("global_10y_yield_pct", params.convergence_10y_tolerance_pct, 10.0),
+        ("global_dollar_index", params.convergence_dollar_tolerance_index, 1.5),
+        ("global_high_yield_spread_bps", params.convergence_hy_tolerance_bps, 1.0 / 8.0),
+        ("brent_oil_price_usd", params.convergence_oil_tolerance_usd, 1.0 / 6.0),
+    )
+    by_pass = [
+        {int(row["year_index"]): row for row in rows}
+        for rows in pass_records
+    ]
+    year_indices = sorted(by_pass[-1]) if by_pass else []
+    annotations: dict[int, dict[str, Any]] = {}
+    consecutive_required = max(
+        MINIMUM_CONSECUTIVE_CONVERGED_PASSES,
+        int(params.convergence_consecutive_passes),
+    )
+
+    for year_index in year_indices:
+        diagnostics: list[dict[str, Any]] = []
+        for pass_index in range(1, len(by_pass)):
+            previous = by_pass[pass_index - 1].get(year_index)
+            current = by_pass[pass_index].get(year_index)
+            if previous is None or current is None:
+                diagnostics.append(
+                    {"pass": pass_index, "converged": False, "delta_index": 0.0}
+                )
+                continue
+            deltas = {
+                field: abs(as_float(current, field) - as_float(previous, field))
+                for field, _tolerance, _weight in contracts
+            }
+            diagnostics.append(
+                {
+                    "pass": pass_index,
+                    "converged": all(
+                        deltas[field] <= tolerance
+                        for field, tolerance, _weight in contracts
+                    ),
+                    "delta_index": sum(
+                        deltas[field] * weight
+                        for field, _tolerance, weight in contracts
+                    ),
+                }
+            )
+
+        accepted_pass: int | None = None
+        for diagnostic_index, diagnostic in enumerate(diagnostics):
+            pass_number = int(diagnostic["pass"])
+            if pass_number < min_iterations:
+                continue
+            start = diagnostic_index - consecutive_required + 1
+            if start < 0:
+                continue
+            window = diagnostics[start : diagnostic_index + 1]
+            if all(bool(item["converged"]) for item in window):
+                accepted_pass = pass_number
+                break
+
+        if accepted_pass is None:
+            accepted_pass = min(max_iterations, max(0, len(pass_records) - 1))
+            accepted = False
+        else:
+            accepted = True
+        relevant = [
+            item for item in diagnostics if int(item["pass"]) <= accepted_pass
+        ]
+        last = relevant[-1] if relevant else {"converged": False, "delta_index": 0.0}
+        trailing = 0
+        for item in reversed(relevant):
+            if not bool(item["converged"]):
+                break
+            trailing += 1
+        annotations[year_index] = {
+            "iterations_run": accepted_pass,
+            "converged": accepted,
+            "last_pass_converged": bool(last["converged"]),
+            "consecutive_converged_passes": trailing,
+            "convergence_reason": (
+                "row_adjacent_pass_converged"
+                if accepted
+                else "row_adjacent_pass_not_converged"
+            ),
+            "last_pass_delta_index": float(last["delta_index"]),
+            "max_pass_delta_index": max(
+                (float(item["delta_index"]) for item in relevant),
+                default=0.0,
+            ),
+            # A row only has adjacent-pass stability evidence. The undamped
+            # shadow residual is evaluated for the complete Run and remains
+            # authoritative in convergence/Manifest metadata.
+            "fixed_point_residual_checked": False,
+            "fixed_point_residual_converged": False,
+            "fixed_point_residual_delta_index": 0.0,
+        }
+    return annotations
+
+
 def annotate_feedback_records(
     records: list[dict[str, Any]],
     feedback_path: Mapping[int, Mapping[str, Any]],
@@ -981,12 +1097,15 @@ def annotate_feedback_records(
     convergence: Mapping[str, Any],
 ) -> list[dict[str, Any]]:
     annotated: list[dict[str, Any]] = []
-    iterations_run = int(convergence.get("iterations_run", convergence.get("iterations", iteration)))
-    iterations_requested = int(iteration)
+    iterations_requested = int(convergence.get("max_iterations", iteration))
     min_iterations = int(convergence.get("min_iterations", iterations_requested))
     max_iterations = int(convergence.get("max_iterations", iterations_requested))
+    row_annotations = convergence.get("row_convergence_annotations", {})
     for row in records:
-        feedback = feedback_path.get(int(row["year_index"]), {})
+        year_index = int(row["year_index"])
+        feedback = feedback_path.get(year_index, {})
+        row_convergence = row_annotations.get(year_index, {})
+        iterations_run = int(row_convergence.get("iterations_run", 0))
         note = "none" if not feedback else str(feedback.get("feedback_source", "lagged_macro_feedback"))
         annotated.append(
             round_record(
@@ -1004,29 +1123,29 @@ def annotate_feedback_records(
                     "macro_feedback_iterations_run": iterations_run,
                     "macro_feedback_min_iterations": min_iterations,
                     "macro_feedback_max_iterations": max_iterations,
-                    "macro_feedback_converged": str(convergence.get("converged", False)).lower(),
+                    "macro_feedback_converged": str(row_convergence.get("converged", False)).lower(),
                     "macro_feedback_last_pass_converged": str(
-                        convergence.get("last_pass_converged", False)
+                        row_convergence.get("last_pass_converged", False)
                     ).lower(),
                     "macro_feedback_consecutive_converged_passes": int(
-                        convergence.get("consecutive_converged_passes", 0)
+                        row_convergence.get("consecutive_converged_passes", 0)
                     ),
                     "macro_feedback_convergence_reason": str(
-                        convergence.get("convergence_reason", "not_converged")
+                        row_convergence.get(
+                            "convergence_reason", "row_adjacent_pass_not_converged"
+                        )
                     ),
-                    "macro_feedback_delta_bounced": str(
-                        convergence.get("delta_bounced", False)
-                    ).lower(),
-                    "macro_feedback_last_pass_delta_index": as_float(convergence, "last_pass_delta_index"),
-                    "macro_feedback_max_pass_delta_index": as_float(convergence, "max_pass_delta_index"),
+                    "macro_feedback_delta_bounced": "false",
+                    "macro_feedback_last_pass_delta_index": as_float(row_convergence, "last_pass_delta_index"),
+                    "macro_feedback_max_pass_delta_index": as_float(row_convergence, "max_pass_delta_index"),
                     "macro_feedback_fixed_point_residual_checked": str(
-                        convergence.get("fixed_point_residual_checked", False)
+                        row_convergence.get("fixed_point_residual_checked", False)
                     ).lower(),
                     "macro_feedback_fixed_point_residual_converged": str(
-                        convergence.get("fixed_point_residual_converged", False)
+                        row_convergence.get("fixed_point_residual_converged", False)
                     ).lower(),
                     "macro_feedback_fixed_point_residual_delta_index": as_float(
-                        convergence,
+                        row_convergence,
                         "fixed_point_residual_delta_index",
                     ),
                     "macro_feedback_note": note,
@@ -1448,6 +1567,13 @@ def run_convergence_aware_feedback_loop(
             max_iterations=effective_max,
             pass_relaxations=pass_relaxations,
         )
+    convergence = dict(convergence)
+    convergence["row_convergence_annotations"] = build_row_convergence_annotations(
+        pass_records,
+        feedback_params,
+        min_iterations=effective_min,
+        max_iterations=effective_max,
+    )
     return pass_records[-1], macro_feedback, convergence
 
 
@@ -1646,7 +1772,9 @@ def main() -> int:
             max_iterations=max(1, args.feedback_iterations),
         )
         convergence_by_seed[seed] = convergence
-        records_by_seed[seed] = annotate_feedback_records(records, feedback_path, args.feedback_iterations, convergence)
+        records_by_seed[seed] = annotate_feedback_records(
+            records, feedback_path, args.feedback_iterations, convergence
+        )
 
     all_records = [row for records in records_by_seed.values() for row in records]
     summaries = [summarize_seed(records) for records in records_by_seed.values()]

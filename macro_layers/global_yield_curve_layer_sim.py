@@ -11,6 +11,7 @@ write_json = simulation_io.write_json
 clamp = simulation_utils.clamp
 resolve_seeds = simulation_utils.resolve_seeds
 round_record = simulation_utils.round_record
+require_in_range = simulation_utils.require_in_range
 
 import argparse
 import json
@@ -36,8 +37,8 @@ PolicyRateParams = policy_rate_layer.PolicyRateParams
 simulate_policy_for_macro_path = policy_rate_layer.simulate_policy_for_macro_path
 
 
-YIELD_CURVE_PARAM_VERSION = "global-yield-curve-layer-v0.3"
-YIELD_CURVE_INTERFACE_VERSION = "yield-curve-feedback-interface-v0.2"
+YIELD_CURVE_PARAM_VERSION = "global-yield-curve-layer-v0.4"
+YIELD_CURVE_INTERFACE_VERSION = "yield-curve-feedback-interface-v0.3"
 YIELD_CURVE_BOUNDARY_VERSION = "yield-curve-boundaries-v1"
 
 
@@ -137,6 +138,33 @@ class YieldCurveParams:
     dollar_curve_term_premium_change_beta: float = 0.18
     dollar_curve_ten_year_change_beta: float = 0.10
     yield_seed_offset: int = 7_200_071
+
+
+def validate_initial_parameters(params: YieldCurveParams) -> None:
+    for name, value in (
+        ("initial_short_rate_pct", params.initial_short_rate_pct),
+        ("initial_2y_yield_pct", params.initial_2y_yield_pct),
+        ("initial_10y_yield_pct", params.initial_10y_yield_pct),
+    ):
+        require_in_range(name, value, params.min_yield_pct, params.max_yield_pct)
+    require_in_range(
+        "initial_term_premium_pct",
+        params.initial_term_premium_pct,
+        params.min_term_premium_pct,
+        params.max_term_premium_pct,
+    )
+    require_in_range(
+        "initial_expected_short_rate_10y_pct",
+        params.initial_expected_short_rate_10y_pct,
+        params.min_observable_expected_short_rate_pct,
+        params.max_observable_expected_short_rate_pct,
+    )
+    require_in_range(
+        "initial_expected_shadow_short_rate_10y_pct",
+        params.initial_expected_shadow_short_rate_10y_pct,
+        params.min_shadow_expected_short_rate_pct,
+        params.max_shadow_expected_short_rate_pct,
+    )
 
 
 @dataclass
@@ -269,6 +297,7 @@ def simulate_yield_curve_for_policy_path(
     records: list[dict[str, Any]],
     params: YieldCurveParams,
 ) -> list[dict[str, Any]]:
+    validate_initial_parameters(params)
     if not records:
         return []
 
@@ -312,6 +341,60 @@ def simulate_yield_curve_for_policy_path(
         hike_pressure = as_float(row, "rate_hike_pressure")
         cut_pressure = as_float(row, "rate_cut_pressure")
         inflation_long_impulse = as_float(row, "inflation_to_long_rate_impulse")
+
+        if year_index == 0:
+            initial_term_spread = (
+                params.initial_10y_yield_pct - params.initial_2y_yield_pct
+            )
+            initial_real_10y = params.initial_10y_yield_pct - expectation
+            initial_record = YieldCurveRecord(
+                yield_curve_param_version=YIELD_CURVE_PARAM_VERSION,
+                yield_curve_interface_version=YIELD_CURVE_INTERFACE_VERSION,
+                yield_curve_boundary_version=YIELD_CURVE_BOUNDARY_VERSION,
+                global_short_rate_pct=params.initial_short_rate_pct,
+                global_2y_yield_pct=params.initial_2y_yield_pct,
+                global_10y_yield_pct=params.initial_10y_yield_pct,
+                global_real_10y_yield_pct=initial_real_10y,
+                term_spread_10y_2y_pct=initial_term_spread,
+                term_premium_pct=params.initial_term_premium_pct,
+                expected_short_rate_10y_pct=params.initial_expected_short_rate_10y_pct,
+                expected_shadow_short_rate_10y_pct=params.initial_expected_shadow_short_rate_10y_pct,
+                unclamped_short_rate_target_pct=params.initial_short_rate_pct,
+                unclamped_expected_short_rate_10y_target_pct=params.initial_expected_short_rate_10y_pct,
+                unclamped_expected_shadow_short_rate_10y_target_pct=params.initial_expected_shadow_short_rate_10y_pct,
+                unclamped_2y_yield_target_pct=params.initial_2y_yield_pct,
+                unclamped_10y_yield_target_pct=params.initial_10y_yield_pct,
+                unclamped_term_premium_target_pct=params.initial_term_premium_pct,
+                short_rate_floor_applied=False,
+                short_rate_cap_applied=False,
+                expected_short_rate_floor_applied=False,
+                expected_short_rate_cap_applied=False,
+                shadow_short_rate_floor_applied=False,
+                shadow_short_rate_cap_applied=False,
+                yield_2y_floor_applied=False,
+                yield_2y_cap_applied=False,
+                yield_10y_floor_applied=False,
+                yield_10y_cap_applied=False,
+                term_premium_floor_applied=False,
+                term_premium_cap_applied=False,
+                short_rate_consecutive_boundary_years=0,
+                expected_short_rate_consecutive_boundary_years=0,
+                shadow_short_rate_consecutive_boundary_years=0,
+                yield_2y_consecutive_boundary_years=0,
+                yield_10y_consecutive_boundary_years=0,
+                term_premium_consecutive_boundary_years=0,
+                bond_price_index=state.bond_price_index,
+                bond_total_return_pct=0.0,
+                duration_pressure_index=0.0,
+                curve_inversion_pressure=0.0,
+                yield_curve_regime="initial",
+                yield_curve_to_dollar_impulse=0.0,
+                yield_curve_to_equity_valuation_impulse=0.0,
+                yield_curve_to_credit_impulse=0.0,
+                yield_curve_to_gdp_drag_placeholder=0.0,
+            )
+            combined.append(round_record({**row, **asdict(initial_record)}))
+            continue
 
         short_rate_target = policy_rate + rng.gauss(0.0, params.market_noise_scale * 0.20)
         unclamped_short_rate_next = smooth(
