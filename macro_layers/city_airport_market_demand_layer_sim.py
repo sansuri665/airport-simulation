@@ -23,8 +23,8 @@ from statistics import mean
 from typing import Any, Iterable
 
 
-CITY_AIRPORT_DEMAND_PARAM_VERSION = "city-airport-market-demand-layer-v0.22"
-CITY_AIRPORT_DEMAND_INTERFACE_VERSION = "city-airport-market-demand-interface-v0.23"
+CITY_AIRPORT_DEMAND_PARAM_VERSION = "city-airport-market-demand-layer-v0.23"
+CITY_AIRPORT_DEMAND_INTERFACE_VERSION = "city-airport-market-demand-interface-v0.24"
 
 
 AIRPORT_DIR = Path(__file__).resolve().parents[1]
@@ -228,7 +228,10 @@ CITY_AIRPORT_DEMAND_FIELDS = [
     "input_headline_inflation_cost_index",
     "input_core_inflation_cost_index",
     "input_energy_cost_pressure_index",
+    "input_policy_rate_pct",
+    "input_policy_rate_source",
     "input_10y_yield_pct",
+    "input_10y_yield_source",
     "input_hy_spread_bps",
     "input_equity_return_pct",
     "input_equity_valuation_pe",
@@ -2407,6 +2410,27 @@ def simulate_city_airport_demand(
                 "input_headline_inflation_cost_index": inflation_cost_pressure_index(headline_inflation_pct),
                 "input_core_inflation_cost_index": inflation_cost_pressure_index(core_inflation_pct),
                 "input_energy_cost_pressure_index": energy_cost_pressure_index,
+                "input_policy_rate_pct": first_float(
+                    row,
+                    (
+                        "macro_regional_policy_rate_pct",
+                        "macro_regional_policy_rate_pct_reconciled",
+                        "macro_regional_policy_rate_pct_raw",
+                    ),
+                    0.0,
+                ),
+                "input_policy_rate_source": (
+                    "regional_macro_annual"
+                    if any(
+                        row.get(key) not in (None, "")
+                        for key in (
+                            "macro_regional_policy_rate_pct",
+                            "macro_regional_policy_rate_pct_reconciled",
+                            "macro_regional_policy_rate_pct_raw",
+                        )
+                    )
+                    else "missing"
+                ),
                 "input_10y_yield_pct": first_float(
                     row,
                     (
@@ -2415,6 +2439,18 @@ def simulate_city_airport_demand(
                         "macro_regional_10y_yield_pct_raw",
                     ),
                     0.0,
+                ),
+                "input_10y_yield_source": (
+                    "regional_macro_annual"
+                    if any(
+                        row.get(key) not in (None, "")
+                        for key in (
+                            "macro_regional_10y_yield_pct",
+                            "macro_regional_10y_yield_pct_reconciled",
+                            "macro_regional_10y_yield_pct_raw",
+                        )
+                    )
+                    else "missing"
                 ),
                 "input_hy_spread_bps": first_float(
                     row,

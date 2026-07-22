@@ -102,8 +102,8 @@ class LongHorizonModelContractTests(unittest.TestCase):
     EXPECTED_HEADERS = {
         "global": (318, "f8fb9fd53c33cadebfaad783d14515bb2aea498f5942c5b83fea46ad80aeb5dc"),
         "reconciled": (97, "ae063d7f3b6e3e85a59b45450644f19121ce2c222b8c21c03f69830617de6d1f"),
-        "city_beijing": (195, "256b25a80228eab581df0db695c5c94deee6bab54e03536c9238c7981c3e303b"),
-        "operations_beijing": (261, "69db9b46ab78437b00a929cb8d3804de3d00a590a0f165c8f8472a51c3914358"),
+        "city_beijing": (198, "c0f3cd572466c0807cdc081a8b7a5531e1f7a06a4c2183f28ef25dbab078f418"),
+        "operations_beijing": (264, "746498ea6c936a4e0e7f99e5f620b858e6ec6a5cf8a37b24b843cff252887ad2"),
     }
 
     @classmethod

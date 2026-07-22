@@ -69,22 +69,22 @@ class FixedSeedCharacterizationTests(unittest.TestCase):
         'reconciled': (182, 'fb51816813c714929a356ea84342eefc8cee1a089bee901951aac381e7bca7a4'),
         'aviation_china': (13, '4ff7ef147e00bb53ec4f4eb1edf647da7114da4e348623d023a423c85ed4b299'),
         'supply_china': (13, '17c5fd9e48313a1dee772a445a400a1c78ffd647edf5f9c2ac7dfb7b77632d97'),
-        'city_beijing': (13, '89f8c4fd8763032e1caea5647653e742912b2d16e1e0cbacf258514b9a868181'),
+        'city_beijing': (13, '0fe4c3c0625d1c4c59c53acbb2e232c308b0c44544b8d54d6318c4e47c7d7ff1'),
         'forecast_beijing': (361, 'f46a206bf574e4551798a9c20131b3c3411d2ed0c67e69a89206ea6a7c10f0d4'),
-        'operations_beijing': (52, '20f5f01488aa4dea4f4c24d607e2068fcb3b0e88cc56b22c4eea9cb295d2e8cb'),
-        'finance_beijing': (52, '89638c3a408b4429ca824e8443931dc7c62197d69bf9d179d75539701497df09'),
-        'valuation_beijing': (32, 'a7e117bf47868ce2fba7514ca9988e058ef3616395f2c71cfb177522320b7cb7'),
+        'operations_beijing': (52, '4dc337a277e34d4a4282576c27a768db7146b3d16c519fed419d83a4d3db96d9'),
+        'finance_beijing': (52, 'dd3d2768a7f0e7ebda393705fd4854a79a07dd7078fd77b96aff3a5063c2ac3a'),
+        'valuation_beijing': (32, '6feff0ba5c844ac86ddbc9c5eb16f20221fa4e7ae5d89d53375d17333f8726a5'),
     }
     CANONICAL_PYTHON_313_EXPECTED = {
         'global': (13, '55978f161fde564488a92e312f5b4865fd81ac598ee9bcda47bb18355f49dc3a'),
         'reconciled': (182, '0bd270f06f6f1b0b3eb75e4c2e85e92de13d9e2aa984c08db5eeba55ce3e2193'),
         'aviation_china': (13, 'b6ae6e29d34acf7ae16bb5a6dc442b5d548d2699e53f89c6f936ebe22c166bc5'),
         'supply_china': (13, 'd31a5e0b9291678a56c15c635cd1b6176893ac7434bbbcead695f9164d327c56'),
-        'city_beijing': (13, '76c14f134e50c26ef9d4ffd4e3a8bf5acd4d61bc50dcd317f8eaf1eddfac8d72'),
+        'city_beijing': (13, 'efe6bdd4a5500195ce3c2da8af22ed319a425040fdd8f1dc626317d8f556c6de'),
         'forecast_beijing': (361, 'f46a206bf574e4551798a9c20131b3c3411d2ed0c67e69a89206ea6a7c10f0d4'),
-        'operations_beijing': (52, '20f5f01488aa4dea4f4c24d607e2068fcb3b0e88cc56b22c4eea9cb295d2e8cb'),
-        'finance_beijing': (52, 'c604c0a93b22e45ab1f162aafefc3a5de9bc533f01f7985024c0f71383531ad2'),
-        'valuation_beijing': (32, 'a7e117bf47868ce2fba7514ca9988e058ef3616395f2c71cfb177522320b7cb7'),
+        'operations_beijing': (52, '4dc337a277e34d4a4282576c27a768db7146b3d16c519fed419d83a4d3db96d9'),
+        'finance_beijing': (52, '47da2469f37b4a2e1ce576f624d3aeb54c499587c3132af6870c1c9c4051c4bc'),
+        'valuation_beijing': (32, '6feff0ba5c844ac86ddbc9c5eb16f20221fa4e7ae5d89d53375d17333f8726a5'),
     }
 
     # The Goal 5 path can land exactly on zero in a small forecast diagnostic.

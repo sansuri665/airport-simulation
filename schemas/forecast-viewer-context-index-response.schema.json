@@ -12,7 +12,7 @@
     "schemaVersion": { "const": "airport-forecast-viewer-context-index-v1" },
     "context": { "$ref": "#/$defs/context" },
     "index": { "$ref": "forecast-viewer-lazy-index.schema.json" },
-    "apiSchemaVersion": { "const": "seed-explorer-api-v3" },
+    "apiSchemaVersion": { "const": "seed-explorer-api-v4" },
     "modelVersion": { "type": "string", "minLength": 1 },
     "outputSchemaVersion": { "type": "string", "minLength": 1 },
     "pythonVersion": { "type": "string", "minLength": 1 },

@@ -15,13 +15,14 @@ clamp = simulation_utils.clamp
 import argparse
 import csv
 import json
+import math
 from pathlib import Path
 from statistics import mean
 from typing import Any
 
 
-CITY_AIRPORT_FINANCIAL_STATE_PARAM_VERSION = "city-airport-financial-state-layer-v0.6"
-CITY_AIRPORT_FINANCIAL_STATE_INTERFACE_VERSION = "city-airport-financial-state-interface-v0.6"
+CITY_AIRPORT_FINANCIAL_STATE_PARAM_VERSION = "city-airport-financial-state-layer-v0.7"
+CITY_AIRPORT_FINANCIAL_STATE_INTERFACE_VERSION = "city-airport-financial-state-interface-v0.7"
 
 AIRPORT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_DIR = AIRPORT_DIR / "config" / "city_airport_finance"
@@ -90,6 +91,8 @@ FINANCIAL_STATE_FIELDS = [
     "loan_principal_repayment_ids",
     "loan_weighted_interest_rate_pct",
     "loan_drawdown_weighted_interest_rate_pct",
+    "loan_drawdown_rate_quotes_json",
+    "loan_locked_rate_quotes_json",
     "loan_drawdown_leverage_before_pct",
     "loan_drawdown_leverage_after_pct",
     "loan_drawdown_leverage_spread_bps",
@@ -300,40 +303,139 @@ def loan_interest_rate_pct(
     debt_policy: dict[str, Any],
     leverage_spread_bps: float = 0.0,
 ) -> float:
-    if loan.get("annual_interest_rate_pct") not in (None, ""):
-        return max(0.0, float(loan["annual_interest_rate_pct"]))
+    return float(
+        build_loan_rate_quote(
+            loan,
+            operation,
+            debt_policy,
+            leverage_spread_bps,
+        )["annual_rate_pct"]
+    )
+
+
+def _finite_operation_value(operation: dict[str, Any], key: str) -> tuple[float | None, str]:
+    raw = operation.get(key)
+    if raw in (None, ""):
+        return None, "missing_value"
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return None, "invalid_value"
+    if not math.isfinite(value):
+        return None, "non_finite_value"
+    return value, ""
+
+
+def _round_quote(quote: dict[str, Any]) -> dict[str, Any]:
+    return {
+        key: round(value, 4) if isinstance(value, float) else value
+        for key, value in quote.items()
+    }
+
+
+def build_loan_rate_quote(
+    loan: dict[str, Any],
+    operation: dict[str, Any],
+    debt_policy: dict[str, Any],
+    leverage_spread_bps: float = 0.0,
+) -> dict[str, Any]:
+    """Build the authoritative fixed-at-draw loan-rate decomposition."""
 
     model = debt_policy.get("loan_rate_model", {})
-    loan_type = str(loan.get("loan_type", "long_term"))
-    fallback = float(
-        model.get(
-            f"fallback_{loan_type}_rate_pct",
-            model.get("fallback_annual_interest_rate_pct", 4.8),
+    rate_model_version = str(model.get("model_version") or "general-loan-rate-v0.3")
+    manual = loan.get("annual_interest_rate_pct")
+    if manual not in (None, ""):
+        annual_rate = max(0.0, float(manual))
+        return _round_quote(
+            {
+                "loan_type": str(loan.get("loan_type", "long_term")),
+                "benchmark_type": "manual_override",
+                "benchmark_source": "loan.annual_interest_rate_pct",
+                "benchmark_rate_pct": annual_rate,
+                "benchmark_fallback_used": False,
+                "benchmark_fallback_reason": "",
+                "product_reference_adjustment_bps": 0.0,
+                "product_type_spread_bps": 0.0,
+                "product_spread_bps": 0.0,
+                "term_spread_bps": 0.0,
+                "grace_spread_bps": 0.0,
+                "term_and_grace_spread_bps": 0.0,
+                "hy_credit_spread_bps": 0.0,
+                "city_credit_spread_bps": 0.0,
+                "credit_spread_bps": 0.0,
+                "leverage_spread_bps": 0.0,
+                "unclamped_annual_rate_pct": annual_rate,
+                "annual_rate_pct": annual_rate,
+                "rate_floor_applied": False,
+                "rate_cap_applied": False,
+                "rate_model_version": rate_model_version,
+            }
         )
+
+    loan_type = str(loan.get("loan_type", "long_term"))
+    is_short = loan_type == "short_term"
+    benchmark_type = "policy_rate" if is_short else "ten_year_yield"
+    benchmark_key = "input_policy_rate_pct" if is_short else "input_10y_yield_pct"
+    source_key = "input_policy_rate_source" if is_short else "input_10y_yield_source"
+    fallback_key = "fallback_short_term_rate_pct" if is_short else "fallback_long_term_rate_pct"
+    fallback = float(model.get(fallback_key, 3.6 if is_short else 4.8))
+    benchmark_rate, fallback_reason = _finite_operation_value(operation, benchmark_key)
+    source = str(operation.get(source_key) or "")
+    if not fallback_reason and source != "regional_macro_annual":
+        fallback_reason = "source_mismatch"
+    fallback_used = bool(fallback_reason)
+    if fallback_used:
+        benchmark_rate = fallback
+        source = fallback_key
+
+    reference_adjustment_bps = (
+        float(model.get(f"{loan_type}_reference_adjustment_pct", 0.0)) * 100.0
     )
-    ten_year = as_float(operation, "input_10y_yield_pct", fallback)
-    if ten_year <= 0:
-        ten_year = fallback
-    reference_adjustment = float(model.get(f"{loan_type}_reference_adjustment_pct", 0.0))
     type_spread_bps = float(model.get(f"{loan_type}_spread_bps", 0.0))
+    product_spread_bps = reference_adjustment_bps + type_spread_bps
     hy_baseline = float(model.get("hy_spread_baseline_bps", 420.0))
     hy_capture = float(model.get("hy_spread_capture_ratio", 0.10))
     hy_spread = as_float(operation, "input_hy_spread_bps", hy_baseline)
-    credit_stress_spread_bps = max(0.0, hy_spread - hy_baseline) * hy_capture
+    hy_credit_spread_bps = max(0.0, hy_spread - hy_baseline) * hy_capture
     city_spread_bps = float(loan.get("city_risk_spread_bps", model.get("city_risk_spread_bps", 0.0)))
-    rate = (
-        ten_year
-        + reference_adjustment
-        + type_spread_bps / 100.0
-        + credit_stress_spread_bps / 100.0
-        + city_spread_bps / 100.0
+    credit_spread_bps = hy_credit_spread_bps + city_spread_bps
+    term_spread_bps = float(loan.get("term_spread_bps", 0.0))
+    grace_spread_bps = float(loan.get("grace_spread_bps", 0.0))
+    term_and_grace_spread_bps = term_spread_bps + grace_spread_bps
+    unclamped_rate = (
+        float(benchmark_rate)
+        + product_spread_bps / 100.0
+        + term_and_grace_spread_bps / 100.0
+        + credit_spread_bps / 100.0
         + leverage_spread_bps / 100.0
-        + float(loan.get("term_spread_bps", 0.0)) / 100.0
     )
-    return clamp(
-        rate,
-        float(model.get("min_annual_interest_rate_pct", 0.5)),
-        float(model.get("max_annual_interest_rate_pct", 12.0)),
+    minimum = float(model.get("min_annual_interest_rate_pct", 1.0))
+    maximum = float(model.get("max_annual_interest_rate_pct", 9.5))
+    annual_rate = clamp(unclamped_rate, minimum, maximum)
+    return _round_quote(
+        {
+            "loan_type": loan_type,
+            "benchmark_type": benchmark_type,
+            "benchmark_source": source,
+            "benchmark_rate_pct": float(benchmark_rate),
+            "benchmark_fallback_used": fallback_used,
+            "benchmark_fallback_reason": fallback_reason,
+            "product_reference_adjustment_bps": reference_adjustment_bps,
+            "product_type_spread_bps": type_spread_bps,
+            "product_spread_bps": product_spread_bps,
+            "term_spread_bps": term_spread_bps,
+            "grace_spread_bps": grace_spread_bps,
+            "term_and_grace_spread_bps": term_and_grace_spread_bps,
+            "hy_credit_spread_bps": hy_credit_spread_bps,
+            "city_credit_spread_bps": city_spread_bps,
+            "credit_spread_bps": credit_spread_bps,
+            "leverage_spread_bps": float(leverage_spread_bps),
+            "unclamped_annual_rate_pct": unclamped_rate,
+            "annual_rate_pct": annual_rate,
+            "rate_floor_applied": unclamped_rate < minimum,
+            "rate_cap_applied": unclamped_rate > maximum,
+            "rate_model_version": rate_model_version,
+        }
     )
 
 
@@ -427,6 +529,7 @@ def process_general_loans(
     repayment_ids: list[str] = []
     blocked_ids: list[str] = []
     blocked_reasons: list[str] = []
+    drawdown_rate_quotes: list[dict[str, Any]] = []
     working_assets = max(0.0, opening_total_assets)
     working_liabilities = max(0.0, opening_total_liabilities)
 
@@ -460,15 +563,17 @@ def process_general_loans(
                 blocked_ids.append(loan_id)
                 blocked_reasons.append(f"{loan_id}:{block_reason}")
                 continue
-            annual_interest_rate = loan_interest_rate_pct(
+            rate_quote = build_loan_rate_quote(
                 loan,
                 operation,
                 debt_policy,
                 leverage_spread_bps,
             )
+            annual_interest_rate = float(rate_quote["annual_rate_pct"])
             state["balance"] = float(state.get("balance", 0.0)) + principal
             state["drawn"] = True
             state["annual_interest_rate_pct"] = annual_interest_rate
+            state["rate_quote"] = rate_quote
             state["loan_type"] = str(loan.get("loan_type", "long_term"))
             drawdown += principal
             drawdown_ids.append(loan_id)
@@ -476,6 +581,7 @@ def process_general_loans(
             drawdown_leverage_spread_denominator += principal
             drawdown_rate_numerator += principal * annual_interest_rate
             drawdown_rate_denominator += principal
+            drawdown_rate_quotes.append({"loan_id": loan_id, **rate_quote})
             working_assets += principal
             working_liabilities += principal
 
@@ -484,7 +590,12 @@ def process_general_loans(
             continue
 
         active_ids.append(loan_id)
-        rate = float(state.get("annual_interest_rate_pct") or loan_interest_rate_pct(loan, operation, debt_policy))
+        locked_rate = state.get("annual_interest_rate_pct")
+        rate = (
+            float(locked_rate)
+            if locked_rate not in (None, "")
+            else loan_interest_rate_pct(loan, operation, debt_policy)
+        )
         period_interest = balance * rate / 100.0 / 4.0
         interest += period_interest
         weighted_rate_numerator += balance * rate
@@ -536,6 +647,22 @@ def process_general_loans(
         ),
         "drawdown_weighted_interest_rate_pct": (
             drawdown_rate_numerator / drawdown_rate_denominator if drawdown_rate_denominator > 0 else 0.0
+        ),
+        "drawdown_rate_quotes_json": json.dumps(
+            drawdown_rate_quotes,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ),
+        "locked_rate_quotes_json": json.dumps(
+            [
+                {"loan_id": loan_id, **dict(state.get("rate_quote", {}))}
+                for loan_id, state in sorted(loan_states.items())
+                if state.get("drawn") and state.get("rate_quote")
+            ],
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
         ),
         "drawdown_leverage_before_pct": drawdown_leverage_before,
         "drawdown_leverage_after_pct": drawdown_leverage_after,
@@ -860,6 +987,12 @@ def simulate_financial_state(
                     "loan_weighted_interest_rate_pct": loan_activity["weighted_interest_rate_pct"],
                     "loan_drawdown_weighted_interest_rate_pct": loan_activity[
                         "drawdown_weighted_interest_rate_pct"
+                    ],
+                    "loan_drawdown_rate_quotes_json": loan_activity[
+                        "drawdown_rate_quotes_json"
+                    ],
+                    "loan_locked_rate_quotes_json": loan_activity[
+                        "locked_rate_quotes_json"
                     ],
                     "loan_drawdown_leverage_before_pct": loan_activity["drawdown_leverage_before_pct"],
                     "loan_drawdown_leverage_after_pct": loan_activity["drawdown_leverage_after_pct"],

@@ -81,8 +81,22 @@
             "beginCash", "endCash", "totalAssets", "totalLiabilities", "accountingProfit",
             "operatingCashFlow", "investingCashFlow", "freeCashFlowBeforeFinancing",
             "financingCashFlow", "cashNetChange", "grossDebt", "netDebt", "totalEquity",
-            "liabilityRatioPct"
+            "liabilityRatioPct", "macroPolicyRatePct", "macroPolicyRateSource",
+            "macroTenYearYieldPct", "macroTenYearYieldSource", "loanDrawdownRateQuotes",
+            "loanLockedRateQuotes"
           ],
+          "properties": {
+            "macroPolicyRatePct": { "type": "number" },
+            "macroPolicyRateSource": { "type": "string" },
+            "macroTenYearYieldPct": { "type": "number" },
+            "macroTenYearYieldSource": { "type": "string" },
+            "loanDrawdownRateQuotes": {
+              "type": "array", "items": { "type": "object" }
+            },
+            "loanLockedRateQuotes": {
+              "type": "array", "items": { "type": "object" }
+            }
+          },
           "additionalProperties": true
         },
         "projects": { "type": "object", "additionalProperties": true },

@@ -64,8 +64,8 @@ def normalize_financing_action(
         "principalMillionCny": principal,
         "tenorQuarters": tenor,
         "gracePeriodQuarters": grace,
-        "termSpreadBps": int(product.get("tenor_spread_bps", {}).get(tenor, 0))
-        + int(product.get("grace_spread_bps", {}).get(grace, 0)),
+        "termSpreadBps": int(product.get("tenor_spread_bps", {}).get(tenor, 0)),
+        "graceSpreadBps": int(product.get("grace_spread_bps", {}).get(grace, 0)),
         "startedAtIndex": started_at_index,
         "startedAtLabel": str(raw.get("startedAtLabel") or ""),
     }
@@ -97,6 +97,7 @@ def player_general_loans(
                 "repayment_style": product["repayment_style"],
                 "grace_period_quarters": action["gracePeriodQuarters"],
                 "term_spread_bps": action.get("termSpreadBps", 0),
+                "grace_spread_bps": action.get("graceSpreadBps", 0),
                 "purpose_note": "玩家融资事务",
             }
         )

@@ -32,9 +32,9 @@ JSON 响应会附加当前协议与运行环境：
 
 ```json
 {
-  "apiSchemaVersion": "seed-explorer-api-v3",
-  "modelVersion": "airport-model-v0.12",
-  "outputSchemaVersion": "airport-model-output-v4",
+  "apiSchemaVersion": "seed-explorer-api-v4",
+  "modelVersion": "airport-model-v0.13",
+  "outputSchemaVersion": "airport-model-output-v5",
   "pythonVersion": "3.13.x",
   "schemaCatalog": "/api/schema"
 }
@@ -182,9 +182,9 @@ financial_conditions_consecutive_boundary_years
 
 ### 3.8 统一宏观起点与前缀契约
 
-`airport-model-output-v4` 保留 v3 的收益率—美元和次级饱和字段，并统一全球八层的 `year_index=0` 语义。第 0 行是配置起点，不是第一年结束值：stock/level 字段直接等于版本化参数初值，change/yoy/flow 为零或明确的基期定义，事件与风险状态为 `initial`/`none`，边界布尔值为 false。第一次年度转移和第一次随机 draw 都发生在 `year_index=1`；不得为兼容旧 digest 在起点预抽样或丢弃随机数。
+`airport-model-output-v5` 保留 v4 的收益率—美元、次级饱和和统一 `year_index=0` 语义，并为城市年度、季度经营和财务输出增加区域政策利率、基准来源及贷款锁定报价分解。第 0 行仍是配置起点，不是第一年结束值：stock/level 字段直接等于版本化参数初值，change/yoy/flow 为零或明确的基期定义，事件与风险状态为 `initial`/`none`，边界布尔值为 false。第一次年度转移和第一次随机 draw 都发生在 `year_index=1`；不得为兼容旧 digest 在起点预抽样或丢弃随机数。
 
-同一 Seed 和参数下，`years=0/1/2/60` 的较短结果必须是较长结果的逐字段严格前缀。`years=0` 返回 1 行，`years=1` 返回 2 行；公共年份数量契约没有改变。全球行中的 `macro_feedback_*` 行级收敛字段是该年度达到逐字段固定点的前缀稳定诊断，Run/Manifest 中的收敛摘要仍是发布授权的权威 run-level 结论。区域第 0 行只读消费相同的全球增长、缺口、通胀、政策率、10Y 和 HY 起点锚，不改写区域公式。Viewer 时间轴将第 0 行标为“起点”。贷款字段贯通不属于本版本。
+同一 Seed 和参数下，`years=0/1/2/60` 的较短结果必须是较长结果的逐字段严格前缀。`years=0` 返回 1 行，`years=1` 返回 2 行；公共年份数量契约没有改变。全球行中的 `macro_feedback_*` 行级收敛字段是该年度达到逐字段固定点的前缀稳定诊断，Run/Manifest 中的收敛摘要仍是发布授权的权威 run-level 结论。区域第 0 行只读消费相同的全球增长、缺口、通胀、政策率、10Y 和 HY 起点锚，不改写区域公式。Viewer 时间轴将第 0 行标为“起点”。
 
 ## 4. POST 接口
 
@@ -247,6 +247,8 @@ POST /api/beijing-operations
 ```
 
 当前 `mode` 的正式只读值是 `replay`。响应包含季度经营、财务、项目、合同和展示所需摘要。Schema：`beijing-operations-response.schema.json`。
+
+`seed-explorer-api-v4` 的 `quarters[].finance` 还提供 `macroPolicyRatePct`、`macroPolicyRateSource`、`macroTenYearYieldPct`、`macroTenYearYieldSource`，以及 `loanDrawdownRateQuotes` 和 `loanLockedRateQuotes`。短期周转贷款选择政策利率，长期与宽限建设贷款选择 10 年期收益率；报价对象保留基准、产品、期限/宽限、信用、杠杆、未裁剪值、最终值、回退原因和上下限状态。候选报价可由浏览器即时计算，实际锁定结果以服务端返回的贷款分解为准。
 
 `quarters[].finance` 中的现金流展示字段均以百万元人民币计：`operatingCashFlow` 是“经营利润减现金税”的简化经营现金流，`investingCashFlow` 是资本开支与重建拆除支出的负数，`freeCashFlowBeforeFinancing` 是融资前自由现金流，`financingCashFlow` 是贷款提款减本金偿还，`cashNetChange` 是期末现金减期初现金。利息仍由正值字段 `interestExpense` 表示，现金勾稽为：
 

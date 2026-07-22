@@ -166,6 +166,8 @@
         },
         "grace_period_quarters": { "type": "integer", "minimum": 0 },
         "annual_interest_rate_pct": { "type": "number", "minimum": 0 },
+        "term_spread_bps": { "type": "number" },
+        "grace_spread_bps": { "type": "number" },
         "purpose_note": { "type": "string" }
       },
       "additionalProperties": false

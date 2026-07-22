@@ -1,11 +1,23 @@
 from __future__ import annotations
 
+import json
 from contextlib import AbstractContextManager
 from pathlib import Path
 from typing import Any, Callable
 
 
 COMPONENTS = ("business", "leisure", "vfr", "long_haul", "transfer")
+
+
+def json_list(row: dict[str, str], key: str) -> list[dict[str, Any]]:
+    raw = row.get(key)
+    if raw in (None, ""):
+        return []
+    try:
+        value = json.loads(str(raw))
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return []
+    return value if isinstance(value, list) else []
 
 
 def update_simulation_city_row(
@@ -425,12 +437,17 @@ def summarize_beijing_quarter(
             "loanPrincipalRepaymentIds": as_text(finance, "loan_principal_repayment_ids"),
             "loanWeightedInterestRatePct": rounded(finance, "loan_weighted_interest_rate_pct"),
             "loanDrawdownWeightedInterestRatePct": rounded(finance, "loan_drawdown_weighted_interest_rate_pct"),
+            "loanDrawdownRateQuotes": json_list(finance, "loan_drawdown_rate_quotes_json"),
+            "loanLockedRateQuotes": json_list(finance, "loan_locked_rate_quotes_json"),
             "loanDrawdownLeverageBeforePct": rounded(finance, "loan_drawdown_leverage_before_pct"),
             "loanDrawdownLeverageAfterPct": rounded(finance, "loan_drawdown_leverage_after_pct"),
             "loanDrawdownLeverageSpreadBps": rounded(finance, "loan_drawdown_leverage_spread_bps"),
             "loanBlockedIds": as_text(finance, "loan_blocked_ids"),
             "loanBlockedReasons": as_text(finance, "loan_blocked_reasons"),
+            "macroPolicyRatePct": rounded(ops, "input_policy_rate_pct"),
+            "macroPolicyRateSource": as_text(ops, "input_policy_rate_source"),
             "macroTenYearYieldPct": rounded(ops, "input_10y_yield_pct"),
+            "macroTenYearYieldSource": as_text(ops, "input_10y_yield_source"),
             "macroHySpreadBps": rounded(ops, "input_hy_spread_bps"),
         },
         "projects": {

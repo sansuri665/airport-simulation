@@ -151,7 +151,8 @@ class PlayerJournalCharacterizationTests(unittest.TestCase):
         self.assertEqual(1, len(actions))
         self.assertEqual("first", actions[0]["id"])
         self.assertEqual(12000.1235, actions[0]["principalMillionCny"])
-        self.assertEqual(30, actions[0]["termSpreadBps"])
+        self.assertEqual(20, actions[0]["termSpreadBps"])
+        self.assertEqual(10, actions[0]["graceSpreadBps"])
         self.assertEqual(
             {
                 "loan_id": "first",
@@ -163,7 +164,8 @@ class PlayerJournalCharacterizationTests(unittest.TestCase):
                 "tenor_quarters": 60,
                 "repayment_style": "grace_then_equal_principal",
                 "grace_period_quarters": 8,
-                "term_spread_bps": 30,
+                "term_spread_bps": 20,
+                "grace_spread_bps": 10,
                 "purpose_note": "玩家融资事务",
             },
             local_ui.player_general_loans(actions)[0],

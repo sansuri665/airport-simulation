@@ -1114,23 +1114,33 @@
     function financingQuote(product, principalMillion, tenor, grace, quarter) {
       const policy = state.operations?.financingPolicy || {};
       const finance = quarter?.finance || {};
-      const base = Number(finance.macroTenYearYieldPct) > 0 ? Number(finance.macroTenYearYieldPct) : Number(product.loan_type === "short_term" ? policy.fallback_short_term_rate_pct : policy.fallback_long_term_rate_pct);
-      const adjustment = Number(product.loan_type === "short_term" ? policy.short_term_reference_adjustment_pct : policy.long_term_reference_adjustment_pct) || 0;
-      const typeSpread = Number(product.loan_type === "short_term" ? policy.short_term_spread_bps : policy.long_term_spread_bps) || 0;
-      const hyStress = Math.max(0, (Number(finance.macroHySpreadBps) || Number(policy.hy_spread_baseline_bps) || 420) - (Number(policy.hy_spread_baseline_bps) || 420)) * (Number(policy.hy_spread_capture_ratio) || 0) / 100;
-      const assets = Number(finance.totalAssets) || 0, liabilities = Number(finance.totalLiabilities) || 0;
-      const postLeverage = assets + principalMillion > 0 ? (liabilities + principalMillion) / (assets + principalMillion) * 100 : 0;
-      const curve = (policy.leverage_spread_model?.spread_curve || []).map((point) => [Number(point.liability_ratio_pct), Number(point.additional_spread_bps) || 0]);
-      let leverageBps = 0; for (let index = 1; index < curve.length; index += 1) { const [leftRatio,leftSpread]=curve[index-1], [rightRatio,rightSpread]=curve[index]; if (postLeverage <= rightRatio) { leverageBps = postLeverage <= leftRatio ? leftSpread : leftSpread + (rightSpread-leftSpread)*(postLeverage-leftRatio)/(rightRatio-leftRatio); break; } leverageBps=rightSpread; }
-      const termBps = Number(product.tenor_spread_bps?.[tenor] || 0) + Number(product.grace_spread_bps?.[grace] || 0);
-      const blocked = postLeverage >= Number(policy.leverage_spread_model?.block_if_post_draw_ratio_at_or_above_pct || 80);
-      const rate = blocked ? null : Math.max(Number(policy.min_annual_interest_rate_pct) || 1, Math.min(Number(policy.max_annual_interest_rate_pct) || 9.5, base + adjustment + (typeSpread + termBps + leverageBps) / 100 + hyStress));
-      return { rate, termBps, leverageBps, postLeverage, blocked };
+      return window.AirportFinancingRate.buildLoanRateQuote({
+        product,
+        policy,
+        finance,
+        principalMillion,
+        tenor,
+        grace,
+      });
+    }
+
+    function financingBenchmarkLabel(quote) {
+      return quote.benchmark_type === "policy_rate" ? "区域政策利率" : "区域10Y";
+    }
+
+    function financingQuoteDetail(quote) {
+      const fallback = quote.benchmark_fallback_used
+        ? `；基准回退（${quote.benchmark_fallback_reason}）`
+        : "";
+      const boundary = quote.rate_floor_applied
+        ? "；已应用1%下限"
+        : (quote.rate_cap_applied ? "；已应用9.5%上限" : "");
+      return `${financingBenchmarkLabel(quote)} ${fmtPct(quote.benchmark_rate_pct)}；产品 ${fmt(quote.product_spread_bps, 0)}bp；期限/宽限 ${fmt(quote.term_and_grace_spread_bps, 0)}bp；信用 ${fmt(quote.credit_spread_bps, 0)}bp；杠杆 ${fmt(quote.leverage_spread_bps, 0)}bp；未裁剪 ${fmtPct(quote.unclamped_annual_rate_pct)}${fallback}${boundary}；提款后负债率 ${fmtPct(quote.post_draw_liability_ratio_pct)}`;
     }
 
     function refreshFinancingQuotes() {
       const quarter = currentOperationQuarter();
-      el.financingAffairsProducts.querySelectorAll("[data-financing-product-card]").forEach((card) => { const id=card.getAttribute("data-financing-product-card"), product=state.operations?.financingProducts?.[id]; if(!product||!quarter)return; const amount=Number(card.querySelector("[data-loan-amount]")?.value)*100, tenor=Number(card.querySelector("[data-loan-tenor]")?.value), grace=Number(card.querySelector("[data-loan-grace]")?.value||0), quote=financingQuote(product,amount,tenor,grace,quarter); const out=card.querySelector("[data-loan-quote]"); if(out) out.textContent=quote.blocked ? "拒绝提款" : fmtPct(quote.rate); const detail=card.querySelector("[data-loan-quote-detail]"); if(detail) detail.textContent=`期限/宽限 +${fmt(quote.termBps,0)}bp；杠杆 +${fmt(quote.leverageBps,0)}bp；提款后负债率 ${fmtPct(quote.postLeverage)}`; });
+      el.financingAffairsProducts.querySelectorAll("[data-financing-product-card]").forEach((card) => { const id=card.getAttribute("data-financing-product-card"), product=state.operations?.financingProducts?.[id]; if(!product||!quarter)return; const amount=Number(card.querySelector("[data-loan-amount]")?.value)*100, tenor=Number(card.querySelector("[data-loan-tenor]")?.value), grace=Number(card.querySelector("[data-loan-grace]")?.value||0), quote=financingQuote(product,amount,tenor,grace,quarter); const out=card.querySelector("[data-loan-quote]"); if(out) out.textContent=quote.blocked ? "拒绝提款" : fmtPct(quote.annual_rate_pct); const detail=card.querySelector("[data-loan-quote-detail]"); if(detail) detail.textContent=financingQuoteDetail(quote); });
     }
 
     function renderFinancingAffairs() {
@@ -1150,16 +1160,16 @@
       const rateText = Number(debt.loanWeightedInterestRatePct) > 0 ? fmtPct(debt.loanWeightedInterestRatePct) : "暂无存续贷款";
       el.financingAffairsCaption.textContent = `${quarter.label}；选择产品、融资额和期限后确认提款。实际利率在提款季锁定。`;
       el.financingAffairsStatus.innerHTML = `<div><span>期末现金</span><strong>${fmtMoney(debt.endCash)}</strong></div><div><span>资产负债率</span><strong>${fmtPct(debt.liabilityRatioPct)}</strong></div><div><span>当前贷款利率</span><strong>${rateText}</strong></div>`;
-      el.financingAffairsRules.innerHTML = `<div class="financing-rule"><span>定价基础</span><strong>10年利率 + 产品/期限利差 + 信用压力 + 杠杆加点</strong></div><div class="financing-rule"><span>杠杆加点</span><strong>45%以下 +0bp；45%-80% 按曲线线性加点，60%约 +60bp、70%约 +150bp</strong></div><div class="financing-rule"><span>授信拒绝线</span><strong>提款前或提款后资产负债率达到 ${fmt(leverage.block_if_post_draw_ratio_at_or_above_pct || 80, 0)}% 即拒绝提款，不生成贷款利率</strong></div>`;
+      el.financingAffairsRules.innerHTML = `<div class="financing-rule"><span>定价基础</span><strong>短期读取区域政策利率；长期与宽限读取区域10Y，再加产品、期限/宽限、信用与杠杆利差</strong></div><div class="financing-rule"><span>利率锁定</span><strong>新贷款使用提款季基准并固定；后续政策利率、10Y或信用变化不重定价旧贷款</strong></div><div class="financing-rule"><span>杠杆加点</span><strong>45%以下 +0bp；45%-80% 按曲线线性加点，60%约 +60bp、70%约 +150bp</strong></div><div class="financing-rule"><span>授信拒绝线</span><strong>提款前或提款后资产负债率达到 ${fmt(leverage.block_if_post_draw_ratio_at_or_above_pct || 80, 0)}% 即拒绝提款，不生成贷款利率</strong></div>`;
       const alreadyDrawn = state.playerActions.some((action) => action?.type === "draw_loan" && Number(action.startedAtIndex) === Number(quarter.index));
       el.financingAffairsProducts.innerHTML = Object.entries(products).map(([id, product]) => {
         const tenors = product.tenors || [];
         const grace = product.grace || [0];
         const quote = financingQuote(product, 10000, tenors[0], grace[0], quarter);
-        return `<section class="financing-product" data-financing-product-card="${escapeHtml(id)}"><div class="financing-product-head"><div><h3>${escapeHtml(product.label)}</h3><span>${escapeHtml(product.repayment_style === "bullet_principal" ? "到期一次还本" : (product.repayment_style === "equal_principal" ? "等额本金" : "宽限后等额本金"))}</span></div><span>提款季锁定</span></div><div class="financing-product-grid"><div class="financing-field"><label>融资额（亿元）</label><input type="number" min="10" max="1000" step="10" value="100" data-loan-amount="${escapeHtml(id)}"></div><div class="financing-field"><label>期限</label><select data-loan-tenor="${escapeHtml(id)}">${tenors.map((value) => `<option value="${value}">${value} 季</option>`).join("")}</select></div>${grace[0] ? `<div class="financing-field"><label>宽限期</label><select data-loan-grace="${escapeHtml(id)}">${grace.map((value) => `<option value="${value}">${value} 季</option>`).join("")}</select></div>` : `<div class="financing-rate"><span>还款安排</span><strong>${escapeHtml(product.repayment_style === "bullet_principal" ? "到期归还本金" : "每季等额还本")}</strong></div>`}<div class="financing-rate"><span>当前年利率报价</span><strong data-loan-quote>${fmtPct(quote.rate)}</strong><span data-loan-quote-detail>期限/宽限 +${fmt(quote.termBps,0)}bp；提款后负债率 ${fmtPct(quote.postLeverage)}</span></div></div><div class="financing-submit"><span class="project-plan-note">本季最多新增一笔；超过拒绝线不提款。</span><button class="primary" type="button" data-financing-action="draw" data-financing-product="${escapeHtml(id)}"${alreadyDrawn ? " disabled" : ""}>确认提款</button></div></section>`;
+        return `<section class="financing-product" data-financing-product-card="${escapeHtml(id)}"><div class="financing-product-head"><div><h3>${escapeHtml(product.label)}</h3><span>${escapeHtml(product.repayment_style === "bullet_principal" ? "到期一次还本" : (product.repayment_style === "equal_principal" ? "等额本金" : "宽限后等额本金"))}</span></div><span>提款季锁定</span></div><div class="financing-product-grid"><div class="financing-field"><label>融资额（亿元）</label><input type="number" min="10" max="1000" step="10" value="100" data-loan-amount="${escapeHtml(id)}"></div><div class="financing-field"><label>期限</label><select data-loan-tenor="${escapeHtml(id)}">${tenors.map((value) => `<option value="${value}">${value} 季</option>`).join("")}</select></div>${grace[0] ? `<div class="financing-field"><label>宽限期</label><select data-loan-grace="${escapeHtml(id)}">${grace.map((value) => `<option value="${value}">${value} 季</option>`).join("")}</select></div>` : `<div class="financing-rate"><span>还款安排</span><strong>${escapeHtml(product.repayment_style === "bullet_principal" ? "到期归还本金" : "每季等额还本")}</strong></div>`}<div class="financing-rate"><span>当前年利率报价</span><strong data-loan-quote>${quote.blocked ? "拒绝提款" : fmtPct(quote.annual_rate_pct)}</strong><span data-loan-quote-detail>${escapeHtml(financingQuoteDetail(quote))}</span></div></div><div class="financing-submit"><span class="project-plan-note">三种产品使用同一季度和提款后杠杆口径横向比较；曲线倒挂时短期报价可能更高。</span><button class="primary" type="button" data-financing-action="draw" data-financing-product="${escapeHtml(id)}"${alreadyDrawn ? " disabled" : ""}>确认提款</button></div></section>`;
       }).join("");
       const loans = state.playerActions.filter((action) => action?.type === "draw_loan" && Number(action.startedAtIndex) <= Number(quarter.index));
-      el.financingAffairsLoans.innerHTML = loans.length ? loans.map((loan) => `<section class="project-plan"><div class="project-plan-head"><div><h3>${escapeHtml(products[loan.productId]?.label || "贷款")}</h3><span>${escapeHtml(loan.startedAtLabel || projectQuarterLabel(loan.startedAtIndex))} 提款</span></div><span>${fmtMoney(loan.principalMillionCny)}</span></div><div class="project-plan-grid"><div class="project-plan-kv"><span>期限</span><strong>${fmt(loan.tenorQuarters, 0)} 季</strong></div><div class="project-plan-kv"><span>本季利息</span><strong>${fmtMoney(debt.interestExpense)}</strong></div><div class="project-plan-kv"><span>贷款余额</span><strong>${fmtMoney((debt.grossDebt || 0))}</strong></div></div></section>`).join("") : `<div class="empty">暂无已生效融资</div>`;
+      el.financingAffairsLoans.innerHTML = loans.length ? loans.map((loan) => { const locked=(debt.loanLockedRateQuotes||[]).find((item)=>item.loan_id===loan.id); return `<section class="project-plan"><div class="project-plan-head"><div><h3>${escapeHtml(products[loan.productId]?.label || "贷款")}</h3><span>${escapeHtml(loan.startedAtLabel || projectQuarterLabel(loan.startedAtIndex))} 提款</span></div><span>${fmtMoney(loan.principalMillionCny)}</span></div><div class="project-plan-grid"><div class="project-plan-kv"><span>期限</span><strong>${fmt(loan.tenorQuarters, 0)} 季</strong></div><div class="project-plan-kv"><span>锁定利率</span><strong>${locked ? fmtPct(locked.annual_rate_pct) : "-"}</strong></div><div class="project-plan-kv"><span>锁定基准</span><strong>${locked ? `${escapeHtml(financingBenchmarkLabel(locked))} ${fmtPct(locked.benchmark_rate_pct)}` : "-"}</strong></div><div class="project-plan-kv"><span>本季利息</span><strong>${fmtMoney(debt.interestExpense)}</strong></div><div class="project-plan-kv"><span>贷款余额</span><strong>${fmtMoney((debt.grossDebt || 0))}</strong></div></div></section>`; }).join("") : `<div class="empty">暂无已生效融资</div>`;
     }
 
     async function drawFinancing(productId, button) {

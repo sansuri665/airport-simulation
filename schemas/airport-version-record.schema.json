@@ -9,11 +9,11 @@
   ],
   "properties": {
     "schema_version": { "const": "airport-version-record-v1" },
-    "model_version": { "const": "airport-model-v0.12" },
-    "orchestrator_version": { "const": "macro-run-orchestrator-v0.10" },
-    "output_schema_version": { "const": "airport-model-output-v4" },
+    "model_version": { "const": "airport-model-v0.13" },
+    "orchestrator_version": { "const": "macro-run-orchestrator-v0.11" },
+    "output_schema_version": { "const": "airport-model-output-v5" },
     "run_manifest_schema_version": { "const": "airport-macro-run-manifest-v1" },
-    "seed_explorer_api_schema_version": { "const": "seed-explorer-api-v3" },
+    "seed_explorer_api_schema_version": { "const": "seed-explorer-api-v4" },
     "minimum_python_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+$" }
   },
   "additionalProperties": false

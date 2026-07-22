@@ -1,16 +1,16 @@
 {
-  "apiSchemaVersion": "seed-explorer-api-v3",
+  "apiSchemaVersion": "seed-explorer-api-v4",
   "beijingOperations": {
     "finalQuarter": {
       "annualServed": 154.168,
-      "endCash": 76408.8636,
+      "endCash": 76486.9964,
       "gamePhase": "player_operation",
       "grossDebt": 0.0,
       "label": "2037 Q4",
       "operatingProfit": 1577.6504,
       "playerDecisionEnabled": true,
       "quarterServed": 36.2212,
-      "totalAssets": 148244.1636,
+      "totalAssets": 148322.2964,
       "totalRevenue": 5997.7137,
       "warnings": []
     },
@@ -30,23 +30,23 @@
     "nestedKeyCounts": {
       "capacity": 15,
       "demand": 11,
-      "finance": 49,
+      "finance": 54,
       "operations": 62,
       "projects": 41
     },
-    "nestedKeysSha256": "26b6f63ce6dfdd2250c937218cee794e9518fb511f847a9bf6bcd515c5503fa6",
+    "nestedKeysSha256": "6adb28ae3712bb1bd990e561a3f5d1fda672fc18d6c4179025773ddc366aa832",
     "periodCount": 52,
     "playerStartIndex": 20,
     "playerStartQuarter": {
       "annualServed": 129.3677,
-      "endCash": 44708.7009,
+      "endCash": 44718.4675,
       "gamePhase": "player_operation",
       "grossDebt": 5000.0,
       "label": "2030 Q1",
       "operatingProfit": 1159.9987,
       "playerDecisionEnabled": true,
       "quarterServed": 33.3401,
-      "totalAssets": 137539.1473,
+      "totalAssets": 137548.9139,
       "totalRevenue": 5418.6483,
       "warnings": []
     },
@@ -64,7 +64,7 @@
       "projects",
       "warnings"
     ],
-    "sha256": "9379a1125e17901874d64e37fe39f32abef395dd3864a0f15028b0d5e8934432"
+    "sha256": "7c6f15a7ce0c59a2739c26a060c6552520c666f49da600d30b1af6866c955732"
   },
   "cityMarket": {
     "beijing": {
@@ -139,8 +139,8 @@
     ],
     "sha256": "491d9d694950420fa833fc70d15a410aa320009f0f9cc0e587808bb18164578b"
   },
-  "modelVersion": "airport-model-v0.12",
-  "outputSchemaVersion": "airport-model-output-v4",
+  "modelVersion": "airport-model-v0.13",
+  "outputSchemaVersion": "airport-model-output-v5",
   "schemaCatalog": "/api/schema",
   "seed": 20261324,
   "snapshotSchemaVersion": "seed-explorer-api-snapshot-v1",

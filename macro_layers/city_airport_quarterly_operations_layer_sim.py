@@ -23,8 +23,8 @@ from statistics import mean
 from typing import Any
 
 
-CITY_AIRPORT_QUARTERLY_OPERATIONS_PARAM_VERSION = "city-airport-quarterly-operations-layer-v0.22"
-CITY_AIRPORT_QUARTERLY_OPERATIONS_INTERFACE_VERSION = "city-airport-quarterly-operations-interface-v0.22"
+CITY_AIRPORT_QUARTERLY_OPERATIONS_PARAM_VERSION = "city-airport-quarterly-operations-layer-v0.23"
+CITY_AIRPORT_QUARTERLY_OPERATIONS_INTERFACE_VERSION = "city-airport-quarterly-operations-interface-v0.23"
 
 AIRPORT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_DIR = AIRPORT_DIR / "config" / "city_airport_operations"
@@ -50,7 +50,10 @@ QUARTERLY_OPERATIONS_FIELDS = [
     "player_decision_enabled",
     "player_decision_start_year",
     "startup_operating_history_years",
+    "input_policy_rate_pct",
+    "input_policy_rate_source",
     "input_10y_yield_pct",
+    "input_10y_yield_source",
     "input_hy_spread_bps",
     "input_equity_return_pct",
     "input_equity_valuation_pe",
@@ -3146,7 +3149,14 @@ def _simulate_quarterly_operations_impl(
                         "player_decision_enabled": player_decision_enabled,
                         "player_decision_start_year": timeline["player_decision_start_year"],
                         "startup_operating_history_years": timeline["startup_operating_history_years"],
+                        "input_policy_rate_pct": as_float(annual, "input_policy_rate_pct"),
+                        "input_policy_rate_source": str(
+                            annual.get("input_policy_rate_source") or "missing"
+                        ),
                         "input_10y_yield_pct": as_float(annual, "input_10y_yield_pct"),
+                        "input_10y_yield_source": str(
+                            annual.get("input_10y_yield_source") or "missing"
+                        ),
                         "input_hy_spread_bps": as_float(annual, "input_hy_spread_bps"),
                         "input_equity_return_pct": as_float(annual, "input_equity_return_pct"),
                         "input_equity_valuation_pe": as_float(annual, "input_equity_valuation_pe", 17.0),
