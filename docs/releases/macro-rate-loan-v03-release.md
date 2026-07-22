@@ -1,6 +1,6 @@
 # 宏观—利率与贷款利率 v0.3 阶段交接
 
-本文保存统一 Seed 正式版之后完成的宏观基础修复、统一起点和贷款利率 v0.3 阶段边界。正式代码位于 `agent/aggregated-seed-0719-release`，GitHub 标签为 `宏观层v0722正式版`；本版本替代旧 `agent/forecast-system-0719-preview3` 分支与 `v0719-preview3` 标签，不改动默认分支之外的历史提交。运行产物、Seed 缓存、Viewer Release 和玩家存档继续由 Git 忽略，不属于源码发布。
+本文保存统一 Seed 正式版之后完成的宏观基础修复、统一起点和贷款利率 v0.3 阶段边界。正式代码位于 `release/macro-v0722`（由 `agent/aggregated-seed-0719-release` 更名），GitHub 标签为 `宏观层v0722正式版`；本版本替代旧 `agent/forecast-system-0719-preview3` 分支与 `v0719-preview3` 标签，不改动默认分支之外的历史提交。运行产物、Seed 缓存、Viewer Release 和玩家存档继续由 Git 忽略，不属于源码发布。
 
 ## 1. 正式版本
 

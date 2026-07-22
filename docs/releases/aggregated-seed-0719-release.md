@@ -1,10 +1,10 @@
 # 聚合 Seed 0719 正式版交接说明
 
-本文记录 `v0719-preview3` 之后完成的统一 Seed 工作区正式阶段边界。发布分支为 `agent/aggregated-seed-0719-release`，标签为 `聚合seed-0719正式版`。该版本不合并不存在的旧 `main`；模型公式、参数、随机数消费和正式 Viewer Release 结果没有改变。
+本文记录 `v0719-preview3` 之后完成的统一 Seed 工作区正式阶段边界。该版本最初发布于 `agent/aggregated-seed-0719-release`，标签为 `聚合seed-0719正式版`；发布分支随后在宏观层 v0722 正式发布时更名为 `release/macro-v0722`。该版本不合并不存在的旧 `main`；模型公式、参数、随机数消费和正式 Viewer Release 结果没有改变。
 
 ## 1. Git 与数据边界
 
-- `agent/aggregated-seed-0719-release` 作为当前正式分支，替代已被其完整包含的 `agent/forecast-system-0719-preview2`；`agent/forecast-system-0719-preview3` 保留为上一阶段版本。
+- `agent/aggregated-seed-0719-release` 在本阶段作为正式分支，替代已被其完整包含的 `agent/forecast-system-0719-preview2`；该分支后来更名为 `release/macro-v0722`，`agent/forecast-system-0719-preview3` 也在宏观层 v0722 发布时由新正式版本替代并删除。
 - `output/` 与 `saves/` 继续由 Git 忽略。GitHub 只保存源代码、Schema、测试和文档，不上传本机 Release、正式 Run、Seed 缓存或玩家存档。
 - 当前 Manifest 仍指向 `forecast_v12_closeout_20260718_baseline_20260719_134006_934279300`，其 SHA-256 未因本阶段改变。
 - GitHub 操作继续遵循 [GitHub 发布与故障恢复](../development/GitHub_Publishing_and_Recovery.md)。
