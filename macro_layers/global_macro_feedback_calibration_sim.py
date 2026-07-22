@@ -56,7 +56,7 @@ YieldCurveParams = yield_curve_layer.YieldCurveParams
 simulate_yield_curve_for_policy_path = yield_curve_layer.simulate_yield_curve_for_policy_path
 
 
-MACRO_FEEDBACK_PARAM_VERSION = "global-macro-feedback-calibration-v0.3"
+MACRO_FEEDBACK_PARAM_VERSION = "global-macro-feedback-calibration-v0.4"
 MACRO_FEEDBACK_INTERFACE_VERSION = "macro-feedback-interface-v0.4"
 CONVERGENCE_TOLERANCE_VERSION = "macro-feedback-convergence-tolerances-v0.1"
 FEEDBACK_RELAXATION_STRATEGY_VERSION = "constant-relaxation-with-residual-check-v1"
@@ -151,6 +151,10 @@ class MacroFeedbackParams:
     max_growth_support_pct: float = 0.85
     max_output_gap_drag_pct: float = -2.20
     max_output_gap_support_pct: float = 1.40
+    output_gap_lending_sentiment_beta: float = 0.010
+    output_gap_lending_sentiment_anchor: float = 48.0
+    output_gap_impairment_beta: float = 0.003
+    output_gap_risk_appetite_beta: float = 0.020
     max_stress_easing: float = -8.0
     max_stress_tightening: float = 16.0
     max_inflation_drag_pct: float = -1.00
@@ -297,9 +301,14 @@ def calibrated_gdp_params(args: argparse.Namespace) -> GDPParams:
         start_year=args.start_year,
         initial_gdp_trillion_usd=args.initial_gdp,
         volatility_scale=args.volatility_scale,
+        output_gap_persistence=0.35,
         output_gap_adjustment_speed=0.34,
+        output_gap_financial_stress_anchor_index=35.0,
+        output_gap_financial_stress_loading=0.030,
         growth_adjustment_speed=0.50,
-        max_growth_step_pct=2.05,
+        growth_soft_limit_knee_pct=1.30,
+        growth_soft_limit_scale_pct=1.80,
+        max_growth_step_pct=1.45,
         direct_shock_growth_loading=0.52,
     )
 
@@ -436,12 +445,20 @@ def derive_feedback_path(records: list[dict[str, Any]], params: MacroFeedbackPar
             params.max_stress_tightening,
         )
 
+        # Growth feedback already enters the GDP gap target directly and
+        # credit/oil conditions already enter growth_raw. Keeping another
+        # growth or HY-spread term here double-counted the same contraction.
+        # This impulse therefore carries only independent balance-sheet and
+        # risk-appetite information, with symmetric centered channels.
         output_gap_applied = clamp(
-            0.72 * growth_applied
-            - 0.018 * max(0.0, hy_spread - 650.0)
-            - 0.014 * max(0.0, 45.0 - as_float(row, "bank_lending_sentiment_index", 55.0))
-            - 0.006 * credit_impairment
-            + 0.020 * (as_float(row, "risk_appetite_index", 50.0) - 50.0),
+            params.output_gap_lending_sentiment_beta
+            * (
+                as_float(row, "bank_lending_sentiment_index", 55.0)
+                - params.output_gap_lending_sentiment_anchor
+            )
+            - params.output_gap_impairment_beta * credit_impairment
+            + params.output_gap_risk_appetite_beta
+            * (as_float(row, "risk_appetite_index", 50.0) - 50.0),
             params.max_output_gap_drag_pct,
             params.max_output_gap_support_pct,
         )

@@ -45,8 +45,8 @@ PolicyRateParams = policy_rate_layer.PolicyRateParams
 YieldCurveParams = yield_curve_layer.YieldCurveParams
 
 
-REGIONAL_MACRO_PARAM_VERSION = "regional-macro-layer-v0.3"
-REGIONAL_MACRO_INTERFACE_VERSION = "regional-macro-interface-v0.3"
+REGIONAL_MACRO_PARAM_VERSION = "regional-macro-layer-v0.4"
+REGIONAL_MACRO_INTERFACE_VERSION = "regional-macro-interface-v0.4"
 REGIONAL_BRANCH_TRANSMISSION_VERSION = "regional-branch-transmission-v0.1"
 REGIONAL_STRUCTURAL_SEED_VERSION = "regional-structural-seed-v0.1"
 
@@ -164,6 +164,9 @@ REGIONAL_MACRO_FIELDS = [
     "regional_branch_tail_scarring_index",
     "global_growth_anchor_pct",
     "global_output_gap_anchor_pct",
+    "global_gdp_level_gap_anchor_pct",
+    "global_output_gap_measurement_residual_anchor_pct",
+    "global_output_gap_measurement_version",
     "global_inflation_anchor_pct",
     "global_core_inflation_anchor_pct",
     "global_policy_anchor_pct",
@@ -1865,6 +1868,10 @@ def simulate_region_for_global_path(
         global_growth = as_float(row, "realized_growth_pct", 2.2)
         global_potential = as_float(row, "potential_growth_pct", 2.2)
         global_output_gap = as_float(row, "output_gap_pct")
+        global_gdp_level_gap = as_float(row, "gdp_level_gap_pct")
+        global_gap_measurement_residual = as_float(
+            row, "output_gap_measurement_residual_pct"
+        )
         global_stress = as_float(row, "financial_stress_index", 35.0)
         global_headline = as_float(row, "headline_inflation_pct", 2.4)
         global_core = as_float(row, "core_inflation_pct", 2.3)
@@ -2466,6 +2473,13 @@ def simulate_region_for_global_path(
                     **branch,
                     "global_growth_anchor_pct": global_growth,
                     "global_output_gap_anchor_pct": global_output_gap,
+                    "global_gdp_level_gap_anchor_pct": global_gdp_level_gap,
+                    "global_output_gap_measurement_residual_anchor_pct": (
+                        global_gap_measurement_residual
+                    ),
+                    "global_output_gap_measurement_version": str(
+                        row.get("output_gap_measurement_version", "")
+                    ),
                     "global_inflation_anchor_pct": global_headline,
                     "global_core_inflation_anchor_pct": global_core,
                     "global_policy_anchor_pct": global_policy,

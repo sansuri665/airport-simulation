@@ -33,8 +33,8 @@ JSON 响应会附加当前协议与运行环境：
 ```json
 {
   "apiSchemaVersion": "seed-explorer-api-v3",
-  "modelVersion": "airport-model-v0.9",
-  "outputSchemaVersion": "airport-model-output-v1",
+  "modelVersion": "airport-model-v0.10",
+  "outputSchemaVersion": "airport-model-output-v2",
   "pythonVersion": "3.13.x",
   "schemaCatalog": "/api/schema"
 }
@@ -111,6 +111,32 @@ GET /api/forecast-viewer/report?seed=20260716&years=60&mode=player&report=public
 ```
 
 `mode` 只能是 `player` 或 `audit`。服务在同一 Run 锁内读取现有预测 CSV，并调用与正式发布器相同的纯索引/报告序列化器；不生成临时 Release 或落盘分块。玩家模式只投影玩家字段，排除神级报告、真实未来与评分字段；审计模式由单独请求取得。响应上下文包含 `seed`、`years`、`slotId`、`source=seed_cache`、`dataMode`、工作区 revision 和 `cacheRunId`。过期缓存返回 409，缺少槽位或报告返回 404，且不会隐式改读当前 Release。
+
+
+### 3.5 GDP 缺口与增长护栏字段
+
+`airport-model-output-v2` 在全球年度行增加并版本化以下字段：
+
+```text
+gdp_level_gap_pct
+output_gap_measurement_residual_pct
+output_gap_measurement_version
+unclamped_output_gap_target_pct
+output_gap_floor_applied
+output_gap_cap_applied
+unclamped_target_growth_pct
+soft_limited_target_growth_pct
+growth_step_limit_pct
+growth_soft_limit_applied
+growth_step_cap_applied
+growth_step_cap_direction
+growth_step_cap_consecutive_years
+growth_step_limiter_version
+```
+
+`output_gap_pct` 的协议身份不变，仍是政策层和区域层消费的模型估计周期缺口。`gdp_level_gap_pct` 必须由同一已发布行的 `real_gdp_index` 和 `potential_gdp_index` 按 `100 × ln(real/potential)` 计算；测量残差等于估计缺口减严格水平缺口。`unclamped_*` 字段来自真实裁剪前候选，边界布尔值不能从最终输出反推。
+
+区域宏观行新增 `global_gdp_level_gap_anchor_pct`、`global_output_gap_measurement_residual_anchor_pct` 和 `global_output_gap_measurement_version`。它们只传播全球锚的两种口径，不改变区域增长、政策或对账公式。Viewer 必须明确显示“模型估计周期缺口”和“严格 GDP 水平缺口”，不能都简称为“产出缺口”。
 
 ## 4. POST 接口
 

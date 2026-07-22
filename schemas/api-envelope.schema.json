@@ -14,8 +14,8 @@
   "properties": {
     "ok": { "type": "boolean" },
     "apiSchemaVersion": { "const": "seed-explorer-api-v3" },
-    "modelVersion": { "const": "airport-model-v0.9" },
-    "outputSchemaVersion": { "const": "airport-model-output-v1" },
+    "modelVersion": { "const": "airport-model-v0.10" },
+    "outputSchemaVersion": { "const": "airport-model-output-v2" },
     "pythonVersion": { "type": "string", "minLength": 1 },
     "schemaCatalog": { "const": "/api/schema" }
   },

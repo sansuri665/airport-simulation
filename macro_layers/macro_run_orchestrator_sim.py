@@ -117,11 +117,11 @@ clamp = simulation_utils.clamp
 round_record = simulation_utils.round_record
 
 
-ORCHESTRATOR_VERSION = "macro-run-orchestrator-v0.7"
+ORCHESTRATOR_VERSION = "macro-run-orchestrator-v0.8"
 RUN_INDEX_VERSION = "macro-run-index-v0.5"
 RUN_MANIFEST_SCHEMA_VERSION = "airport-macro-run-manifest-v1"
-OUTPUT_SCHEMA_VERSION = "airport-model-output-v1"
-MODEL_VERSION = "airport-model-v0.9"
+OUTPUT_SCHEMA_VERSION = "airport-model-output-v2"
+MODEL_VERSION = "airport-model-v0.10"
 AIRPORT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = AIRPORT_DIR / "output" / "macro_runs"
 DEFAULT_VIEWER_OUTPUT_ROOT = AIRPORT_DIR / "output"

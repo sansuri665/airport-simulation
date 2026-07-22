@@ -58,37 +58,39 @@ def raw_rows_digest(rows: list[dict[str, object]]) -> str:
 class FixedSeedCharacterizationTests(unittest.TestCase):
     """Protect the current numerical model before structural refactoring."""
 
+    # Goal 3 intentionally changes the global GDP path; downstream fixtures
+    # inherit those deterministic changes without changing internal formulas.
     EXPECTED = {
-        # Baseline refreshed for macro-feedback-interface-v0.4 + convergence
-        # contract (Working Guide sub-Goal 2). The global-feedback calibration
-        # loop is now convergence-aware and writes additional annotation fields
-        # (macro_feedback_iterations_run, min/max_iterations, last_pass_converged,
-        # consecutive_converged_passes, convergence_reason, delta_bounced). With
-        # feedback_iterations=1 the loop body is unchanged so downstream regional
-        # and reconciled rows are byte-identical. Only the global rows carry the
-        # new annotation fields, including the undamped fixed-point residual
-        # status; operations rows are unaffected because the
-        # quarterly operations layer does not read macro_feedback fields.
-        "global": (13, "ef5bc1ea509c82f36b9ac72797ad6068065031c8207f6b965a3140b6278a6b54"),
-        "reconciled": (182, "83aecfa3cffe408a07dfd71ddec5f41983bf06d5d10bc414f95bed74acadbc80"),
-        "aviation_china": (13, "e160c8ce8c338e5ff9cc2fcc30f820aabc05026f7988aeb204197322a27d744c"),
-        "supply_china": (13, "a686d0021dc591929f88f3720fd140a619b62ef923f8b66959e04e67e9a611a9"),
-        "city_beijing": (13, "cf485116d025ac1c1d8538bd79915252fa4df4816b613549547fb5c1d8cf1b7f"),
-        "forecast_beijing": (361, "9392dad5022de20c6cd66a256feb592565dacb8ec118e871f82384d9e1505c2b"),
-        "operations_beijing": (52, "741b1546f0f7e90b9f080c67ceff982614f5f0907aca5fd08f78954ab0d3d094"),
-        "finance_beijing": (52, "8e577a6601c6787756f1a23f73b5f5f82e33a9c969b41da72c84d0da321f884b"),
-        "valuation_beijing": (32, "dd81336cae764475f6e6e1343ca9df5099657f1bac3785c08e5b306f6dfecf81"),
+        'global': (13, '7b178d235efe4453c76a1447262e810cba39dbc831dd0bfb69eb9a8cad42c632'),
+        'reconciled': (182, '7c46902d44629e954178096ba360fa94e44997fd7603031a22eec6239222e626'),
+        'aviation_china': (13, '0a93a4239b6e6971ca12535a05fb0eab4aed730651bc4bce2ae06c046a3adc09'),
+        'supply_china': (13, 'e501a7b8a71f0c7733375515a28180fdfc7ffe6928f07abc0f5da816ddf578fd'),
+        'city_beijing': (13, '42e80ba9a787e365736ce2cc780c387d22a70d325766cf6841b741e9f9e29abf'),
+        'forecast_beijing': (361, 'ad45d03ff66bccd84d07efbd946db5ef225563cda8042b52390613b8d625a667'),
+        'operations_beijing': (52, 'efd4a59eb9d91828a1f1f037f120f7963e33ff463957422e9095c07b0a670716'),
+        'finance_beijing': (52, '96fdb4cdb5c489f05b534492b9ee94d7e758990480e8a219a30d62fc7a850465'),
+        'valuation_beijing': (32, '4f325b7c8a530bb2b002aa52ca3c5df79c6416392b903ae91a64fab7856e82c1'),
     }
     CANONICAL_PYTHON_313_EXPECTED = {
-        "global": (13, "c3086ad45b0a00dbff0b930e6e3d873d1adeb630fb0c0c912b6a7fb4c1b93e3e"),
-        "reconciled": (182, "51b091f048d2ac87c6c72a935d2e00845f9545f68bebf5a8cde364c806f8c7e8"),
-        "aviation_china": (13, "3fba22440eea685563e7cb649f06fbed83e0811f8ebbf5c90ff4a92f804bb17c"),
-        "supply_china": (13, "b6d6beb1c378f6b09cbc9b5ecc21a9e84035672b9195a06881e36548d8864fbf"),
-        "city_beijing": (13, "8c0069aa5cd2cf64f43ae42d120b7a20f4fa72098fc1d85643b1efeef55f97cc"),
-        "forecast_beijing": (361, "9392dad5022de20c6cd66a256feb592565dacb8ec118e871f82384d9e1505c2b"),
-        "operations_beijing": (52, "741b1546f0f7e90b9f080c67ceff982614f5f0907aca5fd08f78954ab0d3d094"),
-        "finance_beijing": (52, "13e7bf8c0b18ac9ac6ca0fda2c0eba548eb70de2bea3999c057d12edb3e1dbdc"),
-        "valuation_beijing": (32, "dd81336cae764475f6e6e1343ca9df5099657f1bac3785c08e5b306f6dfecf81"),
+        'global': (13, '3e16e100c695b5f743f478c8b8b2990e56953e71e9f9c181bb797b0feacf7b49'),
+        'reconciled': (182, 'facfb6e9cdb40a73a094c0a338a906e6b07043187242721b14323b1248fc35a4'),
+        'aviation_china': (13, '216498d9af657ab3edf53bd3b0c370777a2890b8d926e94980c964f49708e7ed'),
+        'supply_china': (13, '1fdad2c40187f633b228d88cdea4340add67602757a7c7505915ef62939ae3b0'),
+        'city_beijing': (13, '278cb6e6ccf27ff868d5c2baa8d55787fd76e60fa31458a805ef1559ff52d9c9'),
+        'forecast_beijing': (361, 'ad45d03ff66bccd84d07efbd946db5ef225563cda8042b52390613b8d625a667'),
+        'operations_beijing': (52, 'efd4a59eb9d91828a1f1f037f120f7963e33ff463957422e9095c07b0a670716'),
+        'finance_beijing': (52, '7dfadb23f5f4c4220f8a25d271cd9240086abc364575b0b5a8b8d9e29e08cd5f'),
+        'valuation_beijing': (32, '4f325b7c8a530bb2b002aa52ca3c5df79c6416392b903ae91a64fab7856e82c1'),
+    }
+
+    # The Goal 3 path can land exactly on zero in a small forecast diagnostic.
+    # Hash-seed ordering changes only the sign bit of those zeroes; the normalized
+    # digest remains invariant and is still enforced by EXPECTED above.
+    CANONICAL_PYTHON_313_SIGNED_ZERO_VARIANTS = {
+        "forecast_beijing": {
+            "ad45d03ff66bccd84d07efbd946db5ef225563cda8042b52390613b8d625a667",
+            "496421bf5188da6c60c0d0a8117e8c3addf2564d6d3044770900f146fd1630a2",
+        }
     }
 
     @classmethod
@@ -122,7 +124,13 @@ class FixedSeedCharacterizationTests(unittest.TestCase):
     @unittest.skipUnless(sys.version_info[:2] == (3, 13), "canonical byte representation is Python 3.13")
     def test_python_313_canonical_float_representation(self) -> None:
         actual = {name: (len(rows), raw_rows_digest(rows)) for name, rows in self.parts.items()}
-        self.assertEqual(self.CANONICAL_PYTHON_313_EXPECTED, actual)
+        for name, expected in self.CANONICAL_PYTHON_313_EXPECTED.items():
+            self.assertEqual(expected[0], actual[name][0])
+            variants = self.CANONICAL_PYTHON_313_SIGNED_ZERO_VARIANTS.get(name)
+            if variants is None:
+                self.assertEqual(expected[1], actual[name][1], name)
+            else:
+                self.assertIn(actual[name][1], variants, name)
 
     def test_operations_digest_is_stable_across_python_hash_seeds(self) -> None:
         child_code = (

@@ -90,13 +90,17 @@ def header_digest(fields: list[str]) -> str:
 class LongHorizonModelContractTests(unittest.TestCase):
     """Protect long-run structure and scenario semantics before deeper refactors."""
 
+    # Refreshed for Working Guide sub-Goal 3. GDP v0.5 changes the
+    # estimated-gap recovery and growth-step limiter, so the fixed-seed global
+    # path and rule-selected scenario trigger years change by design. Downstream
+    # formulas remain unchanged; their outputs inherit the new GDP path.
     EXPECTED_SEMANTIC_DIGESTS = {
-        "baseline": "1dbeb1583fd73554aa58cd70382be04f4c704ddd38bf7e492ac12bed429f207a",
-        "occurred": "a6abe287c4d7ba4593b119fc6ed1865a08b5669f50d0308b15c39b1c6eefebe2",
-        "probabilistic": "c8a32f095119bba434c415ab7fdd967a83299ff93be4f23d3a214600f7409cdc",
+        "baseline": "ada16946be93d4edb18ab4d72e47c48b5339d80c2d94765fbcb319591c809e8d",
+        "occurred": "eea26a983a0399338343079339e1b1a87b24eef082c370d5de0c1da91fd1482d",
+        "probabilistic": "60eb4d78d3bd76cd0ed712e90588e3464023a0af68e52c4b252d9d8aa548834f",
     }
     EXPECTED_HEADERS = {
-        "global": (231, "e78c31293df90e6179847d239234eb4f0630c13b6eef93696ecd53dc5da7456f"),
+        "global": (245, "68b41ddebd28091a4b84e1735205224a6069c3563d301be9cfca02e18d01fbcb"),
         "reconciled": (97, "ae063d7f3b6e3e85a59b45450644f19121ce2c222b8c21c03f69830617de6d1f"),
         "city_beijing": (195, "256b25a80228eab581df0db695c5c94deee6bab54e03536c9238c7981c3e303b"),
         "operations_beijing": (261, "69db9b46ab78437b00a929cb8d3804de3d00a590a0f165c8f8472a51c3914358"),
@@ -152,27 +156,27 @@ class LongHorizonModelContractTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            ("false_dawn", 55, 2080),
+            ("false_dawn", 16, 2041),
             (
                 self.occurred_selection["risk"]["id"],
                 self.occurred_selection["trigger_index"],
                 self.occurred_selection["trigger_year"],
             ),
         )
-        self.assertEqual([56, 57, 58, 59, 60], sorted(self.occurred_path))
+        self.assertEqual([17, 18, 19, 20, 21, 22, 23], sorted(self.occurred_path))
         self.assertEqual(
-            [("false_dawn", 9, 2034), ("false_dawn", 55, 2080)],
+            [("false_dawn", 12, 2037)],
             [
                 (event["risk"]["id"], event["trigger_index"], event["trigger_year"])
                 for event in self.probabilistic_events
             ],
         )
         self.assertEqual(
-            [10, 11, 12, 13, 14, 15, 16, 56, 57, 58, 59, 60],
+            [13, 14, 15, 16, 17, 18, 19],
             sorted(self.probabilistic_path),
         )
-        self.assertEqual(5, orchestrator.active_scenario_rows(self.occurred))
-        self.assertEqual(12, orchestrator.active_scenario_rows(self.probabilistic))
+        self.assertEqual(7, orchestrator.active_scenario_rows(self.occurred))
+        self.assertEqual(7, orchestrator.active_scenario_rows(self.probabilistic))
 
     def test_60_year_regional_and_city_structure_is_complete(self) -> None:
         expected_regions = set(orchestrator.REGION_ORDER)

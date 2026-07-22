@@ -41,6 +41,22 @@
 
 各步骤不是八条互不相干的随机曲线。前一步会把明确的“传导字段”交给下一步，例如通胀向政策利率传导、利率向信用和估值传导、油价向通胀和增长传导。完整链的实现入口是 [`global_macro_feedback_calibration_sim.py`](../../macro_layers/global_macro_feedback_calibration_sim.py)。
 
+### 两种 GDP 缺口口径
+
+GDP 输出同时发布两种不能互换的缺口：
+
+- `output_gap_pct` 是平滑、带冲击记忆的**模型估计周期缺口**。政策反应、区域宏观和既有下游公式继续读取该字段。
+- `gdp_level_gap_pct = 100 × ln(real_gdp_index / potential_gdp_index)` 是由同一已发布行的实际与潜在 GDP 指数严格反推的**水平缺口会计诊断**。
+- `output_gap_measurement_residual_pct` 是前两者之差，用来公开状态估计与水平会计口径的偏离，不表示数值错误。
+
+第 0 行仍是起点：实际和潜在指数都为 100，而估计周期缺口可以因初始化而非零。该起点语义未在本阶段改写。区域行继续有自身的 `regional_output_gap_pct`，同时传播全球锚的严格水平缺口与测量残差，避免把区域估计状态误标成由区域水平严格反推的缺口。
+
+### 缺口恢复与增长斜率护栏
+
+长期负偏审计表明，旧路径把危机冲击、增长反馈和信用压力多次写入缺口，并以较高持久性保留，形成单向负向棘轮；旧的一侧压力拖累在大多数平静年份又近乎不工作。v0.5 的修复仅改变 GDP/反馈直接关系：降低估计缺口持久性，围绕压力指数 35 建立对称支持/拖累，去除已经通过 `feedback_growth_impulse_pct` 进入 GDP 的重复增长与 HY 传导。它没有给缺口整体加常数，也没有修改政策、收益率、美元、信用、资产或油价层公式。
+
+增长变化先在**目标增长步长**上通过连续对称的对数软压缩：膝点以内原样通过，超过膝点后单调压缩且没有平坦平台；随后按既有速度平滑。只有平滑后的**实际增长步长**超过 1.45 个百分点时，外层硬安全边界才生效。年度字段同时记录原始目标、软限制结果、硬边界方向和连续命中年数，因此不能靠最终裁剪结果反推或隐藏失控目标。
+
 模型先生成一条完整路径，再根据信用、美元、资产、油价、政策和通胀结果推导下一轮滞后反馈。默认求解器使用完整、确定的反馈更新，至少回跑 3 次，最多 16 次；相同 Seed、参数和代码版本会得到相同的 Pass 序列。
 
 收敛不能只看综合指数，也不能依靠越来越小的松弛步长制造表面稳定。求解器要求最后两个相邻 Pass 的增长、通胀、政策利率、2Y、10Y、美元、HY 和 Brent 最大绝对差分别通过版本化门槛；随后还会从候选结果重新推导完整反馈并执行一次不带松弛的影子 Pass。只有该固定点残差也通过八字段门槛，Run 才会标记为 `converged=true`。影子 Pass 只用于验证，正式输出仍是最后一个被接受的完整模型 Pass。
@@ -82,7 +98,7 @@ output/macro_runs/<run_id>/<variant>/global_macro/
 
 | 组别 | 代表字段 | 口径 |
 | --- | --- | --- |
-| 经济活动 | `global_gdp_trillion_usd`、`realized_growth_pct`、`output_gap_pct` | 万亿美元、年增长率、百分点 |
+| 经济活动 | `global_gdp_trillion_usd`、`realized_growth_pct`、`output_gap_pct`、`gdp_level_gap_pct` | 万亿美元、年增长率、模型估计周期缺口、严格水平缺口 |
 | 物价 | `headline_inflation_pct`、`core_inflation_pct` | 年通胀率，百分比 |
 | 利率 | `global_policy_rate_pct`、`global_2y_yield_pct`、`global_10y_yield_pct` | 年化百分比 |
 | 信用 | `global_investment_grade_spread_bps`、`global_high_yield_spread_bps` | 基点，100 bps = 1 个百分点 |
@@ -92,6 +108,8 @@ output/macro_runs/<run_id>/<variant>/global_macro/
 | 反馈与岔路 | `macro_feedback_*`、`branch_risk_*`、`scenario_*` | 反馈诊断、风险观察和情景状态 |
 
 `macro_feedback_intensity_index` 和四个 `macro_feedback_*_raw*` 字段只描述宏观反馈校准层自身；情景岔路的额外冲击不会混入这些 raw 诊断。最终 applied impulse 仍可同时包含宏观反馈与情景冲击，二者通过来源和情景字段区分。区域层读取宏观反馈强度计算政策不确定性，因此编排器必须保留这些诊断字段，不能只保留 applied impulse。
+
+GDP v0.5 还发布：`unclamped_output_gap_target_pct`、缺口上下界布尔值、`unclamped_target_growth_pct`、`soft_limited_target_growth_pct`、`growth_step_limit_pct`、软限制/硬边界布尔值、硬边界方向和连续命中年数。`growth_step_limit_pct` 表示本年实际使用的**实际增长步长硬安全边界**，不是软限制膝点。
 
 ## 与其他模块的关系
 

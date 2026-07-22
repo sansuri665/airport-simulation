@@ -42,6 +42,15 @@
       "stochastic_component_pct",
       "shock_component_pct",
       "output_gap_pct",
+      "gdp_level_gap_pct",
+      "output_gap_measurement_residual_pct",
+      "unclamped_output_gap_target_pct",
+      "unclamped_target_growth_pct",
+      "soft_limited_target_growth_pct",
+      "growth_step_limit_pct",
+      "growth_step_cap_consecutive_years",
+      "global_gdp_level_gap_anchor_pct",
+      "global_output_gap_measurement_residual_anchor_pct",
       "financial_stress_index",
       "productivity_wave_index",
       "crisis_intensity",
@@ -408,14 +417,23 @@
     }
 
     function normalizeGlobalRows(rows) {
-      return normalizeRows(rows).map((row) => ({
-        ...row,
-        macro_scope: "global",
-        scope_id: "global",
-        scope_label: "全球",
-        display_gdp_unit: "usd_trillion",
-        oil_display_unit: "usd",
-      }));
+      return normalizeRows(rows).map((row) => {
+        const strictGap = Number.isFinite(row.gdp_level_gap_pct)
+          ? row.gdp_level_gap_pct
+          : 100 * Math.log(toNumber(row.real_gdp_index) / toNumber(row.potential_gdp_index));
+        return {
+          ...row,
+          gdp_level_gap_pct: strictGap,
+          output_gap_measurement_residual_pct: Number.isFinite(row.output_gap_measurement_residual_pct)
+            ? row.output_gap_measurement_residual_pct
+            : toNumber(row.output_gap_pct) - strictGap,
+          macro_scope: "global",
+          scope_id: "global",
+          scope_label: "全球",
+          display_gdp_unit: "usd_trillion",
+          oil_display_unit: "usd",
+        };
+      });
     }
 
     function normalizeRegionalRows(rows, config) {
@@ -448,6 +466,11 @@
           potential_growth_pct: toNumber(row.regional_potential_growth_pct),
           trend_growth_pct: toNumber(row.regional_potential_growth_pct),
           output_gap_pct: toNumber(row.regional_output_gap_pct),
+          gdp_level_gap_pct: toNumber(row.global_gdp_level_gap_anchor_pct),
+          output_gap_measurement_residual_pct: toNumber(
+            row.global_output_gap_measurement_residual_anchor_pct
+          ),
+          output_gap_measurement_version: row.global_output_gap_measurement_version || "",
           financial_stress_index: stressValue,
           regime: row.regional_macro_regime || "regional_macro",
           headline_inflation_pct: headlineValue,

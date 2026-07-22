@@ -21,8 +21,10 @@ from statistics import mean
 from typing import Any, Mapping
 
 
-PARAM_VERSION = "global-gdp-cycle-v0.4"
+PARAM_VERSION = "global-gdp-cycle-v0.5"
 EVENT_INTERFACE_VERSION = "macro-event-interface-v0.1"
+OUTPUT_GAP_MEASUREMENT_VERSION = "gdp-gap-measurement-v1"
+GROWTH_STEP_LIMITER_VERSION = "soft-log-target-step-with-hard-realized-bound-v1"
 
 
 ANNUAL_FIELDS = [
@@ -44,6 +46,20 @@ ANNUAL_FIELDS = [
     "stochastic_component_pct",
     "shock_component_pct",
     "output_gap_pct",
+    "gdp_level_gap_pct",
+    "output_gap_measurement_residual_pct",
+    "output_gap_measurement_version",
+    "unclamped_output_gap_target_pct",
+    "output_gap_floor_applied",
+    "output_gap_cap_applied",
+    "unclamped_target_growth_pct",
+    "soft_limited_target_growth_pct",
+    "growth_step_limit_pct",
+    "growth_soft_limit_applied",
+    "growth_step_cap_applied",
+    "growth_step_cap_direction",
+    "growth_step_cap_consecutive_years",
+    "growth_step_limiter_version",
     "financial_stress_index",
     "productivity_wave_index",
     "crisis_intensity",
@@ -89,13 +105,25 @@ class GDPParams:
     trend_slowdown_half_life_years: float = 70.0
     trend_noise_pct: float = 0.16
     volatility_scale: float = 1.55
-    output_gap_persistence: float = 0.68
+    # The estimated cycle gap remains a smoothed latent state. Persistence
+    # is intentionally below the v0.4 value because offline ablation showed
+    # that crisis/financial impulses were otherwise retained as a one-way
+    # negative ratchet long after the originating stress had faded.
+    output_gap_persistence: float = 0.35
     output_gap_adjustment_speed: float = 0.34
     output_gap_cycle_loading: float = 0.56
     output_gap_shock_loading: float = 0.92
+    # A symmetric stress channel supplies recovery below the established
+    # slowdown threshold and drag above it; this is not a constant offset.
+    output_gap_financial_stress_anchor_index: float = 35.0
+    output_gap_financial_stress_loading: float = 0.030
     output_gap_cap_pct: float = 13.5
     growth_adjustment_speed: float = 0.50
-    max_growth_step_pct: float = 2.05
+    # Soft-limit parameters act in target-growth-step space. The outer
+    # max_growth_step_pct is a realized-growth hard safety boundary.
+    growth_soft_limit_knee_pct: float = 1.30
+    growth_soft_limit_scale_pct: float = 1.80
+    max_growth_step_pct: float = 1.45
     shock_decay: float = 0.52
     shock_release_speed: float = 0.50
     direct_cycle_growth_loading: float = 0.10
@@ -127,6 +155,7 @@ class GDPState:
     last_boom_pct: float = 0.0
     shock_stock_pct: float = 0.0
     last_realized_growth_pct: float = 2.75
+    growth_step_cap_consecutive_years: int = 0
     crisis_years_left: int = 0
     crisis_total_years: int = 0
     crisis_age: int = 0
@@ -169,6 +198,20 @@ class YearRecord:
     stochastic_component_pct: float
     shock_component_pct: float
     output_gap_pct: float
+    gdp_level_gap_pct: float
+    output_gap_measurement_residual_pct: float
+    output_gap_measurement_version: str
+    unclamped_output_gap_target_pct: float
+    output_gap_floor_applied: bool
+    output_gap_cap_applied: bool
+    unclamped_target_growth_pct: float
+    soft_limited_target_growth_pct: float
+    growth_step_limit_pct: float
+    growth_soft_limit_applied: bool
+    growth_step_cap_applied: bool
+    growth_step_cap_direction: str
+    growth_step_cap_consecutive_years: int
+    growth_step_limiter_version: str
     financial_stress_index: float
     productivity_wave_index: float
     crisis_intensity: float
@@ -195,6 +238,41 @@ class YearRecord:
 
 def smooth(old: float, target: float, speed: float) -> float:
     return old * (1.0 - speed) + target * speed
+
+
+def soft_compress_growth_target_step(
+    requested_step_pct: float,
+    knee_pct: float,
+    scale_pct: float,
+) -> float:
+    """Continuously compress large target-growth changes without a flat shelf.
+
+    Changes inside ``knee_pct`` pass through unchanged. Beyond the knee, the
+    logarithmic tail is continuous with unit slope at the join and remains
+    unbounded, so the separate realized-growth hard bound can still activate in
+    genuinely extreme years instead of becoming a decorative unreachable cap.
+    """
+    if knee_pct <= 0.0:
+        raise ValueError("growth soft-limit knee must be positive")
+    if scale_pct <= 0.0:
+        raise ValueError("growth soft-limit scale must be positive")
+    magnitude = abs(requested_step_pct)
+    if magnitude <= knee_pct:
+        return requested_step_pct
+    compressed = knee_pct + scale_pct * math.log1p(
+        (magnitude - knee_pct) / scale_pct
+    )
+    return math.copysign(compressed, requested_step_pct)
+
+
+def financial_stress_gap_impulse(
+    financial_stress_index: float,
+    params: GDPParams,
+) -> float:
+    """Return symmetric recovery below, and drag above, the stress anchor."""
+    return -params.output_gap_financial_stress_loading * (
+        financial_stress_index - params.output_gap_financial_stress_anchor_index
+    )
 
 
 def pct_change(current: float, previous: float) -> float:
@@ -532,6 +610,14 @@ def round_record(record: YearRecord) -> dict[str, Any]:
     for key, value in list(result.items()):
         if isinstance(value, float):
             result[key] = round(value, 4)
+    real_index = float(result["real_gdp_index"])
+    potential_index = float(result["potential_gdp_index"])
+    level_gap = 100.0 * math.log(real_index / potential_index)
+    result["gdp_level_gap_pct"] = round(level_gap, 4)
+    result["output_gap_measurement_residual_pct"] = round(
+        float(result["output_gap_pct"]) - result["gdp_level_gap_pct"],
+        4,
+    )
     return result
 
 
@@ -578,6 +664,20 @@ def simulate_global_gdp(
                 stochastic_component_pct=0.0,
                 shock_component_pct=0.0,
                 output_gap_pct=state.output_gap_pct,
+                gdp_level_gap_pct=0.0,
+                output_gap_measurement_residual_pct=state.output_gap_pct,
+                output_gap_measurement_version=OUTPUT_GAP_MEASUREMENT_VERSION,
+                unclamped_output_gap_target_pct=state.output_gap_pct,
+                output_gap_floor_applied=False,
+                output_gap_cap_applied=False,
+                unclamped_target_growth_pct=state.trend_growth_pct,
+                soft_limited_target_growth_pct=state.trend_growth_pct,
+                growth_step_limit_pct=params.max_growth_step_pct,
+                growth_soft_limit_applied=False,
+                growth_step_cap_applied=False,
+                growth_step_cap_direction="none",
+                growth_step_cap_consecutive_years=0,
+                growth_step_limiter_version=GROWTH_STEP_LIMITER_VERSION,
                 financial_stress_index=state.financial_stress_index,
                 productivity_wave_index=productivity_wave,
                 crisis_intensity=0.0,
@@ -620,7 +720,10 @@ def simulate_global_gdp(
             100.0,
         )
 
-        stress_drag = -0.018 * max(0.0, state.financial_stress_index - 45.0)
+        stress_drag = financial_stress_gap_impulse(
+            state.financial_stress_index,
+            params,
+        )
         output_gap_target = (
             state.output_gap_pct * params.output_gap_persistence
             + params.output_gap_cycle_loading * cycle_growth
@@ -630,26 +733,62 @@ def simulate_global_gdp(
             + feedback["feedback_output_gap_impulse_pct"]
             + 0.45 * feedback["feedback_growth_impulse_pct"]
         )
+        unclamped_output_gap_target = smooth(
+            state.output_gap_pct,
+            output_gap_target,
+            params.output_gap_adjustment_speed,
+        )
+        output_gap_floor_applied = unclamped_output_gap_target < -params.output_gap_cap_pct
+        output_gap_cap_applied = unclamped_output_gap_target > params.output_gap_cap_pct
         state.output_gap_pct = clamp(
-            smooth(state.output_gap_pct, output_gap_target, params.output_gap_adjustment_speed),
+            unclamped_output_gap_target,
             -params.output_gap_cap_pct,
             params.output_gap_cap_pct,
         )
 
         desired_real_index = state.potential_index * math.exp(state.output_gap_pct / 100.0)
-        target_growth = pct_change(desired_real_index, previous_real_index)
-        target_growth += params.direct_cycle_growth_loading * cycle_growth
-        target_growth += params.direct_shock_growth_loading * shock
-        target_growth += feedback["feedback_growth_impulse_pct"]
-        target_growth = clamp(
-            target_growth,
-            state.last_realized_growth_pct - params.max_growth_step_pct,
-            state.last_realized_growth_pct + params.max_growth_step_pct,
+        unclamped_target_growth = pct_change(desired_real_index, previous_real_index)
+        unclamped_target_growth += params.direct_cycle_growth_loading * cycle_growth
+        unclamped_target_growth += params.direct_shock_growth_loading * shock
+        unclamped_target_growth += feedback["feedback_growth_impulse_pct"]
+        requested_target_step = unclamped_target_growth - state.last_realized_growth_pct
+        soft_limited_target_step = soft_compress_growth_target_step(
+            requested_target_step,
+            params.growth_soft_limit_knee_pct,
+            params.growth_soft_limit_scale_pct,
         )
-        realized_growth = smooth(
+        soft_limited_target_growth = (
+            state.last_realized_growth_pct + soft_limited_target_step
+        )
+        growth_soft_limit_applied = not math.isclose(
+            requested_target_step,
+            soft_limited_target_step,
+            rel_tol=0.0,
+            abs_tol=1e-12,
+        )
+        unconstrained_realized_growth = smooth(
             state.last_realized_growth_pct,
-            target_growth,
+            soft_limited_target_growth,
             params.growth_adjustment_speed,
+        )
+        requested_realized_step = (
+            unconstrained_realized_growth - state.last_realized_growth_pct
+        )
+        growth_step_cap_applied = abs(requested_realized_step) > params.max_growth_step_pct
+        if growth_step_cap_applied and requested_realized_step < 0.0:
+            growth_step_cap_direction = "down"
+        elif growth_step_cap_applied and requested_realized_step > 0.0:
+            growth_step_cap_direction = "up"
+        else:
+            growth_step_cap_direction = "none"
+        if growth_step_cap_applied:
+            state.growth_step_cap_consecutive_years += 1
+        else:
+            state.growth_step_cap_consecutive_years = 0
+        realized_growth = state.last_realized_growth_pct + clamp(
+            requested_realized_step,
+            -params.max_growth_step_pct,
+            params.max_growth_step_pct,
         )
         realized_growth = clamp(
             realized_growth,
@@ -698,6 +837,23 @@ def simulate_global_gdp(
             stochastic_component_pct=stochastic,
             shock_component_pct=shock,
             output_gap_pct=state.output_gap_pct,
+            gdp_level_gap_pct=100.0 * math.log(state.real_index / state.potential_index),
+            output_gap_measurement_residual_pct=(
+                state.output_gap_pct
+                - 100.0 * math.log(state.real_index / state.potential_index)
+            ),
+            output_gap_measurement_version=OUTPUT_GAP_MEASUREMENT_VERSION,
+            unclamped_output_gap_target_pct=unclamped_output_gap_target,
+            output_gap_floor_applied=output_gap_floor_applied,
+            output_gap_cap_applied=output_gap_cap_applied,
+            unclamped_target_growth_pct=unclamped_target_growth,
+            soft_limited_target_growth_pct=soft_limited_target_growth,
+            growth_step_limit_pct=params.max_growth_step_pct,
+            growth_soft_limit_applied=growth_soft_limit_applied,
+            growth_step_cap_applied=growth_step_cap_applied,
+            growth_step_cap_direction=growth_step_cap_direction,
+            growth_step_cap_consecutive_years=state.growth_step_cap_consecutive_years,
+            growth_step_limiter_version=GROWTH_STEP_LIMITER_VERSION,
             financial_stress_index=state.financial_stress_index,
             productivity_wave_index=productivity_wave,
             crisis_intensity=crisis_intensity,

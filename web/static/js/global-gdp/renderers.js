@@ -115,7 +115,7 @@
       detailFeedbackIntensity: "反馈强度",
       detailFeedbackGrowth: "GDP 反馈",
       detailPotentialGrowth: "潜在增长率",
-      detailGap: "产出缺口",
+      detailGap: "模型估计周期缺口",
       detailStress: "金融压力",
       detailShock: "冲击项",
     };
@@ -174,7 +174,9 @@
       "Oil YoY",
       "商品",
       "潜在增长",
-      "产出缺口",
+      "模型估计缺口",
+      "严格水平缺口",
+      "测量残差",
       "压力",
       "央行",
       "曲线",
@@ -351,7 +353,8 @@
           makeStat("最低增长", fmtPct(summary.minRow.realized_growth_pct), String(summary.minRow.year), growthClass(summary.minRow.realized_growth_pct)),
           makeStat("衰退年份", String(summary.recessionYears), row.regime),
           makeStat("潜在增长", fmtPct(row.potential_growth_pct), `trend ${fmtPct(row.trend_growth_pct)}`),
-          makeStat("产出缺口", fmtPct(row.output_gap_pct), `stress ${fmtIndex(row.financial_stress_index)}`, growthClass(row.output_gap_pct)),
+          makeStat("模型估计周期缺口", fmtPct(row.output_gap_pct), `stress ${fmtIndex(row.financial_stress_index)}`, growthClass(row.output_gap_pct)),
+          makeStat("严格 GDP 水平缺口", fmtPct(row.gdp_level_gap_pct), `残差 ${fmtPct(row.output_gap_measurement_residual_pct)}`, growthClass(row.gdp_level_gap_pct)),
         ],
         growth: () => [
           makeStat("年增长率", fmtPct(row.realized_growth_pct), `potential ${fmtPct(row.potential_growth_pct)}`, growthClass(row.realized_growth_pct)),
@@ -360,7 +363,8 @@
           makeStat("冲击项", fmtPct(row.shock_component_pct), eventLabel, growthClass(row.shock_component_pct)),
           makeStat("反馈增长项", hasFeedback(row) ? fmtPct(row.feedback_growth_impulse_pct) : "-", hasFeedback(row) ? `raw ${fmtPct(row.macro_feedback_growth_raw_pct)}` : "feedback layer"),
           makeStat("金融压力", fmtIndex(row.financial_stress_index), `crisis ${fmtIndex(row.crisis_intensity)}`),
-          makeStat("产出缺口", fmtPct(row.output_gap_pct), row.regime, growthClass(row.output_gap_pct)),
+          makeStat("模型估计周期缺口", fmtPct(row.output_gap_pct), row.regime, growthClass(row.output_gap_pct)),
+          makeStat("严格 GDP 水平缺口", fmtPct(row.gdp_level_gap_pct), `残差 ${fmtPct(row.output_gap_measurement_residual_pct)}`, growthClass(row.gdp_level_gap_pct)),
           makeStat("滞后支撑", fmtPct(row.gdp_lagged_support), `energy impulse ${fmtPct(row.energy_price_impulse)}`, growthClass(row.gdp_lagged_support)),
         ],
         inflation: () => hasInflation(row) ? [
@@ -968,6 +972,8 @@
           <td>${hasOil(row) ? fmtIndex(row.broad_commodity_index) : "-"}</td>
           <td>${fmtPct(row.potential_growth_pct)}</td>
           <td>${fmtPct(row.output_gap_pct)}</td>
+          <td>${fmtPct(row.gdp_level_gap_pct)}</td>
+          <td>${fmtPct(row.output_gap_measurement_residual_pct)}</td>
           <td>${fmtIndex(row.financial_stress_index)}</td>
           <td>${hasPolicy(row) ? row.central_bank_reaction_regime : "-"}</td>
           <td>${hasYield(row) ? row.yield_curve_regime : "-"}</td>
