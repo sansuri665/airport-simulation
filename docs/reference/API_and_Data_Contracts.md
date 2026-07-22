@@ -33,8 +33,8 @@ JSON 响应会附加当前协议与运行环境：
 ```json
 {
   "apiSchemaVersion": "seed-explorer-api-v3",
-  "modelVersion": "airport-model-v0.10",
-  "outputSchemaVersion": "airport-model-output-v2",
+  "modelVersion": "airport-model-v0.11",
+  "outputSchemaVersion": "airport-model-output-v3",
   "pythonVersion": "3.13.x",
   "schemaCatalog": "/api/schema"
 }
@@ -137,6 +137,44 @@ growth_step_limiter_version
 `output_gap_pct` 的协议身份不变，仍是政策层和区域层消费的模型估计周期缺口。`gdp_level_gap_pct` 必须由同一已发布行的 `real_gdp_index` 和 `potential_gdp_index` 按 `100 × ln(real/potential)` 计算；测量残差等于估计缺口减严格水平缺口。`unclamped_*` 字段来自真实裁剪前候选，边界布尔值不能从最终输出反推。
 
 区域宏观行新增 `global_gdp_level_gap_anchor_pct`、`global_output_gap_measurement_residual_anchor_pct` 和 `global_output_gap_measurement_version`。它们只传播全球锚的两种口径，不改变区域增长、政策或对账公式。Viewer 必须明确显示“模型估计周期缺口”和“严格 GDP 水平缺口”，不能都简称为“产出缺口”。
+
+### 3.6 收益率、影子短端与美元资金条件字段
+
+`airport-model-output-v3` 在保留 v2 GDP 字段的基础上新增：
+
+```text
+yield_curve_boundary_version
+expected_shadow_short_rate_10y_pct
+unclamped_short_rate_target_pct
+unclamped_expected_short_rate_10y_target_pct
+unclamped_expected_shadow_short_rate_10y_target_pct
+unclamped_2y_yield_target_pct
+unclamped_10y_yield_target_pct
+unclamped_term_premium_target_pct
+short_rate_floor_applied / short_rate_cap_applied
+expected_short_rate_floor_applied / expected_short_rate_cap_applied
+shadow_short_rate_floor_applied / shadow_short_rate_cap_applied
+yield_2y_floor_applied / yield_2y_cap_applied
+yield_10y_floor_applied / yield_10y_cap_applied
+term_premium_floor_applied / term_premium_cap_applied
+short_rate_consecutive_boundary_years
+expected_short_rate_consecutive_boundary_years
+shadow_short_rate_consecutive_boundary_years
+yield_2y_consecutive_boundary_years
+yield_10y_consecutive_boundary_years
+term_premium_consecutive_boundary_years
+dollar_liquidity_boundary_version
+unclamped_dollar_target_index
+dollar_floor_applied / dollar_cap_applied
+dollar_consecutive_boundary_years
+unclamped_financial_conditions_target_index
+financial_conditions_floor_applied / financial_conditions_cap_applied
+financial_conditions_consecutive_boundary_years
+```
+
+`expected_short_rate_10y_pct` 是可观察名义政策短端预期，默认下限 `0.05%`；`expected_shadow_short_rate_10y_pct` 是可有限为负的 QE 影子状态。`global_dollar_index` 字段名为兼容保留，唯一正式定义是“美元资金条件指数/代理”，不是严格 DXY。全球 Viewer lazy index 与 region chunk 协议同步升级到 v2。
+
+边界布尔值来自真实裁剪点：最终状态边界使用平滑后的未裁剪候选，目标边界使用公式目标候选。连续年数按实际边界应用连续累计，脱离边界即归零。
 
 ## 4. POST 接口
 

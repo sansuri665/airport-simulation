@@ -16,8 +16,8 @@
       { id: "sub_saharan_africa", label: "撒哈拉以南非洲", shortLabel: "撒哈拉非洲", type: "regional" },
     ];
     const state = window.AirportGlobalViewerState;
-    const EXPECTED_GLOBAL_INDEX = "airport-global-viewer-lazy-index-v1";
-    const EXPECTED_GLOBAL_CHUNK = "airport-global-viewer-region-chunk-v1";
+    const EXPECTED_GLOBAL_INDEX = "airport-global-viewer-lazy-index-v2";
+    const EXPECTED_GLOBAL_CHUNK = "airport-global-viewer-region-chunk-v2";
     const EXPECTED_CONTEXT_INDEX = "airport-global-viewer-context-index-v1";
     const EXPECTED_CONTEXT_REGION = "airport-global-viewer-context-region-v1";
     const globalApiClient = window.AirportApiClient;
@@ -108,6 +108,19 @@
       "term_spread_10y_2y_pct",
       "term_premium_pct",
       "expected_short_rate_10y_pct",
+      "expected_shadow_short_rate_10y_pct",
+      "unclamped_short_rate_target_pct",
+      "unclamped_expected_short_rate_10y_target_pct",
+      "unclamped_expected_shadow_short_rate_10y_target_pct",
+      "unclamped_2y_yield_target_pct",
+      "unclamped_10y_yield_target_pct",
+      "unclamped_term_premium_target_pct",
+      "short_rate_consecutive_boundary_years",
+      "expected_short_rate_consecutive_boundary_years",
+      "shadow_short_rate_consecutive_boundary_years",
+      "yield_2y_consecutive_boundary_years",
+      "yield_10y_consecutive_boundary_years",
+      "term_premium_consecutive_boundary_years",
       "bond_price_index",
       "bond_total_return_pct",
       "duration_pressure_index",
@@ -117,11 +130,15 @@
       "yield_curve_to_credit_impulse",
       "yield_curve_to_gdp_drag_placeholder",
       "global_dollar_index",
+      "unclamped_dollar_target_index",
+      "dollar_consecutive_boundary_years",
       "dollar_yoy_change_pct",
       "dollar_momentum_index",
       "global_liquidity_index",
       "liquidity_impulse_index",
       "global_financial_conditions_index",
+      "unclamped_financial_conditions_target_index",
+      "financial_conditions_consecutive_boundary_years",
       "risk_appetite_index",
       "em_stress_index",
       "dollar_funding_stress_index",

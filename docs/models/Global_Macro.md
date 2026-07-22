@@ -2,7 +2,7 @@
 
 ## 它解决什么问题
 
-全球宏观模型为一次机场模拟生成共同的世界背景。它回答的不是“某家机场赚多少钱”，而是更上游的问题：世界经济增长、通胀、利率、美元流动性、信用、资产价格和能源成本在同一条时间线上如何相互影响。
+全球宏观模型为一次机场模拟生成共同的世界背景。它回答的不是“某家机场赚多少钱”，而是更上游的问题：世界经济增长、通胀、利率、美元资金条件、信用、资产价格和能源成本在同一条时间线上如何相互影响。
 
 同一个 `seed`（随机种子）和同一组参数会得到同一条路径。所有区域、航空和城市机场模型都沿用这条路径，因此不会各自生成互相矛盾的世界经济。
 
@@ -32,7 +32,7 @@
   → 通胀
   → 政策利率与 QE
   → 收益率曲线和债券
-  → 美元、流动性和金融条件
+  → 美元资金条件代理、流动性和金融条件
   → 投资级/高收益信用利差
   → 股票、债券与 60/40 组合
   → 油价和广义商品
@@ -62,6 +62,25 @@ GDP 输出同时发布两种不能互换的缺口：
 收敛不能只看综合指数，也不能依靠越来越小的松弛步长制造表面稳定。求解器要求最后两个相邻 Pass 的增长、通胀、政策利率、2Y、10Y、美元、HY 和 Brent 最大绝对差分别通过版本化门槛；随后还会从候选结果重新推导完整反馈并执行一次不带松弛的影子 Pass。只有该固定点残差也通过八字段门槛，Run 才会标记为 `converged=true`。影子 Pass 只用于验证，正式输出仍是最后一个被接受的完整模型 Pass。
 
 若达到 16 次仍未通过，Run 可以作为诊断产物保留，但不能发布为 Viewer Release。Manifest 保存完整的 `pass_diagnostics[]` 和 `fixed_point_residual_diagnostic`，发布护栏会重新核验版本、逐字段门槛、边界计数和最终残差，而不是只相信一个布尔值。
+
+### 可观察短端、影子短端与收益率曲线
+
+`expected_short_rate_10y_pct` 是未来十年**可观察名义政策短端**的平滑预期，边界为 `0.05%–10.50%`，不承担负影子利率身份。`expected_shadow_short_rate_10y_pct` 是独立的影子短端状态，边界为 `-0.75%–10.50%`；QE 和资产负债表扩张只能通过该状态有限压低中长期融资条件。QE 退出后，影子目标重新锚定可观察预期，并按独立速度平滑回归。
+
+2Y 主要由当前短端、政策利率和可观察预期决定，只以显式小权重吸收影子短端差；10Y 由可观察预期、影子短端差、期限溢价、通胀预期、潜在增长和避险需求共同形成。QE 不再同时全额写入当前短端、可观察预期、2Y、10Y 和美元代理。逐行恒等式保持：
+
+```text
+global_real_10y_yield_pct = global_10y_yield_pct - inflation_expectation_pct
+term_spread_10y_2y_pct = global_10y_yield_pct - global_2y_yield_pct
+```
+
+收益率层发布六个真实裁剪前目标、各边界布尔值和连续命中年数。`unclamped_*_target_*` 是公式目标，不是从最终值反推；对最终状态执行的边界以平滑后的候选判断，对目标本身执行的边界则以目标候选判断。边界由 `yield-curve-boundaries-v1` 与参数版本统一声明。
+
+### 美元资金条件代理与全球 FCI
+
+字段名 `global_dollar_index` 为兼容既有数据链保留，但正式含义是**美元资金条件指数/代理**，不是严格 DXY，也不是美国相对贸易伙伴汇率。它综合全球实际利率、政策立场、避险需求、金融压力和曲线形态；不读取同年区域相对利差，因此不会形成全球—区域循环依赖。
+
+曲线传给美元层的 `yield_curve_to_dollar_impulse` 现在只描述倒挂、期限溢价变化和 10Y 变化。实际利率、政策立场和 QE 不再先写入该 impulse、又在美元目标中重复计价。QE 继续通过影子短端、期限溢价和全球流动性发挥作用；FCI 的宽松方向由流动性状态表达，不再同时直接扣减 QE 并接受负信用 impulse。美元代理和 FCI 的真实目标、边界状态及连续命中由 `dollar-liquidity-boundaries-v1` 发布。
 
 ## 岔路与风险提示
 
@@ -103,13 +122,15 @@ output/macro_runs/<run_id>/<variant>/global_macro/
 | 利率 | `global_policy_rate_pct`、`global_2y_yield_pct`、`global_10y_yield_pct` | 年化百分比 |
 | 信用 | `global_investment_grade_spread_bps`、`global_high_yield_spread_bps` | 基点，100 bps = 1 个百分点 |
 | 市场 | `global_equity_index`、`bond_price_index`、`equity_total_return_pct` | 起点附近为 100 的指数、年度回报率 |
-| 流动性与压力 | `global_liquidity_index`、`risk_appetite_index`、`financial_stress_index` | 模型内部指数，不是现实统计值 |
+| 美元资金与压力 | `global_dollar_index`、`global_liquidity_index`、`global_financial_conditions_index` | 美元资金条件代理、流动性与 FCI；均为模型内部指数，不是 DXY 或现实统计值 |
 | 能源 | `brent_oil_price_usd`、`energy_cost_pressure_index` | 美元/桶、模型内部指数 |
 | 反馈与岔路 | `macro_feedback_*`、`branch_risk_*`、`scenario_*` | 反馈诊断、风险观察和情景状态 |
 
 `macro_feedback_intensity_index` 和四个 `macro_feedback_*_raw*` 字段只描述宏观反馈校准层自身；情景岔路的额外冲击不会混入这些 raw 诊断。最终 applied impulse 仍可同时包含宏观反馈与情景冲击，二者通过来源和情景字段区分。区域层读取宏观反馈强度计算政策不确定性，因此编排器必须保留这些诊断字段，不能只保留 applied impulse。
 
 GDP v0.5 还发布：`unclamped_output_gap_target_pct`、缺口上下界布尔值、`unclamped_target_growth_pct`、`soft_limited_target_growth_pct`、`growth_step_limit_pct`、软限制/硬边界布尔值、硬边界方向和连续命中年数。`growth_step_limit_pct` 表示本年实际使用的**实际增长步长硬安全边界**，不是软限制膝点。
+
+收益率—美元 v0.3 另外发布 `expected_shadow_short_rate_10y_pct`、短端/2Y/10Y/期限溢价/美元代理/FCI 的真实未裁剪目标、边界布尔值和连续命中年数。接口继续保留唯一的 `global_dollar_index` 字段，不新增同义“DXY”字段。
 
 ## 与其他模块的关系
 

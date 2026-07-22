@@ -320,7 +320,7 @@
       const gdpLabel = isRegional ? (hasRegionalSize ? "区域 GDP" : "区域 GDP 指数") : "当前 GDP";
       const finalGdpLabel = isRegional ? (hasRegionalSize ? "最终区域 GDP" : "最终 GDP 指数") : "最终 GDP";
       const oilLabel = isRegional ? "能源压力" : "Brent 油价";
-      const currencyLabel = isRegional ? "货币指数" : "美元指数";
+      const currencyLabel = isRegional ? "货币指数" : "美元资金条件指数";
 
       const statsByMode = {
         both: () => [
@@ -392,16 +392,18 @@
           makeStat("2Y 利率", fmtLevelPct(row.global_2y_yield_pct), `short ${fmtLevelPct(row.global_short_rate_pct)}`),
           makeStat("实际 10Y", fmtLevelPct(row.global_real_10y_yield_pct), `inflation ${hasInflation(row) ? fmtLevelPct(row.headline_inflation_pct) : "-"}`),
           makeStat("期限利差", fmtPct(row.term_spread_10y_2y_pct), "10Y - 2Y", growthClass(row.term_spread_10y_2y_pct)),
-          makeStat("期限溢价", fmtLevelPct(row.term_premium_pct), `expected short ${fmtLevelPct(row.expected_short_rate_10y_pct)}`),
-          makeStat("美元冲击", fmtPct(row.yield_curve_to_dollar_impulse), `credit ${fmtPct(row.yield_curve_to_credit_impulse)}`),
+          makeStat("期限溢价", fmtLevelPct(row.term_premium_pct), `target ${fmtLevelPct(row.unclamped_term_premium_target_pct)}`),
+          makeStat("可观察短端预期", fmtLevelPct(row.expected_short_rate_10y_pct), `target ${fmtLevelPct(row.unclamped_expected_short_rate_10y_target_pct)}`),
+          makeStat("影子短端预期", fmtLevelPct(row.expected_shadow_short_rate_10y_pct), `target ${fmtLevelPct(row.unclamped_expected_shadow_short_rate_10y_target_pct)}`),
+          makeStat("美元资金曲线冲击", fmtPct(row.yield_curve_to_dollar_impulse), `credit ${fmtPct(row.yield_curve_to_credit_impulse)}`),
           makeStat("股权估值冲击", fmtPct(row.yield_curve_to_equity_valuation_impulse), "valuation channel", growthClass(row.yield_curve_to_equity_valuation_impulse)),
           makeStat("GDP 拖累", fmtPct(row.yield_curve_to_gdp_drag_placeholder), "curve channel", growthClass(row.yield_curve_to_gdp_drag_placeholder)),
         ] : unavailableStats("收益率曲线", row),
         dollar: () => hasDollar(row) ? [
-          makeStat(currencyLabel, fmtIndex(row.global_dollar_index), row.dollar_liquidity_regime || "n/a"),
-          makeStat("美元 YoY", fmtPct(row.dollar_yoy_change_pct), `momentum ${fmtIndex(row.dollar_momentum_index)}`, growthClass(row.dollar_yoy_change_pct)),
+          makeStat(currencyLabel, fmtIndex(row.global_dollar_index), `target ${fmtIndex(row.unclamped_dollar_target_index)}`),
+          makeStat("代理指数 YoY", fmtPct(row.dollar_yoy_change_pct), `momentum ${fmtIndex(row.dollar_momentum_index)}`, growthClass(row.dollar_yoy_change_pct)),
           makeStat("全球流动性", fmtIndex(row.global_liquidity_index), `impulse ${fmtIndex(row.liquidity_impulse_index)}`),
-          makeStat("金融条件", fmtIndex(row.global_financial_conditions_index), "higher = tighter"),
+          makeStat("全球 FCI", fmtIndex(row.global_financial_conditions_index), `target ${fmtIndex(row.unclamped_financial_conditions_target_index)} · higher = tighter`),
           makeStat("风险偏好", fmtIndex(row.risk_appetite_index), `EM stress ${fmtIndex(row.em_stress_index)}`),
           makeStat("美元融资压力", fmtIndex(row.dollar_funding_stress_index), `credit ${fmtPct(row.dollar_to_credit_tightening_impulse)}`),
           makeStat("进口通胀冲击", fmtPct(row.dollar_to_import_inflation_impulse), `oil ${fmtPct(row.dollar_to_oil_pressure_impulse)}`),
@@ -1745,7 +1747,7 @@
         ${showDollar || showCredit || showAsset || showOil ? "" : `<line x1="${margin.left}" y1="${zeroY}" x2="${margin.left + plotW}" y2="${zeroY}" stroke="#3b4a61" stroke-width="1.1" />`}
         <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + plotH}" stroke="#64748b" />
         <line x1="${margin.left}" y1="${margin.top + plotH}" x2="${margin.left + plotW}" y2="${margin.top + plotH}" stroke="#64748b" />
-        <text x="18" y="${margin.top + plotH / 2}" transform="rotate(-90 18 ${margin.top + plotH / 2})" text-anchor="middle" font-size="12" fill="#94a3b8">${showOil ? (selected.oil_display_unit === "index" ? "energy / commodity pressure" : "oil / commodity index") : showAsset ? "asset index" : showCredit ? "credit spread bps" : showDollar ? (selected.macro_scope === "regional" ? "currency / liquidity index" : "dollar / liquidity index") : (selected.display_gdp_unit === "index" ? "regional GDP index" : "GDP, trillion USD")}</text>
+        <text x="18" y="${margin.top + plotH / 2}" transform="rotate(-90 18 ${margin.top + plotH / 2})" text-anchor="middle" font-size="12" fill="#94a3b8">${showOil ? (selected.oil_display_unit === "index" ? "energy / commodity pressure" : "oil / commodity index") : showAsset ? "asset index" : showCredit ? "credit spread bps" : showDollar ? (selected.macro_scope === "regional" ? "currency / liquidity index" : "dollar funding conditions / liquidity index") : (selected.display_gdp_unit === "index" ? "regional GDP index" : "GDP, trillion USD")}</text>
         <text x="${width - 16}" y="${margin.top + plotH / 2}" transform="rotate(90 ${width - 16} ${margin.top + plotH / 2})" text-anchor="middle" font-size="12" fill="#94a3b8">${showCredit ? "bps" : showOil ? "USD / index" : showAsset || showDollar ? "index" : "growth / rates %"}</text>
         ${crisisBands}
         ${scenarioBand}

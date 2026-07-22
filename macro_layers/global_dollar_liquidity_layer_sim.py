@@ -40,19 +40,29 @@ YieldCurveParams = yield_curve_layer.YieldCurveParams
 simulate_yield_curve_for_policy_path = yield_curve_layer.simulate_yield_curve_for_policy_path
 
 
-DOLLAR_LIQUIDITY_PARAM_VERSION = "global-dollar-liquidity-layer-v0.1"
-DOLLAR_LIQUIDITY_INTERFACE_VERSION = "dollar-liquidity-feedback-interface-v0.1"
+DOLLAR_LIQUIDITY_PARAM_VERSION = "global-dollar-liquidity-layer-v0.3"
+DOLLAR_LIQUIDITY_INTERFACE_VERSION = "dollar-liquidity-feedback-interface-v0.2"
+DOLLAR_LIQUIDITY_BOUNDARY_VERSION = "dollar-liquidity-boundaries-v1"
 
 
 DOLLAR_LIQUIDITY_FIELDS = [
     "dollar_liquidity_param_version",
     "dollar_liquidity_interface_version",
+    "dollar_liquidity_boundary_version",
     "global_dollar_index",
+    "unclamped_dollar_target_index",
+    "dollar_floor_applied",
+    "dollar_cap_applied",
+    "dollar_consecutive_boundary_years",
     "dollar_yoy_change_pct",
     "dollar_momentum_index",
     "global_liquidity_index",
     "liquidity_impulse_index",
     "global_financial_conditions_index",
+    "unclamped_financial_conditions_target_index",
+    "financial_conditions_floor_applied",
+    "financial_conditions_cap_applied",
+    "financial_conditions_consecutive_boundary_years",
     "risk_appetite_index",
     "em_stress_index",
     "dollar_funding_stress_index",
@@ -87,8 +97,8 @@ class DollarLiquidityParams:
     dollar_policy_stance_beta: float = 2.15
     dollar_safe_haven_beta: float = 7.80
     dollar_stress_beta: float = 0.10
-    dollar_inversion_beta: float = 0.060
-    dollar_qe_beta: float = 0.045
+    dollar_inversion_beta: float = 0.0
+    dollar_qe_beta: float = 0.0
     dollar_yield_curve_impulse_beta: float = 4.25
     liquidity_qe_beta: float = 0.58
     liquidity_balance_sheet_beta: float = 0.36
@@ -106,6 +116,10 @@ class DollarLiquidityParams:
     risk_crisis_beta: float = 16.0
     risk_growth_beta: float = 2.60
     noise_scale: float = 0.85
+    min_dollar_index: float = 82.0
+    max_dollar_index: float = 124.0
+    min_financial_conditions_index: float = -4.0
+    max_financial_conditions_index: float = 4.0
     dollar_seed_offset: int = 9_500_117
 
 
@@ -125,12 +139,21 @@ class DollarLiquidityState:
 class DollarLiquidityRecord:
     dollar_liquidity_param_version: str
     dollar_liquidity_interface_version: str
+    dollar_liquidity_boundary_version: str
     global_dollar_index: float
+    unclamped_dollar_target_index: float
+    dollar_floor_applied: bool
+    dollar_cap_applied: bool
+    dollar_consecutive_boundary_years: int
     dollar_yoy_change_pct: float
     dollar_momentum_index: float
     global_liquidity_index: float
     liquidity_impulse_index: float
     global_financial_conditions_index: float
+    unclamped_financial_conditions_target_index: float
+    financial_conditions_floor_applied: bool
+    financial_conditions_cap_applied: bool
+    financial_conditions_consecutive_boundary_years: int
     risk_appetite_index: float
     em_stress_index: float
     dollar_funding_stress_index: float
@@ -146,6 +169,14 @@ class DollarLiquidityRecord:
 
 def smooth(old: float, target: float, speed: float) -> float:
     return old * (1.0 - speed) + target * speed
+
+
+def boundary_flags(value: float, floor: float, cap: float) -> tuple[bool, bool]:
+    return value < floor, value > cap
+
+
+def advance_boundary_run(previous: int, floor_applied: bool, cap_applied: bool) -> int:
+    return previous + 1 if floor_applied or cap_applied else 0
 
 
 def pct_change(current: float, previous: float) -> float:
@@ -211,6 +242,7 @@ def simulate_dollar_liquidity_for_yield_path(
         dollar_funding_stress_index=params.initial_em_stress_index,
     )
 
+    boundary_runs = {"dollar": 0, "financial_conditions": 0}
     combined: list[dict[str, Any]] = []
 
     for row in records:
@@ -246,7 +278,16 @@ def simulate_dollar_liquidity_for_yield_path(
             - 0.60 * max(0.0, gdp_growth - potential_growth)
             + rng.gauss(0.0, params.noise_scale)
         )
-        dollar_index = clamp(smooth(state.dollar_index, dollar_target, params.dollar_speed), 82.0, 124.0)
+        unclamped_dollar_next = smooth(state.dollar_index, dollar_target, params.dollar_speed)
+        dollar_floor_applied, dollar_cap_applied = boundary_flags(
+            unclamped_dollar_next, params.min_dollar_index, params.max_dollar_index
+        )
+        dollar_index = clamp(
+            unclamped_dollar_next, params.min_dollar_index, params.max_dollar_index
+        )
+        boundary_runs["dollar"] = advance_boundary_run(
+            boundary_runs["dollar"], dollar_floor_applied, dollar_cap_applied
+        )
         dollar_yoy = pct_change(dollar_index, state.dollar_index)
         dollar_momentum = clamp(dollar_yoy * 2.2 + (dollar_index - 100.0) * 0.22, -20.0, 20.0)
 
@@ -271,15 +312,27 @@ def simulate_dollar_liquidity_for_yield_path(
             + params.fci_policy_stance_beta * policy_stance
             + params.fci_stress_beta * max(0.0, stress - 35.0)
             + params.fci_inversion_beta * inversion_pressure
-            + 0.36 * yield_curve_credit_impulse
+            + 0.36 * max(0.0, yield_curve_credit_impulse)
             + 0.24 * max(0.0, ten_year_change)
             - params.fci_liquidity_ease_beta * (liquidity_index - 50.0)
-            - 0.018 * qe
+        )
+        unclamped_financial_conditions_next = smooth(
+            state.financial_conditions_index, fci_target, params.financial_conditions_speed
+        )
+        financial_conditions_floor_applied, financial_conditions_cap_applied = boundary_flags(
+            unclamped_financial_conditions_next,
+            params.min_financial_conditions_index,
+            params.max_financial_conditions_index,
         )
         financial_conditions = clamp(
-            smooth(state.financial_conditions_index, fci_target, params.financial_conditions_speed),
-            -4.0,
-            4.0,
+            unclamped_financial_conditions_next,
+            params.min_financial_conditions_index,
+            params.max_financial_conditions_index,
+        )
+        boundary_runs["financial_conditions"] = advance_boundary_run(
+            boundary_runs["financial_conditions"],
+            financial_conditions_floor_applied,
+            financial_conditions_cap_applied,
         )
 
         risk_target = (
@@ -383,12 +436,21 @@ def simulate_dollar_liquidity_for_yield_path(
         record = DollarLiquidityRecord(
             dollar_liquidity_param_version=DOLLAR_LIQUIDITY_PARAM_VERSION,
             dollar_liquidity_interface_version=DOLLAR_LIQUIDITY_INTERFACE_VERSION,
+            dollar_liquidity_boundary_version=DOLLAR_LIQUIDITY_BOUNDARY_VERSION,
             global_dollar_index=dollar_index,
+            unclamped_dollar_target_index=dollar_target,
+            dollar_floor_applied=dollar_floor_applied,
+            dollar_cap_applied=dollar_cap_applied,
+            dollar_consecutive_boundary_years=boundary_runs["dollar"],
             dollar_yoy_change_pct=dollar_yoy,
             dollar_momentum_index=dollar_momentum,
             global_liquidity_index=liquidity_index,
             liquidity_impulse_index=liquidity_impulse,
             global_financial_conditions_index=financial_conditions,
+            unclamped_financial_conditions_target_index=fci_target,
+            financial_conditions_floor_applied=financial_conditions_floor_applied,
+            financial_conditions_cap_applied=financial_conditions_cap_applied,
+            financial_conditions_consecutive_boundary_years=boundary_runs["financial_conditions"],
             risk_appetite_index=risk_appetite,
             em_stress_index=em_stress,
             dollar_funding_stress_index=funding_stress,

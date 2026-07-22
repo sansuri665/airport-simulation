@@ -90,17 +90,17 @@ def header_digest(fields: list[str]) -> str:
 class LongHorizonModelContractTests(unittest.TestCase):
     """Protect long-run structure and scenario semantics before deeper refactors."""
 
-    # Refreshed for Working Guide sub-Goal 3. GDP v0.5 changes the
-    # estimated-gap recovery and growth-step limiter, so the fixed-seed global
-    # path and rule-selected scenario trigger years change by design. Downstream
-    # formulas remain unchanged; their outputs inherit the new GDP path.
+    # Refreshed for Working Guide sub-Goal 4. The yield/dollar path changes by
+    # design while frozen Goal 3 GDP dynamics remain intact, so fixed-seed global
+    # and scenario semantic digests change deterministically. Downstream formulas
+    # remain unchanged; their outputs inherit the repaired funding path.
     EXPECTED_SEMANTIC_DIGESTS = {
-        "baseline": "ada16946be93d4edb18ab4d72e47c48b5339d80c2d94765fbcb319591c809e8d",
-        "occurred": "eea26a983a0399338343079339e1b1a87b24eef082c370d5de0c1da91fd1482d",
-        "probabilistic": "60eb4d78d3bd76cd0ed712e90588e3464023a0af68e52c4b252d9d8aa548834f",
+        "baseline": "7f8f2574c714c93b30601f2f966f8b466ca9b7df6ba2408eec52649e2272a561",
+        "occurred": "3a73f29cf1a4254cc23248b265fef59e23d46a26afee6a26b4d0f5380da3c21a",
+        "probabilistic": "af65eb22fc9c293e8697334efa9f0ce5bac3a1fc94ad9f8216b670b0af767ed3",
     }
     EXPECTED_HEADERS = {
-        "global": (245, "68b41ddebd28091a4b84e1735205224a6069c3563d301be9cfca02e18d01fbcb"),
+        "global": (280, "ed16f4b1577a5c96bf3ec91f0a27c0540da3e91fab6443efe6b787675b853604"),
         "reconciled": (97, "ae063d7f3b6e3e85a59b45450644f19121ce2c222b8c21c03f69830617de6d1f"),
         "city_beijing": (195, "256b25a80228eab581df0db695c5c94deee6bab54e03536c9238c7981c3e303b"),
         "operations_beijing": (261, "69db9b46ab78437b00a929cb8d3804de3d00a590a0f165c8f8472a51c3914358"),
@@ -156,23 +156,23 @@ class LongHorizonModelContractTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            ("false_dawn", 16, 2041),
+            ("false_dawn", 17, 2042),
             (
                 self.occurred_selection["risk"]["id"],
                 self.occurred_selection["trigger_index"],
                 self.occurred_selection["trigger_year"],
             ),
         )
-        self.assertEqual([17, 18, 19, 20, 21, 22, 23], sorted(self.occurred_path))
+        self.assertEqual([18, 19, 20, 21, 22, 23, 24], sorted(self.occurred_path))
         self.assertEqual(
-            [("false_dawn", 12, 2037)],
+            [("false_dawn", 13, 2038)],
             [
                 (event["risk"]["id"], event["trigger_index"], event["trigger_year"])
                 for event in self.probabilistic_events
             ],
         )
         self.assertEqual(
-            [13, 14, 15, 16, 17, 18, 19],
+            [14, 15, 16, 17, 18, 19, 20],
             sorted(self.probabilistic_path),
         )
         self.assertEqual(7, orchestrator.active_scenario_rows(self.occurred))

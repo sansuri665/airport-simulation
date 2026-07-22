@@ -5,8 +5,8 @@
   "type": "object",
   "required": ["schemaVersion", "chunkSchemaVersion", "chunkBase", "regions"],
   "properties": {
-    "schemaVersion": { "const": "airport-global-viewer-lazy-index-v1" },
-    "chunkSchemaVersion": { "const": "airport-global-viewer-region-chunk-v1" },
+    "schemaVersion": { "const": "airport-global-viewer-lazy-index-v2" },
+    "chunkSchemaVersion": { "const": "airport-global-viewer-region-chunk-v2" },
     "chunkBase": { "type": "string", "minLength": 1 },
     "baseUrl": { "type": "string", "minLength": 1 },
     "regions": {

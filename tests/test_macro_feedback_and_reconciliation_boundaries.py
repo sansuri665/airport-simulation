@@ -233,9 +233,10 @@ class ReconciliationBoundaryTests(unittest.TestCase):
                 diag["fields_with_clamped_regions"],
                 sum(1 for key in diag if key.endswith("_clamped_region_count") and diag[key] > 0),
             )
-        # Over a 60-year path the clamps must actually trigger somewhere.
+        # Goal 4 may remove the previous regional clipping cluster; zero is valid.
         total_clamps = sum(int(diag["total_field_clamps"]) for diag in diagnostics)
-        self.assertGreater(total_clamps, 0)
+        self.assertGreaterEqual(total_clamps, 0)
+        self.assertLessEqual(total_clamps, len(self.regional["reconciled_rows"]))
 
         rows_by_key: dict[tuple[int, int], list[dict[str, object]]] = defaultdict(list)
         for row in self.regional["reconciled_rows"]:

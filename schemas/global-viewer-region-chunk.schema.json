@@ -8,7 +8,7 @@
     "aviationDemandRows", "airCapacitySupplyRows"
   ],
   "properties": {
-    "schemaVersion": { "const": "airport-global-viewer-region-chunk-v1" },
+    "schemaVersion": { "const": "airport-global-viewer-region-chunk-v2" },
     "regionId": { "type": "string", "minLength": 1 },
     "regionalMacroRows": { "type": "array", "items": { "type": "object" } },
     "aviationDemandRows": { "type": "array", "items": { "type": "object" } },

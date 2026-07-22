@@ -36,13 +36,15 @@ PolicyRateParams = policy_rate_layer.PolicyRateParams
 simulate_policy_for_macro_path = policy_rate_layer.simulate_policy_for_macro_path
 
 
-YIELD_CURVE_PARAM_VERSION = "global-yield-curve-layer-v0.1"
-YIELD_CURVE_INTERFACE_VERSION = "yield-curve-feedback-interface-v0.1"
+YIELD_CURVE_PARAM_VERSION = "global-yield-curve-layer-v0.3"
+YIELD_CURVE_INTERFACE_VERSION = "yield-curve-feedback-interface-v0.2"
+YIELD_CURVE_BOUNDARY_VERSION = "yield-curve-boundaries-v1"
 
 
 YIELD_CURVE_FIELDS = [
     "yield_curve_param_version",
     "yield_curve_interface_version",
+    "yield_curve_boundary_version",
     "global_short_rate_pct",
     "global_2y_yield_pct",
     "global_10y_yield_pct",
@@ -50,6 +52,31 @@ YIELD_CURVE_FIELDS = [
     "term_spread_10y_2y_pct",
     "term_premium_pct",
     "expected_short_rate_10y_pct",
+    "expected_shadow_short_rate_10y_pct",
+    "unclamped_short_rate_target_pct",
+    "unclamped_expected_short_rate_10y_target_pct",
+    "unclamped_expected_shadow_short_rate_10y_target_pct",
+    "unclamped_2y_yield_target_pct",
+    "unclamped_10y_yield_target_pct",
+    "unclamped_term_premium_target_pct",
+    "short_rate_floor_applied",
+    "short_rate_cap_applied",
+    "expected_short_rate_floor_applied",
+    "expected_short_rate_cap_applied",
+    "shadow_short_rate_floor_applied",
+    "shadow_short_rate_cap_applied",
+    "yield_2y_floor_applied",
+    "yield_2y_cap_applied",
+    "yield_10y_floor_applied",
+    "yield_10y_cap_applied",
+    "term_premium_floor_applied",
+    "term_premium_cap_applied",
+    "short_rate_consecutive_boundary_years",
+    "expected_short_rate_consecutive_boundary_years",
+    "shadow_short_rate_consecutive_boundary_years",
+    "yield_2y_consecutive_boundary_years",
+    "yield_10y_consecutive_boundary_years",
+    "term_premium_consecutive_boundary_years",
     "bond_price_index",
     "bond_total_return_pct",
     "duration_pressure_index",
@@ -72,6 +99,7 @@ class YieldCurveParams:
     initial_10y_yield_pct: float = 4.05
     initial_term_premium_pct: float = 0.65
     initial_expected_short_rate_10y_pct: float = 3.35
+    initial_expected_shadow_short_rate_10y_pct: float = 3.35
     short_rate_policy_speed: float = 0.78
     expected_short_rate_speed: float = 0.24
     two_year_speed: float = 0.56
@@ -81,7 +109,7 @@ class YieldCurveParams:
     inflation_term_premium_beta: float = 0.17
     inflation_vol_term_premium_beta: float = 0.10
     stress_term_premium_beta: float = 0.018
-    qe_term_premium_beta: float = 0.020
+    qe_term_premium_beta: float = 0.014
     balance_sheet_term_premium_beta: float = 0.012
     policy_stance_term_premium_beta: float = 0.08
     inflation_expectation_long_rate_beta: float = 0.22
@@ -94,6 +122,20 @@ class YieldCurveParams:
     bond_duration_years: float = 7.4
     min_yield_pct: float = -0.35
     max_yield_pct: float = 10.50
+    min_observable_expected_short_rate_pct: float = 0.05
+    max_observable_expected_short_rate_pct: float = 10.50
+    min_shadow_expected_short_rate_pct: float = -0.75
+    max_shadow_expected_short_rate_pct: float = 10.50
+    min_term_premium_pct: float = -0.45
+    max_term_premium_pct: float = 2.80
+    shadow_expected_short_rate_speed: float = 0.30
+    shadow_qe_beta: float = 0.014
+    shadow_balance_sheet_beta: float = 0.004
+    two_year_shadow_weight: float = 0.18
+    ten_year_shadow_weight: float = 0.32
+    dollar_curve_inversion_beta: float = 0.30
+    dollar_curve_term_premium_change_beta: float = 0.18
+    dollar_curve_ten_year_change_beta: float = 0.10
     yield_seed_offset: int = 7_200_071
 
 
@@ -104,6 +146,7 @@ class YieldCurveState:
     ten_year_yield_pct: float = 4.05
     term_premium_pct: float = 0.65
     expected_short_rate_10y_pct: float = 3.35
+    expected_shadow_short_rate_10y_pct: float = 3.35
     bond_price_index: float = 100.0
     previous_ten_year_yield_pct: float = 4.05
     previous_term_spread_pct: float = 0.65
@@ -113,6 +156,7 @@ class YieldCurveState:
 class YieldCurveRecord:
     yield_curve_param_version: str
     yield_curve_interface_version: str
+    yield_curve_boundary_version: str
     global_short_rate_pct: float
     global_2y_yield_pct: float
     global_10y_yield_pct: float
@@ -120,6 +164,31 @@ class YieldCurveRecord:
     term_spread_10y_2y_pct: float
     term_premium_pct: float
     expected_short_rate_10y_pct: float
+    expected_shadow_short_rate_10y_pct: float
+    unclamped_short_rate_target_pct: float
+    unclamped_expected_short_rate_10y_target_pct: float
+    unclamped_expected_shadow_short_rate_10y_target_pct: float
+    unclamped_2y_yield_target_pct: float
+    unclamped_10y_yield_target_pct: float
+    unclamped_term_premium_target_pct: float
+    short_rate_floor_applied: bool
+    short_rate_cap_applied: bool
+    expected_short_rate_floor_applied: bool
+    expected_short_rate_cap_applied: bool
+    shadow_short_rate_floor_applied: bool
+    shadow_short_rate_cap_applied: bool
+    yield_2y_floor_applied: bool
+    yield_2y_cap_applied: bool
+    yield_10y_floor_applied: bool
+    yield_10y_cap_applied: bool
+    term_premium_floor_applied: bool
+    term_premium_cap_applied: bool
+    short_rate_consecutive_boundary_years: int
+    expected_short_rate_consecutive_boundary_years: int
+    shadow_short_rate_consecutive_boundary_years: int
+    yield_2y_consecutive_boundary_years: int
+    yield_10y_consecutive_boundary_years: int
+    term_premium_consecutive_boundary_years: int
     bond_price_index: float
     bond_total_return_pct: float
     duration_pressure_index: float
@@ -134,6 +203,14 @@ class YieldCurveRecord:
 
 def smooth(old: float, target: float, speed: float) -> float:
     return old * (1.0 - speed) + target * speed
+
+
+def boundary_flags(value: float, floor: float, cap: float) -> tuple[bool, bool]:
+    return value < floor, value > cap
+
+
+def advance_boundary_run(previous: int, floor_applied: bool, cap_applied: bool) -> int:
+    return previous + 1 if floor_applied or cap_applied else 0
 
 
 def compound_index_with_soft_drag(
@@ -204,8 +281,17 @@ def simulate_yield_curve_for_policy_path(
         previous_ten_year_yield_pct=params.initial_10y_yield_pct,
         term_premium_pct=params.initial_term_premium_pct,
         expected_short_rate_10y_pct=params.initial_expected_short_rate_10y_pct,
+        expected_shadow_short_rate_10y_pct=params.initial_expected_shadow_short_rate_10y_pct,
         previous_term_spread_pct=params.initial_10y_yield_pct - params.initial_2y_yield_pct,
     )
+    boundary_runs = {
+        "short_rate": 0,
+        "expected_short_rate": 0,
+        "shadow_short_rate": 0,
+        "yield_2y": 0,
+        "yield_10y": 0,
+        "term_premium": 0,
+    }
     combined: list[dict[str, Any]] = []
 
     for row in records:
@@ -227,11 +313,15 @@ def simulate_yield_curve_for_policy_path(
         cut_pressure = as_float(row, "rate_cut_pressure")
         inflation_long_impulse = as_float(row, "inflation_to_long_rate_impulse")
 
-        short_rate_target = policy_rate - 0.006 * qe + rng.gauss(0.0, params.market_noise_scale * 0.20)
+        short_rate_target = policy_rate + rng.gauss(0.0, params.market_noise_scale * 0.20)
+        unclamped_short_rate_next = smooth(
+            state.short_rate_pct, short_rate_target, params.short_rate_policy_speed
+        )
+        short_rate_floor_applied, short_rate_cap_applied = boundary_flags(
+            unclamped_short_rate_next, params.min_yield_pct, params.max_yield_pct
+        )
         short_rate = clamp(
-            smooth(state.short_rate_pct, short_rate_target, params.short_rate_policy_speed),
-            params.min_yield_pct,
-            params.max_yield_pct,
+            unclamped_short_rate_next, params.min_yield_pct, params.max_yield_pct
         )
 
         expected_short_target = (
@@ -241,13 +331,42 @@ def simulate_yield_curve_for_policy_path(
             + 0.012 * (hike_pressure - cut_pressure)
             + 0.15 * output_gap
             - 0.40 * crisis_intensity
-            - 0.010 * qe
         )
-        expected_short_target = clamp(expected_short_target, params.min_yield_pct, params.max_yield_pct)
+        expected_short_rate_floor_applied, expected_short_rate_cap_applied = boundary_flags(
+            expected_short_target,
+            params.min_observable_expected_short_rate_pct,
+            params.max_observable_expected_short_rate_pct,
+        )
+        bounded_expected_short_target = clamp(
+            expected_short_target,
+            params.min_observable_expected_short_rate_pct,
+            params.max_observable_expected_short_rate_pct,
+        )
         expected_short_rate_10y = smooth(
             state.expected_short_rate_10y_pct,
-            expected_short_target,
+            bounded_expected_short_target,
             params.expected_short_rate_speed,
+        )
+
+        expected_shadow_short_target = (
+            expected_short_rate_10y
+            - params.shadow_qe_beta * qe
+            - params.shadow_balance_sheet_beta * max(0.0, balance_sheet_impulse)
+        )
+        shadow_short_rate_floor_applied, shadow_short_rate_cap_applied = boundary_flags(
+            expected_shadow_short_target,
+            params.min_shadow_expected_short_rate_pct,
+            params.max_shadow_expected_short_rate_pct,
+        )
+        bounded_shadow_short_target = clamp(
+            expected_shadow_short_target,
+            params.min_shadow_expected_short_rate_pct,
+            params.max_shadow_expected_short_rate_pct,
+        )
+        expected_shadow_short_rate_10y = smooth(
+            state.expected_shadow_short_rate_10y_pct,
+            bounded_shadow_short_target,
+            params.shadow_expected_short_rate_speed,
         )
 
         term_premium_target = (
@@ -261,8 +380,15 @@ def simulate_yield_curve_for_policy_path(
             - 0.010 * max(0.0, balance_sheet_impulse)
             + rng.gauss(0.0, params.market_noise_scale)
         )
-        term_premium_target = clamp(term_premium_target, -0.45, 2.80)
-        term_premium = smooth(state.term_premium_pct, term_premium_target, params.term_premium_speed)
+        term_premium_floor_applied, term_premium_cap_applied = boundary_flags(
+            term_premium_target, params.min_term_premium_pct, params.max_term_premium_pct
+        )
+        bounded_term_premium_target = clamp(
+            term_premium_target, params.min_term_premium_pct, params.max_term_premium_pct
+        )
+        term_premium = smooth(
+            state.term_premium_pct, bounded_term_premium_target, params.term_premium_speed
+        )
 
         two_year_target = (
             0.62 * short_rate
@@ -271,14 +397,18 @@ def simulate_yield_curve_for_policy_path(
             + 0.20 * term_premium
             + 0.18 * policy_change
             + 0.006 * (hike_pressure - cut_pressure)
-            - 0.28 * crisis_intensity
-            - 0.006 * qe
+            + params.two_year_shadow_weight
+            * (expected_shadow_short_rate_10y - expected_short_rate_10y)
             + rng.gauss(0.0, params.two_year_noise_scale)
         )
+        unclamped_two_year_next = smooth(
+            state.two_year_yield_pct, two_year_target, params.two_year_speed
+        )
+        yield_2y_floor_applied, yield_2y_cap_applied = boundary_flags(
+            unclamped_two_year_next, params.min_yield_pct, params.max_yield_pct
+        )
         two_year_yield = clamp(
-            smooth(state.two_year_yield_pct, two_year_target, params.two_year_speed),
-            params.min_yield_pct,
-            params.max_yield_pct,
+            unclamped_two_year_next, params.min_yield_pct, params.max_yield_pct
         )
 
         ten_year_target = (
@@ -288,13 +418,43 @@ def simulate_yield_curve_for_policy_path(
             + params.inflation_long_rate_impulse_beta * inflation_long_impulse
             + params.potential_growth_long_rate_beta * (potential_growth - 2.0)
             - params.crisis_flight_to_quality_beta * crisis_intensity
-            - 0.006 * qe
+            + params.ten_year_shadow_weight
+            * (expected_shadow_short_rate_10y - expected_short_rate_10y)
             + rng.gauss(0.0, params.ten_year_noise_scale)
         )
+        unclamped_ten_year_next = smooth(
+            state.ten_year_yield_pct, ten_year_target, params.ten_year_speed
+        )
+        yield_10y_floor_applied, yield_10y_cap_applied = boundary_flags(
+            unclamped_ten_year_next, params.min_yield_pct, params.max_yield_pct
+        )
         ten_year_yield = clamp(
-            smooth(state.ten_year_yield_pct, ten_year_target, params.ten_year_speed),
-            params.min_yield_pct,
-            params.max_yield_pct,
+            unclamped_ten_year_next, params.min_yield_pct, params.max_yield_pct
+        )
+
+        boundary_runs["short_rate"] = advance_boundary_run(
+            boundary_runs["short_rate"], short_rate_floor_applied, short_rate_cap_applied
+        )
+        boundary_runs["expected_short_rate"] = advance_boundary_run(
+            boundary_runs["expected_short_rate"],
+            expected_short_rate_floor_applied,
+            expected_short_rate_cap_applied,
+        )
+        boundary_runs["shadow_short_rate"] = advance_boundary_run(
+            boundary_runs["shadow_short_rate"],
+            shadow_short_rate_floor_applied,
+            shadow_short_rate_cap_applied,
+        )
+        boundary_runs["yield_2y"] = advance_boundary_run(
+            boundary_runs["yield_2y"], yield_2y_floor_applied, yield_2y_cap_applied
+        )
+        boundary_runs["yield_10y"] = advance_boundary_run(
+            boundary_runs["yield_10y"], yield_10y_floor_applied, yield_10y_cap_applied
+        )
+        boundary_runs["term_premium"] = advance_boundary_run(
+            boundary_runs["term_premium"],
+            term_premium_floor_applied,
+            term_premium_cap_applied,
         )
 
         ten_year_change = ten_year_yield - state.ten_year_yield_pct
@@ -340,8 +500,12 @@ def simulate_yield_curve_for_policy_path(
             headline_inflation=headline,
         )
 
+        # Curve-only signal: real rates and policy stance are consumed directly by
+        # the dollar layer, so repeating them here would double count the same stance.
         dollar_impulse = clamp(
-            0.22 * real_10y + 0.18 * policy_stance + 0.25 * max(0.0, -term_spread) - 0.012 * qe,
+            params.dollar_curve_inversion_beta * max(0.0, -term_spread)
+            + params.dollar_curve_term_premium_change_beta * term_premium_change
+            + params.dollar_curve_ten_year_change_beta * ten_year_change,
             -2.0,
             2.0,
         )
@@ -374,6 +538,7 @@ def simulate_yield_curve_for_policy_path(
         record = YieldCurveRecord(
             yield_curve_param_version=YIELD_CURVE_PARAM_VERSION,
             yield_curve_interface_version=YIELD_CURVE_INTERFACE_VERSION,
+            yield_curve_boundary_version=YIELD_CURVE_BOUNDARY_VERSION,
             global_short_rate_pct=short_rate,
             global_2y_yield_pct=two_year_yield,
             global_10y_yield_pct=ten_year_yield,
@@ -381,6 +546,31 @@ def simulate_yield_curve_for_policy_path(
             term_spread_10y_2y_pct=term_spread,
             term_premium_pct=term_premium,
             expected_short_rate_10y_pct=expected_short_rate_10y,
+            expected_shadow_short_rate_10y_pct=expected_shadow_short_rate_10y,
+            unclamped_short_rate_target_pct=short_rate_target,
+            unclamped_expected_short_rate_10y_target_pct=expected_short_target,
+            unclamped_expected_shadow_short_rate_10y_target_pct=expected_shadow_short_target,
+            unclamped_2y_yield_target_pct=two_year_target,
+            unclamped_10y_yield_target_pct=ten_year_target,
+            unclamped_term_premium_target_pct=term_premium_target,
+            short_rate_floor_applied=short_rate_floor_applied,
+            short_rate_cap_applied=short_rate_cap_applied,
+            expected_short_rate_floor_applied=expected_short_rate_floor_applied,
+            expected_short_rate_cap_applied=expected_short_rate_cap_applied,
+            shadow_short_rate_floor_applied=shadow_short_rate_floor_applied,
+            shadow_short_rate_cap_applied=shadow_short_rate_cap_applied,
+            yield_2y_floor_applied=yield_2y_floor_applied,
+            yield_2y_cap_applied=yield_2y_cap_applied,
+            yield_10y_floor_applied=yield_10y_floor_applied,
+            yield_10y_cap_applied=yield_10y_cap_applied,
+            term_premium_floor_applied=term_premium_floor_applied,
+            term_premium_cap_applied=term_premium_cap_applied,
+            short_rate_consecutive_boundary_years=boundary_runs["short_rate"],
+            expected_short_rate_consecutive_boundary_years=boundary_runs["expected_short_rate"],
+            shadow_short_rate_consecutive_boundary_years=boundary_runs["shadow_short_rate"],
+            yield_2y_consecutive_boundary_years=boundary_runs["yield_2y"],
+            yield_10y_consecutive_boundary_years=boundary_runs["yield_10y"],
+            term_premium_consecutive_boundary_years=boundary_runs["term_premium"],
             bond_price_index=bond_price_index,
             bond_total_return_pct=bond_total_return,
             duration_pressure_index=duration_pressure,
@@ -399,6 +589,7 @@ def simulate_yield_curve_for_policy_path(
         state.ten_year_yield_pct = ten_year_yield
         state.term_premium_pct = term_premium
         state.expected_short_rate_10y_pct = expected_short_rate_10y
+        state.expected_shadow_short_rate_10y_pct = expected_shadow_short_rate_10y
         state.bond_price_index = bond_price_index
         state.previous_term_spread_pct = term_spread
 

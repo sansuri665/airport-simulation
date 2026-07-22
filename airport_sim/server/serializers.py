@@ -13,8 +13,8 @@ from .validation import as_float
 CITY_COMPONENTS = ("business", "leisure", "vfr", "long_haul", "transfer")
 CITY_MARKET_VIEWER_LAZY_INDEX_VERSION = "airport-city-market-viewer-lazy-index-v2"
 CITY_MARKET_VIEWER_CHUNK_VERSION = "airport-city-market-viewer-chunk-v2"
-GLOBAL_VIEWER_LAZY_INDEX_VERSION = "airport-global-viewer-lazy-index-v1"
-GLOBAL_VIEWER_REGION_CHUNK_VERSION = "airport-global-viewer-region-chunk-v1"
+GLOBAL_VIEWER_LAZY_INDEX_VERSION = "airport-global-viewer-lazy-index-v2"
+GLOBAL_VIEWER_REGION_CHUNK_VERSION = "airport-global-viewer-region-chunk-v2"
 GLOBAL_VIEWER_OPTIONAL_SCENARIO_FIELDS = frozenset(
     {
         "scenario_credit_stress_impulse",

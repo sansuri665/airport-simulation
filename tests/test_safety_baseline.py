@@ -58,38 +58,39 @@ def raw_rows_digest(rows: list[dict[str, object]]) -> str:
 class FixedSeedCharacterizationTests(unittest.TestCase):
     """Protect the current numerical model before structural refactoring."""
 
-    # Goal 3 intentionally changes the global GDP path; downstream fixtures
-    # inherit those deterministic changes without changing internal formulas.
+    # Goal 4 intentionally repairs the yield-curve and dollar-funding path.
+    # Downstream fixtures inherit those deterministic changes without changing
+    # credit, asset, oil, aviation, operations, finance, valuation, or loan formulas.
     EXPECTED = {
-        'global': (13, '7b178d235efe4453c76a1447262e810cba39dbc831dd0bfb69eb9a8cad42c632'),
-        'reconciled': (182, '7c46902d44629e954178096ba360fa94e44997fd7603031a22eec6239222e626'),
-        'aviation_china': (13, '0a93a4239b6e6971ca12535a05fb0eab4aed730651bc4bce2ae06c046a3adc09'),
-        'supply_china': (13, 'e501a7b8a71f0c7733375515a28180fdfc7ffe6928f07abc0f5da816ddf578fd'),
-        'city_beijing': (13, '42e80ba9a787e365736ce2cc780c387d22a70d325766cf6841b741e9f9e29abf'),
-        'forecast_beijing': (361, 'ad45d03ff66bccd84d07efbd946db5ef225563cda8042b52390613b8d625a667'),
-        'operations_beijing': (52, 'efd4a59eb9d91828a1f1f037f120f7963e33ff463957422e9095c07b0a670716'),
-        'finance_beijing': (52, '96fdb4cdb5c489f05b534492b9ee94d7e758990480e8a219a30d62fc7a850465'),
-        'valuation_beijing': (32, '4f325b7c8a530bb2b002aa52ca3c5df79c6416392b903ae91a64fab7856e82c1'),
+        'global': (13, 'b17bb8c5e68e89bcc37dcbe20ae169abc14fb3b4966682773503f3dcfb2d06af'),
+        'reconciled': (182, 'e1810087bfb9cdee720c9fb1728d51e87610e7961e8308095c4c4ac18a7f1928'),
+        'aviation_china': (13, 'd256352f8e84b33c6971ef9fd3ce5f7223b0db4f3f3dcea3ef2c8db9e255b06d'),
+        'supply_china': (13, '3696439c7b6abf52cf8b32c1d40f6ebd4939ecb3e6896cfd5313cd912b34c5f1'),
+        'city_beijing': (13, '0436efa481bab85dcad097e8b343e84d49cb8b1eb6565a7d2c916f2eed1a79ed'),
+        'forecast_beijing': (361, '7ebaffaa00a314811d4a8d9891b65ba5b64a762a64feca2cf6ab7e7e40238161'),
+        'operations_beijing': (52, '51098ab10b65a2185bb5331a0bbc69b34d7d4f8becfa48b1d7223f0820067149'),
+        'finance_beijing': (52, 'bd2c093541ae3a5ed795033ea43d9d6ac122cf5c86a8a85bcf7acb51f3dc83d1'),
+        'valuation_beijing': (32, '86f7431d0c17598cd7204c83462e3031457ca9f9b6225cff868f57156999409d'),
     }
     CANONICAL_PYTHON_313_EXPECTED = {
-        'global': (13, '3e16e100c695b5f743f478c8b8b2990e56953e71e9f9c181bb797b0feacf7b49'),
-        'reconciled': (182, 'facfb6e9cdb40a73a094c0a338a906e6b07043187242721b14323b1248fc35a4'),
-        'aviation_china': (13, '216498d9af657ab3edf53bd3b0c370777a2890b8d926e94980c964f49708e7ed'),
-        'supply_china': (13, '1fdad2c40187f633b228d88cdea4340add67602757a7c7505915ef62939ae3b0'),
-        'city_beijing': (13, '278cb6e6ccf27ff868d5c2baa8d55787fd76e60fa31458a805ef1559ff52d9c9'),
-        'forecast_beijing': (361, 'ad45d03ff66bccd84d07efbd946db5ef225563cda8042b52390613b8d625a667'),
-        'operations_beijing': (52, 'efd4a59eb9d91828a1f1f037f120f7963e33ff463957422e9095c07b0a670716'),
-        'finance_beijing': (52, '7dfadb23f5f4c4220f8a25d271cd9240086abc364575b0b5a8b8d9e29e08cd5f'),
-        'valuation_beijing': (32, '4f325b7c8a530bb2b002aa52ca3c5df79c6416392b903ae91a64fab7856e82c1'),
+        'global': (13, 'aaf625e5344dc3a4c9252fd4d5323ca000dfb556145fd14e2e4e73826807a9e1'),
+        'reconciled': (182, '3a9c27179f68e283829e6aa89b183d713d60619dc5eaf5747617eb63227e212b'),
+        'aviation_china': (13, 'b96d10ca8f21428594f3adab8b92f97b4c36d1f4e29e197b4018b9ae9b084c7a'),
+        'supply_china': (13, '69852dc3eb75fe8d1f8030fd564c36eaae84376a3baf191b6cdd44cb6d7bb432'),
+        'city_beijing': (13, 'a5268d12ba821b331416f95130fae47ac11160e15624f95eca936e0a935427a5'),
+        'forecast_beijing': (361, '7ebaffaa00a314811d4a8d9891b65ba5b64a762a64feca2cf6ab7e7e40238161'),
+        'operations_beijing': (52, '51098ab10b65a2185bb5331a0bbc69b34d7d4f8becfa48b1d7223f0820067149'),
+        'finance_beijing': (52, 'd53cac4e80ccc3b783e21f9b672f73edd393af0cf998aadecf368b2b8d539ffb'),
+        'valuation_beijing': (32, '86f7431d0c17598cd7204c83462e3031457ca9f9b6225cff868f57156999409d'),
     }
 
-    # The Goal 3 path can land exactly on zero in a small forecast diagnostic.
+    # The Goal 4 path can land exactly on zero in a small forecast diagnostic.
     # Hash-seed ordering changes only the sign bit of those zeroes; the normalized
     # digest remains invariant and is still enforced by EXPECTED above.
     CANONICAL_PYTHON_313_SIGNED_ZERO_VARIANTS = {
         "forecast_beijing": {
-            "ad45d03ff66bccd84d07efbd946db5ef225563cda8042b52390613b8d625a667",
-            "496421bf5188da6c60c0d0a8117e8c3addf2564d6d3044770900f146fd1630a2",
+            "7ebaffaa00a314811d4a8d9891b65ba5b64a762a64feca2cf6ab7e7e40238161",
+            "356787e4f9141df8be81dcaf87b06ccddbcbcd13d31d2aff0707b8dfafb52778",
         }
     }
 
