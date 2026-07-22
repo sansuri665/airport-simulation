@@ -210,8 +210,12 @@ class DownstreamGapSemanticsTests(unittest.TestCase):
                 )
 
     def test_viewer_labels_distinguish_estimated_and_strict_gaps(self) -> None:
-        renderer = (ROOT_DIR / "web/static/js/global-gdp/renderers.js").read_text()
-        client = (ROOT_DIR / "web/static/js/global-gdp/data-client.js").read_text()
+        renderer = (ROOT_DIR / "web/static/js/global-gdp/renderers.js").read_text(
+            encoding="utf-8"
+        )
+        client = (ROOT_DIR / "web/static/js/global-gdp/data-client.js").read_text(
+            encoding="utf-8"
+        )
         self.assertIn("模型估计周期缺口", renderer)
         self.assertIn("严格 GDP 水平缺口", renderer)
         self.assertIn("output_gap_measurement_residual_pct", renderer)
