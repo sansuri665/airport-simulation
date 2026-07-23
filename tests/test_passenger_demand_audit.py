@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -427,10 +428,13 @@ class PassengerDemandAuditSuccessTests(unittest.TestCase):
             base = Path(temporary)
             input_root = _make_input(base / "样例")
             before = sorted(path.relative_to(input_root) for path in input_root.rglob("*"))
+            process_environment = dict(os.environ)
+            process_environment["PYTHONIOENCODING"] = "cp1252"
             stdout_run = subprocess.run(
                 [sys.executable, str(AUDIT_SCRIPT), "--input-root", str(input_root)],
                 check=True,
                 capture_output=True,
+                env=process_environment,
             )
             after = sorted(path.relative_to(input_root) for path in input_root.rglob("*"))
             self.assertEqual(before, after)

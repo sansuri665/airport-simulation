@@ -2018,6 +2018,16 @@ def _json_text(document: Mapping[str, Any]) -> str:
     return json.dumps(document, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
 
 
+def _write_utf8_stdout(text: str) -> None:
+    """Write the JSON protocol as UTF-8 regardless of the host console code page."""
+
+    binary_stdout = getattr(sys.stdout, "buffer", None)
+    if binary_stdout is None:
+        sys.stdout.write(text)
+        return
+    binary_stdout.write(text.encode("utf-8"))
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Audit passenger-demand CSV outputs without modifying the model."
@@ -2035,7 +2045,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         result = audit_passenger_demand(args.input_root, config_root=args.config_root)
         text = _json_text(result)
         if args.json_output is None:
-            sys.stdout.write(text)
+            _write_utf8_stdout(text)
         else:
             parent = args.json_output.parent
             if not parent.is_dir():
