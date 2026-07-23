@@ -120,8 +120,17 @@
       ],
       "properties": {
         "baseline_year": { "type": "integer", "minimum": 1900 },
-        "baseline_region_demand_share_pct": { "type": "number", "minimum": 0, "maximum": 100 },
-        "baseline_city_potential_passengers_million": { "type": "number", "minimum": 0 },
+        "baseline_region_demand_share_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Diagnostic ratio between the city's baseline potential volume and the regional reference quantity. It is not an allocation share and does not sum to 100 across cities."
+        },
+        "baseline_city_potential_passengers_million": {
+          "type": "number",
+          "minimum": 0,
+          "description": "City-local baseline potential market volume in million passenger-equivalent units; it is not allocated from the regional reference quantity."
+        },
         "annual_long_term_city_growth_bias_pct": { "type": "number" },
         "max_long_term_city_growth_bias_pct": { "type": "number" },
         "target_long_term_potential_range_million": {

@@ -490,11 +490,21 @@ class AirlineSupplyDynamicsProfileTests(unittest.TestCase):
         self.assertGreaterEqual(statistics.median(oversupply_run_lengths), 1.0)
         self.assertLessEqual(statistics.median(oversupply_run_lengths), 3.0)
         self.assertLessEqual(percentile(oversupply_run_lengths, 90.0), 7.0)
-        self.assertGreater(
-            sum(2 <= length <= 4 for length in significant_oversupply_run_lengths)
+        # G4 removes the old fractional fixed-point shortfall. That makes a
+        # larger share of significant oversupply episodes one-year crossings,
+        # so the old 35% episode-share target is no longer an economic contract.
+        # Keep both a normalized floor and an absolute coverage floor so this
+        # remains meaningful if the city sample is expanded later.
+        multi_year_significant_runs = [
+            length for length in significant_oversupply_run_lengths if length >= 2
+        ]
+        self.assertGreaterEqual(len(multi_year_significant_runs), 40)
+        self.assertGreaterEqual(
+            len(multi_year_significant_runs)
             / len(significant_oversupply_run_lengths),
-            0.35,
+            0.20,
         )
+        self.assertTrue({2, 3, 4}.issubset(set(multi_year_significant_runs)))
         self.assertLessEqual(
             percentile(significant_oversupply_run_lengths, 95.0),
             4.0,

@@ -81,7 +81,7 @@ output/seed_explorer_runs/<seed_and_years>/
 
 指纹字节顺序继续是缓存协议版本、Python 实现、完整 `sys.version`、平台，再按稳定相对路径顺序加入每个服务/模型脚本和配置文件的路径与内容；每段以 NUL 分隔。它不依赖文件时间或大小，也没有因模块拆分改成另一种算法。
 
-依赖清单自动包含全部 `airport_sim/server/*.py`，所以只读的 `forecast_candidates.py`、`forecast_viewer.py` 与工作区服务也会进入既有 Run 缓存指纹；没有为候选报告或三个 Viewer 的缓存适配新增第二种缓存、Release、Manifest 或磁盘分块。
+依赖清单自动包含全部 `airport_sim/server/*.py`、`macro_layers/*.py` 和 `config/**/*.json`，所以服务拆分、模型公式和配置变化都会让旧缓存失效；只读的 `forecast_candidates.py`、`forecast_viewer.py` 与工作区服务也进入既有 Run 缓存指纹。系统没有为候选报告或三个 Viewer 的缓存适配新增第二种缓存、Release、Manifest 或磁盘分块。
 
 `seed_workspace.py` 同样按既有规则进入指纹。因此首次接入统一工作区后，旧 Seed 缓存目录可能被标为过期；目录和对应玩家存档不会被这次状态判断删除，下一次明确请求同一 Seed 运行时才会按当前代码安全重建。
 

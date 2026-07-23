@@ -21,7 +21,7 @@ from statistics import mean, pstdev
 from typing import Any, Iterable
 
 
-AVIATION_DEMAND_PARAM_VERSION = "regional-aviation-demand-layer-v0.2"
+AVIATION_DEMAND_PARAM_VERSION = "regional-aviation-demand-layer-v0.3"
 AVIATION_DEMAND_INTERFACE_VERSION = "regional-aviation-demand-interface-v0.2"
 
 
@@ -122,7 +122,6 @@ class RegionalAviationDemandParams:
     luxury_retail_affinity: float
     electronics_retail_affinity: float
     premium_business_pass_through: float = 1.0
-    demand_growth_persistence: float = 0.55
     demand_adjustment_speed: float = 0.45
 
 
@@ -564,23 +563,13 @@ def load_region_inputs(
 
 
 def weighted_index(values: dict[str, float], params: RegionalAviationDemandParams) -> float:
-    return (
-        values["business"] * params.business_travel_weight
-        + values["leisure"] * params.leisure_travel_weight
-        + values["vfr"] * params.vfr_travel_weight
-        + values["long_haul"] * params.long_haul_weight
-        + values["transfer"] * params.transfer_hub_weight
-    )
+    weights = component_weights(params)
+    return sum(values[key] * weights[key] for key in weights)
 
 
 def component_shares(values: dict[str, float], params: RegionalAviationDemandParams) -> dict[str, float]:
-    weighted = {
-        "business": values["business"] * params.business_travel_weight,
-        "leisure": values["leisure"] * params.leisure_travel_weight,
-        "vfr": values["vfr"] * params.vfr_travel_weight,
-        "long_haul": values["long_haul"] * params.long_haul_weight,
-        "transfer": values["transfer"] * params.transfer_hub_weight,
-    }
+    weights = component_weights(params)
+    weighted = {key: values[key] * weights[key] for key in weights}
     total = max(1e-9, sum(weighted.values()))
     return {key: value / total * 100.0 for key, value in weighted.items()}
 
@@ -680,139 +669,284 @@ def airport_event_hint(row: dict[str, Any], metrics: dict[str, float]) -> tuple[
     return "macro_branch_air_demand_shift", pressure, -0.006 * pressure
 
 
-def raw_component_growth(
+def component_weights(params: RegionalAviationDemandParams) -> dict[str, float]:
+    """Return normalized baseline mix weights used by totals and centering."""
+    raw = {
+        "business": params.business_travel_weight,
+        "leisure": params.leisure_travel_weight,
+        "vfr": params.vfr_travel_weight,
+        "long_haul": params.long_haul_weight,
+        "transfer": params.transfer_hub_weight,
+    }
+    total = sum(raw.values())
+    if total <= 0.0:
+        raise ValueError("regional aviation demand weights must sum to a positive value")
+    return {key: value / total for key, value in raw.items()}
+
+
+def weighted_component_average(values: dict[str, float], params: RegionalAviationDemandParams) -> float:
+    weights = component_weights(params)
+    return sum(values[key] * weights[key] for key in weights)
+
+
+def fare_demand_effects(
+    price_index: float,
+    params: RegionalAviationDemandParams,
+) -> dict[str, float]:
+    """Map the displayed fare elasticities into component growth effects.
+
+    ``price_index`` is compared with the region's configured neutral sensitivity
+    base. Only an adverse gap is treated as a fare shock; benign income/confidence
+    relief does not create an automatic structural bonus.
+    """
+    elasticities = fare_elasticities(price_index, params)
+    adverse_fare_gap = max(0.0, price_index - params.price_sensitivity_base) / 10.0
+    return {
+        key: -0.72 * elasticities[key] * adverse_fare_gap
+        for key in ("business", "leisure", "vfr", "long_haul", "transfer")
+    }
+
+
+def branch_component_effects(metrics: dict[str, float]) -> dict[str, float]:
+    return {
+        "business": (
+            0.42 * metrics["branch_growth"]
+            + 0.07 * metrics["branch_confidence"]
+            + 0.05 * metrics["branch_asset"]
+            - 0.010 * max(0.0, metrics["branch_credit"])
+            - 0.020 * metrics["branch_tail"]
+        ),
+        "leisure": (
+            0.28 * metrics["branch_growth"]
+            + 0.05 * metrics["branch_confidence"]
+            - 0.070 * max(0.0, metrics["branch_energy"])
+            - 0.050 * max(0.0, metrics["branch_fx"])
+            - 0.010 * metrics["branch_stress"]
+        ),
+        "vfr": (
+            0.12 * metrics["branch_growth"]
+            + 0.02 * metrics["branch_confidence"]
+            - 0.004 * metrics["branch_stress"]
+        ),
+        "long_haul": (
+            0.25 * metrics["branch_growth"]
+            + 0.04 * metrics["branch_asset"]
+            - 0.060 * max(0.0, metrics["branch_energy"])
+            - 0.060 * max(0.0, metrics["branch_fx"])
+            - 0.008 * metrics["branch_stress"]
+        ),
+        "transfer": (
+            0.18 * metrics["branch_growth"]
+            - 0.030 * max(0.0, metrics["branch_energy"])
+            - 0.035 * max(0.0, metrics["branch_fx"])
+            - 0.004 * metrics["branch_credit"]
+        ),
+    }
+
+
+def event_component_effects(event_impulse: float) -> dict[str, float]:
+    return {
+        "business": event_impulse * 0.35,
+        "leisure": event_impulse * 0.40,
+        "vfr": event_impulse * 0.15,
+        "long_haul": event_impulse * 0.45,
+        "transfer": event_impulse * 0.25,
+    }
+
+
+def common_total_growth(
+    metrics: dict[str, float],
+    params: RegionalAviationDemandParams,
+    price_index: float,
+    event_impulse: float,
+    previous_metrics: dict[str, float] | None = None,
+) -> float:
+    """Common regional demand target before component reallocation.
+
+    Potential growth supplies the structural trend. ``growth_surprise`` is the
+    only channel for actual growth relative to potential, avoiding a second full
+    copy of observed GDP growth. Fare, branch, and event shocks enter at their
+    baseline-weighted average so their aggregate effect is explicit exactly once.
+    """
+    growth_surprise = metrics["growth"] - metrics["potential"]
+    confidence_gap = metrics["confidence"] - 50.0
+    stress_pressure = max(0.0, metrics["stress"] - 38.0)
+    hy_pressure = max(0.0, metrics["hy"] - 500.0) / 100.0
+    # Deep local markets cushion the *change* in severe credit pressure. The
+    # impulse is positive while stress is building and reverses as it clears,
+    # avoiding a permanent level bonus that would compound into long-run drift.
+    severe_credit_pressure = max(0.0, hy_pressure - 0.8)
+    previous_hy_pressure = (
+        hy_pressure
+        if previous_metrics is None
+        else max(0.0, previous_metrics["hy"] - 500.0) / 100.0
+    )
+    previous_severe_credit_pressure = max(0.0, previous_hy_pressure - 0.8)
+    severe_credit_change = severe_credit_pressure - previous_severe_credit_pressure
+    wealth_gap = (metrics["wealth"] - 50.0) / 10.0
+    credit_gap = (metrics["credit_availability"] - 55.0) / 10.0
+    demand_multiplier_gap = (metrics["seed_demand_multiplier"] - 1.0) * 100.0
+
+    fare_effect = weighted_component_average(fare_demand_effects(price_index, params), params)
+    branch_effect = weighted_component_average(branch_component_effects(metrics), params)
+    event_effect = weighted_component_average(event_component_effects(event_impulse), params)
+
+    return clamp(
+        0.63 * metrics["potential"]
+        + 0.44 * growth_surprise
+        + 0.32 * metrics["income_growth"] * params.income_sensitivity
+        + 0.016 * confidence_gap
+        + 0.035 * metrics["equity_return"]
+        + 0.055 * wealth_gap
+        + 0.045 * credit_gap
+        + 0.020 * metrics["seed_growth_bias"]
+        + 0.030 * metrics["seed_aviation_bias"]
+        + 0.012 * demand_multiplier_gap
+        - 0.030 * stress_pressure
+        - 0.230 * hy_pressure
+        + 2.50 * params.domestic_market_depth * severe_credit_change
+        + fare_effect
+        + branch_effect
+        + event_effect,
+        -8.0,
+        10.0,
+    )
+
+
+def raw_relative_component_adjustments(
     metrics: dict[str, float],
     params: RegionalAviationDemandParams,
     price_index: float,
     event_impulse: float,
 ) -> dict[str, float]:
-    growth_surprise = metrics["growth"] - metrics["potential"]
+    """Return uncentered component-specific preferences and exposures."""
     confidence_gap = metrics["confidence"] - 50.0
     stress_pressure = max(0.0, metrics["stress"] - 38.0)
     hy_pressure = max(0.0, metrics["hy"] - 500.0) / 100.0
     energy_gap = max(0.0, metrics["energy"] - 50.0)
     currency_gap = max(0.0, metrics["currency_pressure"] - 35.0)
-    price_gap = max(0.0, price_index - 45.0)
+    geopolitical_gap = (metrics["geopolitical"] - 25.0) / 10.0
     wealth_gap = (metrics["wealth"] - 50.0) / 10.0
-    aviation_seed = metrics["seed_aviation_bias"]
-    investment_seed = metrics["seed_investment_bias"]
-    openness_seed = metrics["seed_openness_bias"]
-    demand_multiplier_gap = (metrics["seed_demand_multiplier"] - 1.0) * 100.0
+    risk_appetite_gap = (metrics["risk_appetite"] - 50.0) / 10.0
+    credit_stress = hy_pressure + 0.05 * stress_pressure + 0.04 * currency_gap
+    consumer_signal = (
+        0.55 * metrics["income_growth"] * params.income_sensitivity
+        + 0.020 * confidence_gap
+        - 0.045 * energy_gap
+        - 0.20 * max(0.0, price_index - params.price_sensitivity_base) / 10.0
+    )
+    international_signal = (
+        0.05 * metrics["seed_openness_bias"]
+        + 0.12 * risk_appetite_gap
+        - 0.11 * currency_gap
+        - 0.24 * geopolitical_gap
+        - 0.025 * energy_gap
+    )
 
-    branch_business = (
-        0.42 * metrics["branch_growth"]
-        + 0.07 * metrics["branch_confidence"]
-        + 0.05 * metrics["branch_asset"]
-        - 0.010 * max(0.0, metrics["branch_credit"])
-        - 0.020 * metrics["branch_tail"]
-    )
-    branch_leisure = (
-        0.28 * metrics["branch_growth"]
-        + 0.05 * metrics["branch_confidence"]
-        - 0.070 * max(0.0, metrics["branch_energy"])
-        - 0.050 * max(0.0, metrics["branch_fx"])
-        - 0.010 * metrics["branch_stress"]
-    )
-    branch_vfr = 0.12 * metrics["branch_growth"] + 0.02 * metrics["branch_confidence"] - 0.004 * metrics["branch_stress"]
-    branch_long_haul = (
-        0.25 * metrics["branch_growth"]
-        + 0.04 * metrics["branch_asset"]
-        - 0.060 * max(0.0, metrics["branch_energy"])
-        - 0.060 * max(0.0, metrics["branch_fx"])
-        - 0.008 * metrics["branch_stress"]
-    )
-    branch_transfer = (
-        0.18 * metrics["branch_growth"]
-        - 0.030 * max(0.0, metrics["branch_energy"])
-        - 0.035 * max(0.0, metrics["branch_fx"])
-        - 0.004 * metrics["branch_credit"]
-    )
+    fare_effects = fare_demand_effects(price_index, params)
+    branch_effects = branch_component_effects(metrics)
+    event_effects = event_component_effects(event_impulse)
+    transfer_hub_cycle = 0.35 * (params.transfer_hub_weight - 0.08) * metrics["seed_openness_bias"]
 
     return {
-        "business": clamp(
-            1.10
-            + 0.70 * metrics["growth"]
-            + 0.24 * metrics["income_growth"] * params.income_sensitivity
-            + 0.05 * confidence_gap
-            + 0.10 * metrics["equity_return"]
-            + 0.16 * wealth_gap
-            + 0.045 * investment_seed
-            + 0.030 * aviation_seed
-            + 0.018 * demand_multiplier_gap
-            - 0.060 * stress_pressure
-            - 0.45 * hy_pressure
-            + branch_business
-            + event_impulse * 0.35,
-            -9.0,
-            10.5,
+        "business": (
+            0.070 * metrics["equity_return"]
+            + 0.13 * wealth_gap
+            + 0.040 * metrics["seed_investment_bias"]
+            - 0.15 * hy_pressure
+            + fare_effects["business"]
+            + branch_effects["business"]
+            + event_effects["business"]
         ),
-        "leisure": clamp(
-            1.35
-            + 0.42 * metrics["growth"]
-            + 0.72 * metrics["income_growth"] * params.income_sensitivity
-            + 0.055 * confidence_gap
-            + 0.065 * aviation_seed
-            + 0.024 * openness_seed
-            + 0.020 * demand_multiplier_gap
-            - 0.070 * energy_gap
-            - 0.040 * currency_gap
-            - 0.040 * stress_pressure
-            - 0.050 * price_gap
-            + branch_leisure
-            + event_impulse * 0.40,
-            -10.0,
-            12.0,
+        "leisure": (
+            params.tourism_exposure * consumer_signal
+            + 0.025 * metrics["seed_openness_bias"]
+            + fare_effects["leisure"]
+            + branch_effects["leisure"]
+            + event_effects["leisure"]
         ),
-        "vfr": clamp(
-            0.95
-            + 0.24 * metrics["growth"]
-            + 0.30 * metrics["income_growth"]
-            + 0.020 * confidence_gap
-            + 0.030 * aviation_seed
-            + 0.010 * openness_seed
-            - 0.022 * stress_pressure
-            - 0.022 * price_gap
-            + branch_vfr
-            + event_impulse * 0.15,
-            -4.5,
-            6.5,
+        "vfr": (
+            0.22 * metrics["income_growth"]
+            + 0.010 * confidence_gap
+            + 0.08 * params.domestic_market_depth * credit_stress
+            - 0.12 * credit_stress
+            + fare_effects["vfr"]
+            + branch_effects["vfr"]
+            + event_effects["vfr"]
         ),
-        "long_haul": clamp(
-            1.00
-            + 0.50 * metrics["growth"]
-            + 0.46 * metrics["income_growth"] * params.income_sensitivity
-            + 0.035 * confidence_gap
-            + 0.08 * metrics["equity_return"]
-            + 0.055 * aviation_seed
-            + 0.055 * openness_seed
-            + 0.020 * demand_multiplier_gap
-            - 0.095 * energy_gap
-            - 0.075 * currency_gap
-            - 0.055 * stress_pressure
-            - 0.050 * price_gap
-            + branch_long_haul
-            + event_impulse * 0.45,
-            -11.0,
-            12.5,
+        "long_haul": (
+            params.international_exposure * international_signal
+            + 0.055 * metrics["equity_return"]
+            + fare_effects["long_haul"]
+            + branch_effects["long_haul"]
+            + event_effects["long_haul"]
         ),
-        "transfer": clamp(
-            0.80
-            + 0.32 * metrics["growth"]
-            + 0.20 * params.transfer_hub_weight * 10.0
-            + 0.040 * (metrics["risk_appetite"] - 50.0)
-            + 0.048 * aviation_seed
-            + 0.065 * openness_seed
-            + 0.025 * investment_seed
-            - 0.055 * energy_gap
-            - 0.030 * stress_pressure
-            - 0.025 * metrics["geopolitical"]
-            + branch_transfer
-            + event_impulse * 0.25,
-            -7.5,
-            8.5,
+        "transfer": (
+            1.12 * params.international_exposure * international_signal
+            + transfer_hub_cycle
+            + 0.030 * metrics["seed_investment_bias"]
+            + fare_effects["transfer"]
+            + branch_effects["transfer"]
+            + event_effects["transfer"]
         ),
     }
 
+
+def center_relative_component_adjustments(
+    adjustments: dict[str, float],
+    params: RegionalAviationDemandParams,
+) -> dict[str, float]:
+    """Center relative preferences so their baseline-weighted sum is zero."""
+    center = weighted_component_average(adjustments, params)
+    return {key: value - center for key, value in adjustments.items()}
+
+
+def target_component_growth(
+    metrics: dict[str, float],
+    params: RegionalAviationDemandParams,
+    price_index: float,
+    event_impulse: float,
+    previous_metrics: dict[str, float] | None = None,
+) -> dict[str, float]:
+    common_growth = common_total_growth(
+        metrics,
+        params,
+        price_index,
+        event_impulse,
+        previous_metrics,
+    )
+    centered = center_relative_component_adjustments(
+        raw_relative_component_adjustments(metrics, params, price_index, event_impulse),
+        params,
+    )
+    limits = {
+        "business": (-9.0, 10.5),
+        "leisure": (-10.0, 12.0),
+        "vfr": (-4.5, 6.5),
+        "long_haul": (-11.0, 12.5),
+        "transfer": (-7.5, 8.5),
+    }
+    return {
+        key: clamp(common_growth + centered[key], *limits[key])
+        for key in centered
+    }
+
+
+def raw_component_growth(
+    metrics: dict[str, float],
+    params: RegionalAviationDemandParams,
+    price_index: float,
+    event_impulse: float,
+    previous_metrics: dict[str, float] | None = None,
+) -> dict[str, float]:
+    """Backward-compatible wrapper for the v0.3 target-growth decomposition."""
+    return target_component_growth(
+        metrics,
+        params,
+        price_index,
+        event_impulse,
+        previous_metrics,
+    )
 
 def aviation_regime(total_growth: float, price_index: float, event_hint: str, premium_index: float, stress: float) -> str:
     if event_hint != "none":
@@ -866,7 +1000,13 @@ def simulate_region_aviation_demand(
             total_index = weighted_index(component_values, params)
             total_growth = 0.0
         else:
-            raw_growth = raw_component_growth(metrics, params, price_index, event_impulse)
+            raw_growth = raw_component_growth(
+                metrics,
+                params,
+                price_index,
+                event_impulse,
+                previous["metrics"],
+            )
             component_growth = {
                 key: smooth(previous["growth"][key], raw_growth[key], params.demand_adjustment_speed)
                 for key in raw_growth
@@ -1015,6 +1155,7 @@ def simulate_region_aviation_demand(
             "values": component_values,
             "growth": component_growth,
             "total_index": total_index,
+            "metrics": metrics,
         }
 
     return output

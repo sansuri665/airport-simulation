@@ -5,6 +5,8 @@ from importlib import import_module
 _SIBLING_PREFIX = f"{__package__}." if __package__ else ""
 simulation_io = import_module(f"{_SIBLING_PREFIX}simulation_io")
 simulation_utils = import_module(f"{_SIBLING_PREFIX}simulation_utils")
+city_demand_model = import_module(f"{_SIBLING_PREFIX}city_passenger_demand_model")
+city_airline_supply_model = import_module(f"{_SIBLING_PREFIX}city_airline_supply_model")
 
 read_csv = simulation_io.read_csv_utf8
 write_csv = simulation_io.write_csv_utf8_ignore
@@ -23,8 +25,8 @@ from statistics import mean
 from typing import Any, Iterable
 
 
-CITY_AIRPORT_DEMAND_PARAM_VERSION = "city-airport-market-demand-layer-v0.23"
-CITY_AIRPORT_DEMAND_INTERFACE_VERSION = "city-airport-market-demand-interface-v0.24"
+CITY_AIRPORT_DEMAND_PARAM_VERSION = "city-airport-market-demand-layer-v0.25"
+CITY_AIRPORT_DEMAND_INTERFACE_VERSION = "city-airport-market-demand-interface-v0.25"
 
 
 AIRPORT_DIR = Path(__file__).resolve().parents[1]
@@ -150,11 +152,36 @@ CITY_AIRPORT_DEMAND_FIELDS = [
     "city_airline_supply_gap_million",
     "city_airport_capacity_gap_million",
     "city_binding_bottleneck",
+    "business_city_demand_raw_index",
     "business_city_demand_index",
+    "business_city_demand_boundary_state",
+    "business_city_demand_floor_applied",
+    "business_city_demand_cap_applied",
+    "business_city_demand_consecutive_boundary_years",
+    "leisure_city_demand_raw_index",
     "leisure_city_demand_index",
+    "leisure_city_demand_boundary_state",
+    "leisure_city_demand_floor_applied",
+    "leisure_city_demand_cap_applied",
+    "leisure_city_demand_consecutive_boundary_years",
+    "vfr_city_demand_raw_index",
     "vfr_city_demand_index",
+    "vfr_city_demand_boundary_state",
+    "vfr_city_demand_floor_applied",
+    "vfr_city_demand_cap_applied",
+    "vfr_city_demand_consecutive_boundary_years",
+    "long_haul_city_demand_raw_index",
     "long_haul_city_demand_index",
+    "long_haul_city_demand_boundary_state",
+    "long_haul_city_demand_floor_applied",
+    "long_haul_city_demand_cap_applied",
+    "long_haul_city_demand_consecutive_boundary_years",
+    "transfer_city_demand_raw_index",
     "transfer_city_demand_index",
+    "transfer_city_demand_boundary_state",
+    "transfer_city_demand_floor_applied",
+    "transfer_city_demand_cap_applied",
+    "transfer_city_demand_consecutive_boundary_years",
     "business_passenger_share_pct",
     "leisure_passenger_share_pct",
     "vfr_passenger_share_pct",
@@ -1075,16 +1102,19 @@ def city_seed_potential_profile(row: dict[str, Any], params: CityAirportMarketDe
             active_years * abs(annual_bias),
         )
 
+    # Keep the legacy alignment score as a diagnostic, but do not let it
+    # re-consume regional demand/GDP/confidence signals inside the Seed factor.
+    # G3 makes the Seed term a city-relative, stable-hash-only multiplier.
     alignment_score = regional_alignment_score(row)
-    correlation_weight = clamp(params.seed_potential_regional_correlation_weight, 0.0, 0.75)
-    sign = 1.0 if raw_effective_bias >= 0.0 else -1.0
-    alignment_multiplier = clamp(1.0 + sign * correlation_weight * alignment_score, 0.65, 1.35)
     effective_bias = clamp(
-        raw_effective_bias * release * alignment_multiplier,
+        raw_effective_bias * release,
         (params.seed_potential_multiplier_floor - 1.0) * 100.0,
         (params.seed_potential_multiplier_ceiling - 1.0) * 100.0,
     )
-    multiplier = 1.0 + effective_bias / 100.0
+    # The stable city/Seed effect is independent of the regional common path and
+    # already entered the legacy total only once.  Preserve the configured
+    # bounded magnitude after removing the regional alignment re-consumption.
+    multiplier = max(0.05, 1.0 + effective_bias / 100.0)
 
     return {
         "enabled": 1,
@@ -1135,110 +1165,73 @@ def merge_region_inputs(
 
 
 def component_event_impulse(row: dict[str, Any], component: str) -> float:
-    hint = str(row.get("airport_event_hint") or "none")
-    branch_state = str(row.get("branch_scenario_state") or "baseline")
-    branch_phase = str(row.get("branch_effect_phase") or "none")
-    impulse = 0.0
+    """Compatibility helper: G1 event effects are already in upstream paths.
 
-    if hint == "business_travel_credit_drag" and component == "business":
-        impulse -= 12.0
-    if hint == "outbound_fx_squeeze" and component in {"leisure", "vfr", "long_haul"}:
-        impulse -= 10.0 if component == "leisure" else 7.0
-    if hint == "fare_shock_leisure_drag" and component in {"leisure", "vfr"}:
-        impulse -= 9.0
-    if hint == "broad_travel_recovery" and component in {"leisure", "vfr"}:
-        impulse += 6.0
-    if hint == "premium_mix_volatility" and component in {"business", "long_haul"}:
-        impulse -= 3.0
+    Event and branch labels remain exported for explanation and for the separate
+    airline-supply state machine, but city *demand* does not apply them again.
+    """
 
-    if branch_state in {"occurred", "counterfactual"} and branch_phase == "impact":
-        impulse -= 5.0
-    elif branch_state in {"occurred", "counterfactual"} and branch_phase == "tail":
-        impulse -= 2.0
+    del row, component
+    return 0.0
 
-    return impulse
+
+def city_component_diagnostics(
+    row: dict[str, Any],
+    params: CityAirportMarketDemandParams,
+) -> dict[str, Any]:
+    regional_components = {
+        "business": as_float(row, "business_travel_demand_index", 100.0),
+        "leisure": as_float(row, "leisure_travel_demand_index", 100.0),
+        "vfr": as_float(row, "vfr_travel_demand_index", 100.0),
+        "long_haul": as_float(row, "long_haul_demand_index", 100.0),
+        "transfer": as_float(row, "transfer_demand_index", 100.0),
+    }
+    elasticities = {
+        "business": params.business_share_bias,
+        "leisure": params.leisure_share_bias,
+        "vfr": params.vfr_share_bias,
+        "long_haul": params.long_haul_share_bias,
+        "transfer": params.transfer_share_bias,
+    }
+    return city_demand_model.component_relative_diagnostics(
+        regional_total_index=as_float(row, "regional_air_demand_index", 100.0),
+        regional_component_indices=regional_components,
+        city_response_elasticities=elasticities,
+    )
 
 
 def city_component_indices(row: dict[str, Any], params: CityAirportMarketDemandParams) -> dict[str, float]:
-    regional_gap = as_float(row, "regional_air_demand_index", 100.0) - 100.0
-    business_gap = as_float(row, "business_travel_demand_index", 100.0) - 100.0
-    leisure_gap = as_float(row, "leisure_travel_demand_index", 100.0) - 100.0
-    vfr_gap = as_float(row, "vfr_travel_demand_index", 100.0) - 100.0
-    long_haul_gap = as_float(row, "long_haul_demand_index", 100.0) - 100.0
-    transfer_gap = as_float(row, "transfer_demand_index", 100.0) - 100.0
-    premium_gap = as_float(row, "premium_passenger_propensity_index", 100.0) - 100.0
-    capacity_gap = as_float(row, "supply_regional_air_capacity_index", 100.0) - 100.0
-    confidence_gap = as_float(row, "input_consumer_confidence_index", 50.0) - 50.0
-    stress_gap = max(0.0, as_float(row, "input_macro_stress_index", 25.0) - 32.0)
-    fare_gap = max(0.0, as_float(row, "airfare_pressure_index", 50.0) - 52.0)
-    currency_gap = max(0.0, as_float(row, "input_currency_pressure_index", 35.0) - 34.0)
-    slot_gap = max(0.0, as_float(row, "supply_airport_slot_constraint_index", 26.0) - 30.0)
+    """Return compatibility final indices from the separated G3 structure path."""
 
-    raw = {
-        "business": (
-            100.0
-            + params.business_share_bias * (0.52 * business_gap + 0.08 * regional_gap)
-            + 0.12 * premium_gap
-            + 0.10 * confidence_gap
-            - 0.34 * stress_gap
-            + component_event_impulse(row, "business")
-        ),
-        "leisure": (
-            100.0
-            + params.leisure_share_bias * (0.62 * leisure_gap + 0.10 * regional_gap)
-            + 0.18 * confidence_gap
-            - 0.22 * fare_gap
-            - 0.16 * currency_gap
-            + component_event_impulse(row, "leisure")
-        ),
-        "vfr": (
-            100.0
-            + params.vfr_share_bias * 0.58 * vfr_gap
-            + 0.08 * regional_gap
-            - 0.12 * fare_gap
-            - 0.10 * currency_gap
-            + component_event_impulse(row, "vfr")
-        ),
-        "long_haul": (
-            100.0
-            + params.long_haul_share_bias * 0.64 * long_haul_gap
-            + 0.10 * business_gap
-            + 0.08 * premium_gap
-            - 0.22 * currency_gap
-            - 0.16 * fare_gap
-            + component_event_impulse(row, "long_haul")
-        ),
-        "transfer": (
-            100.0
-            + params.transfer_share_bias * 0.58 * transfer_gap
-            + 0.08 * capacity_gap
-            + 0.08 * long_haul_gap
-            - 0.35 * slot_gap
-            + component_event_impulse(row, "transfer")
-        ),
-    }
-
-    return {
-        "business": clamp(raw["business"], 65.0, 245.0),
-        "leisure": clamp(raw["leisure"], 55.0, 230.0),
-        "vfr": clamp(raw["vfr"], 65.0, 225.0),
-        "long_haul": clamp(raw["long_haul"], 55.0, 210.0),
-        "transfer": clamp(raw["transfer"], 45.0, 185.0),
-    }
+    diagnostics = city_component_diagnostics(row, params)
+    return {component: diagnostics[component].final_index for component in COMPONENTS}
 
 
 def city_component_passengers(
     row: dict[str, Any], params: CityAirportMarketDemandParams
-) -> tuple[dict[str, float], dict[str, float], dict[str, float], dict[str, Any]]:
-    indices = city_component_indices(row, params)
+) -> tuple[
+    dict[str, float],
+    dict[str, float],
+    dict[str, float],
+    dict[str, Any],
+    dict[str, Any],
+]:
+    diagnostics = city_component_diagnostics(row, params)
+    indices = {component: diagnostics[component].final_index for component in COMPONENTS}
     year_index = as_float(row, "year_index")
-    long_term_growth_bias = min(
+    long_term_growth_multiplier = city_demand_model.bounded_long_term_factor(
+        year_index,
+        params.annual_long_term_city_growth_bias_pct,
         params.max_long_term_city_growth_bias_pct,
-        year_index * params.annual_long_term_city_growth_bias_pct,
     )
     seed_profile = city_seed_potential_profile(row, params)
-    long_term_growth_multiplier = 1.0 + long_term_growth_bias / 100.0
     seed_potential_multiplier = float(seed_profile["potential_multiplier"])
+    city_total = city_demand_model.city_total_potential(
+        baseline_million=params.baseline_city_potential_passengers_million,
+        regional_total_index=as_float(row, "regional_air_demand_index", 100.0),
+        long_term_factor=long_term_growth_multiplier,
+        seed_relative_factor=seed_potential_multiplier,
+    )
     base_shares = {
         "business": params.business_base_share_pct,
         "leisure": params.leisure_base_share_pct,
@@ -1246,21 +1239,12 @@ def city_component_passengers(
         "long_haul": params.long_haul_base_share_pct,
         "transfer": params.transfer_base_share_pct,
     }
-    passengers = {
-        key: (
-            params.baseline_city_potential_passengers_million
-            * long_term_growth_multiplier
-            * seed_potential_multiplier
-            * base_shares[key]
-            / 100.0
-            * indices[key]
-            / 100.0
-        )
-        for key in indices
-    }
-    total = sum(passengers.values()) or 1.0
-    shares = {key: value / total * 100.0 for key, value in passengers.items()}
-    return indices, passengers, shares, seed_profile
+    shares = city_demand_model.normalized_component_shares(
+        base_shares_pct=base_shares,
+        diagnostics=diagnostics,
+    )
+    passengers = city_demand_model.component_passenger_volumes(city_total, shares)
+    return indices, passengers, shares, seed_profile, diagnostics
 
 
 def capped_weighted_allocation(
@@ -1563,6 +1547,7 @@ def airline_supply_event_impulse(row: dict[str, Any]) -> float:
 @dataclass(frozen=True)
 class AirlineSupplyBehaviorState:
     supply_index: float
+    regional_trend_index: float
     phase: str
     phase_age_years: int
     cycle_number: int
@@ -1794,25 +1779,30 @@ def city_airline_supply_profile(
         + local_growth_pct
     )
     potential_anchor_index = city_potential / params.base_airline_supply_passengers_million * 100.0
-    demand_pull_pct = clamp(
-        (potential_anchor_index - trend_index) * params.airline_supply_demand_pull_capture,
-        -28.0,
-        155.0,
-    )
     macro_adjustment = confidence_adjustment + appetite_adjustment
     shock_impulse = city_airline_supply_shock_impulse(row, params)
     event_impulse = airline_supply_event_impulse(row)
-    fundamental_target_index = (
-        trend_index
-        + demand_pull_pct
-        + macro_adjustment
-        - constraint_drag
+    equilibrium_channels = city_airline_supply_model.equilibrium_channels(
+        potential_anchor_index=potential_anchor_index,
+        regional_trend_index=trend_index,
+        previous_supply_index=(
+            previous_state.supply_index if previous_state is not None else None
+        ),
+        previous_regional_trend_index=(
+            previous_state.regional_trend_index if previous_state is not None else None
+        ),
+        demand_pull_capture=params.airline_supply_demand_pull_capture,
+        macro_adjustment_index=macro_adjustment,
+        constraint_drag_index=constraint_drag,
     )
+    demand_pull_pct = equilibrium_channels.captured_gap_index
+    fundamental_target_index = equilibrium_channels.captured_target_index
     previous_supply_index = (
         previous_state.supply_index if previous_state is not None else fundamental_target_index
     )
     market_signal = clamp(
         (fundamental_target_index - previous_supply_index) * 0.70
+        + equilibrium_channels.regional_planning_signal_index * 0.15
         + (shock_impulse + event_impulse) * 0.80,
         -30.0,
         30.0,
@@ -1877,6 +1867,7 @@ def city_airline_supply_profile(
     )
     state = AirlineSupplyBehaviorState(
         supply_index=supply_index,
+        regional_trend_index=trend_index,
         phase=phase,
         phase_age_years=phase_age_years,
         cycle_number=cycle_number,
@@ -1989,6 +1980,7 @@ def simulate_city_airport_demand(
     output = []
     previous_potential_by_seed: dict[int, float] = {}
     airline_supply_state_by_seed: dict[int, AirlineSupplyBehaviorState] = {}
+    component_boundary_streaks: dict[tuple[int, str], int] = {}
 
     for row in merged_rows:
         seed = int(as_float(row, "seed"))
@@ -2007,7 +1999,22 @@ def simulate_city_airport_demand(
             "supply_reference_unmet_passengers_million",
             max(0.0, region_reference_potential - region_reference_served),
         )
-        component_indices, component_passengers, component_shares, seed_profile = city_component_passengers(row, params)
+        (
+            component_indices,
+            component_passengers,
+            component_shares,
+            seed_profile,
+            component_diagnostics,
+        ) = city_component_passengers(row, params)
+        component_boundary_years: dict[str, int] = {}
+        for component in COMPONENTS:
+            streak_key = (seed, component)
+            streak = city_demand_model.advance_boundary_streak(
+                component_boundary_streaks.get(streak_key, 0),
+                component_diagnostics[component].boundary_state,
+            )
+            component_boundary_streaks[streak_key] = streak
+            component_boundary_years[component] = streak
         city_potential = sum(component_passengers.values())
         city_share_pct = city_potential / region_reference_potential * 100.0 if region_reference_potential else 0.0
         adjustment = city_share_pct - params.baseline_region_demand_share_pct
@@ -2320,11 +2327,36 @@ def simulate_city_airport_demand(
                 "city_airline_supply_gap_million": airline_supply_gap,
                 "city_airport_capacity_gap_million": airport_capacity_gap,
                 "city_binding_bottleneck": bottleneck,
+                "business_city_demand_raw_index": component_diagnostics["business"].raw_index,
                 "business_city_demand_index": component_indices["business"],
+                "business_city_demand_boundary_state": component_diagnostics["business"].boundary_state,
+                "business_city_demand_floor_applied": component_diagnostics["business"].floor_applied,
+                "business_city_demand_cap_applied": component_diagnostics["business"].cap_applied,
+                "business_city_demand_consecutive_boundary_years": component_boundary_years["business"],
+                "leisure_city_demand_raw_index": component_diagnostics["leisure"].raw_index,
                 "leisure_city_demand_index": component_indices["leisure"],
+                "leisure_city_demand_boundary_state": component_diagnostics["leisure"].boundary_state,
+                "leisure_city_demand_floor_applied": component_diagnostics["leisure"].floor_applied,
+                "leisure_city_demand_cap_applied": component_diagnostics["leisure"].cap_applied,
+                "leisure_city_demand_consecutive_boundary_years": component_boundary_years["leisure"],
+                "vfr_city_demand_raw_index": component_diagnostics["vfr"].raw_index,
                 "vfr_city_demand_index": component_indices["vfr"],
+                "vfr_city_demand_boundary_state": component_diagnostics["vfr"].boundary_state,
+                "vfr_city_demand_floor_applied": component_diagnostics["vfr"].floor_applied,
+                "vfr_city_demand_cap_applied": component_diagnostics["vfr"].cap_applied,
+                "vfr_city_demand_consecutive_boundary_years": component_boundary_years["vfr"],
+                "long_haul_city_demand_raw_index": component_diagnostics["long_haul"].raw_index,
                 "long_haul_city_demand_index": component_indices["long_haul"],
+                "long_haul_city_demand_boundary_state": component_diagnostics["long_haul"].boundary_state,
+                "long_haul_city_demand_floor_applied": component_diagnostics["long_haul"].floor_applied,
+                "long_haul_city_demand_cap_applied": component_diagnostics["long_haul"].cap_applied,
+                "long_haul_city_demand_consecutive_boundary_years": component_boundary_years["long_haul"],
+                "transfer_city_demand_raw_index": component_diagnostics["transfer"].raw_index,
                 "transfer_city_demand_index": component_indices["transfer"],
+                "transfer_city_demand_boundary_state": component_diagnostics["transfer"].boundary_state,
+                "transfer_city_demand_floor_applied": component_diagnostics["transfer"].floor_applied,
+                "transfer_city_demand_cap_applied": component_diagnostics["transfer"].cap_applied,
+                "transfer_city_demand_consecutive_boundary_years": component_boundary_years["transfer"],
                 "business_passenger_share_pct": business_share,
                 "leisure_passenger_share_pct": leisure_share,
                 "vfr_passenger_share_pct": vfr_share,

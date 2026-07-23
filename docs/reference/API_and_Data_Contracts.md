@@ -33,7 +33,7 @@ JSON 响应会附加当前协议与运行环境：
 ```json
 {
   "apiSchemaVersion": "seed-explorer-api-v4",
-  "modelVersion": "airport-model-v0.13",
+  "modelVersion": "airport-model-v0.15",
   "outputSchemaVersion": "airport-model-output-v5",
   "pythonVersion": "3.13.x",
   "schemaCatalog": "/api/schema"
@@ -185,6 +185,34 @@ financial_conditions_consecutive_boundary_years
 `airport-model-output-v5` 保留 v4 的收益率—美元、次级饱和和统一 `year_index=0` 语义，并为城市年度、季度经营和财务输出增加区域政策利率、基准来源及贷款锁定报价分解。第 0 行仍是配置起点，不是第一年结束值：stock/level 字段直接等于版本化参数初值，change/yoy/flow 为零或明确的基期定义，事件与风险状态为 `initial`/`none`，边界布尔值为 false。第一次年度转移和第一次随机 draw 都发生在 `year_index=1`；不得为兼容旧 digest 在起点预抽样或丢弃随机数。
 
 同一 Seed 和参数下，`years=0/1/2/60` 的较短结果必须是较长结果的逐字段严格前缀。`years=0` 返回 1 行，`years=1` 返回 2 行；公共年份数量契约没有改变。全球行中的 `macro_feedback_*` 行级收敛字段是该年度达到逐字段固定点的前缀稳定诊断，Run/Manifest 中的收敛摘要仍是发布授权的权威 run-level 结论。区域第 0 行只读消费相同的全球增长、缺口、通胀、政策率、10Y 和 HY 起点锚，不改写区域公式。Viewer 时间轴将第 0 行标为“起点”。
+
+### 3.9 区域—城市客流数量解释边界
+
+`airport-model-output-v5` 当前采用 reference-only 解释，不新增语义元数据字段，也不改变既有数值：
+
+| 字段组 | 可否跨层守恒 | 契约 |
+| --- | --- | --- |
+| `regional_air_demand_index` 及五类区域指数 | 否 | 无量纲、以各区基期 100 为锚，只提供方向和相对变化 |
+| 区域 `potential_passengers_million`、`reference_*_passengers_million` | 否 | 区域尺度化参考量；旧 `served_*`/`unmet_*` 是兼容别名，不是城市总量包络 |
+| 城市 `baseline_region_demand_share_pct`、`city_demand_share_pct`、`city_share_adjustment_pp` | 否 | 城市量与区域参考量的诊断比率/变化；不是配置分配份额，47 城合计不要求 100% |
+| 城市 potential 五分项 | 仅城市内 | 五项必须加总为 `city_potential_passengers_million` |
+| 城市 offered / serviceable / served | 仅城市内 | 分别表示投放能力、需求封顶后的可承接量和机场容量约束后的最终承接量 |
+
+消费者不得因为字段都以 `_million` 结尾，就推断 `sum(city potential) = regional reference quantity`，也不得用 `domestic_market_depth` 推断国内 OD 旅次占比。当前没有 itinerary、航段或中转处理计数协议，也没有 47 城同口径覆盖率和未建模机场剩余量。
+
+未来若发布 `trip_to_throughput` 或共同吞吐量包络，必须作为版本化语义变更，同时定义 OD 旅次、机场处理人次、中转计数、城市集合、覆盖校准和未建模剩余量；缺少任一必需输入时应明确失败，不能用 0、100% 或单 Seed 比率静默回退。
+
+### 3.10 城市需求与航司承接 v0.15
+
+`airport-model-v0.15` 在不改变 `airport-model-output-v5` 表头的前提下更新城市客流数值路径：
+
+- 城市潜在总量只消费一次区域总需求趋势，并与五类相对结构正交；纯结构重分配不改变总量，纯共同增长不改变份额。
+- 五类城市指数同时输出 raw/final、floor/cap、边界方向和连续命中诊断；安全边界不参与城市总量计算。
+- 城市航司长期均衡、当期缺口捕获和区域短期规划信号分离；`demand_pull_capture` 只影响收敛速度，不再改变长期固定点。
+- `offered`、`serviceable` 和 `served` 分别表示计划投放、需求封顶后的可承接量和机场容量约束后的最终吞吐量；分项与总量在各自层内守恒。
+- 季度经营、隐藏预测真值和 Seed 缓存 Viewer 消费同一权威城市结果，不在消费者中重算第二套供给。
+
+旧缓存由既有 `seed-explorer-run-cache-v4` 内容指纹拒绝，不需要另升缓存协议号。客流会计、边界、长期满足率和瓶颈分布可以用 `tools/audit_passenger_demand.py` 对完整 Run 或 Seed 缓存只读审计。
 
 ## 4. POST 接口
 

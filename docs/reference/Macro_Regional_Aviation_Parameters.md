@@ -126,6 +126,8 @@
 
 14 区参数位于 [`regional_aviation_demand_layer_sim.py`](../../macro_layers/regional_aviation_demand_layer_sim.py) 的 `AVIATION_REGION_CONFIGS`。
 
+当前参数版本为 `regional-aviation-demand-layer-v0.3`，接口仍为 v0.2。模型先计算共同总量增长，再把五类客群的票价、旅游、国际、本地市场、事件和地缘暴露转为按基期权重中心化的相对调整；纯结构调整的加权和为零，不会在当期凭空增加区域总量。实际增长只通过相对潜在增长的 `growth_surprise` 进入周期项，避免重复计算完整 GDP 增长。
+
 | 参数 | 当前配置范围 | 说明 |
 | --- | ---: | --- |
 | 商务权重 | 0.11–0.32 | 五类权重在每区都合计为 1 |
@@ -133,19 +135,18 @@
 | 探亲访友权重 | 0.10–0.36 | 同上 |
 | 长航程权重 | 0.06–0.22 | 同上 |
 | 中转权重 | 0.06–0.24 | 同上 |
-| `domestic_market_depth` | 0.38–0.95 | 国内市场深度 |
-| `international_exposure` | 0.38–0.92 | 国际需求暴露 |
-| `tourism_exposure` | 0.30–0.88 | 旅游需求暴露 |
+| `domestic_market_depth` | 0.38–0.95 | 本地/区域内需求韧性；不是实际国内旅次占比 |
+| `international_exposure` | 0.38–0.92 | 长途和中转对开放、汇率与地缘风险的双向暴露 |
+| `tourism_exposure` | 0.30–0.88 | 休闲需求对消费环境与票价/能源压力的双向暴露 |
 | `income_sensitivity` | 0.66–1.05 | 收入变化对旅行的放大系数 |
 | `price_sensitivity_base` | 40–66 | 票价敏感基础指数 |
 | `oil_fare_sensitivity` | 0.46–0.78 | 能源向票价压力传导 |
 | `currency_travel_sensitivity` | 0.24–0.82 | 汇率压力对旅行的传导 |
 | `premium_mix_base` | 1.5–26.0 | 高端客群基础份额口径 |
 | 免税/奢侈品/电子亲和系数 | 0.26–0.92 | 三组参数合并后的跨区范围 |
-| `demand_growth_persistence` | 0.55 | 上年客群增长惯性 |
-| `demand_adjustment_speed` | 0.32–0.45 | 向本年目标增长靠拢速度 |
+| `demand_adjustment_speed` | 0.32–0.45 | 从上年实际增长向本年目标增长靠拢的唯一平滑速度 |
 
-主要输出硬边界：票价敏感指数 18–88，票价压力 20–95，高端旅客份额 5%–45%。五类客群的年度原始增长也分别有上限；例如商务 -9%–10.5%，休闲 -10%–12%，长航程 -11%–12.5%。
+`demand_growth_persistence` 已退出：它没有独立状态语义且与调整速度重叠。主要输出硬边界仍包括票价敏感指数 18–88、票价压力 20–95和高端旅客份额 5%–45%；五类客群目标增长保留最终安全线，例如商务 -9%–10.5%、休闲 -10%–12%、长航程 -11%–12.5%。正常与压力回归不得依赖频繁命中这些边界。
 
 五类权重一旦不再合计为 1，总需求指数的“100 点起点”就会改变。修改客群结构时应整体重分配，而不是只提高某一项。
 
@@ -155,7 +156,7 @@
 
 | 参数 | 当前配置范围 | 说明 |
 | --- | ---: | --- |
-| `baseline_region_passenger_demand_million` | 165–1200 | 区域潜在客流的百万人次体量锚 |
+| `baseline_region_passenger_demand_million` | 165–1200 | 把区域指数换算为百万人次参考量的体量锚；当前未定义为 OD 旅次或机场吞吐 |
 | `baseline_load_factor_pct` | 81.5%–84.0% | 初始载客率，也是运力指数换算计划座位的基准 |
 | `base_air_capacity_index` | 100 | 初始运力指数 |
 | 国内供给深度 | 0.32–0.94 | 国内航司网络承接能力 |
@@ -176,21 +177,25 @@
 
 区域层的计划座位、可运营座位、参考有效承接能力及参考承接/未满足量用于区域对账和解释。城市市场不会按这些百万人次数量分配客流，也不会受它们硬性封顶；城市只读取区域运力指数、信心、扩张意愿、成本和约束压力等信号。兼容字段 `served_passengers_million` 与 `unmet_passengers_million` 当前分别等于新的参考字段。
 
+当前数量语义正式采用 **reference-only**：这是解释边界，不是新增输出字段，也不改变 `airport-model-output-v5`。区域 reference quantity 和城市本地 quantity 分别在各自层内对账，当前没有 `sum(cities) = region` 的跨层守恒契约。中国配置中的区域参考锚为 `820.0 million`，47 城基准合计为 `1414.7 million`，旧 ratio 字段合计为 `172.35%`；这些数字证明现有配置共享历史参考锚，但不能证明 820 的 OD/吞吐口径、47 城覆盖率或中转计数规则。
+
+在权威校准数据齐备前，城市层只把区域需求指数作为共同趋势，区域百万人次量只用于诊断。`domestic_market_depth` 继续表示市场韧性，不能当作国内 OD 旅次占比；47 城之外的覆盖率和剩余量保持未知，不能默认为 100% 或 0。未来若引入旅次—吞吐量桥接，必须版本化国内/国际 OD、transfer handling convention、城市集合覆盖率与未建模剩余量，并让缺失输入明确失败。
+
 ## 6. 城市机场市场参数
 
 城市公式位于 [`city_airport_market_demand_layer_sim.py`](../../macro_layers/city_airport_market_demand_layer_sim.py)，47 个当前配置位于 [`config/city_airport_markets/china_mainland/`](../../config/city_airport_markets/china_mainland/)。以下是加载后参数的实际范围：
 
 | 参数 | 当前配置范围 | 说明 |
 | --- | ---: | --- |
-| `baseline_region_demand_share_pct` | 0.9%–15.0% | 区域份额参考/诊断，不直接分配区域客流 |
-| `baseline_city_potential_passengers_million` | 7.4–126.0 | 城市潜在客流起始锚 |
+| `baseline_region_demand_share_pct` | 0.9%–15.0% | 城市基准量/区域参考量的历史诊断比率；不是分配份额，跨城市不要求合计 100% |
+| `baseline_city_potential_passengers_million` | 7.4–126.0 | 城市本地潜在客流起始锚；不从区域 reference quantity 分配 |
 | `annual_long_term_city_growth_bias_pct` | 0.48%–0.76% | 每年逐步释放的固定城市增长偏置 |
 | `max_long_term_city_growth_bias_pct` | 25%–46% | 固定偏置累计上限 |
 | `base_airline_supply_passengers_million` | 7.8–132.0 | 城市航司供给体量锚 |
 | `regional_airline_capacity_growth_capture` | 0.20–0.44 | 捕获区域运力增长的程度 |
 | `annual_local_airline_supply_growth_pct` | 0.17%–0.32% | 本地运力趋势 |
 | `max_local_airline_supply_growth_pct` | 11%–25% | 本地趋势累计上限 |
-| `demand_pull_capture` | 0.87–0.95 | 航司供给追随城市需求目标的强度 |
+| `demand_pull_capture` | 0.87–0.95 | 每年计划吸收当前长期均衡缺口的比例；影响收敛速度，不改变长期固定点 |
 | 平衡期调整速度 | 0.31–0.42 | 正常年份追向基本面的速度 |
 | 扩张期调整速度 | 0.29–0.44 | 扩张通常慢于削减，旅游城市更积极 |
 | 收缩期调整速度 | 0.50–0.77 | 悲观和压力下削减供给的速度 |
@@ -212,6 +217,8 @@
 城市航司供给行为配置位于 [`china_city_airline_supply_behavior_profiles_v2.json`](../../config/airline_supply_dynamics_profiles/china_city_airline_supply_behavior_profiles_v2.json)。47 城显式选择四种基础行为：全球枢纽 2 城、国家门户 6 城、区域门户 20 城、次级门户 19 城。另有 7 城叠加旅游暴露、2 城叠加战略支撑、2 城叠加高原约束。特征与基础门户类型可以并存，避免把昆明、厦门、海口等混合型城市强行塞进单一互斥模板。
 
 供给周期不再使用固定双正弦波。每轮依次经历平衡、扩张、过度扩张、收缩、低谷和恢复；过度扩张通常持续 2–4 年，其它阶段通常持续 1–7 年，完整周期由 Seed、供需信号和冲击共同决定。随机冲击候选数量、时点、方向、宽度和幅度也由城市 ID 与 Seed 决定，不再固定为每城三次。过剩投放只形成 `unused_capacity`，不会突破潜在客流或凭空增加机场承接量。
+
+城市航司长期均衡以“城市潜在客流锚 + 宏观调整 - 运营约束拖累”为目标。`demand_pull_capture` 作用于上年供给到该均衡的当期缺口；区域运力趋势只以年度变化量进入短期规划和阶段信号，不再用区域趋势绝对水平为城市供给设置第二个长期终点。周期阶段、Seed 冲击、年度上下调限制和最终安全边界仍在均衡通道之后生效，因此短缺、闲置和不同城市/Seed 的供给路径不会被消除。
 
 单城覆盖写在 `airline_supply_model.dynamics_overrides`，只允许行为模板的有效字段。应优先复用基础模板和特征，只有存在城市级证据时才覆盖；加载器会拒绝未知字段和越界数值。
 

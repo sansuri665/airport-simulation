@@ -31,10 +31,13 @@ CI 会在 Windows 和 Linux 上安装当前项目的 editable package，再执�
 |---|---|---|
 | 固定 Seed 数值 | `test_safety_baseline.py` | 九组数值摘要、Python 3.13 浮点口径、IO 细节 |
 | 长期模型 | `test_long_horizon_contract.py` | 60 年情景、14 区、47 城、CSV 表头和玩家融资回放 |
+| 客流审计观测面 | `test_passenger_demand_audit.py`、`test_city_passenger_demand_contract.py` | 三层 CSV 完整性、有限数值、客群漂移、区域—城市比例、城市总量/结构正交、真实边界命中、会计守恒、容量瓶颈、参数比较和稳定 JSON |
+| 区域航空需求 | `test_regional_aviation_demand_contract.py` | 总量/结构正交、票价弹性、旅游/国际/本地暴露、地缘中性、首行/前缀/确定性和长期非截断 |
 | 区域与城市权责 | `test_regional_air_supply_boundaries.py` | 区域承接量只作参考，不成为城市客流硬上限 |
 | 客群航司供给 | `test_component_airline_allocation.py` | 总量守恒、单客群上限、商务/休闲差异及年度—季度—预测一致性 |
 | 预测报告叙事 | `test_forecast_narrative_model.py` | 8 种共享风格、四类标签、中文元数据、非数值伴飞、报告继承、神级精确与玩家/审计隔离 |
 | 城市航司周期 | `test_airline_supply_dynamics_profiles.py` | 47 城模板、经营阶段、过剩/波谷分布、年度调节上限和空置运力边界 |
+| 城市航司长期均衡与承接 | `test_g4_airline_supply_integration.py` | 长期固定点与追赶速度分离、区域短期信号、分项供需/机场会计、季度经营与预测消费者一致性 |
 | 正式 Run、生命周期、变体产物与 staged 校验 | `test_atomic_run.py`、`test_orchestrator_run_lifecycle_service.py`、`test_orchestrator_variant_outputs_service.py`、`test_orchestrator_run_validation_service.py` | 参数拒绝、index-only、Run/staging 命名、重复拒绝、失败清理边界、发布/索引/Manifest 顺序、11 类 CSV 字段/路径和 full/seed-cache 写入顺序、摘要/skip、CSV 校验与原子正式化 |
 | 编排器发布、资产与索引 | `test_orchestrator_release_index_services.py`、`test_orchestrator_viewer_assets_service.py`、`test_viewer_release.py` | 高层正式化/下游 CSV/Manifest 指针顺序、Release-only 必需资产、浏览器 canonical 禁止、URL/SHA-256/确定性 gzip，以及 Run JSON 索引排序、过滤和标签 |
 | API 与文件协议 | `test_api_snapshot.py`、`test_local_ui.py`、`test_server_routes.py`、`test_http_file_response.py`、`test_cache_save_api_schemas.py`、`test_seed_workspace_service.py`、`test_seed_workspace_actions.py`、三个 `test_*_context_service.py` | 固定 Seed JSON、34 个公开路由、统一 Seed 读取与安全写操作、三个 Viewer 的缓存只读上下文、缓存清单、存档四动作、已退役路由的 404、请求边界、流式响应、ETag/304、缓存分层和 gzip 协商 |
@@ -91,8 +94,16 @@ py -3.13 -B -m unittest tests.test_cache_save_api_schemas tests.test_orchestrato
 航空与城市供给相关修改可先运行：
 
 ```powershell
-py -3.13 -B -m unittest tests.test_regional_air_supply_boundaries tests.test_component_airline_allocation tests.test_airline_supply_dynamics_profiles -v
+py -3.13 -B -m unittest tests.test_regional_aviation_demand_contract tests.test_city_passenger_demand_contract tests.test_passenger_demand_audit tests.test_regional_air_supply_boundaries tests.test_component_airline_allocation tests.test_airline_supply_dynamics_profiles -v
 ```
+
+已有 Run 或临时结果可以用只读审计器检查三层完整性、客群漂移、区域—城市比例、会计守恒和容量瓶颈：
+
+```powershell
+py -3.13 tools/audit_passenger_demand.py --input-root <包含三层 CSV 的目录> --config-root config/city_airport_markets/china_mainland
+```
+
+工具默认只向 stdout 输出稳定 JSON，不会生成模型结果。正式自动化测试使用临时微型 CSV，不依赖 Handoff 样例或本机 `output/`；真实 Seed 审计属于阶段验收。城市需求 v0.4 已输出五分项的 raw index、final index、上下界 flag、方向和连续命中年数；审计器优先使用这些真实诊断。读取旧 Run 时仍会降级为 `final_output_only`，这时精确等于边界只能说明最终值贴边，不能反推内部截断过程。
 
 城市年度市场是五类客群可承接供给的权威来源。季度经营与预测只能读取或拆分这套结果；过剩投放只能形成 `unused_capacity`，不能增加潜在客流、单客群上限或机场实际承接量。
 

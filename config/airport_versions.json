@@ -1,6 +1,6 @@
 {
   "schema_version": "airport-version-record-v1",
-  "model_version": "airport-model-v0.13",
+  "model_version": "airport-model-v0.15",
   "orchestrator_version": "macro-run-orchestrator-v0.11",
   "output_schema_version": "airport-model-output-v5",
   "run_manifest_schema_version": "airport-macro-run-manifest-v1",

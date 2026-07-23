@@ -56,6 +56,27 @@ gh repo view --json nameWithOwner,defaultBranchRef,url
 
 提交前还应执行与改动范围相称的本地检查。本项目的完整基线见[测试与安全修改](Testing_and_Safe_Changes.md)。
 
+### 1.1 跨平台文本编码基线
+
+仓库内的源码、配置、Markdown、JSON、CSV 和前端资源统一按 UTF-8 处理。Python 读取或写入这些文本文件时必须显式声明编码，不能依赖操作系统、终端代码页或 `PYTHONUTF8`：
+
+```python
+text = path.read_text(encoding="utf-8")
+path.write_text(text, encoding="utf-8")
+
+with path.open("r", encoding="utf-8", newline="") as handle:
+    ...
+```
+
+Linux Runner 通常默认 UTF-8，本机 Windows 也可能因区域设置或终端配置而恰好使用 UTF-8；这两种环境都会掩盖未声明编码的问题。GitHub 的 `windows-latest` Python 进程仍可能使用 cp1252，读取含中文的 UTF-8 文件时会出现 `UnicodeDecodeError: 'charmap' codec can't decode ...`。
+
+处理原则：
+
+1. 修复具体的 `read_text`、`write_text` 或 `open` 调用，显式写出 `encoding="utf-8"`；
+2. 同一测试或工具连续读取多个仓库文本文件时应一并修正，不能只修第一个报错文件；
+3. 不把在工作流中设置 `PYTHONUTF8=1` 作为首选修复，因为它会继续掩盖调用点的跨平台契约缺失；
+4. 正式发布必须保留 Linux 和 Windows 两个平台的 CI，不能因 Linux 已通过就判定完整验收成功。
+
 ## 2. 首选发布流程
 
 正常情况下始终使用 Git 本身发布，GitHub API 只负责查询和仓库设置：
@@ -124,7 +145,8 @@ git push origin <tag>
 GitHub 的 blob、tree、commit 和 ref API 可以上传文件树，但不适合作为日常 `git push` 的替代品：
 
 - Windows PowerShell 5 把 JSON 直接管道传给 `gh api --input -` 时可能产生编码问题，返回 `Problems parsing JSON`；
-- GitHub 创建 commit 时可能规范化时间与时区。即使 tree SHA、作者、父提交和消息看起来相同，commit SHA 仍可能与本地不同；
+- GitHub API 会把提交时间在 JSON 响应中显示成 UTC `Z`，但这个显示值不能还原 Git commit 对象中参与哈希的原始时区字节；
+- Git Data API 创建的提交消息可能没有 Git CLI 通常产生的末尾换行。即使 tree SHA、作者、父提交、时间和可见消息相同，commit SHA 仍可能不同；
 - 创建 ref 前若没有比较本地和远端 tree/commit SHA，容易形成内容相同但历史分叉的分支；
 - 中途停止会留下没有 ref 的 blob、tree 或 commit 对象，虽然 GitHub 最终会回收，但会增加排错成本。
 
@@ -145,7 +167,9 @@ try {
 }
 ```
 
-若远端 tree SHA 与本地一致、commit SHA 却不一致，应在创建 branch/tag ref 前停止，改用真正的 Git 传输。
+Git commit SHA 覆盖原始对象的每个字节，包括作者与提交者时区、提交消息末尾是否有换行，以及父提交顺序。REST API 返回的结构化 JSON 不是原始 commit 对象，不能据此推断两个提交必然同 SHA。
+
+若远端 tree SHA 与本地一致、commit SHA 却不一致，应在创建 branch/tag ref 前停止，改用真正的 Git 传输。只有故障恢复确实无法使用 Git 传输，并且已经逐项验证 blob SHA、tree SHA、parent SHA、生成后的 commit SHA 与分支快进关系时，才允许更新 ref；不得为了“看起来内容相同”而强制覆盖正式分支或标签。
 
 ## 5. 更换或删除默认分支
 
@@ -191,8 +215,10 @@ gh run watch <run-id> --repo <owner>/<repo> --exit-status --interval 5
 | `gh auth status` 成功，`git push` 连接 443 超时 | API 与 Git HTTPS 通道状态不同 | 停止重复 push，测试 SSH 443 |
 | SSH 返回 `Permission denied (publickey)` | SSH 网络可达，但密钥未注册 | 配置账户 SSH Key，或经授权使用临时 Deploy Key |
 | GitHub 连接器提示未连接 | 连接器授权与 `gh` 登录彼此独立 | 使用已登录的 `gh`，或在应用中连接 GitHub |
+| Windows CI 报 cp1252/charmap `UnicodeDecodeError` | Python 文本读取依赖系统默认编码 | 在具体调用点显式使用 `encoding="utf-8"`，并检查相邻读取 |
 | `Problems parsing JSON` | PowerShell 管道编码或 BOM | 使用无 BOM UTF-8 临时请求文件 |
-| tree SHA 相同但 commit SHA 不同 | Git Data API 规范化提交元数据 | 不创建 ref，改用 Git HTTPS/SSH push |
+| API 显示 UTC `Z`，与本地 `+08:00` 不同 | REST 响应统一展示 UTC，不能代表原始 commit 字节 | 比较最终 commit SHA，不用显示时间推断对象相等 |
+| tree SHA 相同但 commit SHA 不同 | 原始时区、消息末尾换行或其它 commit 字节不同 | 不创建 ref，优先改用 Git HTTPS/SSH push |
 | 无法删除旧默认分支 | GitHub 仍把它视为默认分支 | 先切换并读取确认新的默认分支 |
 | CI 成功但有 Node 运行时 annotation | Action 依赖的运行时进入弃用期 | 记录为维护项，不把它当成本次失败 |
 

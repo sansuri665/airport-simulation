@@ -4,6 +4,8 @@
 
 如果文档与代码、配置、JSON Schema 或测试冲突，应先核实真实实现并修正文档。旧设计和被取代内容由 Git 保存，不在这里建立第二套历史归档。
 
+当前运行基线为 Python 3.13、`airport-model-v0.15`、`airport-model-output-v5` 和 `seed-explorer-api-v4`。模型与字段细节分别以 `config/airport_versions.json`、Schema、固定 Seed 测试及下方专题文档为准。
+
 ## 我应该从哪里开始
 
 ### 想先理解这是什么项目
@@ -109,6 +111,7 @@
 | 文档 | 说明 |
 | --- | --- |
 | [Roadmap.md](plans/Roadmap.md) | 未来工作优先级和计划索引；正式说明不混入待办事项 |
+| [Asset_Layer_Upgrade_PreResearch.md](plans/Asset_Layer_Upgrade_PreResearch.md) | 客流链收口后的资产层预研；价格、盈利、分红、总回报、区域估值和 Viewer 迁移边界 |
 
 ### `releases/`
 
@@ -116,6 +119,8 @@
 
 | 文档 | 说明 |
 | --- | --- |
+| [passenger-v0724-release.md](releases/passenger-v0724-release.md) | 客流优化 v0724 的区域 reference-only 边界、城市需求、航司供给、机场承接、审计与版本验收 |
+| [macro-rate-loan-v03-release.md](releases/macro-rate-loan-v03-release.md) | 宏观—利率修复、统一起点、贷款利率 v0.3 与宏观层 v0722 正式版边界 |
 | [aggregated-seed-0719-release.md](releases/aggregated-seed-0719-release.md) | 聚合 Seed 0719 正式版的统一工作区、四页固定上下文、预测/场景收尾和 Git 发布边界 |
 | [v0719-preview3.md](releases/v0719-preview3.md) | v0719 Preview3 的 Release-only、Manifest v2、gzip 实际发布和 Git 阶段边界 |
 | [v0719-preview2.md](releases/v0719-preview2.md) | v0719 Preview2 的兼容边界退役、API v2、Git 分支，以及标签后 Release-only/空间收敛验收说明 |
@@ -139,6 +144,6 @@
 
 ## 当前项目边界
 
-当前完整模型链覆盖全球宏观、14 区区域宏观、区域航空需求和供给、中国大陆 47 城市市场；机场季度经营、财务、合同、项目、融资和预测以北京为主要样板。其它城市的完整经营配置、正式游戏信息隔离、交易并购和更完整的商业谈判仍未实现。
+当前完整模型链覆盖全球宏观、14 区区域宏观、区域航空需求和供给、中国大陆 47 城市市场；城市客流总量/结构、航司长期均衡和机场承接已完成同链路收口。机场季度经营、财务、合同、项目、融资和预测以北京为主要样板。其它城市的完整经营配置、正式游戏信息隔离、交易并购和更完整的商业谈判仍未实现。
 
 具体限制写在各专题文档末尾；所有未来工作统一维护在 [Roadmap.md](plans/Roadmap.md)。
