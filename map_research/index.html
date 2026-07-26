@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>机场坐标预研</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">✦</div>
+        <div>
+          <h1>机场坐标预研</h1>
+        </div>
+      </div>
+      <nav class="research-switcher" aria-label="预研模块">
+        <a class="research-tab active" href="./index.html" aria-current="page">机场预研</a>
+        <a class="research-tab" href="./railway.html">铁路预研</a>
+      </nav>
+      <div class="top-actions">
+        <span class="status-pill"><i></i><span id="statusText">本地静态数据</span></span>
+        <button class="control-button" id="resetButton" type="button">重置视图</button>
+        <button class="zoom-button" id="zoomOutButton" type="button" aria-label="缩小">−</button>
+        <button class="zoom-button" id="zoomInButton" type="button" aria-label="放大">＋</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="map-card" aria-label="中国机场地图">
+        <div class="map-stage" id="mapStage" tabindex="0">
+          <svg id="mapSvg" viewBox="0 0 1200 760" role="img" aria-label="中国区域机场点位图">
+            <defs>
+              <pattern id="microGrid" width="24" height="24" patternUnits="userSpaceOnUse">
+                <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#18232c" stroke-width="1"></path>
+              </pattern>
+              <filter id="glow" x="-200%" y="-200%" width="400%" height="400%">
+                <feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur>
+                <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+              </filter>
+            </defs>
+            <rect class="map-background" x="0" y="0" width="1200" height="760"></rect>
+            <rect class="micro-grid" x="0" y="0" width="1200" height="760"></rect>
+            <g id="viewport">
+              <g id="gridLayer"></g>
+              <g id="airportLayer"></g>
+            </g>
+          </svg>
+          <div class="map-title-overlay">机场坐标预研</div>
+          <div class="map-hint">滚轮缩放　·　拖动平移　·　W A S D 移动</div>
+          <div class="zoom-readout" id="zoomReadout">100%</div>
+        </div>
+        <div class="map-footer">
+          <span>等经纬度示意投影 · 黑底独立预研页 · 不依赖主项目运行时</span>
+          <span id="visibleCount">50 / 50 个点位</span>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <section class="side-section search-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">AIRPORT INDEX</p>
+              <h2>机场名单</h2>
+            </div>
+            <span class="count-badge" id="airportCount">50</span>
+          </div>
+          <label class="search-box">
+            <span aria-hidden="true">⌕</span>
+            <input id="searchInput" type="search" placeholder="搜索机场、城市或代码" autocomplete="off">
+          </label>
+          <p class="search-note">点击名单可以定位地图并查询经纬度。</p>
+          <div class="region-filter" role="group" aria-label="按区域查看">
+            <span class="filter-label">按区域查看</span>
+            <select class="region-select" id="regionSelect" aria-label="区域">
+              <option value="global">全球（全部）</option>
+              <option value="china_mainland">中国大陆（大陆）</option>
+              <option value="japan_korea">日韩</option>
+              <option value="hk_macao_taiwan">港澳台</option>
+              <option value="southeast_asia">东南亚</option>
+              <option value="south_asia_india">南亚/印度</option>
+              <option value="central_asia_turkey_eurasia">中亚/土耳其/欧亚桥</option>
+              <option value="middle_east_gulf">中东/海湾</option>
+              <option value="south_east_europe_mediterranean">南欧/东欧/地中海</option>
+              <option value="north_africa">北非</option>
+              <option value="west_north_europe">西欧/北欧</option>
+              <option value="sub_saharan_africa">撒哈拉以南非洲</option>
+              <option value="north_america">北美</option>
+              <option value="latin_america_caribbean">拉美/加勒比</option>
+              <option value="oceania">大洋洲</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="airport-list" id="airportList" aria-label="机场列表"></section>
+
+        <section class="detail-card" id="detailCard" aria-live="polite">
+          <p class="eyebrow">SELECTED AIRPORT</p>
+          <div class="empty-detail" id="emptyDetail">选择一个机场查看坐标</div>
+          <div id="airportDetail" hidden>
+            <div class="detail-title-row">
+              <div>
+                <h2 id="detailName">—</h2>
+                <p id="detailCity">—</p>
+              </div>
+              <span class="code-chip" id="detailCode">—</span>
+            </div>
+            <div class="coordinate-grid">
+              <div><span>LATITUDE</span><strong id="detailLat">—</strong></div>
+              <div><span>LONGITUDE</span><strong id="detailLon">—</strong></div>
+            </div>
+            <div class="detail-meta">
+              <span id="detailStatus">运营机场</span>
+              <span id="detailSource">坐标来源：—</span>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="page-footer">
+      坐标主数据：OurAirports 公开机场数据；厦门翔安为 OpenStreetMap 施工地点参考坐标。数据已静态复制到本目录，后续可独立替换。
+    </footer>
+  </div>
+
+  <script src="./airports.js"></script>
+  <script src="./transport_cities.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

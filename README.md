@@ -114,6 +114,7 @@ py -3.13 -m unittest discover -s tests -q
 | `web/pages/` | 五个 HTML 页面 |
 | `web/static/` | 页面 CSS 和 JavaScript |
 | `tests/` | 固定 Seed、API、Schema、UI 和安全回归测试 |
+| `map_research/` | 与正式模型隔离的机场/铁路地图静态预研；不作为机场配置或运行时数据源 |
 | `output/` | 可重新生成的 Run、缓存和 Viewer 数据 |
 | `saves/` | 玩家主动保存的动态经营进度 |
 | `docs/` | 当前项目说明 |

@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-WEB_ROOT = ROOT_DIR / "web"
+JAVASCRIPT_ROOTS = (ROOT_DIR / "web", ROOT_DIR / "map_research")
 
 
 def parse_args() -> argparse.Namespace:
@@ -27,7 +27,13 @@ def main() -> int:
     if not args.node:
         print("Node.js was not found; install it or pass --node PATH.", file=sys.stderr)
         return 2
-    files = sorted(path for path in WEB_ROOT.rglob("*.js") if path.is_file())
+    files = sorted(
+        path
+        for root in JAVASCRIPT_ROOTS
+        if root.is_dir()
+        for path in root.rglob("*.js")
+        if path.is_file()
+    )
     failures: list[tuple[Path, str]] = []
     for path in files:
         result = subprocess.run(
