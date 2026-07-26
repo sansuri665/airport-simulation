@@ -228,6 +228,22 @@ const RAILWAYS = [
     ]
   },
   {
+    id: "jinghu_ningma_branch_high_speed",
+    name: "京沪高铁宁马支线",
+    shortName: "京沪宁马支线",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "支线预研线路",
+    parentLineId: "jinghu_high_speed",
+    networkRole: "branch",
+    source: "用户提供参考坐标；南京南复用既有站点身份",
+    stations: [
+      { id: "jinghu_13", name: "南京南", city: "南京", lat: 31.9700, lon: 118.8000 },
+      { id: "jinghu_ningma_02", name: "马鞍山站", city: "马鞍山", lat: 31.6700, lon: 118.5070 }
+    ]
+  },
+  {
     id: "hukun_high_speed",
     name: "沪昆高铁",
     shortName: "沪昆",
@@ -948,6 +964,22 @@ const RAILWAYS = [
       { id: "hukun_06", name: "上饶", city: "上饶", lat: 28.4500, lon: 117.9700 },
       { id: "hefu_06", name: "南平", city: "南平", lat: 27.6550, lon: 118.0800 },
       { id: "hangshen_07", name: "福州南", city: "福州", lat: 25.9850, lon: 119.3900 }
+    ]
+  },
+  {
+    id: "heanqihuang_high_speed",
+    name: "合安池黄高铁",
+    shortName: "合安池黄",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "预研线路",
+    source: "用户提供参考坐标；合肥南、黄山北复用既有站点身份",
+    stations: [
+      { id: "shanghehang_05", name: "合肥南", city: "合肥", lat: 31.7800, lon: 117.3000 },
+      { id: "heanqihuang_02", name: "安庆站", city: "安庆", lat: 30.5430, lon: 117.0630 },
+      { id: "heanqihuang_03", name: "池州站", city: "池州", lat: 30.6640, lon: 117.4910 },
+      { id: "hefu_04", name: "黄山北", city: "黄山", lat: 29.8150, lon: 118.2950 }
     ]
   },
   {
