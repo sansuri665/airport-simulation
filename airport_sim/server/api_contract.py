@@ -4,12 +4,13 @@ import platform
 from typing import Any
 
 
-SCHEMA_CATALOG_VERSION = "airport-schema-catalog-v1"
+SCHEMA_CATALOG_VERSION = "airport-schema-catalog-v2"
 SCHEMA_FILES = {
     "versionRecord": "airport-version-record.schema.json",
     "macroRunManifest": "macro-run-manifest.schema.json",
     "viewerReleaseManifest": "viewer-release-manifest.schema.json",
     "apiEnvelope": "api-envelope.schema.json",
+    "assetAccountingV04": "asset-accounting-v04-fields.schema.json",
     "apiError": "api-error-response.schema.json",
     "health": "health-response.schema.json",
     "workspaceStatus": "workspace-status-response.schema.json",

@@ -4,7 +4,7 @@
 
 如果文档与代码、配置、JSON Schema 或测试冲突，应先核实真实实现并修正文档。旧设计和被取代内容由 Git 保存，不在这里建立第二套历史归档。
 
-当前运行基线为 Python 3.13、`airport-model-v0.15`、`airport-model-output-v5` 和 `seed-explorer-api-v4`。模型与字段细节分别以 `config/airport_versions.json`、Schema、固定 Seed 测试及下方专题文档为准。
+当前运行基线为 Python 3.13、`airport-model-v0.16`、`airport-model-output-v6` 和 `seed-explorer-api-v4`。模型与字段细节分别以 `config/airport_versions.json`、Schema、固定 Seed 测试及下方专题文档为准。
 
 ## 我应该从哪里开始
 
@@ -100,7 +100,7 @@
 
 | 文档 | 说明 |
 | --- | --- |
-| [Testing_and_Safe_Changes.md](development/Testing_and_Safe_Changes.md) | 固定 Seed、API、Schema、UI 和结构重构保护 |
+| [Testing_and_Safe_Changes.md](development/Testing_and_Safe_Changes.md) | quick/领域/full/release 分层、固定 Seed、API、Schema、UI 和结构重构保护 |
 | [Troubleshooting.md](development/Troubleshooting.md) | 端口、Python、缓存、页面和数据问题排查 |
 | [GitHub_Publishing_and_Recovery.md](development/GitHub_Publishing_and_Recovery.md) | GitHub 发布前检查、HTTPS/SSH 回退、默认分支切换和 CI 验证 |
 | [Web_Model_Handoff.md](development/Web_Model_Handoff.md) | 与网页版强模型交换上下文充分的单 Goal 代码包、接收补丁并在本地验收的边界 |
@@ -111,7 +111,7 @@
 | 文档 | 说明 |
 | --- | --- |
 | [Roadmap.md](plans/Roadmap.md) | 未来工作优先级和计划索引；正式说明不混入待办事项 |
-| [Asset_Layer_Upgrade_PreResearch.md](plans/Asset_Layer_Upgrade_PreResearch.md) | 客流链收口后的资产层预研；价格、盈利、分红、总回报、区域估值和 Viewer 迁移边界 |
+| [Inflation_System_Memo.md](plans/Inflation_System_Memo.md) | 累计 CPI、名义/实际口径与各价格族逐项接入的长期备忘录；不作为一次性全项目重写计划 |
 
 ### `releases/`
 
@@ -119,6 +119,7 @@
 
 | 文档 | 说明 |
 | --- | --- |
+| [asset-v0726-release.md](releases/asset-v0726-release.md) | 资产会计 A0–A4、模型 v0.16、输出 v6、Seed 20260622 解释与 81-Seed 长周期审计边界 |
 | [passenger-v0724-release.md](releases/passenger-v0724-release.md) | 客流优化 v0724 的区域 reference-only 边界、城市需求、航司供给、机场承接、审计与版本验收 |
 | [macro-rate-loan-v03-release.md](releases/macro-rate-loan-v03-release.md) | 宏观—利率修复、统一起点、贷款利率 v0.3 与宏观层 v0722 正式版边界 |
 | [aggregated-seed-0719-release.md](releases/aggregated-seed-0719-release.md) | 聚合 Seed 0719 正式版的统一工作区、四页固定上下文、预测/场景收尾和 Git 发布边界 |

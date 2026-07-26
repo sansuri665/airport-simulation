@@ -50,6 +50,7 @@ def neutral_row(year_index: int, *, seed: int = 17, **overrides: object) -> dict
         "regional_gdp_growth_pct_reconciled": 2.0,
         "regional_potential_growth_pct": 2.0,
         "real_income_growth_pct": 0.0,
+        "regional_real_disposable_income_growth_pct": 0.0,
         "regional_income_index": 100.0,
         "consumer_confidence_index": 50.0,
         "regional_headline_inflation_pct_reconciled": 2.4,
@@ -57,9 +58,10 @@ def neutral_row(year_index: int, *, seed: int = 17, **overrides: object) -> dict
         "regional_macro_stress_index_reconciled": 35.0,
         "regional_hy_spread_bps_reconciled": 480.0,
         "regional_credit_availability_index": 55.0,
-        "regional_equity_return_pct_reconciled": 0.0,
-        "regional_equity_valuation_pe_reconciled": 17.0,
-        "regional_wealth_effect_index": 50.0,
+        "regional_equity_price_return_pct": 0.0,
+        "regional_equity_valuation_pe": 17.0,
+        "regional_asset_market_impulse_index": 50.0,
+        "regional_household_wealth_consumption_impulse": 0.0,
         "regional_energy_cost_pressure_index_reconciled": 50.0,
         "regional_risk_appetite_index": 50.0,
         "regional_geopolitical_risk_index": 25.0,
@@ -83,6 +85,8 @@ def neutral_row(year_index: int, *, seed: int = 17, **overrides: object) -> dict
         "regional_branch_tail_scarring_index": 0.0,
     }
     row.update(overrides)
+    if "real_income_growth_pct" in overrides and "regional_real_disposable_income_growth_pct" not in overrides:
+        row["regional_real_disposable_income_growth_pct"] = overrides["real_income_growth_pct"]
     return row
 
 
@@ -103,11 +107,11 @@ class RegionalAviationDemandInterfaceTests(unittest.TestCase):
         self.params = demand.AVIATION_REGION_CONFIGS["china_mainland"]
 
     def test_interface_versions_fields_and_first_row_are_stable(self) -> None:
-        self.assertEqual("regional-aviation-demand-layer-v0.3", demand.AVIATION_DEMAND_PARAM_VERSION)
-        self.assertEqual("regional-aviation-demand-interface-v0.2", demand.AVIATION_DEMAND_INTERFACE_VERSION)
-        self.assertEqual(66, len(demand.AVIATION_DEMAND_FIELDS))
+        self.assertEqual("regional-aviation-demand-layer-v0.4", demand.AVIATION_DEMAND_PARAM_VERSION)
+        self.assertEqual("regional-aviation-demand-interface-v0.3", demand.AVIATION_DEMAND_INTERFACE_VERSION)
+        self.assertEqual(170, len(demand.AVIATION_DEMAND_FIELDS))
         self.assertEqual("regional_aviation_demand_param_version", demand.AVIATION_DEMAND_FIELDS[0])
-        self.assertEqual("input_equity_valuation_pe", demand.AVIATION_DEMAND_FIELDS[-1])
+        self.assertEqual("general_retail_propensity_boundary_state", demand.AVIATION_DEMAND_FIELDS[-1])
 
         first = demand.simulate_region_aviation_demand([neutral_row(0)], self.params)[0]
         weights = demand.component_weights(self.params)

@@ -115,10 +115,10 @@
       detailHySpread: "HY 利差",
       detailIgSpread: "IG 利差",
       detailCreditAvailability: "信贷可得性",
-      detailEquity: "股票指数",
-      detailEquityReturn: "股票回报",
+      detailEquity: "股票价格指数",
+      detailEquityReturn: "股票年度总回报",
       detailEquityPe: "PE",
-      detailBond: "主权债指数",
+      detailBond: "主权债总回报指数",
       detailOil: "油价 / 能源",
       detailOilReturn: "油价年变动",
       detailCommodity: "商品指数",
@@ -178,8 +178,8 @@
       "流动性",
       "HY",
       "IG",
-      "股票",
-      "债券",
+      "股票总回报",
+      "主权债总回报",
       "PE",
       "油价/能源",
       "Oil YoY",
@@ -234,7 +234,9 @@
       "状态",
     ];
 
-    const MACRO_LEGEND_HTML = `
+    function macroLegendHtml(row = null) {
+      const portfolioLabel = row?.macro_scope === "regional" ? "居民实际金融财富" : "60/40 总回报";
+      return `
       <span><i class="swatch" style="background: var(--blue)"></i>GDP</span>
       <span><i class="swatch" style="background: var(--green)"></i>正增长</span>
       <span><i class="swatch" style="background: var(--red)"></i>负增长</span>
@@ -245,13 +247,14 @@
       <span><i class="swatch" style="background: #14b8a6"></i>流动性</span>
       <span><i class="swatch" style="background: #fb923c"></i>HY</span>
       <span><i class="swatch" style="background: #c084fc"></i>IG</span>
-      <span><i class="swatch" style="background: #22c55e"></i>股票</span>
-      <span><i class="swatch" style="background: #818cf8"></i>债券</span>
-      <span><i class="swatch" style="background: #eab308"></i>60/40</span>
+      <span><i class="swatch" style="background: #22c55e"></i>股票总回报</span>
+      <span><i class="swatch" style="background: #818cf8"></i>主权债总回报</span>
+      <span><i class="swatch" style="background: #eab308"></i>${portfolioLabel}</span>
       <span><i class="swatch" style="background: #f97316"></i>油价/能源</span>
       <span><i class="swatch" style="background: #d946ef"></i>商品</span>
       <span><i class="swatch" style="background: rgba(251,113,133,0.38)"></i>危机时代</span>
-    `;
+      `;
+    }
 
     const AVIATION_LEGEND_HTML = `
       <span><i class="swatch" style="background: var(--blue)"></i>航空需求</span>
@@ -317,8 +320,8 @@
     }
 
     function renderStats(rows) {
-      setChartLegend(MACRO_LEGEND_HTML);
       const row = selectedRow(rows);
+      setChartLegend(macroLegendHtml(row));
       const first = rows[0];
       const last = rows[rows.length - 1];
       const summary = summarize(rows);
@@ -346,7 +349,7 @@
           makeStat("10Y 利率", hasYield(row) ? fmtLevelPct(row.global_10y_yield_pct) : "-", hasYield(row) ? `spread ${fmtPct(row.term_spread_10y_2y_pct)}` : "run yield layer"),
           makeStat(currencyLabel, hasDollar(row) ? fmtIndex(row.global_dollar_index) : "-", hasDollar(row) ? `liquidity ${fmtIndex(row.global_liquidity_index)}` : "run dollar layer"),
           makeStat("HY 利差", hasCredit(row) ? fmtBps(row.global_high_yield_spread_bps) : "-", hasCredit(row) ? `IG ${fmtBps(row.global_investment_grade_spread_bps)}` : "run credit layer"),
-          makeStat("股票指数", hasAsset(row) ? fmtIndex(row.global_equity_index) : "-", hasAsset(row) ? `${fmtPct(row.equity_total_return_pct)} / ${row.asset_risk_regime || "n/a"}` : "run asset layer"),
+          makeStat("股票价格指数", hasAsset(row) ? fmtIndex(row.global_equity_price_index) : "-", hasAsset(row) ? `${fmtPct(row.global_equity_total_return_pct)} 总回报 / ${row.asset_risk_regime || "n/a"}` : "run asset layer"),
           makeStat(oilLabel, hasOil(row) ? fmtOilMetric(row) : "-", hasOil(row) ? `${fmtPct(row.oil_yoy_change_pct)} / ${row.oil_regime || "n/a"}` : "run oil layer"),
           makeStat("反馈强度", hasFeedback(row) ? fmtIndex(row.macro_feedback_intensity_index) : "-", hasFeedback(row) ? `pass delta ${fmtIndex(row.macro_feedback_last_pass_delta_index)}` : "feedback layer"),
         ],
@@ -432,13 +435,15 @@
           makeStat("GDP 拖累", fmtPct(row.credit_to_gdp_drag_placeholder), `policy easing ${fmtPct(row.credit_to_policy_easing_pressure)}`, growthClass(row.credit_to_gdp_drag_placeholder)),
         ] : unavailableStats("信用利差", row),
         asset: () => hasAsset(row) ? [
-          makeStat("股票指数", fmtIndex(row.global_equity_index), row.asset_risk_regime || "n/a"),
-          makeStat("股票回报", fmtPct(row.equity_total_return_pct), `drawdown ${fmtPct(row.equity_drawdown_pct)}`, growthClass(row.equity_total_return_pct)),
-          makeStat("盈利指数", fmtIndex(row.equity_earnings_index), `${boundarySummary(row, "equity_earnings_index")} · EPS ${fmtPct(row.equity_eps_growth_pct)}`),
-          makeStat("估值 PE", fmtIndex(row.equity_valuation_pe), `ERP ${fmtLevelPct(row.equity_risk_premium_pct)} · ${boundarySummary(row, "equity_risk_premium_pct", fmtLevelPct)}`),
-          makeStat("主权债指数", fmtIndex(row.global_sovereign_bond_index), `return ${fmtPct(row.sovereign_bond_total_return_pct)}`, growthClass(row.sovereign_bond_total_return_pct)),
-          makeStat("企业债指数", fmtIndex(row.global_corporate_bond_index), `return ${fmtPct(row.corporate_bond_total_return_pct)}`, growthClass(row.corporate_bond_total_return_pct)),
-          makeStat("60/40 指数", fmtIndex(row.global_60_40_portfolio_index), `return ${fmtPct(row.portfolio_60_40_total_return_pct)}`, growthClass(row.portfolio_60_40_total_return_pct)),
+          makeStat("股票价格指数", fmtIndex(row.global_equity_price_index), row.asset_risk_regime || "n/a"),
+          makeStat("股票总回报指数", fmtIndex(row.global_equity_total_return_index), `本年 ${fmtPct(row.global_equity_total_return_pct)} · 价格 ${fmtPct(row.global_equity_price_return_pct)} · drawdown ${fmtPct(row.global_equity_drawdown_pct)}`, growthClass(row.global_equity_total_return_pct)),
+          makeStat("EPS 指数", fmtIndex(row.global_equity_eps_index), `EPS ${fmtPct(row.global_equity_eps_growth_pct)} · ${row.global_equity_eps_boundary_state || "none"}`),
+          makeStat("估值 PE", fmtIndex(row.global_equity_valuation_pe), row.global_equity_pe_boundary_state || "none"),
+          makeStat("主权债总回报指数", fmtIndex(row.global_sovereign_bond_total_return_index), `return ${fmtPct(row.global_sovereign_bond_total_return_pct)}`, growthClass(row.global_sovereign_bond_total_return_pct)),
+          makeStat("企业债总回报指数", Number.isFinite(row.global_corporate_bond_total_return_index) ? fmtIndex(row.global_corporate_bond_total_return_index) : "-", Number.isFinite(row.global_corporate_bond_total_return_pct) ? `return ${fmtPct(row.global_corporate_bond_total_return_pct)}` : "区域视图不提供企业债", growthClass(row.global_corporate_bond_total_return_pct)),
+          row.macro_scope === "regional"
+            ? makeStat("居民实际金融财富", fmtIndex(row.regional_household_financial_wealth_index), `市场冲量 ${fmtIndex(row.regional_asset_market_impulse_index)}`)
+            : makeStat("60/40 总回报指数", fmtIndex(row.global_60_40_total_return_index), `return ${fmtPct(row.global_60_40_total_return_pct)}`, growthClass(row.global_60_40_total_return_pct)),
           makeStat("财富冲击", fmtPct(row.asset_to_gdp_wealth_impulse), `vol ${fmtIndex(row.asset_volatility_index)}`, growthClass(row.asset_to_gdp_wealth_impulse)),
         ] : unavailableStats("资产价格", row),
         oil: () => hasOil(row) ? [
@@ -509,11 +514,11 @@
       const bankStress = numericValue(row, "bank_balance_sheet_stress_index", 34);
       const impairment = numericValue(row, "credit_impairment_stock_index");
       const refinancing = numericValue(row, "corporate_refinancing_pressure_index");
-      const equityReturn = numericValue(row, "equity_total_return_pct");
-      const drawdown = numericValue(row, "equity_drawdown_pct");
-      const pe = numericValue(row, "equity_valuation_pe");
-      const prevPe = numericValue(prev, "equity_valuation_pe", pe);
-      const sovereignReturn = numericValue(row, "sovereign_bond_total_return_pct");
+      const equityReturn = numericValue(row, "global_equity_total_return_pct");
+      const drawdown = numericValue(row, "global_equity_drawdown_pct");
+      const pe = numericValue(row, "global_equity_valuation_pe");
+      const prevPe = numericValue(prev, "global_equity_valuation_pe", pe);
+      const sovereignReturn = numericValue(row, "global_sovereign_bond_total_return_pct");
       const brent = numericValue(row, "brent_oil_price_usd");
       const prevBrent = numericValue(prev, "brent_oil_price_usd", brent);
       const oilYoy = numericValue(row, "oil_yoy_change_pct");
@@ -871,6 +876,7 @@
         <div class="scenario-note">
           <strong>发生情景：${escapeHtml(state.scenario.risk.label)}</strong>
           从 ${escapeHtml(String(state.scenario.triggerYear))} 年后分叉，主冲击 ${escapeHtml(String(state.scenario.impactYears))} 年，余波 ${escapeHtml(String(state.scenario.tailYears))} 年。
+          <em>浏览器分叉是非权威情景草图；正式资产会计以服务端 Run 的 v0.16/v6 结果为准。</em>
           <button class="scenario-clear" type="button" data-clear-scenario>清除</button>
           <small>${escapeHtml(scenarioDeltaSummary(rows))}</small>
         </div>
@@ -944,10 +950,10 @@
       el.detailHySpread.textContent = hasCredit(row) ? fmtBps(row.global_high_yield_spread_bps) : "-";
       el.detailIgSpread.textContent = hasCredit(row) ? fmtBps(row.global_investment_grade_spread_bps) : "-";
       el.detailCreditAvailability.textContent = hasCredit(row) ? fmtIndex(row.credit_availability_index) : "-";
-      el.detailEquity.textContent = hasAsset(row) ? fmtIndex(row.global_equity_index) : "-";
-      el.detailEquityReturn.textContent = hasAsset(row) ? fmtPct(row.equity_total_return_pct) : "-";
-      el.detailEquityPe.textContent = hasAsset(row) ? fmtIndex(row.equity_valuation_pe) : "-";
-      el.detailBond.textContent = hasAsset(row) ? fmtIndex(row.global_sovereign_bond_index) : "-";
+      el.detailEquity.textContent = hasAsset(row) ? fmtIndex(row.global_equity_price_index) : "-";
+      el.detailEquityReturn.textContent = hasAsset(row) ? fmtPct(row.global_equity_total_return_pct) : "-";
+      el.detailEquityPe.textContent = hasAsset(row) ? fmtIndex(row.global_equity_valuation_pe) : "-";
+      el.detailBond.textContent = hasAsset(row) ? fmtIndex(row.global_sovereign_bond_total_return_index) : "-";
       el.detailOil.textContent = hasOil(row) ? fmtOilMetric(row) : "-";
       el.detailOilReturn.textContent = hasOil(row) ? fmtPct(row.oil_yoy_change_pct) : "-";
       el.detailCommodity.textContent = hasOil(row) ? fmtIndex(row.broad_commodity_index) : "-";
@@ -977,9 +983,9 @@
           <td>${hasDollar(row) ? fmtIndex(row.global_liquidity_index) : "-"}</td>
           <td>${hasCredit(row) ? fmtBps(row.global_high_yield_spread_bps) : "-"}</td>
           <td>${hasCredit(row) ? fmtBps(row.global_investment_grade_spread_bps) : "-"}</td>
-          <td>${hasAsset(row) ? fmtIndex(row.global_equity_index) : "-"}</td>
-          <td>${hasAsset(row) ? fmtIndex(row.global_sovereign_bond_index) : "-"}</td>
-          <td>${hasAsset(row) ? fmtIndex(row.equity_valuation_pe) : "-"}</td>
+          <td>${hasAsset(row) ? fmtIndex(row.global_equity_total_return_index) : "-"}</td>
+          <td>${hasAsset(row) ? fmtIndex(row.global_sovereign_bond_total_return_index) : "-"}</td>
+          <td>${hasAsset(row) ? fmtIndex(row.global_equity_valuation_pe) : "-"}</td>
           <td>${hasOil(row) ? fmtOilMetric(row) : "-"}</td>
           <td>${hasOil(row) ? fmtPct(row.oil_yoy_change_pct) : "-"}</td>
           <td>${hasOil(row) ? fmtIndex(row.broad_commodity_index) : "-"}</td>
@@ -1158,7 +1164,7 @@
           makeStat("真实收入增长", fmtPct(row.input_real_income_growth_pct), `confidence ${fmtIndex(row.input_consumer_confidence_index)}`, growthClass(row.input_real_income_growth_pct)),
           makeStat("宏观压力", fmtIndex(row.input_macro_stress_index), `HY ${fmtBps(row.input_hy_spread_bps)}`),
           makeStat("能源压力", fmtIndex(row.input_energy_cost_pressure_index), `fare pressure ${fmtIndex(row.airfare_pressure_index)}`),
-          makeStat("货币压力", fmtIndex(row.input_currency_pressure_index), `equity ${fmtPct(row.input_equity_return_pct)}`),
+          makeStat("货币压力", fmtIndex(row.input_currency_pressure_index), `资产市场 ${fmtIndex(row.input_asset_market_impulse_index)}`),
         ],
       };
       const cards = (statsByMode[state.mode] || statsByMode.both)();
@@ -1324,7 +1330,7 @@
 
     function renderEmptyView() {
       const isAviation = state.view === "aviation";
-      setChartLegend(isAviation ? AVIATION_LEGEND_HTML : MACRO_LEGEND_HTML);
+      setChartLegend(isAviation ? AVIATION_LEGEND_HTML : macroLegendHtml());
       setDetailLabels(isAviation ? AVIATION_DETAIL_LABELS : MACRO_DETAIL_LABELS);
       setTableHeaders(isAviation ? AVIATION_TABLE_HEADERS : MACRO_TABLE_HEADERS);
       clearDetailValues();
@@ -1600,7 +1606,7 @@
       const yieldValues = axisRows.filter(hasYield).map((row) => row.global_10y_yield_pct);
       const dollarAxisValues = axisRows.filter(hasDollar).flatMap((row) => [row.global_dollar_index, row.global_liquidity_index]);
       const creditAxisValues = axisRows.filter(hasCredit).flatMap((row) => [row.global_high_yield_spread_bps, row.global_investment_grade_spread_bps]);
-      const assetAxisValues = axisRows.filter(hasAsset).flatMap((row) => [row.global_equity_index, row.global_sovereign_bond_index, row.global_60_40_portfolio_index]);
+      const assetAxisValues = axisRows.filter(hasAsset).flatMap((row) => [row.global_equity_total_return_index, row.global_sovereign_bond_total_return_index, row.macro_scope === "regional" ? row.regional_household_financial_wealth_index : row.global_60_40_total_return_index]);
       const oilAxisValues = axisRows.filter(hasOil).flatMap((row) => [row.brent_oil_price_usd, row.broad_commodity_index]);
       const minYear = Math.min(...years);
       const maxYear = Math.max(...years);
@@ -1689,9 +1695,9 @@
       const liquidityPath = showDollar ? `<path d="${pathFromPoints(rows.filter(hasDollar).map((row) => ({ x: x(row.year), y: yDollar(row.global_liquidity_index) })))}" fill="none" stroke="#14b8a6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />` : "";
       const hyPath = showCredit ? `<path d="${pathFromPoints(rows.filter(hasCredit).map((row) => ({ x: x(row.year), y: yCredit(row.global_high_yield_spread_bps) })))}" fill="none" stroke="#fb923c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />` : "";
       const igPath = showCredit ? `<path d="${pathFromPoints(rows.filter(hasCredit).map((row) => ({ x: x(row.year), y: yCredit(row.global_investment_grade_spread_bps) })))}" fill="none" stroke="#c084fc" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />` : "";
-      const equityPath = showAsset ? `<path d="${pathFromPoints(rows.filter(hasAsset).map((row) => ({ x: x(row.year), y: yAsset(row.global_equity_index) })))}" fill="none" stroke="#22c55e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />` : "";
-      const sovereignBondPath = showAsset ? `<path d="${pathFromPoints(rows.filter(hasAsset).map((row) => ({ x: x(row.year), y: yAsset(row.global_sovereign_bond_index) })))}" fill="none" stroke="#818cf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />` : "";
-      const portfolioPath = showAsset ? `<path d="${pathFromPoints(rows.filter(hasAsset).map((row) => ({ x: x(row.year), y: yAsset(row.global_60_40_portfolio_index) })))}" fill="none" stroke="#eab308" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" />` : "";
+      const equityPath = showAsset ? `<path d="${pathFromPoints(rows.filter(hasAsset).map((row) => ({ x: x(row.year), y: yAsset(row.global_equity_total_return_index) })))}" fill="none" stroke="#22c55e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />` : "";
+      const sovereignBondPath = showAsset ? `<path d="${pathFromPoints(rows.filter(hasAsset).map((row) => ({ x: x(row.year), y: yAsset(row.global_sovereign_bond_total_return_index) })))}" fill="none" stroke="#818cf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />` : "";
+      const portfolioPath = showAsset ? `<path d="${pathFromPoints(rows.filter(hasAsset).map((row) => ({ x: x(row.year), y: yAsset(row.macro_scope === "regional" ? row.regional_household_financial_wealth_index : row.global_60_40_total_return_index) })))}" fill="none" stroke="#eab308" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round" />` : "";
       const oilPath = showOil ? `<path d="${pathFromPoints(rows.filter(hasOil).map((row) => ({ x: x(row.year), y: yOil(row.brent_oil_price_usd) })))}" fill="none" stroke="#f97316" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />` : "";
       const commodityPath = showOil ? `<path d="${pathFromPoints(rows.filter(hasOil).map((row) => ({ x: x(row.year), y: yOil(row.broad_commodity_index) })))}" fill="none" stroke="#d946ef" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />` : "";
 
@@ -1709,8 +1715,8 @@
         showDollar ? scenarioPath("global_dollar_index", yDollar, "#fb923c", 2.5, hasDollar) : "",
         showDollar ? scenarioPath("global_liquidity_index", yDollar, "#fbbf24", 2.2, hasDollar) : "",
         showCredit ? scenarioPath("global_high_yield_spread_bps", yCredit, "#fb923c", 2.7, hasCredit) : "",
-        showAsset ? scenarioPath("global_equity_index", yAsset, "#fb923c", 2.7, hasAsset) : "",
-        showAsset ? scenarioPath("global_sovereign_bond_index", yAsset, "#fbbf24", 2.2, hasAsset) : "",
+        showAsset ? scenarioPath("global_equity_total_return_index", yAsset, "#fb923c", 2.7, hasAsset) : "",
+        showAsset ? scenarioPath("global_sovereign_bond_total_return_index", yAsset, "#fbbf24", 2.2, hasAsset) : "",
         showOil ? scenarioPath("brent_oil_price_usd", yOil, "#fb923c", 2.7, hasOil) : "",
       ].join("") : "";
 
@@ -1744,9 +1750,9 @@
         ${showDollar ? `<circle cx="${selectedX}" cy="${yDollar(selected.global_liquidity_index)}" r="4.5" fill="#14b8a6" stroke="#0b1120" stroke-width="2" />` : ""}
         ${showCredit ? `<circle cx="${selectedX}" cy="${yCredit(selected.global_high_yield_spread_bps)}" r="4.5" fill="#fb923c" stroke="#0b1120" stroke-width="2" />` : ""}
         ${showCredit ? `<circle cx="${selectedX}" cy="${yCredit(selected.global_investment_grade_spread_bps)}" r="4.5" fill="#c084fc" stroke="#0b1120" stroke-width="2" />` : ""}
-        ${showAsset ? `<circle cx="${selectedX}" cy="${yAsset(selected.global_equity_index)}" r="4.5" fill="#22c55e" stroke="#0b1120" stroke-width="2" />` : ""}
-        ${showAsset ? `<circle cx="${selectedX}" cy="${yAsset(selected.global_sovereign_bond_index)}" r="4.5" fill="#818cf8" stroke="#0b1120" stroke-width="2" />` : ""}
-        ${showAsset ? `<circle cx="${selectedX}" cy="${yAsset(selected.global_60_40_portfolio_index)}" r="4.5" fill="#eab308" stroke="#0b1120" stroke-width="2" />` : ""}
+        ${showAsset ? `<circle cx="${selectedX}" cy="${yAsset(selected.global_equity_total_return_index)}" r="4.5" fill="#22c55e" stroke="#0b1120" stroke-width="2" />` : ""}
+        ${showAsset ? `<circle cx="${selectedX}" cy="${yAsset(selected.global_sovereign_bond_total_return_index)}" r="4.5" fill="#818cf8" stroke="#0b1120" stroke-width="2" />` : ""}
+        ${showAsset ? `<circle cx="${selectedX}" cy="${yAsset(selected.macro_scope === "regional" ? selected.regional_household_financial_wealth_index : selected.global_60_40_total_return_index)}" r="4.5" fill="#eab308" stroke="#0b1120" stroke-width="2" />` : ""}
         ${showOil ? `<circle cx="${selectedX}" cy="${yOil(selected.brent_oil_price_usd)}" r="4.5" fill="#f97316" stroke="#0b1120" stroke-width="2" />` : ""}
         ${showOil ? `<circle cx="${selectedX}" cy="${yOil(selected.broad_commodity_index)}" r="4.5" fill="#d946ef" stroke="#0b1120" stroke-width="2" />` : ""}
       `;
@@ -1758,7 +1764,7 @@
         ${showDollar || showCredit || showAsset || showOil ? "" : `<line x1="${margin.left}" y1="${zeroY}" x2="${margin.left + plotW}" y2="${zeroY}" stroke="#3b4a61" stroke-width="1.1" />`}
         <line x1="${margin.left}" y1="${margin.top}" x2="${margin.left}" y2="${margin.top + plotH}" stroke="#64748b" />
         <line x1="${margin.left}" y1="${margin.top + plotH}" x2="${margin.left + plotW}" y2="${margin.top + plotH}" stroke="#64748b" />
-        <text x="18" y="${margin.top + plotH / 2}" transform="rotate(-90 18 ${margin.top + plotH / 2})" text-anchor="middle" font-size="12" fill="#94a3b8">${showOil ? (selected.oil_display_unit === "index" ? "energy / commodity pressure" : "oil / commodity index") : showAsset ? "asset index" : showCredit ? "credit spread bps" : showDollar ? (selected.macro_scope === "regional" ? "currency / liquidity index" : "dollar funding conditions / liquidity index") : (selected.display_gdp_unit === "index" ? "regional GDP index" : "GDP, trillion USD")}</text>
+        <text x="18" y="${margin.top + plotH / 2}" transform="rotate(-90 18 ${margin.top + plotH / 2})" text-anchor="middle" font-size="12" fill="#94a3b8">${showOil ? (selected.oil_display_unit === "index" ? "energy / commodity pressure" : "oil / commodity index") : showAsset ? "comparable total-return / wealth index" : showCredit ? "credit spread bps" : showDollar ? (selected.macro_scope === "regional" ? "currency / liquidity index" : "dollar funding conditions / liquidity index") : (selected.display_gdp_unit === "index" ? "regional GDP index" : "GDP, trillion USD")}</text>
         <text x="${width - 16}" y="${margin.top + plotH / 2}" transform="rotate(90 ${width - 16} ${margin.top + plotH / 2})" text-anchor="middle" font-size="12" fill="#94a3b8">${showCredit ? "bps" : showOil ? "USD / index" : showAsset || showDollar ? "index" : "growth / rates %"}</text>
         ${crisisBands}
         ${scenarioBand}

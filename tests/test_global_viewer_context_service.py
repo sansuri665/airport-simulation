@@ -9,6 +9,7 @@ from pathlib import Path
 from airport_sim.schema_validation import load_schema_registry, validate_named_schema
 from airport_sim.server import app as local_ui
 from airport_sim.server import global_viewer, serializers, storage
+from macro_layers.asset_accounting_v04 import initial_contract_row
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -68,6 +69,10 @@ class GlobalViewerContextServiceTests(unittest.TestCase):
                     region_id=region_id,
                     region_name=f"区域 {region_id}",
                     regional_gdp_index=100.0,
+                    **initial_contract_row("regional_asset"),
+                    **initial_contract_row("regional_signal"),
+                    asset_accounting_contract_version="asset-accounting-v0.4-contract-v1",
+                    regional_asset_v04_param_version="regional-asset-accounting-v0.4",
                 ),
             )
             write_rows(
@@ -76,7 +81,22 @@ class GlobalViewerContextServiceTests(unittest.TestCase):
                 / "regional_aviation_demand"
                 / region_id
                 / f"{region_id}_aviation_demand_seed_sweep.csv",
-                years_rows(seed, region_id=region_id, regional_air_demand_index=100.0),
+                years_rows(
+                    seed,
+                    region_id=region_id,
+                    regional_air_demand_index=100.0,
+                    regional_aviation_demand_param_version="regional-aviation-demand-layer-v0.4",
+                    input_asset_market_impulse_index=50.0,
+                    input_household_wealth_consumption_impulse=0.0,
+                    input_real_disposable_income_growth_pct=0.0,
+                    premium_propensity_raw_index=100.0,
+                    premium_propensity_final_index=100.0,
+                    demand_total_asset_market_contribution_pp=0.0,
+                    demand_total_household_wealth_contribution_pp=0.0,
+                    demand_total_cash_income_contribution_pp=0.0,
+                    demand_total_credit_confidence_contribution_pp=0.0,
+                    demand_total_fare_cost_contribution_pp=0.0,
+                ),
             )
             write_rows(
                 run_dir

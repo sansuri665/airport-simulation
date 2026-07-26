@@ -10,25 +10,60 @@ py -3.13 --version
 
 `pyproject.toml` 要求 `>=3.13,<3.14`。使用其他 Python 得到的“测试通过”不能替代 3.13 验收。
 
-## 2. 完整验收命令
+## 2. 分层测试入口
+
+[`run_test_suite.py`](../../tools/run_test_suite.py) 是测试分层和发布自动化的唯一入口。它使用标准库 `unittest`，不会引入 pytest 或第三方运行依赖。先查看当前套件：
 
 ```powershell
-py -3.13 -m compileall -q airport_sim macro_layers tests
-py -3.13 tools/check_markdown_links.py
-py -3.13 tools/check_javascript_syntax.py
-py -3.13 -m airport_sim validate-config
-py -3.13 -B -m unittest discover -s tests -v
-git diff --check
+py -3.13 tools/run_test_suite.py --list
 ```
+
+| 套件 | 用途 | 默认时机 |
+|---|---|---|
+| `quick` | Python/JavaScript 语法、Markdown、配置以及轻量跨模块契约 | 每轮开发和本地小版本 |
+| `asset` | 资产字段、股票/债券会计、财富桥、版本和迁移契约 | 修改资产、财富或资产—消费接口 |
+| `macro` | 全球/区域宏观、反馈收敛、边界和长周期 | 修改宏观、通胀、利率、资产或反馈 |
+| `passenger` | 区域需求、城市需求、航司供给和客流审计 | 修改客流或航司供给 |
+| `forecast` | 报告叙事、候选、工作区和按需加载 | 修改预测系统 |
+| `operations` | 北京经营、贷款、玩家行动和财务回放 | 修改经营或融资 |
+| `service` | API、缓存/存档、Seed 工作区和 Run/Release 生命周期 | 修改服务端或数据生命周期 |
+| `viewer` | Viewer 发布、上下文、按需加载、DOM 和 HTTP | 修改页面或 Viewer 数据 |
+| `model` | `asset + macro + passenger + forecast + operations` 去重合集 | 跨多个模型层的本地验收 |
+| `full` | 自动发现并执行全部 `tests/test_*.py` | 默认仅大版本前；高风险基础改动可例外 |
+| `release` | 静态护栏、两个命令入口、`full` 和 `git diff --check` | GitHub 大版本发布前与 CI |
+
+领域套件可以组合，重复模块只运行一次：
+
+```powershell
+py -3.13 tools/run_test_suite.py --suite quick --suite passenger --top 10
+py -3.13 tools/run_test_suite.py --suite quick --suite service --suite viewer --top 10
+```
+
+每次执行都会输出最慢测试，便于先优化重复模型生成和昂贵夹具，不以删除断言制造速度。新增 `tests/test_*.py` 必须登记到至少一个领域或 `quick`；`test_test_suite_runner.py` 会检查注册表完整性，而 `full`/`release` 始终使用自动发现，不会因漏登记而漏掉大版本测试。
+
+静态 Markdown 检查只读取权威项目文档和 `handoff/README.md`，明确排除临时运输目录 `handoff/inbox/`、`handoff/outbox/` 与 `handoff/work/`，避免完整 Handoff 源码快照被重复扫描并污染统计。
+
+### 2.1 按 Git 阶段选择强度
+
+| 阶段 | 必须执行 | 通常不执行 |
+|---|---|---|
+| 编码循环 | 直接相关的单个测试模块；需要时补 `quick` | `full`、完整浏览器清单 |
+| 本地小版本 | `quick + 受影响领域`，并检查本轮声明的不变量 | 无关领域、跨平台 `full` |
+| 跨层或高风险基础修改 | `quick + model` 或多个受影响领域；必要时例外执行 `full` | 只靠单个新增测试判定完成 |
+| GitHub 大版本 | 本地 `release`；GitHub Windows/Linux `release`；涉及 UI 时完整浏览器验收 | 跳过全量或仅更新失败快照 |
+
+默认只有准备提交 GitHub 的大版本才运行 `full`。修改测试运行器、随机数/浮点公共基础、宏观编排器、缓存指纹或跨多个领域的权威字段链时，即使尚未发布，也可以因风险例外执行一次 `full`；例外应说明原因，不能重新退化为每个小改动机械全量。
 
 JavaScript 语法检查需要 Node.js；它只用于前端静态验证，不是运行机场模型或本地服务的依赖。CI 显式安装 Node.js 22，本地未加入 PATH 时可向脚本传入 `--node` 指定可执行文件。
 
-CI 会在 Windows 和 Linux 上安装当前项目的 editable package，再执行相同的语法、入口、配置和完整测试检查。
+CI 会在 Windows 和 Linux 上安装当前项目的 editable package，再调用同一个 `release` 入口。推送 GitHub 和 Pull Request 都被视为大版本或合并边界，因此 CI 保留跨平台全量测试；本地小版本不会触发远端 CI。
 
 ## 3. 自动化保护了什么
 
 | 测试领域 | 代表文件 | 主要保护 |
 |---|---|---|
+| 资产 v0.4 A0 契约 | `test_asset_v04_field_contract.py` | 股票/债券/60-40 恒等式、字段单位与初始值、持仓和财富冲量、稳定 RNG 子流、旧消费者清单、候选版本不提前激活 |
+| 资产 v0.4 A1a 全球股票 | `test_global_equity_accounting_v04.py` | EPS/PE 贡献重建、价格与含分红会计、方向与反例、危机回撤、无展示上限、RNG 隔离和长短前缀 |
 | 固定 Seed 数值 | `test_safety_baseline.py` | 九组数值摘要、Python 3.13 浮点口径、IO 细节 |
 | 长期模型 | `test_long_horizon_contract.py` | 60 年情景、14 区、47 城、CSV 表头和玩家融资回放 |
 | 客流审计观测面 | `test_passenger_demand_audit.py`、`test_city_passenger_demand_contract.py` | 三层 CSV 完整性、有限数值、客群漂移、区域—城市比例、城市总量/结构正交、真实边界命中、会计守恒、容量瓶颈、参数比较和稳定 JSON |
@@ -54,7 +89,7 @@ DOM 契约不检查颜色、尺寸、布局和图表视觉效果。涉及页面�
 
 ## 4. 按修改类型选择最小检查
 
-完整测试是交付前标准；开发中可以先运行相关模块缩短反馈时间。
+本地小版本使用 `quick + 受影响领域`；GitHub 大版本才使用 `release`。下面的命令是领域选择示例，不要求每次同时执行所有领域。
 
 ### 仅文档
 
@@ -65,8 +100,7 @@ DOM 契约不检查颜色、尺寸、布局和图表视觉效果。涉及页面�
 ### 前端页面或静态资源
 
 ```powershell
-py -3.13 -B -m unittest tests.test_viewer_smoke tests.test_viewer_dom_contract -v
-py -3.13 -B -m unittest tests.test_global_viewer_lazy_loading tests.test_city_market_viewer_lazy_loading tests.test_forecast_lazy_loading -v
+py -3.13 tools/run_test_suite.py --suite quick --suite viewer
 ```
 
 之后启动 8776，在浏览器实际打开五个页面，切换受影响的按钮、报告、区域和图表，并检查控制台错误。
@@ -74,7 +108,7 @@ py -3.13 -B -m unittest tests.test_global_viewer_lazy_loading tests.test_city_ma
 ### 服务、路由或 API
 
 ```powershell
-py -3.13 -B -m unittest tests.test_forecast_workspace_services tests.test_beijing_operations_service tests.test_player_action_domains tests.test_player_simulation_service tests.test_local_ui tests.test_api_snapshot tests.test_json_schemas tests.test_background_jobs -v
+py -3.13 tools/run_test_suite.py --suite quick --suite service
 ```
 
 若字段发生变化，还必须更新 Schema、固定 Seed 快照和前端读取逻辑；不能只改其中一处。
@@ -82,19 +116,19 @@ py -3.13 -B -m unittest tests.test_forecast_workspace_services tests.test_beijin
 ### 缓存、存档、路径或发布
 
 ```powershell
-py -3.13 -B -m unittest tests.test_cache_save_api_schemas tests.test_orchestrator_run_lifecycle_service tests.test_orchestrator_variant_outputs_service tests.test_orchestrator_run_validation_service tests.test_orchestrator_viewer_assets_service tests.test_orchestrator_release_index_services tests.test_run_cache_service tests.test_cache_service tests.test_atomic_run tests.test_viewer_release tests.test_safety_baseline -v
+py -3.13 tools/run_test_suite.py --suite quick --suite service --suite viewer
 ```
 
 测试应使用临时目录，不要把 smoke/test 产物写进正式 `output/` 或 `saves/`。
 
 ### 模型、参数或随机逻辑
 
-至少运行固定 Seed 数值、60 年契约和完整套件。若变化是有意的模型升级，应先写清版本与迁移计划；不能通过直接更新摘要来掩盖无意漂移。
+开发和本地小版本至少运行 `quick`、受影响的模型领域、固定 Seed 及相关长周期契约。跨多个模型层时使用 `model`；完整套件留到 GitHub 大版本或前述高风险例外。若变化是有意的模型升级，应先写清版本与迁移计划；不能通过直接更新摘要来掩盖无意漂移。
 
 航空与城市供给相关修改可先运行：
 
 ```powershell
-py -3.13 -B -m unittest tests.test_regional_aviation_demand_contract tests.test_city_passenger_demand_contract tests.test_passenger_demand_audit tests.test_regional_air_supply_boundaries tests.test_component_airline_allocation tests.test_airline_supply_dynamics_profiles -v
+py -3.13 tools/run_test_suite.py --suite quick --suite passenger
 ```
 
 已有 Run 或临时结果可以用只读审计器检查三层完整性、客群漂移、区域—城市比例、会计守恒和容量瓶颈：
@@ -110,7 +144,7 @@ py -3.13 tools/audit_passenger_demand.py --input-root <包含三层 CSV 的目�
 客流预测模型修改还应运行：
 
 ```powershell
-py -3.13 -B -m unittest tests.test_forecast_narrative_model tests.test_forecast_lazy_loading tests.test_safety_baseline -v
+py -3.13 tools/run_test_suite.py --suite quick --suite forecast
 ```
 
 普通报告不得重新读取目标年份真实数值；玩家分块不得包含 `debug_*`、`realized_*` 或神级报告。审计分块必须继续保留城市客群权威真值和完整评分。
@@ -144,6 +178,8 @@ py -3.13 -m airport_sim validate-config
 
 ## 7. 浏览器验收清单
 
+本地小版本只实际操作受影响页面和交互；GitHub 大版本涉及 UI、输出协议或 Viewer 发布时执行下面的完整清单。纯后端且页面契约未变化的大版本仍运行 `release` 自动化，但不为形式重复点击无关页面。
+
 启动：
 
 ```powershell
@@ -171,6 +207,6 @@ py -3.13 -m airport_sim serve --host 127.0.0.1 --port 8776
 - `git status` 只包含本次范围内的源码和文档；
 - 不提交 `output/`、`saves/`、`__pycache__/` 等生成物；
 - 所有新增真实文件路径都有对应文档或入口更新；
-- 完整 Python 3.13 测试通过；
+- 本地小版本通过 `quick + 受影响领域`；GitHub 大版本通过本地和 CI 的 `release`；
 - 涉及 UI 时完成浏览器验收；
 - 涉及数值时明确说明结果是保持不变还是有意升级。

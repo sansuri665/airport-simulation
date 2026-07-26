@@ -105,6 +105,54 @@ class PlayerOutputOrchestrationTests(unittest.TestCase):
             **paths,
         )
 
+    def test_formal_player_config_does_not_inherit_reference_projects(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            operations_path = root / "reference-operations.json"
+            finance_path = root / "reference-finance.json"
+            reference_operations = {
+                "config_version": "reference",
+                "facility_renovation_events": [{"event_id": "reference-renovation"}],
+                "facility_construction_events": [
+                    {"event_id": "PKX_SLOT_2_CONSTRUCTION_2065Q3"}
+                ],
+                "facility_rebuild_events": [{"event_id": "reference-rebuild"}],
+            }
+            reference_finance = {
+                "config_version": "reference-finance",
+                "general_loans": [{"loan_id": "reference-loan"}],
+            }
+            writes: dict[str, dict[str, object]] = {}
+
+            player_service.write_player_simulation_configs(
+                root / "run",
+                [],
+                simulation_dir_name="simulation_default",
+                operations_config_path=operations_path,
+                finance_config_path=finance_path,
+                read_config_json=lambda path: dict(
+                    reference_operations if path == operations_path else reference_finance
+                ),
+                player_project_events=lambda actions: {
+                    "facility_renovation_events": [],
+                    "facility_construction_events": [],
+                    "facility_rebuild_events": [],
+                },
+                player_general_loans=lambda actions: [],
+                write_json=lambda path, payload: writes.setdefault(path.name, payload),
+            )
+
+        generated = writes[
+            "beijing_airport_system_quarterly_operations_simulate_default.json"
+        ]
+        self.assertEqual([], generated["facility_renovation_events"])
+        self.assertEqual([], generated["facility_construction_events"])
+        self.assertEqual([], generated["facility_rebuild_events"])
+        self.assertNotIn(
+            "PKX_SLOT_2_CONSTRUCTION_2065Q3",
+            str(generated),
+        )
+
     def test_cache_hit_does_not_rebuild_or_run_commands(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)

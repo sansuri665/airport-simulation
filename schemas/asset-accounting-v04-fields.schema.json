@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://airport.local/schemas/asset-accounting-v04-fields.schema.json",
+  "title": "Asset accounting v0.4 canonical row contracts",
+  "$defs": {
+    "globalAssetRow": {
+      "type": "object",
+      "required": [
+        "asset_accounting_contract_version",
+        "global_equity_eps_index",
+        "global_equity_valuation_pe",
+        "global_equity_price_index",
+        "global_equity_price_return_pct",
+        "global_equity_dividend_yield_pct",
+        "global_equity_total_return_pct",
+        "global_equity_total_return_index",
+        "global_sovereign_bond_total_return_pct",
+        "global_sovereign_bond_total_return_index",
+        "global_corporate_bond_total_return_pct",
+        "global_corporate_bond_total_return_index",
+        "global_60_40_total_return_pct",
+        "global_60_40_total_return_index"
+      ],
+      "properties": {
+        "asset_accounting_contract_version": { "const": "asset-accounting-v0.4-contract-v1" }
+      },
+      "additionalProperties": true
+    },
+    "regionalAssetRow": {
+      "type": "object",
+      "required": [
+        "asset_accounting_contract_version",
+        "regional_asset_v04_param_version",
+        "regional_equity_eps_index",
+        "regional_equity_valuation_pe",
+        "regional_equity_price_index",
+        "regional_equity_price_return_pct",
+        "regional_equity_dividend_yield_pct",
+        "regional_equity_total_return_pct",
+        "regional_equity_total_return_index",
+        "regional_sovereign_bond_total_return_pct",
+        "regional_sovereign_bond_total_return_index",
+        "regional_asset_market_impulse_index",
+        "regional_household_financial_wealth_index",
+        "regional_real_household_wealth_growth_pct",
+        "regional_household_wealth_consumption_impulse",
+        "regional_real_disposable_income_growth_pct"
+      ],
+      "properties": {
+        "asset_accounting_contract_version": { "const": "asset-accounting-v0.4-contract-v1" },
+        "regional_asset_v04_param_version": { "const": "regional-asset-accounting-v0.4" }
+      },
+      "additionalProperties": true
+    },
+    "aviationDemandA3Row": {
+      "type": "object",
+      "required": [
+        "regional_aviation_demand_param_version",
+        "input_asset_market_impulse_index",
+        "input_household_wealth_consumption_impulse",
+        "input_real_disposable_income_growth_pct",
+        "premium_propensity_raw_index",
+        "premium_propensity_final_index",
+        "demand_total_asset_market_contribution_pp",
+        "demand_total_household_wealth_contribution_pp",
+        "demand_total_cash_income_contribution_pp",
+        "demand_total_credit_confidence_contribution_pp",
+        "demand_total_fare_cost_contribution_pp"
+      ],
+      "properties": {
+        "regional_aviation_demand_param_version": { "const": "regional-aviation-demand-layer-v0.4" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

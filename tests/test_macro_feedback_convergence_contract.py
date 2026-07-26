@@ -77,6 +77,7 @@ def _make_row(
         "global_10y_yield_pct": ten_y,
         "global_dollar_index": dollar,
         "global_high_yield_spread_bps": hy,
+        "global_investment_grade_spread_bps": 125.0,
         "brent_oil_price_usd": oil,
         "global_short_rate_pct": short_rate if short_rate is not None else policy,
         "global_financial_conditions_index": fci,
@@ -1193,7 +1194,7 @@ class EntryPointConsistencyTests(unittest.TestCase):
             run_convergence_aware_feedback_loop,
         )
 
-    def test_regional_standalone_and_orchestrator_share_global_contract(self) -> None:
+    def test_only_orchestrator_publishes_the_v016_asset_contract(self) -> None:
         defaults = MacroFeedbackParams()
         args = argparse.Namespace(
             years=12,
@@ -1211,67 +1212,14 @@ class EntryPointConsistencyTests(unittest.TestCase):
             min_feedback_iterations=args.min_feedback_iterations,
         )
         orchestrated = orchestrator.run_global_variant(20261324, args, "baseline")
-        fields = (
-            "realized_growth_pct",
-            "headline_inflation_pct",
-            "global_policy_rate_pct",
-            "global_2y_yield_pct",
-            "global_10y_yield_pct",
-            "global_dollar_index",
-            "global_high_yield_spread_bps",
-            "brent_oil_price_usd",
-        )
-        # The orchestrator's historical scenario-merge adapter compacts applied
-        # feedback inputs to four decimals before the full pass, even when no
-        # scenario is active. Most published fields can differ by one final
-        # rounding unit; recursive HY and Brent paths can amplify that input
-        # quantization by a few thousandths while remaining economically and
-        # contractually identical. The shared convergence summary must still be
-        # exact.
-        field_tolerances = {
-            "global_high_yield_spread_bps": 0.0051,
-            "brent_oil_price_usd": 0.00061,
-        }
-        for regional_row, orchestrated_row in zip(
-            regional_rows,
-            orchestrated["rows"],
-            strict=True,
-        ):
-            for field in fields:
-                self.assertAlmostEqual(
-                    float(regional_row[field]),
-                    float(orchestrated_row[field]),
-                    delta=field_tolerances.get(field, 0.00011),
-                )
-        orchestrated_convergence = orchestrated["convergence"]
-        for key in (
-            "converged",
-            "last_pass_converged",
-            "consecutive_converged_passes",
-            "iterations_run",
-            "min_iterations",
-            "max_iterations",
-            "convergence_reason",
-            "convergence_tolerance_version",
-            "feedback_relaxation_strategy",
-            "fixed_point_residual_checked",
-            "fixed_point_residual_converged",
-        ):
-            self.assertEqual(regional_convergence[key], orchestrated_convergence[key], key)
+        self.assertNotIn("asset_accounting_contract_version", regional_rows[-1])
         self.assertEqual(
-            [item["pass_converged"] for item in regional_convergence["pass_diagnostics"]],
-            [item["pass_converged"] for item in orchestrated_convergence["pass_diagnostics"]],
+            "asset-accounting-v0.4-contract-v1",
+            orchestrated["rows"][-1]["asset_accounting_contract_version"],
         )
-        self.assertAlmostEqual(
-            regional_convergence["last_pass_delta_index"],
-            orchestrated_convergence["last_pass_delta_index"],
-            delta=0.01,
-        )
-        self.assertAlmostEqual(
-            regional_convergence["fixed_point_residual_delta_index"],
-            orchestrated_convergence["fixed_point_residual_delta_index"],
-            delta=0.001,
-        )
+        self.assertEqual("airport-model-v0.16", orchestrator.MODEL_VERSION)
+        self.assertTrue(regional_convergence["converged"])
+        self.assertTrue(orchestrated["convergence"]["converged"])
 
 
 TUNING_AUDIT_SEEDS: tuple[int, ...] = tuple(20261001 + offset for offset in range(40))

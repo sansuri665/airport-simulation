@@ -33,8 +33,8 @@ JSON 响应会附加当前协议与运行环境：
 ```json
 {
   "apiSchemaVersion": "seed-explorer-api-v4",
-  "modelVersion": "airport-model-v0.15",
-  "outputSchemaVersion": "airport-model-output-v5",
+  "modelVersion": "airport-model-v0.16",
+  "outputSchemaVersion": "airport-model-output-v6",
   "pythonVersion": "3.13.x",
   "schemaCatalog": "/api/schema"
 }
@@ -178,7 +178,7 @@ financial_conditions_consecutive_boundary_years
 
 ### 3.7 次级饱和诊断字段
 
-信用、资产与能源层对以下七个字段统一发布真实未裁剪目标、floor/cap applied、`boundary_state` 和连续边界年数：`global_credit_spread_index`、`credit_availability_index`、`credit_impairment_stock_index`、`equity_earnings_index`、`equity_risk_premium_pct`、`brent_oil_price_usd`、`energy_cost_pressure_index`。`boundary_state` 的正式枚举为 `none`、`floor`、`cap`、`soft_floor`、`soft_cap`。软边界保留未裁剪目标用于区分严重程度；固定 0–100 指数仍有外层安全边界；盈利指数没有固定常数上限。
+信用、资产与能源层对以下七类状态统一发布真实未裁剪目标、floor/cap applied、`boundary_state` 和连续边界年数：全球信用利差、信贷可得性、信用减值存量、股票 EPS、股票风险溢价、Brent 与能源成本压力。股票 EPS 的当前正式状态字段为 `global_equity_eps_index`。`boundary_state` 的正式枚举为 `none`、`floor`、`cap`、`soft_floor`、`soft_cap`。软边界保留未裁剪目标用于区分严重程度；固定 0–100 指数仍有外层安全边界；EPS 指数没有固定常数上限。
 
 ### 3.8 统一宏观起点与前缀契约
 
@@ -213,6 +213,19 @@ financial_conditions_consecutive_boundary_years
 - 季度经营、隐藏预测真值和 Seed 缓存 Viewer 消费同一权威城市结果，不在消费者中重算第二套供给。
 
 旧缓存由既有 `seed-explorer-run-cache-v4` 内容指纹拒绝，不需要另升缓存协议号。客流会计、边界、长期满足率和瓶颈分布可以用 `tools/audit_passenger_demand.py` 对完整 Run 或 Seed 缓存只读审计。
+
+### 3.11 资产会计 v0.4 与输出 v6
+
+`airport-model-v0.16 / airport-model-output-v6` 把资产会计 v0.4 切换为正式唯一入口：
+
+- 全球股票明确区分 EPS、PE、价格指数、价格回报、股息率、总回报和总回报指数；主权债、企业债与年度再平衡 60/40 各有独立总回报字段。
+- 区域股票与本币主权债使用同一会计口径，并由 `regional_asset_market_impulse_index`、`regional_household_wealth_consumption_impulse`、`regional_real_disposable_income_growth_pct` 分别发布市场、财富和现金购买力信号。
+- 区域航空总量和五类客群各发布资产市场、居民财富、现金收入、信用信心和票价成本贡献；高端和五类商业倾向发布 raw、final、boundary 与贡献审计。
+- v6 公共行拒绝旧的混合资产别名；收益率曲线的参考债券字段改为 `yield_curve_reference_10y_bond_total_return_*`，不得解释成正式投资组合债券状态。
+- 全球 Viewer 的浏览器情景分支明确标记为非权威草图；权威结果来自服务端 v0.16/v6 主链。
+- 全球 Viewer 资产图只在同一轴比较股票、主权债与 60/40 的累计总回报指数；股票价格指数在卡片和年度明细中单独发布，不得再与债券总回报用“股票/债券”模糊图例直接比较。区域图的第三条线是居民实际金融财富，不冒充 60/40。
+
+资产行机器契约位于 `asset-accounting-v04-fields.schema.json`，Schema 目录版本为 `airport-schema-catalog-v2`。Seed 缓存指纹升级为 `seed-explorer-run-cache-v5`，因此 v4 缓存不会被解释为 v6 资产口径。
 
 ## 4. POST 接口
 

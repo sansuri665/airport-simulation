@@ -186,7 +186,10 @@
         "input_10y_yield_pct",
         "input_10y_yield_source",
         "input_hy_spread_bps",
-        "input_equity_return_pct",
+        "input_asset_market_impulse_index",
+        "input_household_wealth_consumption_impulse",
+        "input_real_disposable_income_growth_pct",
+        "input_equity_price_return_pct",
         "input_equity_valuation_pe",
         "input_regional_macro_stress_index"
       ],

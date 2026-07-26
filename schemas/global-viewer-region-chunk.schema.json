@@ -10,8 +10,8 @@
   "properties": {
     "schemaVersion": { "const": "airport-global-viewer-region-chunk-v2" },
     "regionId": { "type": "string", "minLength": 1 },
-    "regionalMacroRows": { "type": "array", "items": { "type": "object" } },
-    "aviationDemandRows": { "type": "array", "items": { "type": "object" } },
+    "regionalMacroRows": { "type": "array", "items": { "$ref": "asset-accounting-v04-fields.schema.json#/$defs/regionalAssetRow" } },
+    "aviationDemandRows": { "type": "array", "items": { "$ref": "asset-accounting-v04-fields.schema.json#/$defs/aviationDemandA3Row" } },
     "airCapacitySupplyRows": { "type": "array", "items": { "type": "object" } }
   },
   "additionalProperties": false

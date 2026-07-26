@@ -36,7 +36,7 @@
     }
 
     function hasAsset(row) {
-      return typeof row?.global_equity_index === "number" && !Number.isNaN(row.global_equity_index);
+      return typeof row?.global_equity_price_index === "number" && !Number.isNaN(row.global_equity_price_index);
     }
 
     function hasOil(row) {
@@ -92,4 +92,3 @@
       if (value < 0) return "negative";
       return "";
     }
-

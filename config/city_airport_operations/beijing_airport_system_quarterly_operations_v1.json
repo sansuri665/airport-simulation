@@ -189,7 +189,7 @@
       "target_facility_size": "large",
       "start_year": 2065,
       "start_quarter": "Q3",
-      "design_note": "Beijing sample late new-build event. Standard large duration is 14 quarters, so a 2065Q3 start reaches service in 2069Q1. The city airport market config exposes PKX_SLOT_2 from 2069 so annual passenger allocation can use the completed slot."
+      "design_note": "Reference/replay sample only; it is not copied into a formal player save. In replay output, standard large duration is 14 quarters, so a 2065Q3 start reaches service in 2069Q1. simulate_default replaces all static project lists with events rebuilt exclusively from the player's saved action journal."
     }
   ],
   "facility_rebuild_events": [
@@ -693,18 +693,6 @@
                 "scale": 25.0,
                 "direction": -1.0,
                 "weight": 0.24
-              },
-              "input_equity_valuation_pe": {
-                "baseline": 18.0,
-                "scale": 8.0,
-                "direction": 0.75,
-                "weight": 0.14
-              },
-              "input_equity_return_pct": {
-                "baseline": 0.0,
-                "scale": 12.0,
-                "direction": 0.6,
-                "weight": 0.1
               }
             }
           }
@@ -900,18 +888,6 @@
               "scale": 25.0,
               "direction": -0.5,
               "weight": 0.08
-            },
-            "input_equity_valuation_pe": {
-              "baseline": 18.0,
-              "scale": 8.0,
-              "direction": 0.75,
-              "weight": 0.08
-            },
-            "input_equity_return_pct": {
-              "baseline": 0.0,
-              "scale": 12.0,
-              "direction": 0.7,
-              "weight": 0.08
             }
           }
         },
@@ -960,18 +936,6 @@
                 "scale": 25.0,
                 "direction": -1.0,
                 "weight": 0.24
-              },
-              "input_equity_valuation_pe": {
-                "baseline": 18.0,
-                "scale": 8.0,
-                "direction": 0.8,
-                "weight": 0.16
-              },
-              "input_equity_return_pct": {
-                "baseline": 0.0,
-                "scale": 12.0,
-                "direction": 0.65,
-                "weight": 0.14
               },
               "input_currency_pressure_index": {
                 "baseline": 50.0,

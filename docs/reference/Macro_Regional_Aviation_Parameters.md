@@ -177,7 +177,7 @@
 
 区域层的计划座位、可运营座位、参考有效承接能力及参考承接/未满足量用于区域对账和解释。城市市场不会按这些百万人次数量分配客流，也不会受它们硬性封顶；城市只读取区域运力指数、信心、扩张意愿、成本和约束压力等信号。兼容字段 `served_passengers_million` 与 `unmet_passengers_million` 当前分别等于新的参考字段。
 
-当前数量语义正式采用 **reference-only**：这是解释边界，不是新增输出字段，也不改变 `airport-model-output-v5`。区域 reference quantity 和城市本地 quantity 分别在各自层内对账，当前没有 `sum(cities) = region` 的跨层守恒契约。中国配置中的区域参考锚为 `820.0 million`，47 城基准合计为 `1414.7 million`，旧 ratio 字段合计为 `172.35%`；这些数字证明现有配置共享历史参考锚，但不能证明 820 的 OD/吞吐口径、47 城覆盖率或中转计数规则。
+当前数量语义正式采用 **reference-only**：这是解释边界，不是新增输出字段，也不改变 `airport-model-output-v6`。区域 reference quantity 和城市本地 quantity 分别在各自层内对账，当前没有 `sum(cities) = region` 的跨层守恒契约。中国配置中的区域参考锚为 `820.0 million`，47 城基准合计为 `1414.7 million`，旧 ratio 字段合计为 `172.35%`；这些数字证明现有配置共享历史参考锚，但不能证明 820 的 OD/吞吐口径、47 城覆盖率或中转计数规则。
 
 在权威校准数据齐备前，城市层只把区域需求指数作为共同趋势，区域百万人次量只用于诊断。`domestic_market_depth` 继续表示市场韧性，不能当作国内 OD 旅次占比；47 城之外的覆盖率和剩余量保持未知，不能默认为 100% 或 0。未来若引入旅次—吞吐量桥接，必须版本化国内/国际 OD、transfer handling convention、城市集合覆盖率与未建模剩余量，并让缺失输入明确失败。
 

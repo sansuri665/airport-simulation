@@ -623,12 +623,12 @@ def detect_branch_risks_for_index(records: list[dict[str, Any]], index: int) -> 
     impairment = as_float(row, "credit_impairment_stock_index")
     refinancing = as_float(row, "corporate_refinancing_pressure_index")
     default_risk = as_float(row, "default_risk_index")
-    equity_return = as_float(row, "equity_total_return_pct")
-    eps_growth = as_float(row, "equity_eps_growth_pct")
-    pe = as_float(row, "equity_valuation_pe")
-    prev_pe = as_float(prev, "equity_valuation_pe", pe)
-    drawdown = as_float(row, "equity_drawdown_pct")
-    sovereign_return = as_float(row, "sovereign_bond_total_return_pct")
+    equity_return = as_float(row, "global_equity_price_return_pct")
+    eps_growth = as_float(row, "global_equity_eps_growth_pct")
+    pe = as_float(row, "global_equity_valuation_pe")
+    prev_pe = as_float(prev, "global_equity_valuation_pe", pe)
+    drawdown = as_float(row, "global_equity_drawdown_pct")
+    sovereign_return = as_float(row, "global_sovereign_bond_total_return_pct")
     brent = as_float(row, "brent_oil_price_usd")
     oil_yoy = as_float(row, "oil_yoy_change_pct")
     oil_demand = as_float(row, "oil_demand_pressure_index", 50.0)
@@ -1585,7 +1585,7 @@ def summarize_seed(records: list[dict[str, Any]]) -> dict[str, Any]:
         for prev, curr in zip(records, records[1:])
     ]
     hy_values = [as_float(row, "global_high_yield_spread_bps") for row in data]
-    equity_returns = [as_float(row, "equity_total_return_pct") for row in data]
+    equity_returns = [as_float(row, "global_equity_price_return_pct") for row in data]
     oil_returns = [as_float(row, "oil_yoy_change_pct") for row in data]
     feedback_values = [as_float(row, "macro_feedback_intensity_index") for row in data]
     final = records[-1]
@@ -1603,6 +1603,10 @@ def summarize_seed(records: list[dict[str, Any]]) -> dict[str, Any]:
         "macro_feedback_converged": str(final.get("macro_feedback_converged", "false")),
         "macro_feedback_last_pass_delta_index": as_float(final, "macro_feedback_last_pass_delta_index"),
         "final_gdp_trillion_usd": as_float(final, "global_gdp_trillion_usd"),
+        "final_global_equity_price_index": as_float(final, "global_equity_price_index"),
+        "final_global_equity_total_return_index": as_float(final, "global_equity_total_return_index"),
+        "final_global_sovereign_bond_total_return_index": as_float(final, "global_sovereign_bond_total_return_index"),
+        "final_global_60_40_total_return_index": as_float(final, "global_60_40_total_return_index"),
         "final_regime": str(final.get("regime", "none")),
     }
 

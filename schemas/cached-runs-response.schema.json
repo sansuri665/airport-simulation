@@ -14,7 +14,7 @@
         "runRoot": { "type": "string", "minLength": 1 },
         "saveRoot": { "type": "string", "minLength": 1 },
         "maxCachedRuns": { "type": "integer", "minimum": 1 },
-        "cacheFingerprintVersion": { "const": "seed-explorer-run-cache-v4" },
+        "cacheFingerprintVersion": { "const": "seed-explorer-run-cache-v5" },
         "runs": {
           "type": "array",
           "items": { "$ref": "#/$defs/run" }

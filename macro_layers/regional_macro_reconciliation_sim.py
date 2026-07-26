@@ -155,8 +155,8 @@ REGIONAL_VALUE_FIELDS = [
     "regional_ig_spread_bps_reconciled",
     "regional_macro_stress_index_raw",
     "regional_macro_stress_index_reconciled",
-    "regional_equity_return_pct_raw",
-    "regional_equity_return_pct_reconciled",
+    "regional_equity_price_return_pct_raw",
+    "regional_equity_price_return_pct_reconciled",
     "regional_equity_valuation_pe_raw",
     "regional_equity_valuation_pe_reconciled",
     "regional_energy_cost_pressure_index_raw",
@@ -478,7 +478,7 @@ def build_reconciliation(
         hy_raw = weighted_average(items, "regional_hy_spread_bps")
         ig_raw = weighted_average(items, "regional_ig_spread_bps")
         stress_raw = weighted_average(items, "regional_macro_stress_index")
-        equity_raw = weighted_average(items, "regional_equity_return_pct")
+        equity_raw = weighted_average(items, "regional_equity_price_return_pct")
         equity_pe_raw = weighted_average(items, "regional_equity_valuation_pe")
         energy_raw = weighted_average(items, "regional_energy_cost_pressure_index")
 
@@ -489,8 +489,8 @@ def build_reconciliation(
         hy_anchor = as_float(global_row, "global_high_yield_spread_bps")
         ig_anchor = as_float(global_row, "global_investment_grade_spread_bps")
         stress_anchor = as_float(global_row, "financial_stress_index")
-        equity_anchor = as_float(global_row, "equity_total_return_pct")
-        equity_pe_anchor = as_float(global_row, "equity_valuation_pe", equity_pe_raw)
+        equity_anchor = as_float(global_row, "global_equity_price_return_pct")
+        equity_pe_anchor = as_float(global_row, "global_equity_valuation_pe", equity_pe_raw)
         energy_anchor = as_float(global_row, "energy_cost_pressure_index")
 
         headline_adjustment = clamp((headline_anchor - headline_raw) * 0.72, -0.45, 0.45)
@@ -500,8 +500,10 @@ def build_reconciliation(
         hy_adjustment = clamp((hy_anchor - hy_raw) * 0.58, -75.0, 75.0)
         ig_adjustment = clamp((ig_anchor - ig_raw) * 0.58, -25.0, 25.0)
         stress_adjustment = clamp((stress_anchor - stress_raw) * 0.58, -30.0, 30.0)
-        equity_adjustment = clamp((equity_anchor - equity_raw) * 0.48, -4.00, 4.00)
-        equity_pe_adjustment = clamp((equity_pe_anchor - equity_pe_raw) * 0.45, -2.50, 2.50)
+        # A2 uses diagnostic-only soft reconciliation. Do not force regional
+        # price returns or PE toward the global aggregate.
+        equity_adjustment = 0.0
+        equity_pe_adjustment = 0.0
         energy_adjustment = clamp((energy_anchor - energy_raw) * 0.58, -8.0, 8.0)
 
         # Apply the soft reconciliation adjustment per region, then re-clamp each
@@ -541,7 +543,7 @@ def build_reconciliation(
         hy_reconciled = reconcile_field("regional_hy_spread_bps", hy_adjustment)
         ig_reconciled = reconcile_field("regional_ig_spread_bps", ig_adjustment)
         stress_reconciled = reconcile_field("regional_macro_stress_index", stress_adjustment)
-        equity_reconciled = reconcile_field("regional_equity_return_pct", equity_adjustment)
+        equity_reconciled = reconcile_field("regional_equity_price_return_pct", equity_adjustment)
         equity_pe_reconciled = reconcile_field("regional_equity_valuation_pe", equity_pe_adjustment)
         energy_reconciled = reconcile_field("regional_energy_cost_pressure_index", energy_adjustment)
 
@@ -648,7 +650,7 @@ def build_reconciliation(
                     "hy_clamped_region_count": reconciled_clamp_counts["regional_hy_spread_bps"],
                     "ig_clamped_region_count": reconciled_clamp_counts["regional_ig_spread_bps"],
                     "macro_stress_clamped_region_count": reconciled_clamp_counts["regional_macro_stress_index"],
-                    "equity_return_clamped_region_count": reconciled_clamp_counts["regional_equity_return_pct"],
+                    "equity_return_clamped_region_count": reconciled_clamp_counts["regional_equity_price_return_pct"],
                     "equity_valuation_pe_clamped_region_count": reconciled_clamp_counts["regional_equity_valuation_pe"],
                     "energy_cost_clamped_region_count": reconciled_clamp_counts["regional_energy_cost_pressure_index"],
                     "fields_with_clamped_regions": regions_clamped_by_field,
@@ -726,8 +728,8 @@ def build_reconciliation(
                         "regional_ig_spread_bps_reconciled": item["regional_ig_spread_bps_reconciled_clamped"],
                         "regional_macro_stress_index_raw": as_float(row, "regional_macro_stress_index"),
                         "regional_macro_stress_index_reconciled": item["regional_macro_stress_index_reconciled_clamped"],
-                        "regional_equity_return_pct_raw": as_float(row, "regional_equity_return_pct"),
-                        "regional_equity_return_pct_reconciled": item["regional_equity_return_pct_reconciled_clamped"],
+                        "regional_equity_price_return_pct_raw": as_float(row, "regional_equity_price_return_pct"),
+                        "regional_equity_price_return_pct_reconciled": item["regional_equity_price_return_pct_reconciled_clamped"],
                         "regional_equity_valuation_pe_raw": as_float(row, "regional_equity_valuation_pe"),
                         "regional_equity_valuation_pe_reconciled": item["regional_equity_valuation_pe_reconciled_clamped"],
                         "regional_energy_cost_pressure_index_raw": as_float(row, "regional_energy_cost_pressure_index"),

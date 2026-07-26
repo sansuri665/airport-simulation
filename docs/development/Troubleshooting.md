@@ -170,9 +170,11 @@ py -3.13 -m airport_sim cache clean --confirm
 
 ```powershell
 py -3.13 --version
-py -3.13 -m compileall -q airport_sim macro_layers tests
-py -3.13 -B -m unittest discover -s tests -v
+py -3.13 tools/run_test_suite.py --suite quick
+py -3.13 tools/run_test_suite.py --suite <affected-domain> --verbosity 2
 ```
+
+只有 GitHub 大版本或高风险基础修改才改用 `--suite release`。运行器会列出最慢测试；先判断失败属于静态护栏、领域契约还是跨模块回归，不要无条件反复运行全部测试。
 
 固定 Seed 摘要失败时，不要立刻更新期望值。先检查随机数调用、迭代/排序、浮点顺序、默认参数、配置和 Python 版本是否无意变化。
 

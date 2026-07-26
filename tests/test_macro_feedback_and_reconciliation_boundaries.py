@@ -23,7 +23,7 @@ RECONCILED_OUTPUT_FIELDS = {
     "regional_hy_spread_bps_reconciled": "regional_hy_spread_bps",
     "regional_ig_spread_bps_reconciled": "regional_ig_spread_bps",
     "regional_macro_stress_index_reconciled": "regional_macro_stress_index",
-    "regional_equity_return_pct_reconciled": "regional_equity_return_pct",
+    "regional_equity_price_return_pct_reconciled": "regional_equity_price_return_pct",
     "regional_equity_valuation_pe_reconciled": "regional_equity_valuation_pe",
     "regional_energy_cost_pressure_index_reconciled": "regional_energy_cost_pressure_index",
 }
@@ -72,7 +72,7 @@ RECONCILIATION_DIAGNOSTICS = (
         "macro_stress_gap_reconciled_index",
     ),
     (
-        "regional_equity_return_pct_reconciled",
+        "regional_equity_price_return_pct_reconciled",
         "weighted_regional_equity_return_reconciled_pct",
         "global_equity_return_anchor_pct",
         "equity_return_gap_reconciled_pp",

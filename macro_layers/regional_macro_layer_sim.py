@@ -62,6 +62,7 @@ REGIONAL_RECONCILED_FIELD_BOUNDS: dict[str, tuple[float, float]] = {
     "regional_hy_spread_bps": (150.0, 2_200.0),
     "regional_ig_spread_bps": (55.0, 620.0),
     "regional_equity_return_pct": (-42.0, 48.0),
+    "regional_equity_price_return_pct": (-42.0, 48.0),
 }
 
 
@@ -1893,9 +1894,9 @@ def simulate_region_for_global_path(
         global_default = as_float(row, "default_risk_index", 30.0)
         global_credit_availability = as_float(row, "credit_availability_index", 60.0)
         global_bank_stress = as_float(row, "bank_credit_stress_index", 42.0)
-        global_equity_return = as_float(row, "equity_total_return_pct")
-        global_equity_valuation_pe = as_float(row, "equity_valuation_pe", 17.0)
-        global_bond_return = as_float(row, "sovereign_bond_total_return_pct")
+        global_equity_return = as_float(row, "global_equity_price_return_pct")
+        global_equity_valuation_pe = as_float(row, "global_equity_valuation_pe", 18.0)
+        global_bond_return = as_float(row, "global_sovereign_bond_total_return_pct")
         brent_price = as_float(row, "brent_oil_price_usd", 82.0)
         oil_yoy = as_float(row, "oil_yoy_change_pct")
         commodity_yoy = as_float(row, "commodity_yoy_change_pct")
@@ -2529,7 +2530,10 @@ def summarize_region_seed(records: list[dict[str, Any]]) -> dict[str, Any]:
         "regional_seed_demand_multiplier": as_float(final, "regional_seed_demand_multiplier", 1.0),
         "final_regional_gdp_index": as_float(final, "regional_gdp_index"),
         "final_regional_income_index": as_float(final, "regional_income_index"),
-        "final_regional_equity_index": as_float(final, "regional_equity_index"),
+        "final_regional_equity_price_index": as_float(final, "regional_equity_price_index"),
+        "final_regional_equity_total_return_index": as_float(final, "regional_equity_total_return_index"),
+        "final_regional_sovereign_bond_total_return_index": as_float(final, "regional_sovereign_bond_total_return_index"),
+        "final_regional_household_financial_wealth_index": as_float(final, "regional_household_financial_wealth_index"),
         "final_regional_equity_valuation_pe": as_float(final, "regional_equity_valuation_pe"),
         "final_regional_macro_regime": str(final.get("regional_macro_regime", "none")),
     }

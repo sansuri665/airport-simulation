@@ -10,10 +10,16 @@ import os
 import platform
 import random
 import shutil
+import sys
 import time
 from importlib import import_module
 from pathlib import Path
 from typing import Any
+
+if not __package__:
+    project_root = str(Path(__file__).resolve().parents[1])
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
 
 from airport_sim.server.serializers import (
     global_viewer_core_scripts,
@@ -40,6 +46,10 @@ air_supply_layer = _sibling_module("regional_air_capacity_supply_layer_sim")
 aviation_demand_layer = _sibling_module("regional_aviation_demand_layer_sim")
 regional_macro_layer = _sibling_module("regional_macro_layer_sim")
 reconciliation_layer = _sibling_module("regional_macro_reconciliation_sim")
+global_equity_v04_layer = _sibling_module("global_equity_accounting_v04")
+global_bond_v04_layer = _sibling_module("global_bond_accounting_v04")
+regional_asset_v04_layer = _sibling_module("regional_asset_accounting_v04")
+regional_wealth_v04_layer = _sibling_module("regional_wealth_bridge_v04")
 simulation_utils = _sibling_module("simulation_utils")
 run_index_service = _sibling_module("orchestrator_run_index")
 run_lifecycle_service = _sibling_module("orchestrator_run_lifecycle")
@@ -88,6 +98,7 @@ convergence_summary = global_feedback_layer.convergence_summary
 derive_feedback_path = global_feedback_layer.derive_feedback_path
 run_convergence_aware_feedback_loop = global_feedback_layer.run_convergence_aware_feedback_loop
 run_full_chain = global_feedback_layer.run_full_chain
+simulate_oil_commodities_for_asset_path = global_feedback_layer.simulate_oil_commodities_for_asset_path
 summarize_seed = global_feedback_layer.summarize_seed
 
 AIR_SUPPLY_FIELDS = air_supply_layer.AIR_SUPPLY_FIELDS
@@ -113,6 +124,12 @@ REGIONAL_VALUE_FIELDS = reconciliation_layer.REGIONAL_VALUE_FIELDS
 build_reconciliation = reconciliation_layer.build_reconciliation
 key_for = reconciliation_layer.key_for
 
+simulate_global_equity_v04 = global_equity_v04_layer.simulate_global_equity_v04_for_macro_path
+simulate_global_bond_v04 = global_bond_v04_layer.simulate_global_bond_v04_for_macro_path
+simulate_regional_asset_v04 = regional_asset_v04_layer.simulate_regional_asset_v04_for_macro_path
+regional_asset_soft_reconciliation_v04 = regional_asset_v04_layer.regional_asset_soft_reconciliation_v04
+simulate_regional_wealth_bridge_v04 = regional_wealth_v04_layer.simulate_regional_wealth_bridge_v04
+
 clamp = simulation_utils.clamp
 round_record = simulation_utils.round_record
 
@@ -120,8 +137,8 @@ round_record = simulation_utils.round_record
 ORCHESTRATOR_VERSION = "macro-run-orchestrator-v0.11"
 RUN_INDEX_VERSION = "macro-run-index-v0.5"
 RUN_MANIFEST_SCHEMA_VERSION = "airport-macro-run-manifest-v1"
-OUTPUT_SCHEMA_VERSION = "airport-model-output-v5"
-MODEL_VERSION = "airport-model-v0.15"
+OUTPUT_SCHEMA_VERSION = "airport-model-output-v6"
+MODEL_VERSION = "airport-model-v0.16"
 AIRPORT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = AIRPORT_DIR / "output" / "macro_runs"
 DEFAULT_VIEWER_OUTPUT_ROOT = AIRPORT_DIR / "output"
@@ -182,6 +199,74 @@ SCENARIO_FIELDS = tuple(SCENARIO_TEXT_FIELDS) + tuple(SCENARIO_NUMERIC_FIELDS)
 GLOBAL_OUTPUT_FIELDS = tuple(COMBINED_MACRO_FEEDBACK_FIELDS) + tuple(
     field for field in SCENARIO_FIELDS if field not in COMBINED_MACRO_FEEDBACK_FIELDS
 )
+
+LEGACY_ASSET_OUTPUT_FIELDS = frozenset(
+    {
+        "global_equity_index",
+        "equity_earnings_index",
+        "equity_eps_growth_pct",
+        "equity_valuation_pe",
+        "equity_total_return_pct",
+        "global_sovereign_bond_index",
+        "sovereign_bond_total_return_pct",
+        "global_corporate_bond_index",
+        "corporate_bond_total_return_pct",
+        "global_60_40_portfolio_index",
+        "portfolio_60_40_total_return_pct",
+        "regional_equity_index",
+        "regional_equity_return_pct",
+        "regional_bond_index",
+        "regional_bond_return_pct",
+        "regional_wealth_effect_index",
+    }
+)
+
+
+def public_asset_row(row: dict[str, Any]) -> dict[str, Any]:
+    item = dict(row)
+    if "bond_price_index" in item:
+        item["yield_curve_reference_10y_bond_total_return_index"] = item.pop(
+            "bond_price_index"
+        )
+    if "bond_total_return_pct" in item:
+        item["yield_curve_reference_10y_bond_total_return_pct"] = item.pop(
+            "bond_total_return_pct"
+        )
+    for field in LEGACY_ASSET_OUTPUT_FIELDS:
+        item.pop(field, None)
+    for field in tuple(item):
+        if field.startswith("regional_equity_return_pct_"):
+            item.pop(field)
+        elif field.startswith("equity_return_") and "reconciliation" in field:
+            item.pop(field)
+        elif field.startswith("weighted_regional_equity_return_"):
+            item.pop(field)
+    return item
+
+
+def public_asset_result_rows(result: dict[str, Any]) -> dict[str, Any]:
+    public = dict(result)
+    if "rows" in public:
+        public["rows"] = [public_asset_row(row) for row in public["rows"]]
+    for key in (
+        "regional_rows_by_region",
+        "aviation_rows_by_region",
+        "supply_rows_by_region",
+        "city_airport_rows_by_market",
+        "potential_passenger_forecast_rows_by_market",
+        "quarterly_operations_rows_by_market",
+        "financial_state_rows_by_market",
+        "valuation_forecast_rows_by_market",
+    ):
+        if key in public:
+            public[key] = {
+                item_id: [public_asset_row(row) for row in rows]
+                for item_id, rows in public[key].items()
+            }
+    for key in ("reconciled_rows", "diagnostics"):
+        if key in public:
+            public[key] = [public_asset_row(row) for row in public[key]]
+    return public
 
 
 BRANCH_SCENARIO_PROFILES: dict[str, dict[str, Any]] = {
@@ -1418,12 +1503,24 @@ def run_global_variant(
     feedback_params = params["feedback_params"]
     feedback_iterations = int(params["feedback_iterations"])
 
+    def migrate_global_asset_path(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        equity_rows = simulate_global_equity_v04(records)
+        bond_rows = simulate_global_bond_v04(equity_rows)
+        oil_rows = simulate_oil_commodities_for_asset_path(
+            bond_rows,
+            params["oil_commodity_params"],
+            equity_return_field="global_equity_total_return_pct",
+        )
+        # Oil is an EPS input. Rebuild once after moving the oil consumer to the
+        # canonical return field; this bounded bridge is deterministic.
+        return simulate_global_bond_v04(simulate_global_equity_v04(oil_rows))
+
     # Pass 0 has no derived macro feedback yet, but an active scenario path is
     # already present. Every later pass keeps the same scenario impulses and
     # adds the newly solved macro feedback, preserving the historical scenario
     # merge semantics while the shared solver controls only the macro path.
     combined_feedback = merge_feedback_paths({}, scenario_feedback)
-    initial_records = run_full_chain(
+    initial_records = migrate_global_asset_path(run_full_chain(
         seed,
         gdp_params=params["gdp_params"],
         inflation_params=params["inflation_params"],
@@ -1434,7 +1531,7 @@ def run_global_variant(
         asset_price_params=params["asset_price_params"],
         oil_commodity_params=params["oil_commodity_params"],
         feedback_path=combined_feedback if combined_feedback else None,
-    )
+    ))
 
     def run_pass(macro_feedback: dict[int, dict[str, Any]], _iteration: int) -> list[dict[str, Any]]:
         # Merge the macro feedback with any active scenario branch impulses
@@ -1442,7 +1539,7 @@ def run_global_variant(
         # callable owns the scenario merge so the convergence contract is
         # evaluated on the same combined path the Viewer will read.
         merged = merge_feedback_paths(macro_feedback, scenario_feedback)
-        return run_full_chain(
+        return migrate_global_asset_path(run_full_chain(
             seed,
             gdp_params=params["gdp_params"],
             inflation_params=params["inflation_params"],
@@ -1453,7 +1550,7 @@ def run_global_variant(
             asset_price_params=params["asset_price_params"],
             oil_commodity_params=params["oil_commodity_params"],
             feedback_path=merged if merged else None,
-        )
+        ))
 
     records, macro_feedback, convergence = run_convergence_aware_feedback_loop(
         seed=seed,
@@ -1472,6 +1569,7 @@ def run_global_variant(
         convergence,
     )
     annotated = apply_path_metadata(annotated, variant, scenario_feedback)
+    annotated = migrate_global_asset_path(annotated)
     public_convergence = dict(convergence)
     public_convergence.pop("row_convergence_annotations", None)
     return {
@@ -1485,14 +1583,30 @@ def run_global_variant(
 def run_regional_and_reconciliation(
     seed: int,
     global_rows: list[dict[str, Any]],
+    *,
+    include_downstream: bool = True,
 ) -> dict[str, Any]:
     regional_rows_by_region: dict[str, list[dict[str, Any]]] = {}
     regional_summaries: list[dict[str, Any]] = []
     for region_id in REGION_ORDER:
         rows = simulate_region_for_global_path(global_rows, REGION_CONFIGS[region_id], seed)
+        rows = simulate_regional_asset_v04(
+            rows,
+            global_rows,
+            region_config=REGION_CONFIGS[region_id],
+        )
+        rows = simulate_regional_wealth_bridge_v04(rows)
         rows = [round_record(row) for row in rows]
         regional_rows_by_region[region_id] = rows
         regional_summaries.append(summarize_region_seed(rows))
+
+    asset_reconciliation_by_year = {
+        int(row["year_index"]): row
+        for row in regional_asset_soft_reconciliation_v04(
+            regional_rows_by_region,
+            global_rows,
+        )
+    }
 
     global_by_key = {key_for(row): row for row in global_rows}
     reconciled_rows, diagnostics, reconciliation_summaries = build_reconciliation(
@@ -1501,6 +1615,26 @@ def run_regional_and_reconciliation(
         global_by_key,
     )
     rounded_reconciled_rows = [round_record(row) for row in reconciled_rows]
+    regional_assets_by_key = {
+        key_for(row): row
+        for rows in regional_rows_by_region.values()
+        for row in rows
+    }
+    rounded_reconciled_rows = [
+        round_record({**row, **{
+            field: value
+            for field, value in regional_assets_by_key.get(key_for(row), {}).items()
+            if field.startswith("regional_equity_")
+            or field.startswith("regional_sovereign_bond_")
+            or field.startswith("regional_household_")
+            or field.startswith("regional_real_household_")
+            or field.startswith("regional_real_disposable_")
+            or field.startswith("regional_asset_")
+            or field.startswith("regional_wealth_bridge_")
+            or field == "asset_accounting_contract_version"
+        }})
+        for row in rounded_reconciled_rows
+    ]
     aviation_rows_by_region: dict[str, list[dict[str, Any]]] = {}
     aviation_summaries: list[dict[str, Any]] = []
     for region_id, params in AVIATION_REGION_CONFIGS.items():
@@ -1517,6 +1651,21 @@ def run_regional_and_reconciliation(
         ]
         aviation_rows_by_region[region_id] = aviation_rows
         aviation_summaries.append(summarize_aviation_seed(aviation_rows))
+
+    asset_aviation_result = {
+        "regional_rows_by_region": regional_rows_by_region,
+        "regional_summaries": regional_summaries,
+        "reconciled_rows": rounded_reconciled_rows,
+        "diagnostics": [
+            round_record({**row, **asset_reconciliation_by_year.get(int(row["year_index"]), {})})
+            for row in diagnostics
+        ],
+        "reconciliation_summaries": reconciliation_summaries,
+        "aviation_rows_by_region": aviation_rows_by_region,
+        "aviation_summaries": aviation_summaries,
+    }
+    if not include_downstream:
+        return asset_aviation_result
 
     supply_rows_by_region: dict[str, list[dict[str, Any]]] = {}
     supply_summaries: list[dict[str, Any]] = []
@@ -1691,13 +1840,7 @@ def run_regional_and_reconciliation(
         )
 
     return {
-        "regional_rows_by_region": regional_rows_by_region,
-        "regional_summaries": regional_summaries,
-        "reconciled_rows": rounded_reconciled_rows,
-        "diagnostics": [round_record(row) for row in diagnostics],
-        "reconciliation_summaries": reconciliation_summaries,
-        "aviation_rows_by_region": aviation_rows_by_region,
-        "aviation_summaries": aviation_summaries,
+        **asset_aviation_result,
         "supply_rows_by_region": supply_rows_by_region,
         "supply_summaries": supply_summaries,
         "city_airport_rows_by_market": city_airport_rows_by_market,
@@ -1723,13 +1866,31 @@ def write_variant_outputs(
     scenario: dict[str, Any] | None,
     artifact_profile: str = "full",
 ) -> None:
+    global_result = public_asset_result_rows(global_result)
+    regional_result = public_asset_result_rows(regional_result)
     dependencies = variant_output_service.VariantOutputDependencies(
         orchestrator_version=ORCHESTRATOR_VERSION,
         region_order=REGION_ORDER,
-        global_output_fields=GLOBAL_OUTPUT_FIELDS,
-        regional_macro_fields=REGIONAL_MACRO_FIELDS,
-        regional_value_fields=REGIONAL_VALUE_FIELDS,
-        diagnostic_fields=DIAGNOSTIC_FIELDS,
+        global_output_fields=tuple(
+            field for field in GLOBAL_OUTPUT_FIELDS
+            if field not in LEGACY_ASSET_OUTPUT_FIELDS
+            and field not in {"bond_price_index", "bond_total_return_pct"}
+        ),
+        regional_macro_fields=tuple(
+            field for field in REGIONAL_MACRO_FIELDS
+            if field not in LEGACY_ASSET_OUTPUT_FIELDS
+        ),
+        regional_value_fields=tuple(
+            field for field in REGIONAL_VALUE_FIELDS
+            if field not in LEGACY_ASSET_OUTPUT_FIELDS
+            and not field.startswith("regional_equity_return_pct_")
+        ),
+        diagnostic_fields=tuple(
+            field for field in DIAGNOSTIC_FIELDS
+            if field not in LEGACY_ASSET_OUTPUT_FIELDS
+            and not field.startswith("weighted_regional_equity_return_")
+            and "equity_return_reconciliation" not in field
+        ),
         aviation_demand_fields=AVIATION_DEMAND_FIELDS,
         air_supply_fields=AIR_SUPPLY_FIELDS,
         city_airport_demand_fields=CITY_AIRPORT_DEMAND_FIELDS,

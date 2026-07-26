@@ -63,26 +63,26 @@ class FixedSeedCharacterizationTests(unittest.TestCase):
     # The resulting downstream digest change is intentional and was accepted
     # only after public and blind 60-year Seeds plus supply/capacity accounting.
     EXPECTED = {
-        'global': (13, '02f881bda5f39cbbbbcc06065fe573256bf0ef88719eafdf5b1941e15dcaba5c'),
-        'reconciled': (182, 'fb51816813c714929a356ea84342eefc8cee1a089bee901951aac381e7bca7a4'),
-        'aviation_china': (13, '1a2ba02165d9ce5f946373f2b9482c17e23debfbb9cf909d6694068cf833e3da'),
-        'supply_china': (13, '245529b2420fd163a485ac8ce0a0bd6fa19283b2f053e5a549ef72659d8e2de3'),
-        'city_beijing': (13, '2ac97cb4bf09b1f92e0a5571e6c29a01136a45c3e5c23c1d7df5690e1baee047'),
-        'forecast_beijing': (361, '52338aa5ecb1b55e215275b04f5963506590ddeb35363f7d0c97c8262b5ec802'),
-        'operations_beijing': (52, '536f434f69b94b52f9fac0ba0c607d5afb0c89c87a2b4e71375eb85db4882e45'),
-        'finance_beijing': (52, 'c034d2f2e48f3541b9455acb3ca2aeaf24379bc9d2d97e8f085d1f5480a83746'),
-        'valuation_beijing': (32, '20925053dcb99e985453e0fb8f9c2c62cf5bfeba56e8f010e920979b77ee83dc'),
+        'global': (13, 'f732bf8a80045613260cf7dd3de83203c64fdcf5d49afa9082af758c12b7f95b'),
+        'reconciled': (182, '49fd163fd12a0dc947ab3923633896ac1c9d637bcd1d7056e3680edacd67a9a0'),
+        'aviation_china': (13, '6a88c812628c6c5b6b1ba2800e0dbe465ff047d12c798c282437e2dc023db9c2'),
+        'supply_china': (13, '3fcfb9ce5f14e8ab0096c9e3393601747a50292dae07011dcc4bf9b3ab243834'),
+        'city_beijing': (13, '498ab9db8862ee877513938c1da1abc06dc4e081b4822d7371f9cf9c60a674ea'),
+        'forecast_beijing': (361, 'ef8548f7568277566478543bcd36ea6df389dfc4a5f227b6287dc88fa9d6adb9'),
+        'operations_beijing': (52, 'cf749df5f40a33d6fa4971f5bbdad705bdccdb2d484dbee6d80f4a1a283e6163'),
+        'finance_beijing': (52, '02885050d6952e2b0b981d9437813fb840ca6f3c1c58ddda1bea32660eb61848'),
+        'valuation_beijing': (32, '5f3cfee4831b06dde862a013ed43e200fb01d3649d53473389cb8f5c54ee2797'),
     }
     CANONICAL_PYTHON_313_EXPECTED = {
-        'global': (13, '55978f161fde564488a92e312f5b4865fd81ac598ee9bcda47bb18355f49dc3a'),
-        'reconciled': (182, '0bd270f06f6f1b0b3eb75e4c2e85e92de13d9e2aa984c08db5eeba55ce3e2193'),
-        'aviation_china': (13, '36b07eaa74a37c15aa2209018ec34dbdec73d909efc3478bf2f587665334a9c3'),
-        'supply_china': (13, 'e5c8788a80f71423db00282963b394ea99fecb763947f750ff428f9f9e36f241'),
-        'city_beijing': (13, 'fe9849cb1803171aa1570075882db83217d62e45d297651cb06f9a5ad2d7ce06'),
-        'forecast_beijing': (361, '52338aa5ecb1b55e215275b04f5963506590ddeb35363f7d0c97c8262b5ec802'),
-        'operations_beijing': (52, '536f434f69b94b52f9fac0ba0c607d5afb0c89c87a2b4e71375eb85db4882e45'),
-        'finance_beijing': (52, '91c9deb628299f283286a56015c24174754e45e8331b12100990e06800a0445c'),
-        'valuation_beijing': (32, '20925053dcb99e985453e0fb8f9c2c62cf5bfeba56e8f010e920979b77ee83dc'),
+        'global': (13, '1530d2087cddf8828239bc3ff2f7f1fc017ff5628a198b6bcafd3d0376fae8fc'),
+        'reconciled': (182, 'bb59f6df0af8d5834dc31ef0b0a703d270f10415e4f6411a186857512eeb696e'),
+        'aviation_china': (13, 'bef2e9f32d4d777ed13e2047859ab3781d96d344996a734a793477be1f3895df'),
+        'supply_china': (13, 'bdbba2a7f369b09ea4155de6b110353a4c035ad372426049b6122386bfde59f6'),
+        'city_beijing': (13, 'b20f6c8422f87de56f6eaba1d07a16ac2980289891ba0cb3a2449d9350b6937a'),
+        'forecast_beijing': (361, 'ef8548f7568277566478543bcd36ea6df389dfc4a5f227b6287dc88fa9d6adb9'),
+        'operations_beijing': (52, 'cf749df5f40a33d6fa4971f5bbdad705bdccdb2d484dbee6d80f4a1a283e6163'),
+        'finance_beijing': (52, 'e8aa74b85cd603923ad9f991bc8285512b4093bf8cffd5b6b92f3d0099eef0b1'),
+        'valuation_beijing': (32, '5f3cfee4831b06dde862a013ed43e200fb01d3649d53473389cb8f5c54ee2797'),
     }
 
     # G1's accepted path is byte-stable on Python 3.13 for the characterized

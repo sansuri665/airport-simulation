@@ -310,6 +310,8 @@ def maybe_update_supply_event(
 def simulate_oil_commodities_for_asset_path(
     records: list[dict[str, Any]],
     params: OilCommodityParams,
+    *,
+    equity_return_field: str = "equity_total_return_pct",
 ) -> list[dict[str, Any]]:
     validate_initial_parameters(params)
     if not records:
@@ -346,7 +348,7 @@ def simulate_oil_commodities_for_asset_path(
         risk_appetite = as_float(row, "risk_appetite_index", 50.0)
         hy_spread = as_float(row, "global_high_yield_spread_bps", 420.0)
         credit_oil_impulse = as_float(row, "credit_to_oil_demand_impulse")
-        equity_return = as_float(row, "equity_total_return_pct")
+        equity_return = as_float(row, equity_return_field)
         asset_volatility = as_float(row, "asset_volatility_index", 18.0)
 
         if year_index == 0:

@@ -17,6 +17,7 @@ if str(MACRO_DIR) not in sys.path:
     sys.path.insert(0, str(MACRO_DIR))
 
 import macro_run_orchestrator_sim as orchestrator
+from asset_accounting_v04 import initial_contract_row
 import test_viewer_release
 from schema_support import load_schema_registry, validate_named_schema
 
@@ -25,12 +26,31 @@ SCHEMA_REGISTRY = load_schema_registry(ROOT_DIR / "schemas")
 
 
 def sample_regional_result() -> dict[str, object]:
+    regional_asset = {
+        **initial_contract_row("regional_asset"),
+        **initial_contract_row("regional_signal"),
+        "asset_accounting_contract_version": "asset-accounting-v0.4-contract-v1",
+        "regional_asset_v04_param_version": "regional-asset-accounting-v0.4",
+    }
+    aviation_a3 = {
+        "regional_aviation_demand_param_version": "regional-aviation-demand-layer-v0.4",
+        "input_asset_market_impulse_index": 50.0,
+        "input_household_wealth_consumption_impulse": 0.0,
+        "input_real_disposable_income_growth_pct": 0.0,
+        "premium_propensity_raw_index": 100.0,
+        "premium_propensity_final_index": 100.0,
+        "demand_total_asset_market_contribution_pp": 0.0,
+        "demand_total_household_wealth_contribution_pp": 0.0,
+        "demand_total_cash_income_contribution_pp": 0.0,
+        "demand_total_credit_confidence_contribution_pp": 0.0,
+        "demand_total_fare_cost_contribution_pp": 0.0,
+    }
     return {
         "regional_rows_by_region": {
-            "china_mainland": [{"region_id": "china_mainland", "seed": 7, "year": 2030}],
+            "china_mainland": [{"region_id": "china_mainland", "seed": 7, "year": 2030, **regional_asset}],
         },
         "aviation_rows_by_region": {
-            "china_mainland": [{"region_id": "china_mainland", "seed": 7, "year": 2030}],
+            "china_mainland": [{"region_id": "china_mainland", "seed": 7, "year": 2030, **aviation_a3}],
         },
         "supply_rows_by_region": {
             "china_mainland": [{"region_id": "china_mainland", "seed": 7, "year": 2030}],

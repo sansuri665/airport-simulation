@@ -33,7 +33,7 @@ SEMANTIC_FIELDS = (
     "global_10y_yield_pct",
     "global_dollar_index",
     "global_high_yield_spread_bps",
-    "global_equity_index",
+    "global_equity_price_index",
     "brent_oil_price_usd",
     "financial_stress_index",
     "scenario_risk_id",
@@ -95,15 +95,15 @@ class LongHorizonModelContractTests(unittest.TestCase):
     # year_index=1, so every later fixed-seed path changes deterministically.
     # Downstream formulas remain unchanged and inherit the new global prefix.
     EXPECTED_SEMANTIC_DIGESTS = {
-        "baseline": "cf368ed0ca9fab02823ec96b3967cfff7414ab15ad4cdecd92b1c5321ef62d66",
-        "occurred": "d7e4bc4b1166d4ecfb240db8a597f84beaa1a7205bb864a0ea62cc1ff3bb5bf2",
-        "probabilistic": "7e780d1d7a094388672bc8bb2d5fcd4270bfdcd12eee65b77a6da73516a44da8",
+        "baseline": "27f2688bc12191579e155a4a5b03e0bc6f7ee0b1eeaeb866cb05886ceb756476",
+        "occurred": "18644dbb7e7e440e97436e7699d6d07eaea5fe1b2a2e1b23edabc1a26445e1e8",
+        "probabilistic": "46f865213b7f1fea8af27bd85b1bc668801b90e218a8ec09de756140027d62cc",
     }
     EXPECTED_HEADERS = {
-        "global": (318, "f8fb9fd53c33cadebfaad783d14515bb2aea498f5942c5b83fea46ad80aeb5dc"),
-        "reconciled": (97, "ae063d7f3b6e3e85a59b45450644f19121ce2c222b8c21c03f69830617de6d1f"),
-        "city_beijing": (223, "b3c3cdabd67bad08d4388845c8336aac20b52b48ca11b732480d0a40b651a32f"),
-        "operations_beijing": (264, "746498ea6c936a4e0e7f99e5f620b858e6ec6a5cf8a37b24b843cff252887ad2"),
+        "global": (393, "7072bd24214116c9fb60e9acf434e32f932fd5ae99a47f9229c8367469af9461"),
+        "reconciled": (173, "e409ace7f8d5d0768456de644cf49966cb233f0bf5efe2957a57d239be804971"),
+        "city_beijing": (226, "b5137b1709c08dd5c36ae7f352951ac33150721459bd6c255a5ef84f40f68013"),
+        "operations_beijing": (267, "4d104a3d3cdf7a5879fd80b32655d0bd5b2957d644c37da998a87538a547bbac"),
     }
 
     @classmethod

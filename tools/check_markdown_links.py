@@ -17,6 +17,11 @@ EXCLUDED_DIRECTORIES = {
     "output",
     "saves",
 }
+EXCLUDED_RELATIVE_PREFIXES = {
+    ("handoff", "inbox"),
+    ("handoff", "outbox"),
+    ("handoff", "work"),
+}
 INLINE_LINK = re.compile(r"!?\[[^\]]*\]\((?P<destination>[^)]+)\)")
 EXTERNAL_SCHEMES = {"data", "http", "https", "javascript", "mailto"}
 
@@ -25,8 +30,15 @@ def markdown_files() -> list[Path]:
     return sorted(
         path
         for path in ROOT_DIR.rglob("*.md")
-        if not EXCLUDED_DIRECTORIES.intersection(path.relative_to(ROOT_DIR).parts)
+        if not is_excluded_markdown_path(path)
     )
+
+
+def is_excluded_markdown_path(path: Path) -> bool:
+    parts = path.relative_to(ROOT_DIR).parts
+    if EXCLUDED_DIRECTORIES.intersection(parts):
+        return True
+    return any(parts[: len(prefix)] == prefix for prefix in EXCLUDED_RELATIVE_PREFIXES)
 
 
 def link_target(raw_destination: str) -> str:

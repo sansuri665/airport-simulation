@@ -21,8 +21,8 @@ from statistics import mean, pstdev
 from typing import Any, Iterable
 
 
-AVIATION_DEMAND_PARAM_VERSION = "regional-aviation-demand-layer-v0.3"
-AVIATION_DEMAND_INTERFACE_VERSION = "regional-aviation-demand-interface-v0.2"
+AVIATION_DEMAND_PARAM_VERSION = "regional-aviation-demand-layer-v0.4"
+AVIATION_DEMAND_INTERFACE_VERSION = "regional-aviation-demand-interface-v0.3"
 
 
 AVIATION_DEMAND_FIELDS = [
@@ -90,9 +90,65 @@ AVIATION_DEMAND_FIELDS = [
     "input_energy_cost_pressure_index",
     "input_currency_pressure_index",
     "input_hy_spread_bps",
-    "input_equity_return_pct",
+    "input_asset_market_impulse_index",
+    "input_household_wealth_consumption_impulse",
+    "input_real_disposable_income_growth_pct",
+    "input_equity_price_return_pct",
     "input_equity_valuation_pe",
 ]
+
+for _target in ("total", "business", "leisure", "vfr", "long_haul", "transfer"):
+    AVIATION_DEMAND_FIELDS.extend(
+        [
+            f"demand_{_target}_{_name}_contribution_pp"
+            for _name in (
+                "asset_market",
+                "household_wealth",
+                "cash_income",
+                "credit_confidence",
+                "fare_cost",
+            )
+        ]
+    )
+    AVIATION_DEMAND_FIELDS.extend(
+        [
+            f"demand_{_target}_base_contribution_pp",
+            f"demand_{_target}_raw_growth_pct",
+            f"demand_{_target}_boundary_adjustment_pp",
+            f"demand_{_target}_smoothing_adjustment_pp",
+            f"demand_{_target}_final_growth_pct",
+        ]
+    )
+
+AVIATION_DEMAND_FIELDS.extend(
+    [
+        "premium_propensity_raw_index",
+        "premium_propensity_asset_market_contribution_points",
+        "premium_propensity_household_wealth_contribution_points",
+        "premium_propensity_cash_income_contribution_points",
+        "premium_propensity_traffic_mix_contribution_points",
+        "premium_propensity_final_index",
+        "premium_propensity_boundary_state",
+    ]
+)
+
+_COMMERCIAL_CONTRIBUTIONS = {
+    "duty_free": ("base", "traffic_mix", "premium", "culture_currency"),
+    "luxury_retail": ("base", "premium", "traffic_mix", "culture"),
+    "electronics_retail": ("base", "cash_income", "traffic_mix", "culture_currency"),
+    "food_beverage": ("base", "traffic_mix", "fare_cost"),
+    "general_retail": ("base", "cash_income", "traffic_mix", "fare_cost"),
+}
+
+for _commercial, _contributions in _COMMERCIAL_CONTRIBUTIONS.items():
+    AVIATION_DEMAND_FIELDS.extend(
+        [
+            f"{_commercial}_propensity_raw_index",
+            *(f"{_commercial}_propensity_{name}_contribution_points" for name in _contributions),
+            f"{_commercial}_propensity_final_index",
+            f"{_commercial}_propensity_boundary_state",
+        ]
+    )
 
 
 @dataclass(frozen=True)
@@ -584,7 +640,7 @@ def input_metrics(row: dict[str, Any]) -> dict[str, float]:
     return {
         "growth": as_float(row, "regional_gdp_growth_pct_reconciled", as_float(row, "regional_gdp_growth_pct")),
         "potential": as_float(row, "regional_potential_growth_pct", 2.0),
-        "income_growth": as_float(row, "real_income_growth_pct", 1.0),
+        "income_growth": as_float(row, "regional_real_disposable_income_growth_pct"),
         "income_index": as_float(row, "regional_income_index", 100.0),
         "confidence": as_float(row, "consumer_confidence_index", 50.0),
         "headline": as_float(row, "regional_headline_inflation_pct_reconciled", as_float(row, "regional_headline_inflation_pct")),
@@ -592,9 +648,10 @@ def input_metrics(row: dict[str, Any]) -> dict[str, float]:
         "stress": as_float(row, "regional_macro_stress_index_reconciled", as_float(row, "regional_macro_stress_index", 35.0)),
         "hy": as_float(row, "regional_hy_spread_bps_reconciled", as_float(row, "regional_hy_spread_bps", 480.0)),
         "credit_availability": as_float(row, "regional_credit_availability_index", 55.0),
-        "equity_return": as_float(row, "regional_equity_return_pct_reconciled", as_float(row, "regional_equity_return_pct", 0.0)),
-        "equity_valuation_pe": as_float(row, "regional_equity_valuation_pe_reconciled", as_float(row, "regional_equity_valuation_pe", 17.0)),
-        "wealth": as_float(row, "regional_wealth_effect_index", 50.0),
+        "asset_market": as_float(row, "regional_asset_market_impulse_index", 50.0),
+        "wealth_impulse": as_float(row, "regional_household_wealth_consumption_impulse"),
+        "equity_price_return": as_float(row, "regional_equity_price_return_pct"),
+        "equity_valuation_pe": as_float(row, "regional_equity_valuation_pe", 18.0),
         "energy": as_float(row, "regional_energy_cost_pressure_index_reconciled", as_float(row, "regional_energy_cost_pressure_index", 50.0)),
         "risk_appetite": as_float(row, "regional_risk_appetite_index", 50.0),
         "geopolitical": as_float(row, "regional_geopolitical_risk_index", 25.0),
@@ -619,18 +676,12 @@ def price_sensitivity(metrics: dict[str, float], params: RegionalAviationDemandP
     energy_pressure = max(0.0, metrics["energy"] - 50.0) * params.oil_fare_sensitivity
     currency_pressure = max(0.0, metrics["currency_pressure"] - 35.0) * params.currency_travel_sensitivity
     stress_pressure = max(0.0, metrics["stress"] - 38.0) * 0.22
-    confidence_relief = max(0.0, metrics["confidence"] - 50.0) * 0.18
-    income_relief = max(0.0, metrics["income_growth"]) * 0.95
-    seed_demand_relief = max(0.0, metrics["seed_aviation_bias"]) * 0.10 + max(0.0, metrics["seed_openness_bias"]) * 0.04
     return clamp(
         params.price_sensitivity_base
         + inflation_pressure
         + energy_pressure
         + currency_pressure
-        + stress_pressure
-        - confidence_relief
-        - income_relief
-        - seed_demand_relief,
+        + stress_pressure,
         18.0,
         88.0,
     )
@@ -761,56 +812,10 @@ def common_total_growth(
     event_impulse: float,
     previous_metrics: dict[str, float] | None = None,
 ) -> float:
-    """Common regional demand target before component reallocation.
-
-    Potential growth supplies the structural trend. ``growth_surprise`` is the
-    only channel for actual growth relative to potential, avoiding a second full
-    copy of observed GDP growth. Fare, branch, and event shocks enter at their
-    baseline-weighted average so their aggregate effect is explicit exactly once.
-    """
-    growth_surprise = metrics["growth"] - metrics["potential"]
-    confidence_gap = metrics["confidence"] - 50.0
-    stress_pressure = max(0.0, metrics["stress"] - 38.0)
-    hy_pressure = max(0.0, metrics["hy"] - 500.0) / 100.0
-    # Deep local markets cushion the *change* in severe credit pressure. The
-    # impulse is positive while stress is building and reverses as it clears,
-    # avoiding a permanent level bonus that would compound into long-run drift.
-    severe_credit_pressure = max(0.0, hy_pressure - 0.8)
-    previous_hy_pressure = (
-        hy_pressure
-        if previous_metrics is None
-        else max(0.0, previous_metrics["hy"] - 500.0) / 100.0
+    decomposition = demand_growth_decomposition(
+        metrics, params, price_index, event_impulse, previous_metrics
     )
-    previous_severe_credit_pressure = max(0.0, previous_hy_pressure - 0.8)
-    severe_credit_change = severe_credit_pressure - previous_severe_credit_pressure
-    wealth_gap = (metrics["wealth"] - 50.0) / 10.0
-    credit_gap = (metrics["credit_availability"] - 55.0) / 10.0
-    demand_multiplier_gap = (metrics["seed_demand_multiplier"] - 1.0) * 100.0
-
-    fare_effect = weighted_component_average(fare_demand_effects(price_index, params), params)
-    branch_effect = weighted_component_average(branch_component_effects(metrics), params)
-    event_effect = weighted_component_average(event_component_effects(event_impulse), params)
-
-    return clamp(
-        0.63 * metrics["potential"]
-        + 0.44 * growth_surprise
-        + 0.32 * metrics["income_growth"] * params.income_sensitivity
-        + 0.016 * confidence_gap
-        + 0.035 * metrics["equity_return"]
-        + 0.055 * wealth_gap
-        + 0.045 * credit_gap
-        + 0.020 * metrics["seed_growth_bias"]
-        + 0.030 * metrics["seed_aviation_bias"]
-        + 0.012 * demand_multiplier_gap
-        - 0.030 * stress_pressure
-        - 0.230 * hy_pressure
-        + 2.50 * params.domestic_market_depth * severe_credit_change
-        + fare_effect
-        + branch_effect
-        + event_effect,
-        -8.0,
-        10.0,
-    )
+    return decomposition["total"]["final"]
 
 
 def raw_relative_component_adjustments(
@@ -819,77 +824,164 @@ def raw_relative_component_adjustments(
     price_index: float,
     event_impulse: float,
 ) -> dict[str, float]:
-    """Return uncentered component-specific preferences and exposures."""
+    decomposition = demand_growth_decomposition(
+        metrics, params, price_index, event_impulse
+    )
+    total = decomposition["total"]["raw"]
+    return {key: decomposition[key]["raw"] - total for key in ("business", "leisure", "vfr", "long_haul", "transfer")}
+
+
+DEMAND_CONTRIBUTION_NAMES = (
+    "asset_market",
+    "household_wealth",
+    "cash_income",
+    "credit_confidence",
+    "fare_cost",
+)
+
+
+def demand_growth_decomposition(
+    metrics: dict[str, float],
+    params: RegionalAviationDemandParams,
+    price_index: float,
+    event_impulse: float,
+    previous_metrics: dict[str, float] | None = None,
+) -> dict[str, dict[str, float]]:
+    """Return reconstructable A3 growth targets with one entry per signal family."""
+
+    keys = ("business", "leisure", "vfr", "long_haul", "transfer")
+    growth_surprise = metrics["growth"] - metrics["potential"]
+    demand_multiplier_gap = (metrics["seed_demand_multiplier"] - 1.0) * 100.0
+    common_base = (
+        0.63 * metrics["potential"]
+        + 0.44 * growth_surprise
+        + 0.020 * metrics["seed_growth_bias"]
+        + 0.030 * metrics["seed_aviation_bias"]
+        + 0.012 * demand_multiplier_gap
+    )
+    event = event_component_effects(event_impulse)
+    bases = {
+        "business": common_base + 0.040 * metrics["seed_investment_bias"] + 0.42 * metrics["branch_growth"] + event["business"],
+        "leisure": common_base + 0.025 * metrics["seed_openness_bias"] + 0.28 * metrics["branch_growth"] + event["leisure"],
+        "vfr": common_base + 0.12 * metrics["branch_growth"] + event["vfr"],
+        "long_haul": common_base + 0.05 * params.international_exposure * metrics["seed_openness_bias"] + 0.25 * metrics["branch_growth"] + event["long_haul"],
+        "transfer": common_base + 0.08 * params.international_exposure * metrics["seed_openness_bias"] + 0.35 * (params.transfer_hub_weight - 0.08) * metrics["seed_openness_bias"] + 0.030 * metrics["seed_investment_bias"] + 0.18 * metrics["branch_growth"] + event["transfer"],
+    }
+
+    market_gap = metrics["asset_market"] - 50.0
+    asset_market = {
+        "business": 0.14 * market_gap,
+        "leisure": 0.0,
+        "vfr": 0.0,
+        "long_haul": 0.11 * market_gap,
+        "transfer": 0.04 * market_gap,
+    }
+    wealth = metrics["wealth_impulse"]
+    household_wealth = {
+        "business": 0.08 * wealth,
+        "leisure": 0.12 * wealth,
+        "vfr": 0.05 * wealth,
+        "long_haul": 0.08 * wealth,
+        "transfer": 0.02 * wealth,
+    }
+    income = metrics["income_growth"]
+    cash_income = {
+        "business": 0.18 * income * params.income_sensitivity,
+        "leisure": 0.55 * income * params.income_sensitivity * params.tourism_exposure,
+        "vfr": 0.22 * income,
+        "long_haul": 0.12 * income * params.income_sensitivity,
+        "transfer": 0.05 * income,
+    }
+
     confidence_gap = metrics["confidence"] - 50.0
     stress_pressure = max(0.0, metrics["stress"] - 38.0)
     hy_pressure = max(0.0, metrics["hy"] - 500.0) / 100.0
-    energy_gap = max(0.0, metrics["energy"] - 50.0)
-    currency_gap = max(0.0, metrics["currency_pressure"] - 35.0)
-    geopolitical_gap = (metrics["geopolitical"] - 25.0) / 10.0
-    wealth_gap = (metrics["wealth"] - 50.0) / 10.0
-    risk_appetite_gap = (metrics["risk_appetite"] - 50.0) / 10.0
-    credit_stress = hy_pressure + 0.05 * stress_pressure + 0.04 * currency_gap
-    consumer_signal = (
-        0.55 * metrics["income_growth"] * params.income_sensitivity
-        + 0.020 * confidence_gap
-        - 0.045 * energy_gap
-        - 0.20 * max(0.0, price_index - params.price_sensitivity_base) / 10.0
+    credit_gap = (metrics["credit_availability"] - 55.0) / 10.0
+    risk_gap = (metrics["risk_appetite"] - 50.0) / 10.0
+    severe = max(0.0, hy_pressure - 0.8)
+    previous_hy = hy_pressure if previous_metrics is None else max(0.0, previous_metrics["hy"] - 500.0) / 100.0
+    severe_change = severe - max(0.0, previous_hy - 0.8)
+    common_credit = (
+        0.016 * confidence_gap
+        + 0.045 * credit_gap
+        - 0.030 * stress_pressure
+        - 0.230 * hy_pressure
+        + 2.50 * params.domestic_market_depth * severe_change
+        + 0.07 * metrics["branch_confidence"]
+        - 0.010 * max(0.0, metrics["branch_credit"])
+        - 0.010 * metrics["branch_stress"]
     )
-    international_signal = (
-        0.05 * metrics["seed_openness_bias"]
-        + 0.12 * risk_appetite_gap
-        - 0.11 * currency_gap
-        - 0.24 * geopolitical_gap
-        - 0.025 * energy_gap
-    )
-
-    fare_effects = fare_demand_effects(price_index, params)
-    branch_effects = branch_component_effects(metrics)
-    event_effects = event_component_effects(event_impulse)
-    transfer_hub_cycle = 0.35 * (params.transfer_hub_weight - 0.08) * metrics["seed_openness_bias"]
-
-    return {
-        "business": (
-            0.070 * metrics["equity_return"]
-            + 0.13 * wealth_gap
-            + 0.040 * metrics["seed_investment_bias"]
-            - 0.15 * hy_pressure
-            + fare_effects["business"]
-            + branch_effects["business"]
-            + event_effects["business"]
-        ),
-        "leisure": (
-            params.tourism_exposure * consumer_signal
-            + 0.025 * metrics["seed_openness_bias"]
-            + fare_effects["leisure"]
-            + branch_effects["leisure"]
-            + event_effects["leisure"]
-        ),
-        "vfr": (
-            0.22 * metrics["income_growth"]
-            + 0.010 * confidence_gap
-            + 0.08 * params.domestic_market_depth * credit_stress
-            - 0.12 * credit_stress
-            + fare_effects["vfr"]
-            + branch_effects["vfr"]
-            + event_effects["vfr"]
-        ),
-        "long_haul": (
-            params.international_exposure * international_signal
-            + 0.055 * metrics["equity_return"]
-            + fare_effects["long_haul"]
-            + branch_effects["long_haul"]
-            + event_effects["long_haul"]
-        ),
-        "transfer": (
-            1.12 * params.international_exposure * international_signal
-            + transfer_hub_cycle
-            + 0.030 * metrics["seed_investment_bias"]
-            + fare_effects["transfer"]
-            + branch_effects["transfer"]
-            + event_effects["transfer"]
-        ),
+    credit_confidence = {
+        "business": common_credit + 0.05 * risk_gap - 0.15 * hy_pressure,
+        "leisure": common_credit + 0.020 * confidence_gap * params.tourism_exposure,
+        "vfr": common_credit + 0.010 * confidence_gap,
+        "long_haul": common_credit + params.international_exposure * (0.12 * risk_gap - 0.24 * ((metrics["geopolitical"] - 25.0) / 10.0)),
+        "transfer": common_credit + 1.12 * params.international_exposure * (0.12 * risk_gap - 0.24 * ((metrics["geopolitical"] - 25.0) / 10.0)),
     }
+
+    fare_cost = fare_demand_effects(price_index, params)
+    fare_cost = {
+        "business": fare_cost["business"],
+        "leisure": fare_cost["leisure"] - 0.070 * max(0.0, metrics["branch_energy"]) - 0.050 * max(0.0, metrics["branch_fx"]),
+        "vfr": fare_cost["vfr"],
+        "long_haul": fare_cost["long_haul"] - params.international_exposure * (0.025 * max(0.0, metrics["energy"] - 50.0) + 0.11 * max(0.0, metrics["currency_pressure"] - 35.0)) - 0.060 * max(0.0, metrics["branch_energy"]) - 0.060 * max(0.0, metrics["branch_fx"]),
+        "transfer": fare_cost["transfer"] - 1.12 * params.international_exposure * (0.025 * max(0.0, metrics["energy"] - 50.0) + 0.11 * max(0.0, metrics["currency_pressure"] - 35.0)) - 0.030 * max(0.0, metrics["branch_energy"]) - 0.035 * max(0.0, metrics["branch_fx"]),
+    }
+
+    families = {
+        "asset_market": asset_market,
+        "household_wealth": household_wealth,
+        "cash_income": cash_income,
+        "credit_confidence": credit_confidence,
+        "fare_cost": fare_cost,
+    }
+    # Exposure parameters redistribute demand mix; they do not manufacture a
+    # second aggregate growth channel. Center the affected families explicitly.
+    weights = component_weights(params)
+    desired_family_totals = {
+        "cash_income": 0.32 * income * params.income_sensitivity,
+        "credit_confidence": common_credit,
+        "fare_cost": sum(fare_cost.values()) / len(fare_cost),
+    }
+    desired_base_total = common_base + sum(event.values()) / len(event) + 0.25 * metrics["branch_growth"]
+    base_center = desired_base_total - sum(bases[key] * weights[key] for key in keys)
+    bases = {key: value + base_center for key, value in bases.items()}
+    for family_name, desired_total in desired_family_totals.items():
+        family = families[family_name]
+        center = desired_total - sum(family[key] * weights[key] for key in keys)
+        families[family_name] = {key: value + center for key, value in family.items()}
+    limits = {
+        "business": (-9.0, 10.5),
+        "leisure": (-10.0, 12.0),
+        "vfr": (-4.5, 6.5),
+        "long_haul": (-11.0, 12.5),
+        "transfer": (-7.5, 8.5),
+    }
+    result: dict[str, dict[str, float]] = {}
+    for key in keys:
+        raw = bases[key] + sum(families[name][key] for name in DEMAND_CONTRIBUTION_NAMES)
+        final = clamp(raw, *limits[key])
+        result[key] = {
+            "base": bases[key],
+            **{name: families[name][key] for name in DEMAND_CONTRIBUTION_NAMES},
+            "raw": raw,
+            "boundary_adjustment": final - raw,
+            "final": final,
+        }
+
+    total_raw = sum(result[key]["raw"] * weights[key] for key in keys)
+    total_final = clamp(total_raw, -8.0, 10.0)
+    result["total"] = {
+        "base": sum(result[key]["base"] * weights[key] for key in keys),
+        **{
+            name: sum(result[key][name] * weights[key] for key in keys)
+            for name in DEMAND_CONTRIBUTION_NAMES
+        },
+        "raw": total_raw,
+        "boundary_adjustment": total_final - total_raw,
+        "final": total_final,
+    }
+    return result
 
 
 def center_relative_component_adjustments(
@@ -908,27 +1000,12 @@ def target_component_growth(
     event_impulse: float,
     previous_metrics: dict[str, float] | None = None,
 ) -> dict[str, float]:
-    common_growth = common_total_growth(
-        metrics,
-        params,
-        price_index,
-        event_impulse,
-        previous_metrics,
+    decomposition = demand_growth_decomposition(
+        metrics, params, price_index, event_impulse, previous_metrics
     )
-    centered = center_relative_component_adjustments(
-        raw_relative_component_adjustments(metrics, params, price_index, event_impulse),
-        params,
-    )
-    limits = {
-        "business": (-9.0, 10.5),
-        "leisure": (-10.0, 12.0),
-        "vfr": (-4.5, 6.5),
-        "long_haul": (-11.0, 12.5),
-        "transfer": (-7.5, 8.5),
-    }
     return {
-        key: clamp(common_growth + centered[key], *limits[key])
-        for key in centered
+        key: decomposition[key]["final"]
+        for key in ("business", "leisure", "vfr", "long_haul", "transfer")
     }
 
 
@@ -988,6 +1065,13 @@ def simulate_region_aviation_demand(
         elasticities = fare_elasticities(price_index, params)
 
         previous = state_by_seed.get(seed)
+        decomposition = demand_growth_decomposition(
+            metrics,
+            params,
+            price_index,
+            event_impulse,
+            previous["metrics"] if previous else None,
+        )
         if previous is None:
             component_values = {
                 "business": 100.0,
@@ -999,14 +1083,15 @@ def simulate_region_aviation_demand(
             component_growth = {key: 0.0 for key in component_values}
             total_index = weighted_index(component_values, params)
             total_growth = 0.0
+            decomposition = {
+                target: {name: 0.0 for name in ("base", *DEMAND_CONTRIBUTION_NAMES, "raw", "boundary_adjustment", "final")}
+                for target in ("total", "business", "leisure", "vfr", "long_haul", "transfer")
+            }
         else:
-            raw_growth = raw_component_growth(
-                metrics,
-                params,
-                price_index,
-                event_impulse,
-                previous["metrics"],
-            )
+            raw_growth = {
+                key: decomposition[key]["final"]
+                for key in ("business", "leisure", "vfr", "long_haul", "transfer")
+            }
             component_growth = {
                 key: smooth(previous["growth"][key], raw_growth[key], params.demand_adjustment_speed)
                 for key in raw_growth
@@ -1021,16 +1106,13 @@ def simulate_region_aviation_demand(
         shares = component_shares(component_values, params)
         premium_business_gap = (component_values["business"] - 100.0) * params.premium_business_pass_through
         premium_long_haul_gap = (component_values["long_haul"] - 100.0) * params.premium_business_pass_through
-        premium_propensity_raw = (
-            100.0
-            + 0.45 * (metrics["income_index"] - 100.0)
-            + 0.22 * premium_business_gap
-            + 0.24 * premium_long_haul_gap
-            + 0.16 * metrics["equity_return"]
-            - 0.32 * max(0.0, metrics["stress"] - 42.0)
-            + 0.18 * metrics["branch_asset"]
-        )
+        premium_asset_contribution = 0.25 * (metrics["asset_market"] - 50.0)
+        premium_wealth_contribution = 1.40 * metrics["wealth_impulse"]
+        premium_cash_contribution = 1.20 * metrics["income_growth"]
+        premium_traffic_contribution = 0.22 * premium_business_gap + 0.24 * premium_long_haul_gap
+        premium_propensity_raw = 100.0 + premium_asset_contribution + premium_wealth_contribution + premium_cash_contribution + premium_traffic_contribution
         premium_propensity = soft_limit(premium_propensity_raw, 55.0, 170.0, softness=18.0)
+        premium_boundary_state = "floor" if premium_propensity_raw < 55.0 else "cap" if premium_propensity_raw > 170.0 else "none"
         premium_share_raw = (
             params.premium_mix_base
             + 0.045 * (premium_propensity - 100.0)
@@ -1038,45 +1120,44 @@ def simulate_region_aviation_demand(
             + 0.018 * premium_long_haul_gap
         )
         premium_share = clamp(soft_limit(premium_share_raw, 8.0, 34.0, softness=4.0), 5.0, 45.0)
-        duty_free_raw = (
-            92.0
-            + 0.42 * (component_values["long_haul"] - 100.0)
-            + 0.28 * (component_values["leisure"] - 100.0)
-            + 0.18 * (premium_propensity - 100.0)
-            + 18.0 * (params.duty_free_culture_index - 0.5)
-            - 0.12 * max(0.0, metrics["currency_pressure"] - 45.0)
-        )
+        duty_free_parts = {
+            "base": 92.0,
+            "traffic_mix": 0.42 * (component_values["long_haul"] - 100.0) + 0.28 * (component_values["leisure"] - 100.0),
+            "premium": 0.18 * (premium_propensity - 100.0),
+            "culture_currency": 18.0 * (params.duty_free_culture_index - 0.5) - 0.12 * max(0.0, metrics["currency_pressure"] - 45.0),
+        }
+        duty_free_raw = sum(duty_free_parts.values())
         duty_free = soft_limit(duty_free_raw, 45.0, 175.0, softness=20.0)
-        luxury_raw = (
-            88.0
-            + 0.58 * (premium_propensity - 100.0)
-            + 0.18 * (component_values["business"] - 100.0)
-            + 22.0 * (params.luxury_retail_affinity - 0.5)
-        )
+        luxury_parts = {
+            "base": 88.0,
+            "premium": 0.58 * (premium_propensity - 100.0),
+            "traffic_mix": 0.18 * (component_values["business"] - 100.0),
+            "culture": 22.0 * (params.luxury_retail_affinity - 0.5),
+        }
+        luxury_raw = sum(luxury_parts.values())
         luxury = soft_limit(luxury_raw, 40.0, 180.0, softness=20.0)
-        electronics_raw = (
-            90.0
-            + 0.22 * (metrics["income_index"] - 100.0)
-            + 0.18 * (component_values["long_haul"] - 100.0)
-            + 0.16 * (component_values["transfer"] - 100.0)
-            + 18.0 * (params.electronics_retail_affinity - 0.5)
-            - 0.10 * max(0.0, metrics["currency_pressure"] - 45.0)
-        )
+        electronics_parts = {
+            "base": 90.0,
+            "cash_income": 2.0 * metrics["income_growth"],
+            "traffic_mix": 0.18 * (component_values["long_haul"] - 100.0) + 0.16 * (component_values["transfer"] - 100.0),
+            "culture_currency": 18.0 * (params.electronics_retail_affinity - 0.5) - 0.10 * max(0.0, metrics["currency_pressure"] - 45.0),
+        }
+        electronics_raw = sum(electronics_parts.values())
         electronics = soft_limit(electronics_raw, 42.0, 168.0, softness=18.0)
-        food_beverage_raw = (
-            96.0
-            + 0.34 * (total_index - 100.0)
-            + 0.12 * (component_values["transfer"] - 100.0)
-            - 0.10 * max(0.0, price_index - 60.0)
-        )
+        food_beverage_parts = {
+            "base": 96.0,
+            "traffic_mix": 0.34 * (total_index - 100.0) + 0.12 * (component_values["transfer"] - 100.0),
+            "fare_cost": -0.10 * max(0.0, price_index - 60.0),
+        }
+        food_beverage_raw = sum(food_beverage_parts.values())
         food_beverage = soft_limit(food_beverage_raw, 55.0, 165.0, softness=20.0)
-        general_retail_raw = (
-            94.0
-            + 0.30 * (total_index - 100.0)
-            + 0.15 * (component_values["leisure"] - 100.0)
-            + 0.08 * (premium_propensity - 100.0)
-            - 0.12 * max(0.0, price_index - 62.0)
-        )
+        general_retail_parts = {
+            "base": 94.0,
+            "cash_income": 1.2 * metrics["income_growth"],
+            "traffic_mix": 0.30 * (total_index - 100.0) + 0.15 * (component_values["leisure"] - 100.0),
+            "fare_cost": -0.12 * max(0.0, price_index - 62.0),
+        }
+        general_retail_raw = sum(general_retail_parts.values())
         general_retail = soft_limit(general_retail_raw, 50.0, 165.0, softness=20.0)
         regime = aviation_regime(total_growth, price_index, event_hint, premium_propensity, metrics["stress"])
 
@@ -1118,12 +1199,39 @@ def simulate_region_aviation_demand(
                 "transfer_fare_elasticity": elasticities["transfer"],
                 "premium_fare_elasticity": elasticities["premium"],
                 "premium_passenger_propensity_index": premium_propensity,
+                "premium_propensity_raw_index": premium_propensity_raw,
+                "premium_propensity_asset_market_contribution_points": premium_asset_contribution,
+                "premium_propensity_household_wealth_contribution_points": premium_wealth_contribution,
+                "premium_propensity_cash_income_contribution_points": premium_cash_contribution,
+                "premium_propensity_traffic_mix_contribution_points": premium_traffic_contribution,
+                "premium_propensity_final_index": premium_propensity,
+                "premium_propensity_boundary_state": premium_boundary_state,
                 "premium_passenger_share_pct": premium_share,
                 "duty_free_propensity_index": duty_free,
+                "duty_free_propensity_raw_index": duty_free_raw,
+                **{f"duty_free_propensity_{name}_contribution_points": value for name, value in duty_free_parts.items()},
+                "duty_free_propensity_final_index": duty_free,
+                "duty_free_propensity_boundary_state": "floor" if duty_free_raw < 45.0 else "cap" if duty_free_raw > 175.0 else "none",
                 "luxury_retail_propensity_index": luxury,
+                "luxury_retail_propensity_raw_index": luxury_raw,
+                **{f"luxury_retail_propensity_{name}_contribution_points": value for name, value in luxury_parts.items()},
+                "luxury_retail_propensity_final_index": luxury,
+                "luxury_retail_propensity_boundary_state": "floor" if luxury_raw < 40.0 else "cap" if luxury_raw > 180.0 else "none",
                 "electronics_retail_propensity_index": electronics,
+                "electronics_retail_propensity_raw_index": electronics_raw,
+                **{f"electronics_retail_propensity_{name}_contribution_points": value for name, value in electronics_parts.items()},
+                "electronics_retail_propensity_final_index": electronics,
+                "electronics_retail_propensity_boundary_state": "floor" if electronics_raw < 42.0 else "cap" if electronics_raw > 168.0 else "none",
                 "food_beverage_propensity_index": food_beverage,
+                "food_beverage_propensity_raw_index": food_beverage_raw,
+                **{f"food_beverage_propensity_{name}_contribution_points": value for name, value in food_beverage_parts.items()},
+                "food_beverage_propensity_final_index": food_beverage,
+                "food_beverage_propensity_boundary_state": "floor" if food_beverage_raw < 55.0 else "cap" if food_beverage_raw > 165.0 else "none",
                 "general_retail_propensity_index": general_retail,
+                "general_retail_propensity_raw_index": general_retail_raw,
+                **{f"general_retail_propensity_{name}_contribution_points": value for name, value in general_retail_parts.items()},
+                "general_retail_propensity_final_index": general_retail,
+                "general_retail_propensity_boundary_state": "floor" if general_retail_raw < 50.0 else "cap" if general_retail_raw > 165.0 else "none",
                 "aviation_demand_regime": regime,
                 "airport_event_hint": event_hint,
                 "airport_event_pressure_index": event_pressure,
@@ -1146,8 +1254,30 @@ def simulate_region_aviation_demand(
                 "input_energy_cost_pressure_index": metrics["energy"],
                 "input_currency_pressure_index": metrics["currency_pressure"],
                 "input_hy_spread_bps": metrics["hy"],
-                "input_equity_return_pct": metrics["equity_return"],
+                "input_asset_market_impulse_index": metrics["asset_market"],
+                "input_household_wealth_consumption_impulse": metrics["wealth_impulse"],
+                "input_real_disposable_income_growth_pct": metrics["income_growth"],
+                "input_equity_price_return_pct": metrics["equity_price_return"],
                 "input_equity_valuation_pe": metrics["equity_valuation_pe"],
+                **{
+                    f"demand_{target}_{name}_contribution_pp": decomposition[target][name]
+                    for target in ("total", "business", "leisure", "vfr", "long_haul", "transfer")
+                    for name in DEMAND_CONTRIBUTION_NAMES
+                },
+                **{
+                    key: value
+                    for target in ("total", "business", "leisure", "vfr", "long_haul", "transfer")
+                    for key, value in {
+                        f"demand_{target}_base_contribution_pp": decomposition[target]["base"],
+                        f"demand_{target}_raw_growth_pct": decomposition[target]["raw"],
+                        f"demand_{target}_boundary_adjustment_pp": decomposition[target]["boundary_adjustment"],
+                        f"demand_{target}_smoothing_adjustment_pp": (
+                            (total_growth if target == "total" else component_growth[target])
+                            - decomposition[target]["final"]
+                        ),
+                        f"demand_{target}_final_growth_pct": total_growth if target == "total" else component_growth[target],
+                    }.items()
+                },
             }
         )
         output.append(item)

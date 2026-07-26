@@ -14,6 +14,7 @@
 ```powershell
 git status --short
 git diff --check
+py -3.13 tools/run_test_suite.py --suite quick --suite <affected-domain>
 git add <confirmed-paths>
 git commit -m "<type>: <completed sub-goal>"
 git tag -a vMMDDa -m "local checkpoint vMMDDa: <scope>"
@@ -54,7 +55,13 @@ gh repo view --json nameWithOwner,defaultBranchRef,url
 
 如果 `gh api` 成功而 `git ls-remote` 报 `Failed to connect to github.com port 443`，通常是 Git 传输通道问题，不是账户权限问题。一次超时已经足以进入备用通道诊断，不要连续重复相同的 push。
 
-提交前还应执行与改动范围相称的本地检查。本项目的完整基线见[测试与安全修改](Testing_and_Safe_Changes.md)。
+提交前还应执行与改动范围相称的本地检查。本地小版本默认执行 `quick + 受影响领域`，不机械运行全量；GitHub 大版本发布前执行：
+
+```powershell
+py -3.13 tools/run_test_suite.py --suite release --verbosity 2 --top 15
+```
+
+GitHub CI 会在 Windows 和 Linux 上调用同一发布入口。本项目的套件边界、风险例外和浏览器验收见[测试与安全修改](Testing_and_Safe_Changes.md)。
 
 ### 1.1 跨平台文本编码基线
 

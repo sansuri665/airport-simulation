@@ -898,8 +898,8 @@ window.AirportGlobalScenarioModel = (() => {
           term_spread_10y_2y_pct: spread,
           term_premium_pct: termPremium,
           expected_short_rate_10y_pct: expectedShort10y,
-          bond_price_index: bondIndex,
-          bond_total_return_pct: bondReturn,
+          yield_curve_reference_10y_bond_total_return_index: bondIndex,
+          yield_curve_reference_10y_bond_total_return_pct: bondReturn,
           duration_pressure_index: durationPressure,
           curve_inversion_pressure: inversionPressure,
           yield_curve_regime: regime,
@@ -1166,7 +1166,7 @@ window.AirportGlobalScenarioModel = (() => {
         const equity = clamp(assetState.equity * (1 + equityReturn / 100), 20, 620);
         const peak = Math.max(assetState.peak, equity);
         const drawdown = clamp((equity / Math.max(1e-9, peak) - 1) * 100, -90, 0);
-        const sovereignReturn = row.year_index === 0 ? 0 : clamp(0.68 * row.bond_total_return_pct - 0.35 * Math.max(0, row.headline_inflation_pct - 4) + 0.20 * Math.max(0, row.crisis_intensity - 0.35) * 10, -26, 24);
+        const sovereignReturn = row.year_index === 0 ? 0 : clamp(0.68 * row.yield_curve_reference_10y_bond_total_return_pct - 0.35 * Math.max(0, row.headline_inflation_pct - 4) + 0.20 * Math.max(0, row.crisis_intensity - 0.35) * 10, -26, 24);
         const sovereignBond = compoundIndexWithSoftDrag(assetState.sovereignBond, sovereignReturn, 30, 240);
         const igChange = row.global_investment_grade_spread_bps - assetState.previousIg;
         const corporateReturn = row.year_index === 0 ? 0 : clamp(0.55 * sovereignReturn + 0.48 * row.global_10y_yield_pct + 0.60 * (row.global_investment_grade_spread_bps / 100) - 4.2 * (igChange / 100) - 0.55 * Math.max(0, row.credit_spread_change_bps / 100), -30, 24);
@@ -1184,19 +1184,21 @@ window.AirportGlobalScenarioModel = (() => {
           ...row,
           asset_price_param_version: "global-asset-price-layer-v0.1-js",
           asset_price_interface_version: "asset-price-feedback-interface-v0.1",
-          global_equity_index: equity,
-          equity_total_return_pct: equityReturn,
-          equity_earnings_index: earnings,
-          equity_eps_growth_pct: epsGrowth,
-          equity_valuation_pe: pe,
+          asset_accounting_authority: "non_authoritative_scenario_sketch",
+          global_equity_price_index: equity,
+          global_equity_price_return_pct: equityReturn,
+          global_equity_total_return_pct: equityReturn,
+          global_equity_eps_index: earnings,
+          global_equity_eps_growth_pct: epsGrowth,
+          global_equity_valuation_pe: pe,
           equity_risk_premium_pct: equityRiskPremium,
-          equity_drawdown_pct: drawdown,
-          global_sovereign_bond_index: sovereignBond,
-          sovereign_bond_total_return_pct: sovereignReturn,
-          global_corporate_bond_index: corporateBond,
-          corporate_bond_total_return_pct: corporateReturn,
-          global_60_40_portfolio_index: portfolio,
-          portfolio_60_40_total_return_pct: portfolioReturn,
+          global_equity_drawdown_pct: drawdown,
+          global_sovereign_bond_total_return_index: sovereignBond,
+          global_sovereign_bond_total_return_pct: sovereignReturn,
+          global_corporate_bond_total_return_index: corporateBond,
+          global_corporate_bond_total_return_pct: corporateReturn,
+          global_60_40_total_return_index: portfolio,
+          global_60_40_total_return_pct: portfolioReturn,
           asset_volatility_index: assetVolatility,
           asset_risk_regime: regime,
           asset_to_gdp_wealth_impulse: wealthImpulse,
@@ -1274,7 +1276,7 @@ window.AirportGlobalScenarioModel = (() => {
       return rows.map((row) => {
         maybeUpdateSupplyEvent(row);
         const priceDemandDrag = 0.16 * Math.max(0, oilState.brent - 105) + 0.04 * Math.max(0, oilState.oilReturn - 15) + 0.04 * Math.max(0, row.asset_volatility_index - 38);
-        const demandTarget = 54 + 4.3 * (row.realized_growth_pct - row.potential_growth_pct) + 1.8 * row.output_gap_pct + 0.18 * (row.risk_appetite_index - 50) + 0.12 * (row.global_liquidity_index - 50) + 0.09 * row.liquidity_impulse_index + 0.045 * row.equity_total_return_pct + 3.0 * row.credit_to_oil_demand_impulse - 7 * row.crisis_intensity - 0.010 * Math.max(0, row.global_high_yield_spread_bps - 500) - 0.10 * Math.max(0, row.financial_stress_index - 40) - priceDemandDrag + rng.gauss(0, 2.0);
+        const demandTarget = 54 + 4.3 * (row.realized_growth_pct - row.potential_growth_pct) + 1.8 * row.output_gap_pct + 0.18 * (row.risk_appetite_index - 50) + 0.12 * (row.global_liquidity_index - 50) + 0.09 * row.liquidity_impulse_index + 0.045 * row.global_equity_total_return_pct + 3.0 * row.credit_to_oil_demand_impulse - 7 * row.crisis_intensity - 0.010 * Math.max(0, row.global_high_yield_spread_bps - 500) - 0.10 * Math.max(0, row.financial_stress_index - 40) - priceDemandDrag + rng.gauss(0, 2.0);
         const demand = clamp(smooth(oilState.demand, demandTarget, 0.32), 0, 100);
         const supplyTarget = oilState.supplyEventTarget + 7 * row.energy_price_impulse + rng.gauss(0, 2.2);
         const supplyShock = clamp(smooth(oilState.supplyShock, supplyTarget, 0.36), -55, 70);
@@ -1287,7 +1289,7 @@ window.AirportGlobalScenarioModel = (() => {
           + 0.13 * (row.risk_appetite_index - 50)
           - 3.2 * Math.max(0, row.global_financial_conditions_index)
           + 5.5 * row.dollar_to_oil_pressure_impulse
-          + 0.045 * row.equity_total_return_pct
+          + 0.045 * row.global_equity_total_return_pct
           - 0.020 * Math.max(0, row.global_high_yield_spread_bps - 500),
           -28,
           28,
@@ -1297,7 +1299,7 @@ window.AirportGlobalScenarioModel = (() => {
         const oilYoy = row.year_index === 0 ? 0 : clamp(smooth(oilState.oilReturn, oilReturnTarget, 0.38), -42, 85);
         const brent = row.year_index === 0 ? 82 : Math.max(18, oilState.brent * (1 + oilYoy / 100));
         const oilIndex = row.year_index === 0 ? 100 : Math.max(22, oilState.oilIndex * (1 + oilYoy / 100));
-        const commodityReturnTarget = 0.46 * oilYoy + 0.20 * (demand - 50) + 0.17 * financialPressure - 0.18 * (row.global_dollar_index - 100) + 0.06 * row.equity_total_return_pct + rng.gauss(0, 3.0);
+        const commodityReturnTarget = 0.46 * oilYoy + 0.20 * (demand - 50) + 0.17 * financialPressure - 0.18 * (row.global_dollar_index - 100) + 0.06 * row.global_equity_total_return_pct + rng.gauss(0, 3.0);
         const commodityYoy = row.year_index === 0 ? 0 : clamp(smooth(oilState.commodityReturn, commodityReturnTarget, 0.32), -38, 60);
         const commodityIndex = row.year_index === 0 ? 100 : compoundIndexWithSoftDrag(oilState.commodityIndex, commodityYoy, 28, 260, 0.75);
         const energyPressureTarget = 50 + 0.38 * (brent - 82) + 0.52 * oilYoy + 0.28 * inventoryPressure + 0.18 * supplyShock;
@@ -1548,11 +1550,11 @@ window.AirportGlobalScenarioModel = (() => {
       const impairment = numericValue(row, "credit_impairment_stock_index");
       const refinancing = numericValue(row, "corporate_refinancing_pressure_index");
       const defaultRisk = numericValue(row, "default_risk_index");
-      const equityReturn = numericValue(row, "equity_total_return_pct");
-      const epsGrowth = numericValue(row, "equity_eps_growth_pct");
-      const pe = numericValue(row, "equity_valuation_pe");
-      const prevPe = numericValue(prev, "equity_valuation_pe", pe);
-      const sovereignReturn = numericValue(row, "sovereign_bond_total_return_pct");
+      const equityReturn = numericValue(row, "global_equity_total_return_pct");
+      const epsGrowth = numericValue(row, "global_equity_eps_growth_pct");
+      const pe = numericValue(row, "global_equity_valuation_pe");
+      const prevPe = numericValue(prev, "global_equity_valuation_pe", pe);
+      const sovereignReturn = numericValue(row, "global_sovereign_bond_total_return_pct");
       const brent = numericValue(row, "brent_oil_price_usd");
       const oilYoy = numericValue(row, "oil_yoy_change_pct");
       const oilDemand = numericValue(row, "oil_demand_pressure_index", 50);
@@ -1995,12 +1997,12 @@ window.AirportGlobalScenarioModel = (() => {
       "global_gdp_trillion_usd",
       "real_gdp_index",
       "potential_gdp_index",
-      "bond_price_index",
-      "global_equity_index",
-      "equity_earnings_index",
-      "global_sovereign_bond_index",
-      "global_corporate_bond_index",
-      "global_60_40_portfolio_index",
+      "yield_curve_reference_10y_bond_total_return_index",
+      "global_equity_price_index",
+      "global_equity_eps_index",
+      "global_sovereign_bond_total_return_index",
+      "global_corporate_bond_total_return_index",
+      "global_60_40_total_return_index",
       "brent_oil_price_usd",
       "global_oil_price_index",
       "broad_commodity_index",

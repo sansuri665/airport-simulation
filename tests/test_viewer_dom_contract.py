@@ -206,6 +206,21 @@ class ViewerDomContractTests(unittest.TestCase):
         self.assertNotIn("五类客群需求与航司供给", html)
         self.assertEqual(6, html.count("data-market-scope="))
 
+    def test_global_asset_chart_compares_total_return_with_total_return(self) -> None:
+        renderer = (
+            ROOT_DIR / "web" / "static" / "js" / "global-gdp" / "renderers.js"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("股票总回报", renderer)
+        self.assertIn('makeStat("股票总回报指数", fmtIndex(row.global_equity_total_return_index)', renderer)
+        self.assertIn("主权债总回报", renderer)
+        self.assertIn("居民实际金融财富", renderer)
+        self.assertIn("row.global_equity_total_return_index", renderer)
+        self.assertIn('scenarioPath("global_equity_total_return_index"', renderer)
+        self.assertNotIn("yAsset(row.global_equity_price_index)", renderer)
+        self.assertNotIn("yAsset(selected.global_equity_price_index)", renderer)
+        self.assertIn("<td>${hasAsset(row) ? fmtIndex(row.global_equity_total_return_index)", renderer)
+
 
 if __name__ == "__main__":
     unittest.main()

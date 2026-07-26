@@ -111,7 +111,7 @@ VALUATION_FORECAST_FIELDS = [
     "quality_risk_premium_pct",
     "crowding_risk_premium_pct",
     "branch_risk_premium_pct",
-    "input_equity_return_pct",
+    "input_equity_price_return_pct",
     "input_equity_valuation_pe",
     "operating_discount_rate_pct",
     "operating_terminal_growth_pct",
@@ -396,7 +396,7 @@ def market_valuation_adjustments(
         float(settings.get("equity_valuation_premium_cap_pct", 9.0)),
     )
 
-    equity_return = as_float(operation, "input_equity_return_pct", 0.0)
+    equity_return = as_float(operation, "input_equity_price_return_pct", 0.0)
     equity_adjustment = clamp(
         (equity_return - float(settings.get("neutral_equity_return_pct", 0.0)))
         * float(settings.get("equity_return_sensitivity", 0.35)),
@@ -753,7 +753,7 @@ def valuation_for_as_of(
         "quality_risk_premium_pct": premiums["quality"],
         "crowding_risk_premium_pct": premiums["crowding"],
         "branch_risk_premium_pct": premiums["branch"],
-        "input_equity_return_pct": as_float(operation, "input_equity_return_pct"),
+        "input_equity_price_return_pct": as_float(operation, "input_equity_price_return_pct"),
         "input_equity_valuation_pe": as_float(operation, "input_equity_valuation_pe", 17.0),
         "operating_discount_rate_pct": operating_discount_rate,
         "operating_terminal_growth_pct": terminal_growth,

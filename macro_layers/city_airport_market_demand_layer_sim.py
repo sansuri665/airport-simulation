@@ -260,7 +260,10 @@ CITY_AIRPORT_DEMAND_FIELDS = [
     "input_10y_yield_pct",
     "input_10y_yield_source",
     "input_hy_spread_bps",
-    "input_equity_return_pct",
+    "input_asset_market_impulse_index",
+    "input_household_wealth_consumption_impulse",
+    "input_real_disposable_income_growth_pct",
+    "input_equity_price_return_pct",
     "input_equity_valuation_pe",
     "input_regional_macro_stress_index",
 ]
@@ -2493,12 +2496,35 @@ def simulate_city_airport_demand(
                     ),
                     0.0,
                 ),
-                "input_equity_return_pct": first_float(
+                "input_asset_market_impulse_index": first_float(
                     row,
                     (
-                        "macro_regional_equity_return_pct",
-                        "macro_regional_equity_return_pct_reconciled",
-                        "macro_regional_equity_return_pct_raw",
+                        "input_asset_market_impulse_index",
+                        "macro_regional_asset_market_impulse_index",
+                    ),
+                    50.0,
+                ),
+                "input_household_wealth_consumption_impulse": first_float(
+                    row,
+                    (
+                        "input_household_wealth_consumption_impulse",
+                        "macro_regional_household_wealth_consumption_impulse",
+                    ),
+                    0.0,
+                ),
+                "input_real_disposable_income_growth_pct": first_float(
+                    row,
+                    (
+                        "input_real_disposable_income_growth_pct",
+                        "macro_regional_real_disposable_income_growth_pct",
+                    ),
+                    0.0,
+                ),
+                "input_equity_price_return_pct": first_float(
+                    row,
+                    (
+                        "input_equity_price_return_pct",
+                        "macro_regional_equity_price_return_pct",
                     ),
                     0.0,
                 ),
@@ -2506,11 +2532,9 @@ def simulate_city_airport_demand(
                     row,
                     (
                         "input_equity_valuation_pe",
-                        "macro_regional_equity_valuation_pe_reconciled",
                         "macro_regional_equity_valuation_pe",
-                        "macro_regional_equity_valuation_pe_raw",
                     ),
-                    17.0,
+                    18.0,
                 ),
                 "input_regional_macro_stress_index": regional_macro_stress_index,
             }

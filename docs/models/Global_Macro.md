@@ -127,12 +127,32 @@ output/macro_runs/<run_id>/<variant>/global_macro/
 | 物价 | `headline_inflation_pct`、`core_inflation_pct` | 年通胀率，百分比 |
 | 利率 | `global_policy_rate_pct`、`global_2y_yield_pct`、`global_10y_yield_pct` | 年化百分比 |
 | 信用 | `global_investment_grade_spread_bps`、`global_high_yield_spread_bps` | 基点，100 bps = 1 个百分点 |
-| 市场 | `global_equity_index`、`bond_price_index`、`equity_total_return_pct` | 起点附近为 100 的指数、年度回报率 |
+| 市场 | `global_equity_price_index`、`global_equity_total_return_index`、`global_sovereign_bond_total_return_index`、`global_60_40_total_return_index` | 股票价格、含股息总回报、主权债总回报与年度再平衡 60/40；各自起点 100 |
 | 美元资金与压力 | `global_dollar_index`、`global_liquidity_index`、`global_financial_conditions_index` | 美元资金条件代理、流动性与 FCI；均为模型内部指数，不是 DXY 或现实统计值 |
 | 能源 | `brent_oil_price_usd`、`energy_cost_pressure_index` | 美元/桶、模型内部指数 |
 | 反馈与岔路 | `macro_feedback_*`、`branch_risk_*`、`scenario_*` | 反馈诊断、风险观察和情景状态 |
 
 `macro_feedback_intensity_index` 和四个 `macro_feedback_*_raw*` 字段只描述宏观反馈校准层自身；情景岔路的额外冲击不会混入这些 raw 诊断。最终 applied impulse 仍可同时包含宏观反馈与情景冲击，二者通过来源和情景字段区分。区域层读取宏观反馈强度计算政策不确定性，因此编排器必须保留这些诊断字段，不能只保留 applied impulse。
+
+### 股票、债券与 60/40 会计
+
+`airport-model-v0.16 / airport-model-output-v6` 使用资产会计 v0.4。股票价格、股息和总回报不再共用一个状态：
+
+```text
+股票价格指数 = EPS 指数 × PE ÷ 初始 PE
+股票价格回报 = 本期价格指数 ÷ 上期价格指数 - 1
+股票总回报   = 股票价格回报 + 股息率
+```
+
+`global_equity_price_index` 只表示价格；`global_equity_total_return_index` 才表示股息再投资后的累计投资结果。EPS、PE、价格、股息和总回报均发布 raw/final、边界与恒等式残差。PE 由实际利率、信用、金融条件、政策、美元、流动性、风险偏好和危机等显式贡献形成，因此盈利增长与估值压缩可以同时发生。
+
+主权债总回报拆成久期/凸性价格回报与 carry；企业债还拆出 IG 利差价格贡献和显式信用损失。名义债券总回报不直接扣通胀，实际口径应另行派生。`global_60_40_total_return_pct` 是每年重新平衡的 60% 股票总回报与 40% 主权债总回报，不能拿居民财富指数替代。
+
+A4 的 81 个正式 60 年 Seed 审计显示：股票总回报 CAGR 中位数约 5.58%，主权债约 3.18%；没有 Seed 在完整 60 年或后 20 年平均口径上由股票跑输主权债，16 个 Seed 在最后 10 年阶段性跑输。全球和区域会计残差均为零，股票 PE 边界出现在 11/81 个 Seed，但没有达到系统性调参阈值。通缩另用明确标记的低通胀锚控制世界验证，不冒充自然 Seed。审计入口为 [`audit_asset_joint_distribution.py`](../../tools/audit_asset_joint_distribution.py)。
+
+Seed `20260622` 是样本中最后 10 年股票相对主权债表现最弱的尾部值，差约 -2.18 个百分点，但 60 年股票总回报 CAGR 仍为 4.63%，高于主权债的 2.82%。其后 20 年 EPS 平均增长约 4.15%，PE 却从 19.44 压缩到 9.37；实际利率、宏观冲量、信用和金融条件是主要负贡献，债券 carry 同期约 3.14%。因此它属于“盈利仍增长、估值压缩、债券 carry 较高”的可解释路径，不构成单 Seed 调参依据。
+
+Viewer 的资产图必须在同一轴上比较 `global_equity_total_return_index`、`global_sovereign_bond_total_return_index` 与 `global_60_40_total_return_index`；股票价格指数另作估值诊断，不能与债券总回报冒充同口径曲线。区域资产图同样比较股票总回报、本币主权债总回报和居民实际金融财富，并使用明确图例。
 
 GDP v0.5 还发布：`unclamped_output_gap_target_pct`、缺口上下界布尔值、`unclamped_target_growth_pct`、`soft_limited_target_growth_pct`、`growth_step_limit_pct`、软限制/硬边界布尔值、硬边界方向和连续命中年数。`growth_step_limit_pct` 表示本年实际使用的**实际增长步长硬安全边界**，不是软限制膝点。
 
@@ -161,7 +181,9 @@ GDP v0.5 还发布：`unclamped_output_gap_target_pct`、缺口上下界布尔�
 - 收益率曲线：[`global_yield_curve_layer_sim.py`](../../macro_layers/global_yield_curve_layer_sim.py)
 - 美元与流动性：[`global_dollar_liquidity_layer_sim.py`](../../macro_layers/global_dollar_liquidity_layer_sim.py)
 - 信用：[`global_credit_spread_layer_sim.py`](../../macro_layers/global_credit_spread_layer_sim.py)
-- 资产价格：[`global_asset_price_layer_sim.py`](../../macro_layers/global_asset_price_layer_sim.py)
+- 正式股票会计：[`global_equity_accounting_v04.py`](../../macro_layers/global_equity_accounting_v04.py)
+- 正式债券与 60/40 会计：[`global_bond_accounting_v04.py`](../../macro_layers/global_bond_accounting_v04.py)
+- 旧资产生成层（仅作为 v0.4 上游状态和显式拒绝边界）：[`global_asset_price_layer_sim.py`](../../macro_layers/global_asset_price_layer_sim.py)
 - 油价与商品：[`global_oil_commodity_layer_sim.py`](../../macro_layers/global_oil_commodity_layer_sim.py)
 - 反馈和风险观察：[`global_macro_feedback_calibration_sim.py`](../../macro_layers/global_macro_feedback_calibration_sim.py)
 - Run、情景和输出：[`macro_run_orchestrator_sim.py`](../../macro_layers/macro_run_orchestrator_sim.py)
@@ -176,3 +198,4 @@ GDP v0.5 还发布：`unclamped_output_gap_target_pct`、缺口上下界布尔�
 - 风险概率来自规则评分，不能解释为现实事件发生概率。
 - 固定点验证只覆盖八个公开宏观稳定字段；它保证反馈映射在这些门槛内稳定，不代表模型求得现实经济中的一般均衡。
 - 各年度明细目前依靠代码字段表和测试保护，尚无逐行全球宏观 JSON Schema；正式 Schema 主要覆盖 Run manifest 和 Viewer 数据接口。
+- 当前物价输出是带状态记忆的年度通胀率，尚未发布以 2025 为起点的累计 CPI 价格水平，也没有提供名义金额与 2025 年不变价的统一换算桥；长期处理原则见[通胀系统备忘录](../plans/Inflation_System_Memo.md)。
