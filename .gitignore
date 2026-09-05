@@ -1,0 +1,24 @@
+# 私有或不宜进入公开仓库的参考资料
+/参考文献/
+
+# 临时处理目录
+/tmp/
+
+# OCR / 本地工具模型
+*.traineddata
+
+# 下载的原始书籍及大型资料文件（即使未来出现在其他目录，也默认不提交）
+*.pdf
+*.epub
+*.mobi
+*.azw
+*.azw3
+*.djvu
+*.zip
+*.7z
+
+# 系统与编辑器文件
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
