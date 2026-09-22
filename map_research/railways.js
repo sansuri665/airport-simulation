@@ -91,15 +91,25 @@ const RAILWAYS = [
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
-    source: "用户提供参考坐标；北端改接北京丰台（与京雄城际区分）；丰台复用京广既有站点身份",
+    status: "运营线路",
+    source: "按国铁雄商段站序：衡水南取代衡水，台前东取代濮阳东；丰台／雄安／聊城西／菏泽东／商丘复用既有；其余为旗县治走廊近似",
     stations: [
       { id: "jingguang_fengtai", name: "北京丰台", city: "北京", lat: 39.8498, lon: 116.2946 },
       { id: "jingxiongshang_02", name: "雄安", city: "雄安", lat: 39.001, lon: 116.1 },
-      { id: "jingxiongshang_03", name: "衡水", city: "衡水", lat: 37.738, lon: 115.7 },
+      { id: "jingxiongshang_renqiuxi", name: "任丘西", city: "任丘", lat: 38.71, lon: 116.0 },
+      { id: "jingxiongshang_suningdong", name: "肃宁东", city: "肃宁", lat: 38.43, lon: 115.95 },
+      { id: "jingxiongshang_shenzhoudong", name: "深州东", city: "深州", lat: 37.95, lon: 115.65 },
+      { id: "jingxiongshang_03", name: "衡水南", city: "衡水", lat: 37.65, lon: 115.68 },
+      { id: "jingxiongshang_zaoqiangnan", name: "枣强南", city: "枣强", lat: 37.45, lon: 115.72 },
+      { id: "jingxiongshang_qinghexi", name: "清河西", city: "清河", lat: 37.05, lon: 115.55 },
+      { id: "jingxiongshang_linqingdong", name: "临清东", city: "临清", lat: 36.85, lon: 115.8 },
       { id: "jingxiongshang_04", name: "聊城西", city: "聊城", lat: 36.43, lon: 115.92 },
-      { id: "jingxiongshang_05", name: "濮阳东", city: "濮阳", lat: 35.77, lon: 115.06 },
+      { id: "jingxiongshang_yanggudong", name: "阳谷东", city: "阳谷", lat: 36.11, lon: 115.9 },
+      { id: "jingxiongshang_taqiandong", name: "台前东", city: "台前", lat: 35.97, lon: 115.95 },
+      { id: "jingxiongshang_liangshan", name: "梁山", city: "梁山", lat: 35.77, lon: 116.05 },
+      { id: "jingxiongshang_yuncheng", name: "郓城", city: "郓城", lat: 35.61, lon: 115.85 },
       { id: "jingxiongshang_06", name: "菏泽东", city: "菏泽", lat: 35.245, lon: 115.52 },
+      { id: "jingxiongshang_caoxianxi", name: "曹县西", city: "曹县", lat: 34.86, lon: 115.45 },
       { id: "jingxiongshang_07", name: "商丘", city: "商丘", lat: 34.44, lon: 115.65 }
     ]
   },
@@ -1691,6 +1701,7 @@ const RAILWAYS = [
       { id: "jingxiongshang_02", name: "雄安", city: "雄安", lat: 39.001, lon: 116.1 },
       { id: "jinxiongxin_baiyangdian", name: "白洋淀", city: "容城", lat: 39.069, lon: 115.8686 },
       { id: "jingguang_02", name: "保定东", city: "保定", lat: 39.087, lon: 115.57 },
+      { id: "jinxiongxin_baodingnan", name: "保定南", city: "保定", lat: 38.98, lon: 115.28 },
       { id: "jinxiongxin_wangdoubei", name: "望都北", city: "望都", lat: 38.85, lon: 115.15 },
       { id: "jinxiongxin_tangxian", name: "唐县", city: "唐县", lat: 38.748, lon: 114.981 },
       { id: "jinxiongxin_quyang", name: "曲阳", city: "曲阳", lat: 38.622, lon: 114.745 },
@@ -1711,7 +1722,7 @@ const RAILWAYS = [
     source: "用户指定使用既有站点身份",
     stations: [
       { id: "jingguang_03", name: "石家庄", city: "石家庄", lat: 38.0225, lon: 114.484 },
-      { id: "jingxiongshang_03", name: "衡水", city: "衡水", lat: 37.738, lon: 115.7 },
+      { id: "jingxiongshang_03", name: "衡水南", city: "衡水", lat: 37.65, lon: 115.68 },
       { id: "jinghu_05", name: "德州东", city: "德州", lat: 37.44, lon: 116.36 }
     ]
   },
@@ -2290,6 +2301,43 @@ const RAILWAYS = [
       { id: "huaixing_langfangbei", name: "廊坊北", city: "廊坊", lat: 39.5771, lon: 116.667 },
       { id: "huaixing_langfangxi", name: "廊坊西", city: "廊坊", lat: 39.5476, lon: 116.5674 },
       { id: "jingxiong_03", name: "大兴机场", city: "北京", lat: 39.5139, lon: 116.4099 }
+    ]
+  },
+  {
+    id: "shibao_intercity_high_speed",
+    name: "石保城际",
+    shortName: "石保",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "保定东／正定机场复用京广；蠡县西／安国东／无极为旗县治走廊近似",
+    stations: [
+      { id: "jingguang_02", name: "保定东", city: "保定", lat: 39.087, lon: 115.57 },
+      { id: "shibao_lixianxi", name: "蠡县西", city: "蠡县", lat: 38.5, lon: 115.5 },
+      { id: "shibao_anguodong", name: "安国东", city: "安国", lat: 38.43, lon: 115.4 },
+      { id: "shibao_wuji", name: "无极", city: "无极", lat: 38.174, lon: 114.966 },
+      { id: "jingguang_zhengdingairport", name: "正定机场", city: "正定", lat: 38.2507, lon: 114.7035 }
+    ]
+  },
+  {
+    id: "baocang_intercity_high_speed",
+    name: "保沧城际",
+    shortName: "保沧",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "保定东复用京广；沧州西复用京沪；黄骅北复用津潍；高阳／肃宁／河间／献县／泊头西为旗县治走廊近似",
+    stations: [
+      { id: "jingguang_02", name: "保定东", city: "保定", lat: 39.087, lon: 115.57 },
+      { id: "baocang_gaoyang", name: "高阳", city: "高阳", lat: 38.691, lon: 115.772 },
+      { id: "baocang_suning", name: "肃宁", city: "肃宁", lat: 38.426, lon: 115.827 },
+      { id: "baocang_hejian", name: "河间", city: "河间", lat: 38.443, lon: 116.09 },
+      { id: "baocang_xianxian", name: "献县", city: "献县", lat: 38.19, lon: 116.119 },
+      { id: "baocang_botouxi", name: "泊头西", city: "泊头", lat: 38.1, lon: 116.45 },
+      { id: "jinghu_04", name: "沧州西", city: "沧州", lat: 38.31, lon: 116.82 },
+      { id: "jinwei_huanghuabei", name: "黄骅北", city: "黄骅", lat: 38.401, lon: 117.385 }
     ]
   },
   {
