@@ -488,15 +488,18 @@ const RAILWAYS = [
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
-    source: "用户提供参考坐标；北京站／朝阳及顺义西／怀柔南／密云坐标参考维基百科",
+    status: "运营线路",
+    source: "北京—沈阳段加密兴隆县西／承德县北／平泉北；坐标参考维基百科／OSM",
     stations: [
       { id: "jingha_beijing", name: "北京站", city: "北京", lat: 39.901, lon: 116.4206 },
       { id: "jingha_01", name: "北京朝阳", city: "北京", lat: 39.9432, lon: 116.5021 },
       { id: "jingha_shunyixi", name: "顺义西", city: "北京", lat: 40.1778, lon: 116.485 },
       { id: "jingha_huairounan", name: "怀柔南", city: "北京", lat: 40.2772, lon: 116.6988 },
       { id: "jingha_miyun", name: "密云", city: "北京", lat: 40.3508, lon: 116.8447 },
-      { id: "jingha_02", name: "承德南", city: "承德", lat: 40.885, lon: 117.965 },
+      { id: "jingha_xinglongxianxi", name: "兴隆县西", city: "兴隆", lat: 40.4125, lon: 117.4757 },
+      { id: "jingha_02", name: "承德南", city: "承德", lat: 40.8827, lon: 117.9574 },
+      { id: "jingha_chengdexianbei", name: "承德县北", city: "承德县", lat: 40.9347, lon: 118.2842 },
+      { id: "jingha_pingquanbei", name: "平泉北", city: "平泉", lat: 41.0372, lon: 118.7051 },
       { id: "jingha_03", name: "朝阳", city: "朝阳", lat: 41.598, lon: 120.404 },
       { id: "jingha_04", name: "阜新", city: "阜新", lat: 42.05, lon: 121.67 },
       { id: "jingha_05", name: "沈阳北", city: "沈阳", lat: 41.817, lon: 123.436 },
@@ -513,14 +516,13 @@ const RAILWAYS = [
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "支线预研线路",
+    status: "运营线路",
     parentLineId: "jingha_high_speed",
     networkRole: "branch",
-    source: "用户提供参考坐标；朝阳复用京哈高铁既有站点身份",
+    source: "对应喀赤高铁：朝阳接京哈正线，止于赤峰（不通辽）；朝阳复用京哈",
     stations: [
       { id: "jingha_03", name: "朝阳", city: "朝阳", lat: 41.598, lon: 120.404 },
-      { id: "jingha_chifeng_02", name: "赤峰", city: "赤峰", lat: 42.258, lon: 118.888 },
-      { id: "jingha_chifeng_03", name: "通辽", city: "通辽", lat: 43.617, lon: 122.265 }
+      { id: "jingha_chifeng_02", name: "赤峰", city: "赤峰", lat: 42.258, lon: 118.888 }
     ]
   },
   {
@@ -2374,6 +2376,42 @@ const RAILWAYS = [
       { id: "jiqin_lulong", name: "卢龙", city: "卢龙", lat: 39.9514, lon: 118.9775 },
       { id: "jiqin_funing", name: "抚宁", city: "抚宁", lat: 39.8931, lon: 119.2433 },
       { id: "jinqinshen_03", name: "秦皇岛", city: "秦皇岛", lat: 39.949, lon: 119.604 }
+    ]
+  },
+  {
+    id: "kuanqingqian_conventional",
+    name: "宽青迁铁路",
+    shortName: "宽青迁",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "承德南复用京哈；迁安北复用蓟秦；宽城／青龙为旗县治近似",
+    stations: [
+      { id: "jingha_02", name: "承德南", city: "承德", lat: 40.8827, lon: 117.9574 },
+      { id: "kuanqingqian_kuancheng", name: "宽城", city: "宽城", lat: 40.6095, lon: 118.4795 },
+      { id: "kuanqingqian_qinglong", name: "青龙", city: "青龙", lat: 40.4, lon: 118.95 },
+      { id: "jiqin_qiananbei", name: "迁安北", city: "迁安", lat: 40.0994, lon: 118.7789 }
+    ]
+  },
+  {
+    id: "jingtong_conventional",
+    name: "京通铁路",
+    shortName: "京通",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "密云复用京哈；滦平复用张唐；赤峰／通辽复用京哈赤峰支线；隆化／敖汉／奈曼参考 OSM，围场为旗县治近似",
+    stations: [
+      { id: "jingha_miyun", name: "密云", city: "北京", lat: 40.3508, lon: 116.8447 },
+      { id: "zhangtang_luanping", name: "滦平", city: "滦平", lat: 40.9217, lon: 117.3098 },
+      { id: "jingtong_longhua", name: "隆化", city: "隆化", lat: 41.3264, lon: 117.745 },
+      { id: "jingtong_weichang", name: "围场", city: "围场", lat: 41.94, lon: 117.85 },
+      { id: "jingha_chifeng_02", name: "赤峰", city: "赤峰", lat: 42.258, lon: 118.888 },
+      { id: "jingtong_aohan", name: "敖汉", city: "敖汉", lat: 42.6375, lon: 119.9952 },
+      { id: "jingtong_naiman", name: "奈曼", city: "奈曼", lat: 42.8391, lon: 120.6719 },
+      { id: "jingha_chifeng_03", name: "通辽", city: "通辽", lat: 43.617, lon: 122.265 }
     ]
   }
 ];
