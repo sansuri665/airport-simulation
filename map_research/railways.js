@@ -759,16 +759,70 @@ const RAILWAYS = [
   },
   {
     id: "jida_high_speed",
-    name: "集大原高铁",
-    shortName: "集大原",
+    name: "集大高铁",
+    shortName: "集大",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
     status: "运营线路",
-    source: "乌兰察布—大同南独立联络（非张大西支线）；两端分别复用京包、张大西站点身份",
+    source: "只保留乌兰察布—大同南段（含丰镇北），大同以南与张大西共线不再单列",
     stations: [
       { id: "jingbao_03", name: "乌兰察布", city: "乌兰察布", lat: 40.9642, lon: 113.1633 },
+      { id: "jida_fengzhenbei", name: "丰镇北", city: "丰镇", lat: 40.4435, lon: 113.1237 },
       { id: "zhangdaxi_02", name: "大同南", city: "大同", lat: 40.07, lon: 113.22 }
+    ]
+  },
+  {
+    id: "hushuo_high_speed",
+    name: "呼朔高铁",
+    shortName: "呼朔",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "呼和浩特东复用京包；朔州东复用张大西；右玉与大鄂共用；和林格尔／平鲁为旗县治走廊近似",
+    stations: [
+      { id: "jingbao_04", name: "呼和浩特东", city: "呼和浩特", lat: 40.8511, lon: 111.7653 },
+      { id: "hushuo_helingeer", name: "和林格尔", city: "和林格尔", lat: 40.295, lon: 111.904 },
+      { id: "hushuo_youyu", name: "右玉", city: "右玉", lat: 39.982, lon: 112.397 },
+      { id: "hushuo_pinglu", name: "平鲁", city: "平鲁", lat: 39.641, lon: 112.234 },
+      { id: "zhangdaxi_03", name: "朔州东", city: "朔州", lat: 39.34, lon: 112.58 }
+    ]
+  },
+  {
+    id: "dae_high_speed",
+    name: "大鄂高铁",
+    shortName: "大鄂",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "大同南复用张大西；鄂尔多斯复用西银包；右玉与呼朔共用；左云／准格尔为旗县治走廊近似",
+    stations: [
+      { id: "zhangdaxi_02", name: "大同南", city: "大同", lat: 40.07, lon: 113.22 },
+      { id: "dae_zuoyun", name: "左云", city: "左云", lat: 40.013, lon: 112.699 },
+      { id: "hushuo_youyu", name: "右玉", city: "右玉", lat: 39.982, lon: 112.397 },
+      { id: "dae_zhungeer", name: "准格尔", city: "准格尔", lat: 39.819, lon: 110.914 },
+      { id: "xiyubao_05", name: "鄂尔多斯", city: "鄂尔多斯", lat: 39.608, lon: 109.99 }
+    ]
+  },
+  {
+    id: "xinyu_high_speed",
+    name: "忻榆高铁",
+    shortName: "忻榆",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "忻州西复用张大西；榆林南复用西银包／太银；静乐／岢岚／保德／府谷／神木为旗县治走廊近似",
+    stations: [
+      { id: "zhangdaxi_04", name: "忻州西", city: "忻州", lat: 38.42, lon: 112.73 },
+      { id: "xinyu_jingle", name: "静乐", city: "静乐", lat: 38.396, lon: 112.086 },
+      { id: "xinyu_kelan", name: "岢岚", city: "岢岚", lat: 38.745, lon: 111.579 },
+      { id: "xinyu_baode", name: "保德", city: "保德", lat: 38.893, lon: 111.179 },
+      { id: "xinyu_fugu", name: "府谷", city: "府谷", lat: 39.138, lon: 110.899 },
+      { id: "xinyu_shenmu", name: "神木", city: "神木", lat: 38.823, lon: 110.495 },
+      { id: "xiyubao_04", name: "榆林南", city: "榆林", lat: 38.219, lon: 109.734 }
     ]
   },
   {
