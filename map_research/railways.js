@@ -245,8 +245,8 @@ const RAILWAYS = [
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
-    source: "用户提供参考坐标",
+    status: "运营线路",
+    source: "县级挂名站补入；坐标参考维基百科车站条目",
     stations: [
       { id: "jinghu_01", name: "北京南", city: "北京", lat: 39.8636, lon: 116.3728 },
       { id: "jinghu_02", name: "廊坊", city: "廊坊", lat: 39.52, lon: 116.69 },
@@ -255,17 +255,38 @@ const RAILWAYS = [
       { id: "jinghu_05", name: "德州东", city: "德州", lat: 37.44, lon: 116.36 },
       { id: "jinghu_06", name: "济南西", city: "济南", lat: 36.67, lon: 116.9 },
       { id: "jinghu_07", name: "泰安", city: "泰安", lat: 36.2, lon: 117.09 },
-      { id: "jinghu_08", name: "枣庄站", city: "枣庄", lat: 34.788, lon: 117.263 },
+      { id: "jinghu_qufudong", name: "曲阜东", city: "曲阜", lat: 35.5565, lon: 117.0638 },
+      { id: "jinghu_tengzhoudong", name: "滕州东", city: "滕州", lat: 35.091, lon: 117.2524 },
+      { id: "jinghu_08", name: "枣庄", city: "枣庄", lat: 34.788, lon: 117.263 },
       { id: "jinghu_09", name: "徐州东", city: "徐州", lat: 34.265, lon: 117.28 },
       { id: "jinghu_10", name: "宿州东", city: "宿州", lat: 33.66, lon: 117.15 },
       { id: "jinghu_11", name: "蚌埠南", city: "蚌埠", lat: 32.94, lon: 117.39 },
+      { id: "jinghu_dingyuan", name: "定远", city: "定远", lat: 32.5774, lon: 117.8373 },
       { id: "jinghu_12", name: "滁州", city: "滁州", lat: 32.26, lon: 118.33 },
       { id: "jinghu_13", name: "南京南", city: "南京", lat: 31.97, lon: 118.8 },
       { id: "jinghu_14", name: "镇江南", city: "镇江", lat: 32.14, lon: 119.42 },
+      { id: "jinghu_danyangbei", name: "丹阳北", city: "丹阳", lat: 32.017, lon: 119.6666 },
       { id: "jinghu_15", name: "常州北", city: "常州", lat: 31.84, lon: 119.97 },
       { id: "jinghu_16", name: "无锡东", city: "无锡", lat: 31.59, lon: 120.43 },
       { id: "jinghu_17", name: "苏州北", city: "苏州", lat: 31.43, lon: 120.65 },
+      { id: "jinghu_kunshannan", name: "昆山南", city: "昆山", lat: 31.355, lon: 120.9467 },
       { id: "jinghu_18", name: "上海虹桥", city: "上海", lat: 31.197, lon: 121.33 }
+    ]
+  },
+  {
+    id: "jinghu_tianjinxi_branch_high_speed",
+    name: "京沪高铁天津西联络线",
+    shortName: "京沪天津西联络",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    parentLineId: "jinghu_high_speed",
+    networkRole: "branch",
+    source: "京沪正线不停天津西；经天津南—天津西联络引入枢纽始发；两端复用京沪／津兴既有站点身份",
+    stations: [
+      { id: "jinghu_03", name: "天津南", city: "天津", lat: 39.02, lon: 117.06 },
+      { id: "jinxing_01", name: "天津西", city: "天津", lat: 39.157, lon: 117.161 }
     ]
   },
   {
@@ -1292,17 +1313,34 @@ const RAILWAYS = [
     ]
   },
   {
-    id: "jinqinshen_high_speed",
-    name: "津秦沈高铁",
-    shortName: "津秦沈",
+    id: "jinqin_high_speed",
+    name: "津秦高铁",
+    shortName: "津秦",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
-    source: "用户提供参考坐标；沈阳北复用既有站点身份",
+    status: "运营线路",
+    source: "用户指定站序；天津／唐山／秦皇岛／滨海西复用既有站点身份；宁河按服务该区的滨海北一带落点；滦河／北戴河坐标参考维基百科",
     stations: [
       { id: "jinqinshen_01", name: "天津", city: "天津", lat: 39.142, lon: 117.176 },
+      { id: "jingbin_binhaixi", name: "滨海西", city: "天津", lat: 39.0801, lon: 117.6051 },
+      { id: "jinqin_ninghe", name: "宁河", city: "天津", lat: 39.2348, lon: 117.7562 },
       { id: "jinqinshen_02", name: "唐山", city: "唐山", lat: 39.632, lon: 118.18 },
+      { id: "jinqin_luanhe", name: "滦河", city: "滦州", lat: 39.8528, lon: 118.6665 },
+      { id: "jinqin_beidaihe", name: "北戴河", city: "秦皇岛", lat: 39.8502, lon: 119.4132 },
+      { id: "jinqinshen_03", name: "秦皇岛", city: "秦皇岛", lat: 39.949, lon: 119.604 }
+    ]
+  },
+  {
+    id: "qinshen_high_speed",
+    name: "秦沈高铁",
+    shortName: "秦沈",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "由原津秦沈拆出；秦皇岛／葫芦岛北／锦州南／沈阳北复用既有站点身份",
+    stations: [
       { id: "jinqinshen_03", name: "秦皇岛", city: "秦皇岛", lat: 39.949, lon: 119.604 },
       { id: "jinqinshen_04", name: "葫芦岛北", city: "葫芦岛", lat: 40.756, lon: 120.84 },
       { id: "jinqinshen_05", name: "锦州南", city: "锦州", lat: 41.06, lon: 121.151 },
@@ -1316,12 +1354,16 @@ const RAILWAYS = [
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
-    source: "用户提供参考坐标；潍坊北复用既有站点身份",
+    status: "运营线路",
+    source: "区县级挂名精简；滨海／滨州／东营南／潍坊北复用既有站点身份；黄骅北／海兴西／无棣／寿光东按公开选址落点",
     stations: [
       { id: "jinwei_01", name: "滨海", city: "天津", lat: 39.032, lon: 117.71 },
+      { id: "jinwei_huanghuabei", name: "黄骅北", city: "黄骅", lat: 38.401, lon: 117.385 },
+      { id: "jinwei_haixingxi", name: "海兴西", city: "海兴", lat: 38.115, lon: 117.45 },
+      { id: "jinwei_wudi", name: "无棣", city: "无棣", lat: 37.752, lon: 117.725 },
       { id: "jinwei_02", name: "滨州", city: "滨州", lat: 37.38, lon: 118.017 },
       { id: "jinwei_03", name: "东营南", city: "东营", lat: 37.387, lon: 118.673 },
+      { id: "jinwei_shouguangdong", name: "寿光东", city: "寿光", lat: 36.905, lon: 118.865 },
       { id: "jiqing_03", name: "潍坊北", city: "潍坊", lat: 36.78, lon: 119.155 }
     ]
   },
@@ -1597,12 +1639,21 @@ const RAILWAYS = [
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
-    source: "用户提供参考坐标；天津南、雄安、保定东、忻州西复用既有站点身份",
+    status: "运营线路",
+    source: "津雄段天津南—静海北—文安北—雄安；文安北按京九文安站以北约10公里落点；其后接白洋淀／雄忻县级站",
     stations: [
       { id: "jinghu_03", name: "天津南", city: "天津", lat: 39.02, lon: 117.06 },
+      { id: "jinxiongxin_jinghaibei", name: "静海北", city: "天津", lat: 38.99, lon: 116.95 },
+      { id: "jinxiongxin_wenanbei", name: "文安北", city: "文安", lat: 38.973, lon: 116.3 },
       { id: "jingxiongshang_02", name: "雄安", city: "雄安", lat: 39.001, lon: 116.1 },
+      { id: "jinxiongxin_baiyangdian", name: "白洋淀", city: "容城", lat: 39.069, lon: 115.8686 },
       { id: "jingguang_02", name: "保定东", city: "保定", lat: 39.087, lon: 115.57 },
+      { id: "jinxiongxin_wangdoubei", name: "望都北", city: "望都", lat: 38.85, lon: 115.15 },
+      { id: "jinxiongxin_tangxian", name: "唐县", city: "唐县", lat: 38.748, lon: 114.981 },
+      { id: "jinxiongxin_quyang", name: "曲阳", city: "曲阳", lat: 38.622, lon: 114.745 },
+      { id: "jinxiongxin_fuping", name: "阜平", city: "阜平", lat: 38.849, lon: 114.195 },
+      { id: "jinxiongxin_wutaixian", name: "五台县", city: "五台", lat: 38.728, lon: 113.255 },
+      { id: "jinxiongxin_dingxiangbei", name: "定襄北", city: "定襄", lat: 38.54, lon: 112.96 },
       { id: "zhangdaxi_04", name: "忻州西", city: "忻州", lat: 38.42, lon: 112.73 }
     ]
   },
@@ -2076,7 +2127,7 @@ const RAILWAYS = [
     typeLabel: "高速",
     region: "china_mainland",
     status: "运营线路",
-    source: "县级／市级挂名站原则；坐标参考维基百科与 OSM；唐山复用津秦沈既有站点身份",
+    source: "县级／市级挂名站原则；坐标参考维基百科与 OSM；唐山复用津秦既有站点身份",
     stations: [
       { id: "jingtang_01", name: "北京城市副中心", city: "北京", lat: 39.9021, lon: 116.7021 },
       { id: "jingtang_02", name: "燕郊", city: "三河", lat: 39.941, lon: 116.8257 },
