@@ -85,6 +85,55 @@ const RAILWAYS = [
     ]
   },
   {
+    id: "shizheng_conventional",
+    name: "石郑铁路",
+    shortName: "石郑",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "京广普速石家庄—郑州段，与京广高铁北段平行；石家庄复用京广枢纽；其余为普速站／旗县治坐标（偏西于高铁东站）",
+    stations: [
+      { id: "jingguang_03", name: "石家庄", city: "石家庄", lat: 38.0225, lon: 114.484 },
+      { id: "shizheng_yuanshi", name: "元氏", city: "元氏", lat: 37.759, lon: 114.538 },
+      { id: "shizheng_gaoyi", name: "高邑", city: "高邑", lat: 37.604, lon: 114.592 },
+      { id: "shizheng_lincheng", name: "临城", city: "临城", lat: 37.443, lon: 114.496 },
+      { id: "shizheng_longyao", name: "隆尧", city: "隆尧", lat: 37.35, lon: 114.55 },
+      { id: "shizheng_neiqiu", name: "内丘", city: "内丘", lat: 37.295, lon: 114.527 },
+      { id: "shizheng_xingtai", name: "邢台", city: "邢台", lat: 37.069, lon: 114.486 },
+      { id: "shizheng_shahe", name: "沙河", city: "沙河", lat: 36.862, lon: 114.511 },
+      { id: "shizheng_yongnian", name: "永年", city: "永年", lat: 36.75, lon: 114.5 },
+      { id: "shizheng_handan", name: "邯郸", city: "邯郸", lat: 36.601, lon: 114.47 },
+      { id: "shizheng_cixian", name: "磁县", city: "磁县", lat: 36.36, lon: 114.366 },
+      { id: "shizheng_anyang", name: "安阳", city: "安阳", lat: 36.105, lon: 114.334 },
+      { id: "shizheng_tangyin", name: "汤阴", city: "汤阴", lat: 35.913, lon: 114.339 },
+      { id: "shizheng_hebi", name: "鹤壁", city: "鹤壁", lat: 35.76, lon: 114.267 },
+      { id: "shizheng_qixian", name: "淇县", city: "淇县", lat: 35.61, lon: 114.182 },
+      { id: "shizheng_weihui", name: "卫辉", city: "卫辉", lat: 35.432, lon: 114.055 },
+      { id: "shizheng_xinxiang", name: "新乡", city: "新乡", lat: 35.306, lon: 113.854 },
+      { id: "shizheng_zhengzhou", name: "郑州", city: "郑州", lat: 34.748, lon: 113.654 }
+    ]
+  },
+  {
+    id: "jinde_conventional",
+    name: "津德铁路",
+    shortName: "津德",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "天津南复用京沪；其后为京沪普速静海—德州段；静海／青县／德州参考 OSM，沧州为市区站，东光／吴桥为旗县治近似",
+    stations: [
+      { id: "jinghu_03", name: "天津南", city: "天津", lat: 39.02, lon: 117.06 },
+      { id: "jinde_jinghai", name: "静海", city: "天津", lat: 38.9318, lon: 116.9243 },
+      { id: "jinde_qingxian", name: "青县", city: "青县", lat: 38.577, lon: 116.8326 },
+      { id: "jinde_cangzhou", name: "沧州", city: "沧州", lat: 38.306, lon: 116.868 },
+      { id: "jinde_dongguang", name: "东光", city: "东光", lat: 37.882, lon: 116.543 },
+      { id: "jinde_wuqiao", name: "吴桥", city: "吴桥", lat: 37.626, lon: 116.386 },
+      { id: "jinde_dezhou", name: "德州", city: "德州", lat: 37.449, lon: 116.283 }
+    ]
+  },
+  {
     id: "jingxiongshang_high_speed",
     name: "京雄商高铁",
     shortName: "京雄商",
@@ -1712,18 +1761,43 @@ const RAILWAYS = [
     ]
   },
   {
-    id: "shide_high_speed",
-    name: "石德高铁",
-    shortName: "石德",
+    id: "shiji_high_speed",
+    name: "石济客专",
+    shortName: "石济",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
-    source: "用户指定使用既有站点身份",
+    status: "运营线路",
+    source: "原石德高铁改为石济客专全11站；石家庄／德州东／济南东复用既有；其余坐标参考维基百科",
     stations: [
       { id: "jingguang_03", name: "石家庄", city: "石家庄", lat: 38.0225, lon: 114.484 },
-      { id: "jingxiongshang_03", name: "衡水南", city: "衡水", lat: 37.65, lon: 115.68 },
-      { id: "jinghu_05", name: "德州东", city: "德州", lat: 37.44, lon: 116.36 }
+      { id: "shiji_shijiazhuangdong", name: "石家庄东", city: "石家庄", lat: 38.0502, lon: 114.6215 },
+      { id: "shiji_gaochengnan", name: "藁城南", city: "藁城", lat: 37.9849, lon: 114.849 },
+      { id: "shiji_xinjinan", name: "辛集南", city: "辛集", lat: 37.8817, lon: 115.2045 },
+      { id: "shiji_hengshuibei", name: "衡水北", city: "衡水", lat: 37.7727, lon: 115.6692 },
+      { id: "shiji_jingzhou", name: "景州", city: "景县", lat: 37.645, lon: 116.1326 },
+      { id: "jinghu_05", name: "德州东", city: "德州", lat: 37.44, lon: 116.36 },
+      { id: "shiji_pingyuandong", name: "平原东", city: "平原", lat: 37.2171, lon: 116.5759 },
+      { id: "shiji_yuchengdong", name: "禹城东", city: "禹城", lat: 37.0626, lon: 116.6852 },
+      { id: "shiji_qihe", name: "齐河", city: "齐河", lat: 36.8436, lon: 116.8571 },
+      { id: "jiqing_01", name: "济南东", city: "济南", lat: 36.767, lon: 117.209 }
+    ]
+  },
+  {
+    id: "hengcang_intercity_high_speed",
+    name: "衡沧城际",
+    shortName: "衡沧",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "衡水北复用石济；泊头西复用保沧；沧州西复用京沪；武邑／阜城南为旗县治走廊近似",
+    stations: [
+      { id: "shiji_hengshuibei", name: "衡水北", city: "衡水", lat: 37.7727, lon: 115.6692 },
+      { id: "hengcang_wuyi", name: "武邑", city: "武邑", lat: 37.8, lon: 115.879 },
+      { id: "hengcang_fuchengnan", name: "阜城南", city: "阜城", lat: 37.84, lon: 116.17 },
+      { id: "baocang_botouxi", name: "泊头西", city: "泊头", lat: 38.1, lon: 116.45 },
+      { id: "jinghu_04", name: "沧州西", city: "沧州", lat: 38.31, lon: 116.82 }
     ]
   },
   {
