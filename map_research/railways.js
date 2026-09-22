@@ -61,7 +61,7 @@ const RAILWAYS = [
     networkRole: "branch",
     source: "用户提供参考坐标；郑州东、阜阳西复用既有站点身份",
     stations: [
-      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.76, lon: 113.77 },
+      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.758, lon: 113.769 },
       { id: "jingguang_zhoukou_02", name: "周口东", city: "周口", lat: 33.642, lon: 114.728 },
       { id: "shanghehang_03", name: "阜阳西", city: "阜阳", lat: 32.89, lon: 115.8 }
     ]
@@ -375,7 +375,7 @@ const RAILWAYS = [
       { id: "jinghu_09", name: "徐州东", city: "徐州", lat: 34.265, lon: 117.28 },
       { id: "jingxiongshang_07", name: "商丘", city: "商丘", lat: 34.44, lon: 115.65 },
       { id: "lianxulan_04", name: "开封北", city: "开封", lat: 34.82, lon: 114.35 },
-      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.76, lon: 113.77 },
+      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.758, lon: 113.769 },
       { id: "lianxulan_06", name: "洛阳龙门", city: "洛阳", lat: 34.61, lon: 112.39 },
       { id: "lianxulan_07", name: "三门峡南", city: "三门峡", lat: 34.74, lon: 111.19 },
       { id: "lianxulan_08", name: "渭南北", city: "渭南", lat: 34.52, lon: 109.48 },
@@ -397,7 +397,7 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；复用既有站点身份",
     stations: [
-      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.76, lon: 113.77 },
+      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.758, lon: 113.769 },
       { id: "zhengyu_02", name: "平顶山西", city: "平顶山", lat: 33.74, lon: 113.3 },
       { id: "zhengyu_03", name: "南阳东", city: "南阳", lat: 32.98, lon: 112.6 },
       { id: "zhengyu_04", name: "襄阳东", city: "襄阳", lat: 32.04, lon: 112.2 },
@@ -681,7 +681,7 @@ const RAILWAYS = [
       { id: "zhangdaxi_05", name: "太原南", city: "太原", lat: 37.78, lon: 112.56 },
       { id: "taiyin_02", name: "吕梁", city: "吕梁", lat: 37.5675, lon: 111.1311 },
       { id: "xiyubao_04", name: "榆林南", city: "榆林", lat: 38.219, lon: 109.734 },
-      { id: "baoyin_06", name: "银川", city: "银川", lat: 38.4942, lon: 106.1633 },
+      { id: "baoyin_06", name: "银川", city: "银川", lat: 38.4915, lon: 106.1669 },
       { id: "taiyin_04", name: "巴彦浩特", city: "巴彦浩特", lat: 38.839, lon: 105.668 }
     ]
   },
@@ -714,7 +714,7 @@ const RAILWAYS = [
       { id: "jinghu_06", name: "济南西", city: "济南", lat: 36.67, lon: 116.9 },
       { id: "jingxiongshang_04", name: "聊城西", city: "聊城", lat: 36.43, lon: 115.92 },
       { id: "jingxiongshang_05", name: "濮阳东", city: "濮阳", lat: 35.77, lon: 115.06 },
-      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.76, lon: 113.77 }
+      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.758, lon: 113.769 }
     ]
   },
   {
@@ -911,10 +911,10 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；兰州西、张掖西复用既有站点身份",
     stations: [
-      { id: "lianxulan_14", name: "兰州西", city: "兰州", lat: 36.067, lon: 103.749 },
+      { id: "lianxulan_14", name: "兰州西", city: "兰州", lat: 36.0675, lon: 103.7492 },
       { id: "lanzhang_02", name: "武威东", city: "武威", lat: 37.92, lon: 102.71 },
       { id: "lanzhang_03", name: "金昌南", city: "金昌", lat: 38.43, lon: 102.18 },
-      { id: "lanxin_04", name: "张掖西", city: "张掖", lat: 38.925, lon: 100.413 }
+      { id: "lanxin_04", name: "张掖西", city: "张掖", lat: 38.925, lon: 100.421 }
     ]
   },
   {
@@ -1530,11 +1530,11 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；西安北、咸阳西、银川复用既有站点身份",
     stations: [
-      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.3769, lon: 108.939 },
+      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.38, lon: 108.94 },
       { id: "lianxulan_10", name: "咸阳西", city: "咸阳", lat: 34.33, lon: 108.65 },
       { id: "xiyin_03", name: "庆阳", city: "庆阳", lat: 35.713, lon: 107.677 },
       { id: "xiyin_04", name: "吴忠", city: "吴忠", lat: 37.9875, lon: 106.1919 },
-      { id: "baoyin_06", name: "银川", city: "银川", lat: 38.4942, lon: 106.1633 }
+      { id: "baoyin_06", name: "银川", city: "银川", lat: 38.4915, lon: 106.1669 }
     ]
   },
   {
@@ -1695,12 +1695,12 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；西安北、包头复用既有站点身份",
     stations: [
-      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.3769, lon: 108.939 },
+      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.38, lon: 108.94 },
       { id: "xiyubao_02", name: "铜川", city: "铜川", lat: 34.898, lon: 108.966 },
       { id: "xiyubao_03", name: "延安", city: "延安", lat: 36.585, lon: 109.49 },
       { id: "xiyubao_04", name: "榆林南", city: "榆林", lat: 38.219, lon: 109.734 },
       { id: "xiyubao_05", name: "鄂尔多斯", city: "鄂尔多斯", lat: 39.608, lon: 109.99 },
-      { id: "jingbao_05", name: "包头", city: "包头", lat: 40.6054, lon: 109.8366 }
+      { id: "jingbao_05", name: "包头", city: "包头", lat: 40.6039, lon: 109.8312 }
     ]
   },
   {
@@ -1948,7 +1948,7 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；银川、吴忠、兰州西复用既有站点身份",
     stations: [
-      { id: "baoyin_06", name: "银川", city: "银川", lat: 38.4942, lon: 106.1633 },
+      { id: "baoyin_06", name: "银川", city: "银川", lat: 38.4915, lon: 106.1669 },
       { id: "xiyin_04", name: "吴忠", city: "吴忠", lat: 37.9875, lon: 106.1919 },
       { id: "yinlan_03", name: "中卫南", city: "中卫", lat: 37.4767, lon: 105.1744 },
       { id: "yinlan_04", name: "白银南", city: "白银", lat: 36.4765, lon: 104.1804 },
