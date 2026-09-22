@@ -1150,6 +1150,67 @@ const RAILWAYS = [
     ]
   },
   {
+    id: "lanlv_conventional",
+    name: "岚吕铁路",
+    shortName: "岚吕",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "岚县复用太兴／神岚；吕梁复用太绥；方山为旗县治走廊近似",
+    stations: [
+      { id: "taixing_lanxian", name: "岚县", city: "岚县", lat: 38.337, lon: 111.638 },
+      { id: "lanlv_fangshan", name: "方山", city: "方山", lat: 37.901, lon: 111.334 },
+      { id: "taisui_lvliang", name: "吕梁", city: "吕梁", lat: 37.4, lon: 111.1 }
+    ]
+  },
+  {
+    id: "gaoxiang_conventional",
+    name: "高乡铁路",
+    shortName: "高乡",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "新乡复用石郑；高平别于高平东；陵川／辉县为旗县治走廊近似",
+    stations: [
+      { id: "gaoxiang_gaoping", name: "高平", city: "高平", lat: 35.798, lon: 112.923 },
+      { id: "gaoxiang_lingchuan", name: "陵川", city: "陵川", lat: 35.668, lon: 113.314 },
+      { id: "gaoxiang_huixian", name: "辉县", city: "辉县", lat: 35.463, lon: 113.798 },
+      { id: "shizheng_xinxiang", name: "新乡", city: "新乡", lat: 35.306, lon: 113.854 }
+    ]
+  },
+  {
+    id: "houqu_conventional",
+    name: "侯曲铁路",
+    shortName: "侯曲",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "侯马复用侯西／侯月；垣曲复用运济；绛县为旗县治走廊近似",
+    stations: [
+      { id: "houma_houma", name: "侯马", city: "侯马", lat: 35.619, lon: 111.366 },
+      { id: "houqu_jiangxian", name: "绛县", city: "绛县", lat: 35.483, lon: 111.624 },
+      { id: "yunji_yuanqu", name: "垣曲", city: "垣曲", lat: 35.218, lon: 111.822 }
+    ]
+  },
+  {
+    id: "pingling_conventional",
+    name: "平陵铁路",
+    shortName: "平陵",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "平陆复用运三；芮城／风陵渡为旗县治／渡口走廊近似",
+    stations: [
+      { id: "yunsan_pinglu", name: "平陆", city: "平陆", lat: 34.897, lon: 111.254 },
+      { id: "pingling_ruicheng", name: "芮城", city: "芮城", lat: 34.726, lon: 110.589 },
+      { id: "pingling_fenglingdu", name: "风陵渡", city: "风陵渡", lat: 34.632, lon: 110.306 }
+    ]
+  },
+  {
     id: "chengyu_high_speed",
     name: "成渝高铁",
     shortName: "成渝",
