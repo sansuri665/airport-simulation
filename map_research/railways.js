@@ -2130,12 +2130,11 @@ const RAILWAYS = [
     typeLabel: "高速",
     region: "china_mainland",
     status: "运营线路",
-    source: "按区县级／重要节点颗粒度保留现实全站；站序参考天津市政府与北京重大项目公开资料；天津西、胜芳、安次、永清东坐标参考公开地图／Wikidata；固安东、大兴机场复用京雄城际既有站点身份",
+    source: "区县级挂名精简；去掉胜芳；固安东、大兴机场复用京雄城际既有站点身份",
     stations: [
       { id: "jinxing_01", name: "天津西", city: "天津", lat: 39.157, lon: 117.161 },
-      { id: "jinxing_02", name: "胜芳", city: "霸州", lat: 39.1377, lon: 116.7535 },
-      { id: "jinxing_03", name: "安次", city: "廊坊安次", lat: 39.2356, lon: 116.6756 },
-      { id: "jinxing_04", name: "永清东", city: "永清", lat: 39.3043, lon: 116.5053 },
+      { id: "jinxing_02", name: "安次", city: "廊坊", lat: 39.2356, lon: 116.6756 },
+      { id: "jinxing_03", name: "永清东", city: "永清", lat: 39.3043, lon: 116.5053 },
       { id: "jingxiong_04", name: "固安东", city: "固安", lat: 39.3709, lon: 116.399 },
       { id: "jingxiong_03", name: "大兴机场", city: "北京", lat: 39.5139, lon: 116.4099 }
     ]
@@ -2147,13 +2146,13 @@ const RAILWAYS = [
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "廊兴段运营；北段规划",
-    source: "用户指定按区县级／重要城市组团精简站序；廊兴段现实经廊坊北、廊坊西、礼贤接大兴机场，本图按颗粒度省略礼贤；北段节点参考北京铁路枢纽／S6新城联络线规划；怀柔南、北京城市副中心、大兴机场复用既有站点身份",
+    status: "运营线路",
+    source: "区县级／枢纽精简；亦庄复用京津城际站点身份；怀柔南、副中心、大兴机场复用既有站点身份",
     stations: [
       { id: "jingha_huairounan", name: "怀柔南", city: "北京", lat: 40.2772, lon: 116.6988 },
       { id: "huaixing_capital_airport", name: "首都机场", city: "北京", lat: 40.0515, lon: 116.6098 },
       { id: "jingtang_01", name: "北京城市副中心", city: "北京", lat: 39.9021, lon: 116.7021 },
-      { id: "huaixing_yizhuangdong", name: "亦庄东", city: "北京", lat: 39.7919, lon: 116.6053 },
+      { id: "jingjin_yizhuang", name: "亦庄", city: "北京", lat: 39.8119, lon: 116.5962 },
       { id: "huaixing_langfangbei", name: "廊坊北", city: "廊坊", lat: 39.5771, lon: 116.667 },
       { id: "huaixing_langfangxi", name: "廊坊西", city: "廊坊", lat: 39.5476, lon: 116.5674 },
       { id: "jingxiong_03", name: "大兴机场", city: "北京", lat: 39.5139, lon: 116.4099 }
@@ -2166,7 +2165,7 @@ const RAILWAYS = [
     type: "conventional",
     typeLabel: "普速",
     region: "china_mainland",
-    status: "预研线路",
+    status: "运营线路",
     source: "用户指定站序；房山东用真实站名与坐标；石景山东为区级挂名（可虚构）；北京西复用既有站点身份",
     stations: [
       { id: "fangshan_suburban_01", name: "房山东", city: "北京", lat: 39.7647, lon: 116.1704 },
