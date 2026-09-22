@@ -1327,6 +1327,7 @@ const RAILWAYS = [
       { id: "jinqin_ninghe", name: "宁河", city: "天津", lat: 39.2348, lon: 117.7562 },
       { id: "jinqinshen_02", name: "唐山", city: "唐山", lat: 39.632, lon: 118.18 },
       { id: "jinqin_luanhe", name: "滦河", city: "滦州", lat: 39.8528, lon: 118.6665 },
+      { id: "jinqin_changli", name: "昌黎", city: "昌黎", lat: 39.7028, lon: 119.1625 },
       { id: "jinqin_beidaihe", name: "北戴河", city: "秦皇岛", lat: 39.8502, lon: 119.4132 },
       { id: "jinqinshen_03", name: "秦皇岛", city: "秦皇岛", lat: 39.949, lon: 119.604 }
     ]
@@ -2273,6 +2274,27 @@ const RAILWAYS = [
       { id: "jingyuan_fanshi", name: "繁峙", city: "繁峙", lat: 39.1647, lon: 113.2671 },
       { id: "jingyuan_daixian", name: "代县", city: "代县", lat: 39.0761, lon: 112.9778 },
       { id: "jingyuan_yuanping", name: "原平", city: "原平", lat: 38.7194, lon: 112.7278 }
+    ]
+  },
+  {
+    id: "jiqin_conventional",
+    name: "蓟秦普速",
+    shortName: "蓟秦",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "用户指定站序；三河／秦皇岛复用既有站点身份；蓟州／卢龙／抚宁／昌黎类参考维基百科，玉田北／遵化／迁西／迁安北参考 OSM",
+    stations: [
+      { id: "pinggu_suburban_sanhe", name: "三河", city: "三河", lat: 39.9711, lon: 117.0828 },
+      { id: "jiqin_jizhou", name: "蓟州", city: "天津", lat: 39.9938, lon: 117.3627 },
+      { id: "jiqin_yutianbei", name: "玉田北", city: "玉田", lat: 39.9757, lon: 117.6842 },
+      { id: "jiqin_zunhua", name: "遵化", city: "遵化", lat: 40.1609, lon: 117.9522 },
+      { id: "jiqin_qianxi", name: "迁西", city: "迁西", lat: 40.1838, lon: 118.2871 },
+      { id: "jiqin_qiananbei", name: "迁安北", city: "迁安", lat: 40.0994, lon: 118.7789 },
+      { id: "jiqin_lulong", name: "卢龙", city: "卢龙", lat: 39.9514, lon: 118.9775 },
+      { id: "jiqin_funing", name: "抚宁", city: "抚宁", lat: 39.8931, lon: 119.2433 },
+      { id: "jinqinshen_03", name: "秦皇岛", city: "秦皇岛", lat: 39.949, lon: 119.604 }
     ]
   }
 ];
