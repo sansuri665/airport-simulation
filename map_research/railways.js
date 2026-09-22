@@ -2159,18 +2159,69 @@ const RAILWAYS = [
     ]
   },
   {
-    id: "fangshan_suburban_conventional",
-    name: "房山市郊线",
-    shortName: "房山市郊",
+    id: "pinggu_suburban_conventional",
+    name: "平谷市郊线",
+    shortName: "平谷市郊",
     type: "conventional",
     typeLabel: "普速",
     region: "china_mainland",
     status: "运营线路",
-    source: "用户指定站序；房山东用真实站名与坐标；石景山东为区级挂名（可虚构）；北京西复用既有站点身份",
+    source: "用户指定站序；燕郊复用京唐；三河参考三河县站；平谷参考维基百科平谷站",
+    stations: [
+      { id: "jingtang_02", name: "燕郊", city: "三河", lat: 39.941, lon: 116.8257 },
+      { id: "pinggu_suburban_sanhe", name: "三河", city: "三河", lat: 39.9711, lon: 117.0828 },
+      { id: "pinggu_suburban_pinggu", name: "平谷", city: "北京", lat: 40.1544, lon: 117.1112 }
+    ]
+  },
+  {
+    id: "jingbin_intercity_high_speed",
+    name: "京滨城际",
+    shortName: "京滨",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "用户指定站序；宝坻复用京唐；北辰／天津机场／滨海西坐标参考维基百科",
+    stations: [
+      { id: "jingtang_05", name: "宝坻", city: "天津", lat: 39.6605, lon: 117.299 },
+      { id: "jingbin_beichen", name: "北辰", city: "天津", lat: 39.2709, lon: 117.2704 },
+      { id: "jingbin_tianjin_airport", name: "天津机场", city: "天津", lat: 39.1336, lon: 117.3621 },
+      { id: "jingbin_binhaixi", name: "滨海西", city: "天津", lat: 39.0801, lon: 117.6051 }
+    ]
+  },
+  {
+    id: "beijing_subcenter_suburban_conventional",
+    name: "城市副中心市郊线",
+    shortName: "副中心市郊",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "取代原房山市郊线，形成东西大轴；房山东／石景山东沿用既有身份；北京西／北京／副中心复用既有站点身份",
     stations: [
       { id: "fangshan_suburban_01", name: "房山东", city: "北京", lat: 39.7647, lon: 116.1704 },
       { id: "fangshan_suburban_02", name: "石景山东", city: "北京", lat: 39.8945, lon: 116.2146 },
-      { id: "jingguang_01", name: "北京西", city: "北京", lat: 39.8936, lon: 116.3157 }
+      { id: "jingguang_01", name: "北京西", city: "北京", lat: 39.8936, lon: 116.3157 },
+      { id: "jingha_beijing", name: "北京", city: "北京", lat: 39.901, lon: 116.4206 },
+      { id: "jingtang_01", name: "北京城市副中心", city: "北京", lat: 39.9021, lon: 116.7021 }
+    ]
+  },
+  {
+    id: "jingyuan_conventional",
+    name: "京原铁路",
+    shortName: "京原",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "用户指定站序；房山东复用副中心市郊既有站点身份；涞源／灵丘／繁峙／代县／原平坐标参考维基百科",
+    stations: [
+      { id: "fangshan_suburban_01", name: "房山东", city: "北京", lat: 39.7647, lon: 116.1704 },
+      { id: "jingyuan_laiyuan", name: "涞源", city: "涞源", lat: 39.3709, lon: 114.706 },
+      { id: "jingyuan_lingqiu", name: "灵丘", city: "灵丘", lat: 39.4622, lon: 114.2225 },
+      { id: "jingyuan_fanshi", name: "繁峙", city: "繁峙", lat: 39.1647, lon: 113.2671 },
+      { id: "jingyuan_daixian", name: "代县", city: "代县", lat: 39.0761, lon: 112.9778 },
+      { id: "jingyuan_yuanping", name: "原平", city: "原平", lat: 38.7194, lon: 112.7278 }
     ]
   }
 ];
