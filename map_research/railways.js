@@ -788,17 +788,32 @@ const RAILWAYS = [
     ]
   },
   {
-    id: "shitaiyin_high_speed",
-    name: "石太银高铁",
-    shortName: "石太银",
+    id: "shita_high_speed",
+    name: "石太客专",
+    shortName: "石太",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
-    source: "用户指定线路合并；石家庄、太原南、银川复用既有站点身份；巴彦浩特为新终点",
+    status: "运营线路",
+    source: "由原石太银拆出东段；石家庄／太原南复用既有；鹿泉／井陉北／阳泉北参考 OSM（井陉／盂县县级）",
     stations: [
       { id: "jingguang_03", name: "石家庄", city: "石家庄", lat: 38.0225, lon: 114.484 },
-      { id: "shita_02", name: "阳泉北", city: "阳泉", lat: 38.06, lon: 113.63 },
+      { id: "shita_luquan", name: "鹿泉", city: "鹿泉", lat: 38.086, lon: 114.304 },
+      { id: "shita_jingxingbei", name: "井陉北", city: "井陉", lat: 38.1514, lon: 114.0191 },
+      { id: "shita_02", name: "阳泉北", city: "盂县", lat: 38.1144, lon: 113.4312 },
+      { id: "zhangdaxi_05", name: "太原南", city: "太原", lat: 37.78, lon: 112.56 }
+    ]
+  },
+  {
+    id: "taiyin_high_speed",
+    name: "太银高铁",
+    shortName: "太银",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "由原石太银拆出西段；太原南／榆林南／银川复用既有；吕梁／巴彦浩特沿用原坐标",
+    stations: [
       { id: "zhangdaxi_05", name: "太原南", city: "太原", lat: 37.78, lon: 112.56 },
       { id: "taiyin_02", name: "吕梁", city: "吕梁", lat: 37.5675, lon: 111.1311 },
       { id: "xiyubao_04", name: "榆林南", city: "榆林", lat: 38.219, lon: 109.734 },
@@ -1798,6 +1813,48 @@ const RAILWAYS = [
       { id: "hengcang_fuchengnan", name: "阜城南", city: "阜城", lat: 37.84, lon: 116.17 },
       { id: "baocang_botouxi", name: "泊头西", city: "泊头", lat: 38.1, lon: 116.45 },
       { id: "jinghu_04", name: "沧州西", city: "沧州", lat: 38.31, lon: 116.82 }
+    ]
+  },
+  {
+    id: "shicang_north_conventional",
+    name: "石沧北线",
+    shortName: "石沧北",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "石家庄东复用石济；献县复用保沧；沧州西复用京沪；晋州／安平／饶阳／武强为旗县治走廊近似",
+    stations: [
+      { id: "shiji_shijiazhuangdong", name: "石家庄东", city: "石家庄", lat: 38.0502, lon: 114.6215 },
+      { id: "shicang_jinzhou", name: "晋州", city: "晋州", lat: 38.033, lon: 115.034 },
+      { id: "shicang_anping", name: "安平", city: "安平", lat: 38.229, lon: 115.514 },
+      { id: "shicang_raoyang", name: "饶阳", city: "饶阳", lat: 38.233, lon: 115.721 },
+      { id: "shicang_wuqiang", name: "武强", city: "武强", lat: 38.037, lon: 115.968 },
+      { id: "baocang_xianxian", name: "献县", city: "献县", lat: 38.19, lon: 116.119 },
+      { id: "jinghu_04", name: "沧州西", city: "沧州", lat: 38.31, lon: 116.82 }
+    ]
+  },
+  {
+    id: "shihuang_south_conventional",
+    name: "石黄南线",
+    shortName: "石黄南",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "石家庄复用京广；吴桥复用津德；黄骅北复用津潍；其余为旗县治走廊近似",
+    stations: [
+      { id: "jingguang_03", name: "石家庄", city: "石家庄", lat: 38.0225, lon: 114.484 },
+      { id: "shihuang_zhaoxian", name: "赵县", city: "赵县", lat: 37.749, lon: 114.77 },
+      { id: "shihuang_ningjin", name: "宁晋", city: "宁晋", lat: 37.618, lon: 114.915 },
+      { id: "shihuang_xinhe", name: "新河", city: "新河", lat: 37.525, lon: 115.237 },
+      { id: "shihuang_jizhou", name: "冀州", city: "冀州", lat: 37.544, lon: 115.58 },
+      { id: "shihuang_gucheng", name: "故城", city: "故城", lat: 37.349, lon: 115.965 },
+      { id: "jinde_wuqiao", name: "吴桥", city: "吴桥", lat: 37.626, lon: 116.386 },
+      { id: "shihuang_nanpi", name: "南皮", city: "南皮", lat: 38.04, lon: 116.704 },
+      { id: "shihuang_mengcun", name: "孟村", city: "孟村", lat: 38.052, lon: 117.098 },
+      { id: "shihuang_yanshan", name: "盐山", city: "盐山", lat: 38.058, lon: 117.222 },
+      { id: "jinwei_huanghuabei", name: "黄骅北", city: "黄骅", lat: 38.401, lon: 117.385 }
     ]
   },
   {
