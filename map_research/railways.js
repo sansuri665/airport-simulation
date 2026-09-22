@@ -7,32 +7,46 @@ const RAILWAYS = [
     typeLabel: "高速",
     region: "china_mainland",
     status: "运营线路",
-    source: "用户提供参考坐标",
+    source: "用户提供参考坐标；县级／中间站坐标参考维基百科车站条目",
     stations: [
-      { id: "jingguang_01", name: "北京西", city: "北京", sourceLat: 39.8947, sourceLon: 116.3220, lat: 39.8947, lon: 116.2620 },
-      { id: "jingguang_02", name: "保定东", city: "保定", lat: 39.0870, lon: 115.5700 },
-      { id: "jingguang_03", name: "石家庄", city: "石家庄", lat: 38.0225, lon: 114.4840 },
-      { id: "jingguang_04", name: "邢台东", city: "邢台", lat: 37.0700, lon: 114.5700 },
-      { id: "jingguang_05", name: "邯郸东", city: "邯郸", lat: 36.6150, lon: 114.5650 },
-      { id: "jingguang_06", name: "安阳东", city: "安阳", lat: 36.0800, lon: 114.4000 },
-      { id: "jingguang_07", name: "鹤壁东", city: "鹤壁", lat: 35.7600, lon: 114.3200 },
-      { id: "jingguang_08", name: "新乡东", city: "新乡", lat: 35.3020, lon: 113.9400 },
-      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.7580, lon: 113.7690 },
-      { id: "jingguang_10", name: "许昌东", city: "许昌", lat: 34.0200, lon: 113.8700 },
-      { id: "jingguang_11", name: "漯河西", city: "漯河", lat: 33.5700, lon: 113.9200 },
-      { id: "jingguang_12", name: "驻马店西", city: "驻马店", lat: 32.9800, lon: 114.0200 },
-      { id: "jingguang_13", name: "信阳东", city: "信阳", lat: 32.1500, lon: 114.1200 },
-      { id: "jingguang_14", name: "孝感北", city: "孝感", lat: 31.4500, lon: 113.9000 },
-      { id: "jingguang_15", name: "武汉", city: "武汉", lat: 30.6100, lon: 114.4300 },
-      { id: "jingguang_16", name: "咸宁北", city: "咸宁", lat: 29.8600, lon: 114.3300 },
-      { id: "jingguang_17", name: "岳阳东", city: "岳阳", lat: 29.3800, lon: 113.1600 },
-      { id: "jingguang_18", name: "长沙南", city: "长沙", lat: 28.1500, lon: 113.0800 },
-      { id: "jingguang_19", name: "株洲西", city: "株洲", lat: 27.8500, lon: 113.0800 },
-      { id: "jingguang_20", name: "衡阳东", city: "衡阳", lat: 26.8500, lon: 112.6200 },
-      { id: "jingguang_21", name: "郴州西", city: "郴州", lat: 25.7600, lon: 113.0200 },
-      { id: "jingguang_22", name: "韶关", city: "韶关", lat: 24.8000, lon: 113.6100 },
-      { id: "jingguang_23", name: "清远", city: "清远", lat: 23.7000, lon: 113.0600 },
-      { id: "jingguang_24", name: "广州南", city: "广州", lat: 22.9900, lon: 113.2700 }
+      { id: "jingguang_01", name: "北京西", city: "北京", lat: 39.8936, lon: 116.3157 },
+      { id: "jingguang_fengtai", name: "北京丰台", city: "北京", lat: 39.8498, lon: 116.2946 },
+      { id: "jingguang_zhuozhoudong", name: "涿州东", city: "涿州", lat: 39.4588, lon: 116.0481 },
+      { id: "jingguang_gaobeidiandong", name: "高碑店东", city: "高碑店", lat: 39.2875, lon: 115.9411 },
+      { id: "jingguang_02", name: "保定东", city: "保定", lat: 39.087, lon: 115.57 },
+      { id: "jingguang_dingzhoudong", name: "定州东", city: "定州", lat: 38.5072, lon: 115.0693 },
+      { id: "jingguang_zhengdingairport", name: "正定机场", city: "正定", lat: 38.2507, lon: 114.7035 },
+      { id: "jingguang_03", name: "石家庄", city: "石家庄", lat: 38.0225, lon: 114.484 },
+      { id: "jingguang_gaoyixi", name: "高邑西", city: "高邑", lat: 37.629, lon: 114.5238 },
+      { id: "jingguang_04", name: "邢台东", city: "邢台", lat: 37.07, lon: 114.57 },
+      { id: "jingguang_05", name: "邯郸东", city: "邯郸", lat: 36.615, lon: 114.565 },
+      { id: "jingguang_06", name: "安阳东", city: "安阳", lat: 36.08, lon: 114.4 },
+      { id: "jingguang_07", name: "鹤壁东", city: "鹤壁", lat: 35.76, lon: 114.32 },
+      { id: "jingguang_08", name: "新乡东", city: "新乡", lat: 35.302, lon: 113.94 },
+      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.758, lon: 113.769 },
+      { id: "jingguang_10", name: "许昌东", city: "许昌", lat: 34.02, lon: 113.87 },
+      { id: "jingguang_11", name: "漯河西", city: "漯河", lat: 33.57, lon: 113.92 },
+      { id: "jingguang_12", name: "驻马店西", city: "驻马店", lat: 32.98, lon: 114.02 },
+      { id: "jingguang_minggangdong", name: "明港东", city: "明港", lat: 32.4886, lon: 114.0585 },
+      { id: "jingguang_13", name: "信阳东", city: "信阳", lat: 32.15, lon: 114.12 },
+      { id: "jingguang_14", name: "孝感北", city: "孝感", lat: 31.45, lon: 113.9 },
+      { id: "jingguang_15", name: "武汉", city: "武汉", lat: 30.61, lon: 114.43 },
+      { id: "jingguang_16", name: "咸宁北", city: "咸宁", lat: 29.86, lon: 114.33 },
+      { id: "jingguang_chibibei", name: "赤壁北", city: "赤壁", lat: 29.7397, lon: 113.8948 },
+      { id: "jingguang_17", name: "岳阳东", city: "岳阳", lat: 29.38, lon: 113.16 },
+      { id: "jingguang_miluodong", name: "汨罗东", city: "汨罗", lat: 28.7488, lon: 113.1377 },
+      { id: "jingguang_18", name: "长沙南", city: "长沙", lat: 28.15, lon: 113.08 },
+      { id: "jingguang_19", name: "株洲西", city: "株洲", lat: 27.85, lon: 113.08 },
+      { id: "jingguang_hengshanxi", name: "衡山西", city: "衡山", lat: 27.2515, lon: 112.7836 },
+      { id: "jingguang_20", name: "衡阳东", city: "衡阳", lat: 26.85, lon: 112.62 },
+      { id: "jingguang_leiyangxi", name: "耒阳西", city: "耒阳", lat: 26.4173, lon: 112.7826 },
+      { id: "jingguang_21", name: "郴州西", city: "郴州", lat: 25.76, lon: 113.02 },
+      { id: "jingguang_lechangdong", name: "乐昌东", city: "乐昌", lat: 25.1166, lon: 113.3909 },
+      { id: "jingguang_22", name: "韶关", city: "韶关", lat: 24.8, lon: 113.61 },
+      { id: "jingguang_yingdexi", name: "英德西", city: "英德", lat: 24.1614, lon: 113.3444 },
+      { id: "jingguang_23", name: "清远", city: "清远", lat: 23.7, lon: 113.06 },
+      { id: "jingguang_guangzhoubei", name: "广州北", city: "广州", lat: 23.3796, lon: 113.1991 },
+      { id: "jingguang_24", name: "广州南", city: "广州", lat: 22.99, lon: 113.27 }
     ]
   },
   {
@@ -47,25 +61,27 @@ const RAILWAYS = [
     networkRole: "branch",
     source: "用户提供参考坐标；郑州东、阜阳西复用既有站点身份",
     stations: [
-      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.7600, lon: 113.7700 },
-      { id: "jingguang_zhoukou_02", name: "周口东", city: "周口", lat: 33.6420, lon: 114.7280 },
-      { id: "shanghehang_03", name: "阜阳西", city: "阜阳", lat: 32.8900, lon: 115.8000 }
+      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.76, lon: 113.77 },
+      { id: "jingguang_zhoukou_02", name: "周口东", city: "周口", lat: 33.642, lon: 114.728 },
+      { id: "shanghehang_03", name: "阜阳西", city: "阜阳", lat: 32.89, lon: 115.8 }
     ]
   },
   {
     id: "wujiu_high_speed",
-    name: "武九高铁",
-    shortName: "武九",
+    name: "京广高铁武九支线",
+    shortName: "京广武九支线",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
+    status: "支线预研线路",
+    parentLineId: "jingguang_high_speed",
+    networkRole: "branch",
     source: "用户提供参考坐标；武汉、九江复用既有站点身份",
     stations: [
-      { id: "jingguang_15", name: "武汉", city: "武汉", lat: 30.6100, lon: 114.4300 },
-      { id: "jingguang_wujiu_02", name: "鄂州站", city: "鄂州", lat: 30.3960, lon: 114.9010 },
-      { id: "jingguang_wujiu_03", name: "黄石北站", city: "黄石", lat: 30.2160, lon: 115.0290 },
-      { id: "heshen_03", name: "九江", city: "九江", lat: 29.7200, lon: 115.9800 }
+      { id: "jingguang_15", name: "武汉", city: "武汉", lat: 30.61, lon: 114.43 },
+      { id: "jingguang_wujiu_02", name: "鄂州站", city: "鄂州", lat: 30.396, lon: 114.901 },
+      { id: "jingguang_wujiu_03", name: "黄石北站", city: "黄石", lat: 30.216, lon: 115.029 },
+      { id: "heshen_03", name: "九江", city: "九江", lat: 29.72, lon: 115.98 }
     ]
   },
   {
@@ -76,15 +92,15 @@ const RAILWAYS = [
     typeLabel: "高速",
     region: "china_mainland",
     status: "预研线路",
-    source: "用户提供参考坐标",
+    source: "用户提供参考坐标；北端改接北京丰台（与京雄城际区分）；丰台复用京广既有站点身份",
     stations: [
-      { id: "jingguang_01", name: "北京西", city: "北京", sourceLat: 39.8947, sourceLon: 116.3220, lat: 39.8947, lon: 116.2620 },
-      { id: "jingxiongshang_02", name: "雄安", city: "雄安", lat: 39.0010, lon: 116.1000 },
-      { id: "jingxiongshang_03", name: "衡水", city: "衡水", lat: 37.7380, lon: 115.7000 },
-      { id: "jingxiongshang_04", name: "聊城西", city: "聊城", lat: 36.4300, lon: 115.9200 },
-      { id: "jingxiongshang_05", name: "濮阳东", city: "濮阳", lat: 35.7700, lon: 115.0600 },
-      { id: "jingxiongshang_06", name: "菏泽东", city: "菏泽", lat: 35.2450, lon: 115.5200 },
-      { id: "jingxiongshang_07", name: "商丘", city: "商丘", lat: 34.4400, lon: 115.6500 }
+      { id: "jingguang_fengtai", name: "北京丰台", city: "北京", lat: 39.8498, lon: 116.2946 },
+      { id: "jingxiongshang_02", name: "雄安", city: "雄安", lat: 39.001, lon: 116.1 },
+      { id: "jingxiongshang_03", name: "衡水", city: "衡水", lat: 37.738, lon: 115.7 },
+      { id: "jingxiongshang_04", name: "聊城西", city: "聊城", lat: 36.43, lon: 115.92 },
+      { id: "jingxiongshang_05", name: "濮阳东", city: "濮阳", lat: 35.77, lon: 115.06 },
+      { id: "jingxiongshang_06", name: "菏泽东", city: "菏泽", lat: 35.245, lon: 115.52 },
+      { id: "jingxiongshang_07", name: "商丘", city: "商丘", lat: 34.44, lon: 115.65 }
     ]
   },
   {
@@ -97,15 +113,15 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标",
     stations: [
-      { id: "jingxiongshang_07", name: "商丘", city: "商丘", lat: 34.4400, lon: 115.6500 },
-      { id: "shanghehang_02", name: "亳州南", city: "亳州", lat: 33.8700, lon: 115.7800 },
-      { id: "shanghehang_03", name: "阜阳西", city: "阜阳", lat: 32.8900, lon: 115.8000 },
-      { id: "shanghehang_04", name: "淮南南", city: "淮南", lat: 32.5800, lon: 116.9300 },
-      { id: "shanghehang_05", name: "合肥南", city: "合肥", lat: 31.7800, lon: 117.3000 },
-      { id: "shanghehang_06", name: "芜湖", city: "芜湖", lat: 31.3400, lon: 118.3900 },
-      { id: "shanghehang_07", name: "宣城", city: "宣城", lat: 30.9500, lon: 118.7500 },
-      { id: "shanghehang_08", name: "湖州", city: "湖州", lat: 30.8700, lon: 120.0900 },
-      { id: "shanghehang_09", name: "杭州东", city: "杭州", lat: 30.3150, lon: 120.2100 }
+      { id: "jingxiongshang_07", name: "商丘", city: "商丘", lat: 34.44, lon: 115.65 },
+      { id: "shanghehang_02", name: "亳州南", city: "亳州", lat: 33.87, lon: 115.78 },
+      { id: "shanghehang_03", name: "阜阳西", city: "阜阳", lat: 32.89, lon: 115.8 },
+      { id: "shanghehang_04", name: "淮南南", city: "淮南", lat: 32.58, lon: 116.93 },
+      { id: "shanghehang_05", name: "合肥南", city: "合肥", lat: 31.78, lon: 117.3 },
+      { id: "shanghehang_06", name: "芜湖", city: "芜湖", lat: 31.34, lon: 118.39 },
+      { id: "shanghehang_07", name: "宣城", city: "宣城", lat: 30.95, lon: 118.75 },
+      { id: "shanghehang_08", name: "湖州", city: "湖州", lat: 30.87, lon: 120.09 },
+      { id: "shanghehang_09", name: "杭州东", city: "杭州", lat: 30.315, lon: 120.21 }
     ]
   },
   {
@@ -118,16 +134,16 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标",
     stations: [
-      { id: "shanghehang_05", name: "合肥南", city: "合肥", lat: 31.7800, lon: 117.3000 },
-      { id: "heshen_02", name: "六安", city: "六安", lat: 31.7500, lon: 116.5000 },
-      { id: "heshen_03", name: "九江", city: "九江", lat: 29.7200, lon: 115.9800 },
-      { id: "heshen_04", name: "南昌西", city: "南昌", lat: 28.6100, lon: 115.8200 },
-      { id: "heshen_05", name: "吉安西", city: "吉安", lat: 27.1000, lon: 114.9800 },
-      { id: "heshen_06", name: "赣州西", city: "赣州", lat: 25.8200, lon: 114.9200 },
-      { id: "heshen_07", name: "河源东", city: "河源", lat: 23.7400, lon: 114.7000 },
-      { id: "heshen_08", name: "惠州北", city: "惠州", lat: 23.1200, lon: 114.4200 },
-      { id: "heshen_09", name: "东莞南", city: "东莞", lat: 22.9100, lon: 114.1400 },
-      { id: "heshen_10", name: "深圳北", city: "深圳", lat: 22.6100, lon: 114.0300 }
+      { id: "shanghehang_05", name: "合肥南", city: "合肥", lat: 31.78, lon: 117.3 },
+      { id: "heshen_02", name: "六安", city: "六安", lat: 31.75, lon: 116.5 },
+      { id: "heshen_03", name: "九江", city: "九江", lat: 29.72, lon: 115.98 },
+      { id: "heshen_04", name: "南昌西", city: "南昌", lat: 28.61, lon: 115.82 },
+      { id: "heshen_05", name: "吉安西", city: "吉安", lat: 27.1, lon: 114.98 },
+      { id: "heshen_06", name: "赣州西", city: "赣州", lat: 25.82, lon: 114.92 },
+      { id: "heshen_07", name: "河源东", city: "河源", lat: 23.74, lon: 114.7 },
+      { id: "heshen_08", name: "惠州北", city: "惠州", lat: 23.12, lon: 114.42 },
+      { id: "heshen_09", name: "东莞南", city: "东莞", lat: 22.91, lon: 114.14 },
+      { id: "heshen_10", name: "深圳北", city: "深圳", lat: 22.61, lon: 114.03 }
     ]
   },
   {
@@ -142,25 +158,9 @@ const RAILWAYS = [
     networkRole: "branch",
     source: "用户提供参考坐标；河源东、龙岩复用既有站点身份",
     stations: [
-      { id: "heshen_07", name: "河源东", city: "河源", lat: 23.7400, lon: 114.7000 },
-      { id: "heshen_meizhou_02", name: "梅州西", city: "梅州市", lat: 24.2920, lon: 116.0990 },
-      { id: "yuxia_10", name: "龙岩", city: "龙岩", lat: 25.0950, lon: 117.0150 }
-    ]
-  },
-  {
-    id: "shenzhen_hongkong_high_speed",
-    name: "深港高铁",
-    shortName: "深港",
-    type: "high_speed",
-    typeLabel: "高速",
-    region: "cross_region",
-    regions: ["china_mainland", "hk_macao_taiwan"],
-    boundaryLabel: "深港交界中点",
-    status: "跨区域预研线路",
-    source: "用户提供参考坐标",
-    stations: [
-      { id: "heshen_10", name: "深圳北", city: "深圳", region: "china_mainland", lat: 22.6100, lon: 114.0300 },
-      { id: "shenzhen_hongkong_02", name: "香港西九龙", city: "香港", region: "hk_macao_taiwan", lat: 22.3030, lon: 114.1610 }
+      { id: "heshen_07", name: "河源东", city: "河源", lat: 23.74, lon: 114.7 },
+      { id: "heshen_meizhou_02", name: "梅州西", city: "梅州市", lat: 24.292, lon: 116.099 },
+      { id: "yuxia_10", name: "龙岩", city: "龙岩", lat: 25.095, lon: 117.015 }
     ]
   },
   {
@@ -170,15 +170,56 @@ const RAILWAYS = [
     type: "high_speed",
     typeLabel: "高速",
     region: "cross_region",
-    regions: ["china_mainland", "hk_macao_taiwan"],
+    regions: [
+      "china_mainland",
+      "hk_macao_taiwan"
+    ],
     boundaryLabel: "珠澳交界中点",
     status: "跨区域预研线路",
     source: "用户提供参考坐标；广州南沙复用广深港高铁既有站点身份",
     stations: [
-      { id: "guangshen_02", name: "广州南沙", city: "广州南沙", region: "china_mainland", lat: 22.8660, lon: 113.6720 },
-      { id: "guangzhuanao_02", name: "中山", city: "中山", region: "china_mainland", lat: 22.5300, lon: 113.3920 },
-      { id: "guangzhuanao_03", name: "珠海", city: "珠海", region: "china_mainland", lat: 22.2167, lon: 113.5530 },
-      { id: "guangzhuanao_04", name: "澳门南", city: "澳门", region: "hk_macao_taiwan", lat: 22.0000, lon: 113.6500 }
+      { id: "guangshen_02", name: "广州南沙", city: "广州南沙", region: "china_mainland", lat: 22.866, lon: 113.672 },
+      { id: "guangzhuanao_02", name: "中山", city: "中山", region: "china_mainland", lat: 22.53, lon: 113.392 },
+      { id: "guangzhuanao_03", name: "珠海", city: "珠海", region: "china_mainland", lat: 22.2167, lon: 113.553 },
+      { id: "guangzhuanao_04", name: "澳门南", city: "澳门", region: "hk_macao_taiwan", lat: 22, lon: 113.65 }
+    ]
+  },
+  {
+    id: "futai_cross_region_high_speed",
+    name: "福台跨海高铁",
+    shortName: "福台跨海",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "cross_region",
+    regions: [
+      "china_mainland",
+      "hk_macao_taiwan"
+    ],
+    boundaryLabel: "台湾海峡中点",
+    status: "跨区域预研线路",
+    source: "用户指定跨海方案；福州南、台北复用既有站点身份；不设中间虚构站点",
+    stations: [
+      { id: "hangshen_07", name: "福州南", city: "福州", region: "china_mainland", lat: 25.985, lon: 119.39 },
+      { id: "taiwan_01", name: "台北", city: "台北", region: "hk_macao_taiwan", lat: 25.0478, lon: 121.517 }
+    ]
+  },
+  {
+    id: "xiagao_cross_region_high_speed",
+    name: "厦高跨海高铁",
+    shortName: "厦高跨海",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "cross_region",
+    regions: [
+      "china_mainland",
+      "hk_macao_taiwan"
+    ],
+    boundaryLabel: "台湾海峡中点",
+    status: "跨区域预研线路",
+    source: "用户指定跨海方案；厦门北、高雄复用既有站点身份；不设中间虚构站点",
+    stations: [
+      { id: "hangshen_10", name: "厦门北", city: "厦门", region: "china_mainland", lat: 24.637, lon: 118.074 },
+      { id: "taiwan_07", name: "高雄", city: "高雄", region: "hk_macao_taiwan", lat: 22.687, lon: 120.307 }
     ]
   },
   {
@@ -191,10 +232,10 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考站序；深圳北、中山、肇庆东复用既有站点身份",
     stations: [
-      { id: "heshen_10", name: "深圳北", city: "深圳", lat: 22.6100, lon: 114.0300 },
-      { id: "guangzhuanao_02", name: "中山", city: "中山", lat: 22.5300, lon: 113.3920 },
-      { id: "shenjiang_03", name: "江门", city: "江门", lat: 22.5820, lon: 113.0940 },
-      { id: "nanguang_03", name: "肇庆东", city: "肇庆", lat: 23.1100, lon: 112.6100 }
+      { id: "heshen_10", name: "深圳北", city: "深圳", lat: 22.61, lon: 114.03 },
+      { id: "guangzhuanao_02", name: "中山", city: "中山", lat: 22.53, lon: 113.392 },
+      { id: "shenjiang_03", name: "江门", city: "江门", lat: 22.582, lon: 113.094 },
+      { id: "nanguang_03", name: "肇庆东", city: "肇庆", lat: 23.11, lon: 112.61 }
     ]
   },
   {
@@ -207,40 +248,24 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标",
     stations: [
-      { id: "jinghu_01", name: "北京南", city: "北京", sourceLat: 39.8650, sourceLon: 116.3780, lat: 39.8650, lon: 116.4380 },
-      { id: "jinghu_02", name: "廊坊", city: "廊坊", lat: 39.5200, lon: 116.6900 },
-      { id: "jinghu_03", name: "天津南", city: "天津", lat: 39.0200, lon: 117.0600 },
-      { id: "jinghu_04", name: "沧州西", city: "沧州", lat: 38.3100, lon: 116.8200 },
-      { id: "jinghu_05", name: "德州东", city: "德州", lat: 37.4400, lon: 116.3600 },
-      { id: "jinghu_06", name: "济南西", city: "济南", lat: 36.6700, lon: 116.9000 },
-      { id: "jinghu_07", name: "泰安", city: "泰安", lat: 36.2000, lon: 117.0900 },
-      { id: "jinghu_08", name: "枣庄站", city: "枣庄", lat: 34.7880, lon: 117.2630 },
-      { id: "jinghu_09", name: "徐州东", city: "徐州", lat: 34.2650, lon: 117.2800 },
-      { id: "jinghu_10", name: "宿州东", city: "宿州", lat: 33.6600, lon: 117.1500 },
-      { id: "jinghu_11", name: "蚌埠南", city: "蚌埠", lat: 32.9400, lon: 117.3900 },
-      { id: "jinghu_12", name: "滁州", city: "滁州", lat: 32.2600, lon: 118.3300 },
-      { id: "jinghu_13", name: "南京南", city: "南京", lat: 31.9700, lon: 118.8000 },
-      { id: "jinghu_14", name: "镇江南", city: "镇江", lat: 32.1400, lon: 119.4200 },
-      { id: "jinghu_15", name: "常州北", city: "常州", lat: 31.8400, lon: 119.9700 },
-      { id: "jinghu_16", name: "无锡东", city: "无锡", lat: 31.5900, lon: 120.4300 },
-      { id: "jinghu_17", name: "苏州北", city: "苏州", lat: 31.4300, lon: 120.6500 },
-      { id: "jinghu_18", name: "上海虹桥", city: "上海", lat: 31.1970, lon: 121.3300 }
-    ]
-  },
-  {
-    id: "jinghu_ningma_branch_high_speed",
-    name: "京沪高铁宁马支线",
-    shortName: "京沪宁马支线",
-    type: "high_speed",
-    typeLabel: "高速",
-    region: "china_mainland",
-    status: "支线预研线路",
-    parentLineId: "jinghu_high_speed",
-    networkRole: "branch",
-    source: "用户提供参考坐标；南京南复用既有站点身份",
-    stations: [
-      { id: "jinghu_13", name: "南京南", city: "南京", lat: 31.9700, lon: 118.8000 },
-      { id: "jinghu_ningma_02", name: "马鞍山站", city: "马鞍山", lat: 31.6700, lon: 118.5070 }
+      { id: "jinghu_01", name: "北京南", city: "北京", lat: 39.8636, lon: 116.3728 },
+      { id: "jinghu_02", name: "廊坊", city: "廊坊", lat: 39.52, lon: 116.69 },
+      { id: "jinghu_03", name: "天津南", city: "天津", lat: 39.02, lon: 117.06 },
+      { id: "jinghu_04", name: "沧州西", city: "沧州", lat: 38.31, lon: 116.82 },
+      { id: "jinghu_05", name: "德州东", city: "德州", lat: 37.44, lon: 116.36 },
+      { id: "jinghu_06", name: "济南西", city: "济南", lat: 36.67, lon: 116.9 },
+      { id: "jinghu_07", name: "泰安", city: "泰安", lat: 36.2, lon: 117.09 },
+      { id: "jinghu_08", name: "枣庄站", city: "枣庄", lat: 34.788, lon: 117.263 },
+      { id: "jinghu_09", name: "徐州东", city: "徐州", lat: 34.265, lon: 117.28 },
+      { id: "jinghu_10", name: "宿州东", city: "宿州", lat: 33.66, lon: 117.15 },
+      { id: "jinghu_11", name: "蚌埠南", city: "蚌埠", lat: 32.94, lon: 117.39 },
+      { id: "jinghu_12", name: "滁州", city: "滁州", lat: 32.26, lon: 118.33 },
+      { id: "jinghu_13", name: "南京南", city: "南京", lat: 31.97, lon: 118.8 },
+      { id: "jinghu_14", name: "镇江南", city: "镇江", lat: 32.14, lon: 119.42 },
+      { id: "jinghu_15", name: "常州北", city: "常州", lat: 31.84, lon: 119.97 },
+      { id: "jinghu_16", name: "无锡东", city: "无锡", lat: 31.59, lon: 120.43 },
+      { id: "jinghu_17", name: "苏州北", city: "苏州", lat: 31.43, lon: 120.65 },
+      { id: "jinghu_18", name: "上海虹桥", city: "上海", lat: 31.197, lon: 121.33 }
     ]
   },
   {
@@ -253,27 +278,60 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标",
     stations: [
-      { id: "jinghu_18", name: "上海虹桥", city: "上海", lat: 31.1970, lon: 121.3300 },
-      { id: "hukun_02", name: "嘉兴南", city: "嘉兴", lat: 30.7500, lon: 120.7600 },
-      { id: "shanghehang_09", name: "杭州东", city: "杭州", lat: 30.3150, lon: 120.2100 },
-      { id: "hukun_04", name: "金华", city: "金华", lat: 29.1000, lon: 119.6500 },
-      { id: "hukun_05", name: "衢州", city: "衢州", lat: 28.9700, lon: 118.8700 },
-      { id: "hukun_06", name: "上饶", city: "上饶", lat: 28.4500, lon: 117.9700 },
-      { id: "hukun_07", name: "鹰潭北", city: "鹰潭", lat: 28.2300, lon: 116.9700 },
-      { id: "hukun_08", name: "抚州东", city: "抚州", lat: 28.0000, lon: 116.6100 },
-      { id: "heshen_04", name: "南昌西", city: "南昌", lat: 28.6100, lon: 115.8200 },
-      { id: "hukun_10", name: "宜春", city: "宜春", lat: 27.8000, lon: 114.3900 },
-      { id: "hukun_11", name: "萍乡北", city: "萍乡", lat: 27.6200, lon: 113.9000 },
-      { id: "jingguang_19", name: "株洲西", city: "株洲", lat: 27.8500, lon: 113.0800 },
-      { id: "jingguang_18", name: "长沙南", city: "长沙", lat: 28.1500, lon: 113.0800 },
-      { id: "hukun_14", name: "湘潭北", city: "湘潭", lat: 27.9500, lon: 112.9500 },
-      { id: "hukun_15", name: "娄底南", city: "娄底", lat: 27.7000, lon: 112.0000 },
-      { id: "hukun_16", name: "怀化南", city: "怀化", lat: 27.5500, lon: 109.9600 },
-      { id: "hukun_17", name: "凯里南", city: "凯里", lat: 26.5800, lon: 107.9800 },
-      { id: "hukun_18", name: "贵阳北", city: "贵阳", lat: 26.6500, lon: 106.6300 },
-      { id: "hukun_19", name: "安顺西", city: "安顺", lat: 26.2500, lon: 105.9300 },
-      { id: "hukun_20", name: "曲靖北", city: "曲靖", lat: 25.5200, lon: 103.8000 },
-      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.8740, lon: 102.8620 }
+      { id: "jinghu_18", name: "上海虹桥", city: "上海", lat: 31.197, lon: 121.33 },
+      { id: "hukun_02", name: "嘉兴南", city: "嘉兴", lat: 30.75, lon: 120.76 },
+      { id: "shanghehang_09", name: "杭州东", city: "杭州", lat: 30.315, lon: 120.21 },
+      { id: "hukun_04", name: "金华", city: "金华", lat: 29.1, lon: 119.65 },
+      { id: "hukun_05", name: "衢州", city: "衢州", lat: 28.97, lon: 118.87 },
+      { id: "hukun_06", name: "上饶", city: "上饶", lat: 28.45, lon: 117.97 },
+      { id: "hukun_07", name: "鹰潭北", city: "鹰潭", lat: 28.23, lon: 116.97 },
+      { id: "hukun_08", name: "抚州东", city: "抚州", lat: 28, lon: 116.61 },
+      { id: "heshen_04", name: "南昌西", city: "南昌", lat: 28.61, lon: 115.82 },
+      { id: "hukun_10", name: "宜春", city: "宜春", lat: 27.8, lon: 114.39 },
+      { id: "hukun_11", name: "萍乡北", city: "萍乡", lat: 27.62, lon: 113.9 },
+      { id: "jingguang_19", name: "株洲西", city: "株洲", lat: 27.85, lon: 113.08 },
+      { id: "jingguang_18", name: "长沙南", city: "长沙", lat: 28.15, lon: 113.08 },
+      { id: "hukun_14", name: "湘潭北", city: "湘潭", lat: 27.95, lon: 112.95 },
+      { id: "hukun_15", name: "娄底南", city: "娄底", lat: 27.7, lon: 112 },
+      { id: "hukun_16", name: "怀化南", city: "怀化", lat: 27.55, lon: 109.96 },
+      { id: "hukun_17", name: "凯里南", city: "凯里", lat: 26.58, lon: 107.98 },
+      { id: "hukun_18", name: "贵阳北", city: "贵阳", lat: 26.65, lon: 106.63 },
+      { id: "hukun_19", name: "安顺西", city: "安顺", lat: 26.25, lon: 105.93 },
+      { id: "hukun_20", name: "曲靖北", city: "曲靖", lat: 25.52, lon: 103.8 },
+      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.874, lon: 102.862 }
+    ]
+  },
+  {
+    id: "changjinghuang_high_speed",
+    name: "合深高铁景德镇支线",
+    shortName: "合深景德镇支线",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "支线预研线路",
+    parentLineId: "heshen_high_speed",
+    networkRole: "branch",
+    source: "用户提供参考坐标；南昌西、黄山北复用既有站点身份",
+    stations: [
+      { id: "heshen_04", name: "南昌西", city: "南昌", lat: 28.61, lon: 115.82 },
+      { id: "changjinghuang_02", name: "景德镇北站", city: "景德镇", lat: 29.342, lon: 117.176 },
+      { id: "hefu_04", name: "黄山北", city: "黄山", lat: 29.815, lon: 118.295 }
+    ]
+  },
+  {
+    id: "changfu_high_speed",
+    name: "昌福高铁",
+    shortName: "昌福",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "预研线路",
+    source: "用户提供参考坐标；南昌西、抚州东、福州南复用既有站点身份",
+    stations: [
+      { id: "heshen_04", name: "南昌西", city: "南昌", lat: 28.61, lon: 115.82 },
+      { id: "hukun_08", name: "抚州东", city: "抚州", lat: 28, lon: 116.61 },
+      { id: "changfu_03", name: "三明北", city: "三明", lat: 26.369, lon: 117.631 },
+      { id: "hangshen_07", name: "福州南", city: "福州", lat: 25.985, lon: 119.39 }
     ]
   },
   {
@@ -286,21 +344,21 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；六安复用既有站点坐标",
     stations: [
-      { id: "huyurong_01", name: "上海东", city: "上海", lat: 31.2500, lon: 121.6800 },
-      { id: "huyurong_02", name: "南通", city: "南通", lat: 31.9800, lon: 120.9000 },
-      { id: "huyurong_03", name: "泰州", city: "泰州", lat: 32.4600, lon: 119.9200 },
-      { id: "huyurong_04", name: "扬州东", city: "扬州", lat: 32.3900, lon: 119.4700 },
-      { id: "huyurong_05", name: "南京北", city: "南京", lat: 32.1600, lon: 118.7300 },
-      { id: "shanghehang_05", name: "合肥南", city: "合肥", lat: 31.7800, lon: 117.3000 },
-      { id: "heshen_02", name: "六安", city: "六安", lat: 31.7500, lon: 116.5000 },
-      { id: "huyurong_08", name: "汉口", city: "武汉", lat: 30.6200, lon: 114.2700 },
-      { id: "huyurong_09", name: "江汉", city: "江汉", lat: 30.6500, lon: 113.1600 },
-      { id: "huyurong_10", name: "荆门西", city: "荆门", lat: 31.0500, lon: 112.1600 },
-      { id: "huyurong_11", name: "宜昌北", city: "宜昌", lat: 30.7600, lon: 111.3000 },
-      { id: "huyurong_12", name: "恩施南", city: "恩施", lat: 30.2700, lon: 109.4700 },
-      { id: "huyurong_13", name: "涪陵北", city: "涪陵", lat: 29.7200, lon: 107.3900 },
-      { id: "huyurong_14", name: "重庆北", city: "重庆", lat: 29.6100, lon: 106.5500 },
-      { id: "huyurong_15", name: "成都", city: "成都", sourceLat: 30.6600, sourceLon: 104.0700, lat: 30.7200, lon: 103.9800 }
+      { id: "huyurong_01", name: "上海东", city: "上海", lat: 31.25, lon: 121.68 },
+      { id: "huyurong_02", name: "南通", city: "南通", lat: 31.98, lon: 120.9 },
+      { id: "huyurong_03", name: "泰州", city: "泰州", lat: 32.46, lon: 119.92 },
+      { id: "huyurong_04", name: "扬州东", city: "扬州", lat: 32.39, lon: 119.47 },
+      { id: "huyurong_05", name: "南京北", city: "南京", lat: 32.16, lon: 118.73 },
+      { id: "shanghehang_05", name: "合肥南", city: "合肥", lat: 31.78, lon: 117.3 },
+      { id: "heshen_02", name: "六安", city: "六安", lat: 31.75, lon: 116.5 },
+      { id: "huyurong_08", name: "汉口", city: "武汉", lat: 30.62, lon: 114.27 },
+      { id: "huyurong_09", name: "江汉", city: "江汉", lat: 30.65, lon: 113.16 },
+      { id: "huyurong_10", name: "荆门西", city: "荆门", lat: 31.05, lon: 112.16 },
+      { id: "huyurong_11", name: "宜昌北", city: "宜昌", lat: 30.76, lon: 111.3 },
+      { id: "huyurong_12", name: "恩施南", city: "恩施", lat: 30.27, lon: 109.47 },
+      { id: "huyurong_13", name: "涪陵北", city: "涪陵", lat: 29.72, lon: 107.39 },
+      { id: "huyurong_14", name: "重庆北", city: "重庆", lat: 29.61, lon: 106.55 },
+      { id: "huyurong_15", name: "成都", city: "成都", sourceLat: 30.66, sourceLon: 104.07, lat: 30.72, lon: 103.98 }
     ]
   },
   {
@@ -313,19 +371,19 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；复用既有站点身份",
     stations: [
-      { id: "lianxulan_01", name: "连云港", city: "连云港", lat: 34.6000, lon: 119.2200 },
-      { id: "jinghu_09", name: "徐州东", city: "徐州", lat: 34.2650, lon: 117.2800 },
-      { id: "jingxiongshang_07", name: "商丘", city: "商丘", lat: 34.4400, lon: 115.6500 },
-      { id: "lianxulan_04", name: "开封北", city: "开封", lat: 34.8200, lon: 114.3500 },
-      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.7600, lon: 113.7700 },
-      { id: "lianxulan_06", name: "洛阳龙门", city: "洛阳", lat: 34.6100, lon: 112.3900 },
-      { id: "lianxulan_07", name: "三门峡南", city: "三门峡", lat: 34.7400, lon: 111.1900 },
-      { id: "lianxulan_08", name: "渭南北", city: "渭南", lat: 34.5200, lon: 109.4800 },
-      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.3800, lon: 108.9400 },
-      { id: "lianxulan_10", name: "咸阳西", city: "咸阳", lat: 34.3300, lon: 108.6500 },
-      { id: "lianxulan_11", name: "宝鸡南", city: "宝鸡", lat: 34.3500, lon: 107.1500 },
-      { id: "lianxulan_12", name: "天水南", city: "天水", lat: 34.5600, lon: 105.8700 },
-      { id: "lianxulan_13", name: "定西北", city: "定西", lat: 35.5800, lon: 104.6300 },
+      { id: "lianxulan_01", name: "连云港", city: "连云港", lat: 34.6, lon: 119.22 },
+      { id: "jinghu_09", name: "徐州东", city: "徐州", lat: 34.265, lon: 117.28 },
+      { id: "jingxiongshang_07", name: "商丘", city: "商丘", lat: 34.44, lon: 115.65 },
+      { id: "lianxulan_04", name: "开封北", city: "开封", lat: 34.82, lon: 114.35 },
+      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.76, lon: 113.77 },
+      { id: "lianxulan_06", name: "洛阳龙门", city: "洛阳", lat: 34.61, lon: 112.39 },
+      { id: "lianxulan_07", name: "三门峡南", city: "三门峡", lat: 34.74, lon: 111.19 },
+      { id: "lianxulan_08", name: "渭南北", city: "渭南", lat: 34.52, lon: 109.48 },
+      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.38, lon: 108.94 },
+      { id: "lianxulan_10", name: "咸阳西", city: "咸阳", lat: 34.33, lon: 108.65 },
+      { id: "lianxulan_11", name: "宝鸡南", city: "宝鸡", lat: 34.35, lon: 107.15 },
+      { id: "lianxulan_12", name: "天水南", city: "天水", lat: 34.56, lon: 105.87 },
+      { id: "lianxulan_13", name: "定西北", city: "定西", lat: 35.58, lon: 104.63 },
       { id: "lianxulan_14", name: "兰州西", city: "兰州", lat: 36.0675, lon: 103.7492 }
     ]
   },
@@ -339,29 +397,14 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；复用既有站点身份",
     stations: [
-      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.7600, lon: 113.7700 },
-      { id: "zhengyu_02", name: "平顶山西", city: "平顶山", lat: 33.7400, lon: 113.3000 },
-      { id: "zhengyu_03", name: "南阳东", city: "南阳", lat: 32.9800, lon: 112.6000 },
-      { id: "zhengyu_04", name: "襄阳东", city: "襄阳", lat: 32.0400, lon: 112.2000 },
-      { id: "zhengyu_05", name: "神农架", city: "神农架", lat: 31.7400, lon: 110.6800 },
-      { id: "zhengyu_06", name: "万州北", city: "万州", lat: 30.8200, lon: 108.3900 },
-      { id: "huyurong_13", name: "涪陵北", city: "涪陵", lat: 29.7200, lon: 107.3900 },
-      { id: "huyurong_14", name: "重庆北", city: "重庆", lat: 29.6100, lon: 106.5500 }
-    ]
-  },
-  {
-    id: "nanxinhe_high_speed",
-    name: "南信合高铁",
-    shortName: "南信合",
-    type: "high_speed",
-    typeLabel: "高速",
-    region: "china_mainland",
-    status: "预研线路",
-    source: "用户指定站序；南阳、信阳、六安复用既有站点身份",
-    stations: [
-      { id: "zhengyu_03", name: "南阳东", city: "南阳", lat: 32.9800, lon: 112.6000 },
-      { id: "jingguang_13", name: "信阳东", city: "信阳", lat: 32.1500, lon: 114.1200 },
-      { id: "heshen_02", name: "六安", city: "六安", lat: 31.7500, lon: 116.5000 }
+      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.76, lon: 113.77 },
+      { id: "zhengyu_02", name: "平顶山西", city: "平顶山", lat: 33.74, lon: 113.3 },
+      { id: "zhengyu_03", name: "南阳东", city: "南阳", lat: 32.98, lon: 112.6 },
+      { id: "zhengyu_04", name: "襄阳东", city: "襄阳", lat: 32.04, lon: 112.2 },
+      { id: "zhengyu_05", name: "神农架", city: "神农架", lat: 31.74, lon: 110.68 },
+      { id: "zhengyu_06", name: "万州北", city: "万州", lat: 30.82, lon: 108.39 },
+      { id: "huyurong_13", name: "涪陵北", city: "涪陵", lat: 29.72, lon: 107.39 },
+      { id: "huyurong_14", name: "重庆北", city: "重庆", lat: 29.61, lon: 106.55 }
     ]
   },
   {
@@ -374,27 +417,29 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；西安北复用既有站点身份",
     stations: [
-      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.3800, lon: 108.9400 },
-      { id: "xicheng_02", name: "汉中", city: "汉中", lat: 33.0630, lon: 107.0230 },
-      { id: "xicheng_03", name: "广元", city: "广元", lat: 32.4400, lon: 105.8280 },
-      { id: "xicheng_04", name: "绵阳", city: "绵阳", lat: 31.4590, lon: 104.7410 },
-      { id: "xicheng_05", name: "德阳", city: "德阳", lat: 31.1300, lon: 104.3970 },
-      { id: "xicheng_06", name: "成都东", city: "成都", lat: 30.6320, lon: 104.1410 }
+      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.38, lon: 108.94 },
+      { id: "xicheng_02", name: "汉中", city: "汉中", lat: 33.063, lon: 107.023 },
+      { id: "xicheng_03", name: "广元", city: "广元", lat: 32.44, lon: 105.828 },
+      { id: "xicheng_04", name: "绵阳", city: "绵阳", lat: 31.459, lon: 104.741 },
+      { id: "xicheng_05", name: "德阳", city: "德阳", lat: 31.13, lon: 104.397 },
+      { id: "xicheng_06", name: "成都东", city: "成都", lat: 30.632, lon: 104.141 }
     ]
   },
   {
     id: "hanbanan_high_speed",
-    name: "汉巴南铁路",
-    shortName: "汉巴南",
+    name: "成达万高铁巴中支线",
+    shortName: "成达万巴中支线",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
+    status: "支线预研线路",
+    parentLineId: "chengdawan_high_speed",
+    networkRole: "branch",
     source: "用户提供参考站序；汉中、南充复用既有站点身份",
     stations: [
-      { id: "xicheng_02", name: "汉中", city: "汉中", lat: 33.0630, lon: 107.0230 },
+      { id: "xicheng_02", name: "汉中", city: "汉中", lat: 33.063, lon: 107.023 },
       { id: "bazhong_01", name: "巴中", city: "巴中", lat: 31.8762, lon: 106.7612 },
-      { id: "langyu_04", name: "南充北", city: "南充", lat: 30.8560, lon: 106.0710 }
+      { id: "langyu_04", name: "南充北", city: "南充", lat: 30.856, lon: 106.071 }
     ]
   },
   {
@@ -407,12 +452,12 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；成都东、宜宾西复用既有站点身份",
     stations: [
-      { id: "xicheng_06", name: "成都东", city: "成都", lat: 30.6320, lon: 104.1410 },
-      { id: "chenggui_02", name: "眉山东", city: "眉山", lat: 30.0500, lon: 103.8700 },
-      { id: "chenggui_03", name: "乐山", city: "乐山", lat: 29.5700, lon: 103.7600 },
-      { id: "yukun_03", name: "宜宾西", city: "宜宾", lat: 28.7510, lon: 104.6200 },
-      { id: "chenggui_05", name: "毕节", city: "毕节", lat: 27.3000, lon: 105.2800 },
-      { id: "hukun_18", name: "贵阳北", city: "贵阳", lat: 26.6500, lon: 106.6300 }
+      { id: "xicheng_06", name: "成都东", city: "成都", lat: 30.632, lon: 104.141 },
+      { id: "chenggui_02", name: "眉山东", city: "眉山", lat: 30.05, lon: 103.87 },
+      { id: "chenggui_03", name: "乐山", city: "乐山", lat: 29.57, lon: 103.76 },
+      { id: "yukun_03", name: "宜宾西", city: "宜宾", lat: 28.751, lon: 104.62 },
+      { id: "chenggui_05", name: "毕节", city: "毕节", lat: 27.3, lon: 105.28 },
+      { id: "hukun_18", name: "贵阳北", city: "贵阳", lat: 26.65, lon: 106.63 }
     ]
   },
   {
@@ -423,17 +468,38 @@ const RAILWAYS = [
     typeLabel: "高速",
     region: "china_mainland",
     status: "预研线路",
-    source: "用户提供参考坐标",
+    source: "用户提供参考坐标；北京站／朝阳及顺义西／怀柔南／密云坐标参考维基百科",
     stations: [
-      { id: "jingha_01", name: "北京朝阳", city: "北京", sourceLat: 39.9440, sourceLon: 116.5060, lat: 40.0350, lon: 116.5060 },
-      { id: "jingha_02", name: "承德南", city: "承德", lat: 40.8850, lon: 117.9650 },
-      { id: "jingha_03", name: "朝阳", city: "朝阳", lat: 41.5980, lon: 120.4040 },
-      { id: "jingha_04", name: "阜新", city: "阜新", lat: 42.0500, lon: 121.6700 },
-      { id: "jingha_05", name: "沈阳北", city: "沈阳", lat: 41.8170, lon: 123.4360 },
-      { id: "jingha_06", name: "铁岭西", city: "铁岭", lat: 42.2330, lon: 123.6730 },
-      { id: "jingha_07", name: "四平东", city: "四平", lat: 43.1390, lon: 124.4380 },
-      { id: "jingha_08", name: "长春西", city: "长春", lat: 43.8770, lon: 125.2010 },
-      { id: "jingha_09", name: "哈尔滨西", city: "哈尔滨", lat: 45.7070, lon: 126.5770 }
+      { id: "jingha_beijing", name: "北京站", city: "北京", lat: 39.901, lon: 116.4206 },
+      { id: "jingha_01", name: "北京朝阳", city: "北京", lat: 39.9432, lon: 116.5021 },
+      { id: "jingha_shunyixi", name: "顺义西", city: "北京", lat: 40.1778, lon: 116.485 },
+      { id: "jingha_huairounan", name: "怀柔南", city: "北京", lat: 40.2772, lon: 116.6988 },
+      { id: "jingha_miyun", name: "密云", city: "北京", lat: 40.3508, lon: 116.8447 },
+      { id: "jingha_02", name: "承德南", city: "承德", lat: 40.885, lon: 117.965 },
+      { id: "jingha_03", name: "朝阳", city: "朝阳", lat: 41.598, lon: 120.404 },
+      { id: "jingha_04", name: "阜新", city: "阜新", lat: 42.05, lon: 121.67 },
+      { id: "jingha_05", name: "沈阳北", city: "沈阳", lat: 41.817, lon: 123.436 },
+      { id: "jingha_06", name: "铁岭西", city: "铁岭", lat: 42.233, lon: 123.673 },
+      { id: "jingha_07", name: "四平东", city: "四平", lat: 43.139, lon: 124.438 },
+      { id: "jingha_08", name: "长春西", city: "长春", lat: 43.877, lon: 125.201 },
+      { id: "jingha_09", name: "哈尔滨西", city: "哈尔滨", lat: 45.707, lon: 126.577 }
+    ]
+  },
+  {
+    id: "jingha_chifeng_branch_high_speed",
+    name: "京哈高铁赤峰支线",
+    shortName: "京哈赤峰支线",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "支线预研线路",
+    parentLineId: "jingha_high_speed",
+    networkRole: "branch",
+    source: "用户提供参考坐标；朝阳复用京哈高铁既有站点身份",
+    stations: [
+      { id: "jingha_03", name: "朝阳", city: "朝阳", lat: 41.598, lon: 120.404 },
+      { id: "jingha_chifeng_02", name: "赤峰", city: "赤峰", lat: 42.258, lon: 118.888 },
+      { id: "jingha_chifeng_03", name: "通辽", city: "通辽", lat: 43.617, lon: 122.265 }
     ]
   },
   {
@@ -443,15 +509,52 @@ const RAILWAYS = [
     type: "high_speed",
     typeLabel: "高速",
     region: "cross_region",
-    regions: ["china_mainland", "hk_macao_taiwan"],
+    regions: [
+      "china_mainland",
+      "hk_macao_taiwan"
+    ],
     boundaryLabel: "深港交界中点",
     status: "跨区域预研线路",
     source: "用户提供参考坐标；复用既有站点身份",
     stations: [
-      { id: "jingguang_24", name: "广州南", city: "广州", region: "china_mainland", lat: 22.9900, lon: 113.2700 },
-      { id: "guangshen_02", name: "广州南沙", city: "广州南沙", region: "china_mainland", lat: 22.8660, lon: 113.6720 },
-      { id: "heshen_10", name: "深圳北", city: "深圳", region: "china_mainland", lat: 22.6100, lon: 114.0300 },
-      { id: "shenzhen_hongkong_02", name: "香港西九龙", city: "香港", region: "hk_macao_taiwan", lat: 22.3030, lon: 114.1610 }
+      { id: "jingguang_24", name: "广州南", city: "广州", region: "china_mainland", lat: 22.99, lon: 113.27 },
+      { id: "guangshen_02", name: "广州南沙", city: "广州南沙", region: "china_mainland", lat: 22.866, lon: 113.672 },
+      { id: "heshen_10", name: "深圳北", city: "深圳", region: "china_mainland", lat: 22.61, lon: 114.03 },
+      { id: "shenzhen_hongkong_02", name: "香港西九龙", city: "香港", region: "hk_macao_taiwan", lat: 22.303, lon: 114.161 }
+    ]
+  },
+  {
+    id: "taiwan_west_high_speed",
+    name: "台湾西部高铁",
+    shortName: "台湾西高铁",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "hk_macao_taiwan",
+    status: "预研线路",
+    source: "用户提供参考坐标；台湾节点统一归入港澳台区域",
+    stations: [
+      { id: "taiwan_01", name: "台北", city: "台北", region: "hk_macao_taiwan", lat: 25.0478, lon: 121.517 },
+      { id: "taiwan_02", name: "桃园", city: "桃园", region: "hk_macao_taiwan", lat: 25.013, lon: 121.214 },
+      { id: "taiwan_03", name: "新竹", city: "新竹", region: "hk_macao_taiwan", lat: 24.808, lon: 120.972 },
+      { id: "taiwan_04", name: "台中", city: "台中", region: "hk_macao_taiwan", lat: 24.1368, lon: 120.685 },
+      { id: "taiwan_05", name: "嘉义", city: "嘉义", region: "hk_macao_taiwan", lat: 23.479, lon: 120.441 },
+      { id: "taiwan_06", name: "台南", city: "台南", region: "hk_macao_taiwan", lat: 22.997, lon: 120.213 },
+      { id: "taiwan_07", name: "高雄", city: "高雄", region: "hk_macao_taiwan", lat: 22.687, lon: 120.307 }
+    ]
+  },
+  {
+    id: "huadong_conventional",
+    name: "花东铁路",
+    shortName: "花东",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "hk_macao_taiwan",
+    status: "普速预研线路",
+    source: "用户提供参考坐标；台湾节点统一归入港澳台区域",
+    stations: [
+      { id: "taiwan_01", name: "台北", city: "台北", region: "hk_macao_taiwan", lat: 25.0478, lon: 121.517 },
+      { id: "taiwan_08", name: "花莲", city: "花莲", region: "hk_macao_taiwan", lat: 23.992, lon: 121.614 },
+      { id: "taiwan_09", name: "台东", city: "台东", region: "hk_macao_taiwan", lat: 22.793, lon: 121.124 }
     ]
   },
   {
@@ -465,10 +568,10 @@ const RAILWAYS = [
     source: "用户提供参考坐标；广元、广安南复用既有站点身份",
     stations: [
       { id: "lianxulan_14", name: "兰州西", city: "兰州", lat: 36.0675, lon: 103.7492 },
-      { id: "langyu_02", name: "陇南", city: "陇南", lat: 33.3803, lon: 104.9600 },
-      { id: "xicheng_03", name: "广元", city: "广元", lat: 32.4400, lon: 105.8280 },
-      { id: "langyu_04", name: "南充北", city: "南充", lat: 30.8560, lon: 106.0710 },
-      { id: "langyu_05", name: "广安南", city: "广安", lat: 30.4700, lon: 106.6300 }
+      { id: "langyu_02", name: "陇南", city: "陇南", lat: 33.3803, lon: 104.96 },
+      { id: "xicheng_03", name: "广元", city: "广元", lat: 32.44, lon: 105.828 },
+      { id: "langyu_04", name: "南充北", city: "南充", lat: 30.856, lon: 106.071 },
+      { id: "langyu_05", name: "广安南", city: "广安", lat: 30.47, lon: 106.63 }
     ]
   },
   {
@@ -479,9 +582,11 @@ const RAILWAYS = [
     typeLabel: "普速",
     region: "china_mainland",
     status: "普速预研线路",
+    parentLineId: "langyu_conventional",
+    networkRole: "branch",
     source: "用户提供参考站序；广元复用既有站点身份",
     stations: [
-      { id: "xicheng_03", name: "广元", city: "广元", lat: 32.4400, lon: 105.8280 },
+      { id: "xicheng_03", name: "广元", city: "广元", lat: 32.44, lon: 105.828 },
       { id: "bazhong_01", name: "巴中", city: "巴中", lat: 31.8762, lon: 106.7612 }
     ]
   },
@@ -493,13 +598,33 @@ const RAILWAYS = [
     typeLabel: "高速",
     region: "china_mainland",
     status: "预研线路",
-    source: "用户提供参考坐标；北京北使用错开后的工作坐标",
+    source: "原京包银拆分；北京段清河／昌平／延庆及枢纽坐标参考维基百科",
     stations: [
-      { id: "jingbao_01", name: "北京北", city: "北京", sourceLat: 39.9447, sourceLon: 116.3535, lat: 40.0800, lon: 116.2000 },
-      { id: "jingbao_02", name: "张家口", city: "张家口", lat: 40.7520, lon: 114.8828 },
+      { id: "jingbao_01", name: "北京北", city: "北京", lat: 39.9453, lon: 116.3472 },
+      { id: "jingbao_qinghe", name: "清河", city: "北京", lat: 40.0399, lon: 116.3092 },
+      { id: "jingbao_changping", name: "昌平", city: "北京", lat: 40.1888, lon: 116.1873 },
+      { id: "jingbao_yanqing", name: "延庆", city: "北京", lat: 40.4347, lon: 115.9781 },
+      { id: "jingbao_02", name: "张家口", city: "张家口", lat: 40.752, lon: 114.8828 },
       { id: "jingbao_03", name: "乌兰察布", city: "乌兰察布", lat: 40.9642, lon: 113.1633 },
       { id: "jingbao_04", name: "呼和浩特东", city: "呼和浩特", lat: 40.8511, lon: 111.7653 },
-      { id: "jingbao_05", name: "包头", city: "包头", lat: 40.6054, lon: 109.8366 }
+      { id: "jingbao_05", name: "包头", city: "包头", lat: 40.6039, lon: 109.8312 }
+    ]
+  },
+  {
+    id: "baoyin_high_speed",
+    name: "包银高铁",
+    shortName: "包银",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "预研线路",
+    source: "原京包银拆分；包头复用京包高铁既有站点身份",
+    stations: [
+      { id: "jingbao_05", name: "包头", city: "包头", lat: 40.6039, lon: 109.8312 },
+      { id: "baoyin_02", name: "巴彦淖尔", city: "巴彦淖尔", note: "河套平原中心", lat: 40.7336, lon: 107.4048 },
+      { id: "baoyin_04", name: "乌海", city: "乌海", note: "内蒙古西部节点", lat: 39.6689, lon: 106.801 },
+      { id: "baoyin_05", name: "石嘴山", city: "石嘴山", note: "宁夏北部地级市", lat: 38.9575, lon: 106.377 },
+      { id: "baoyin_06", name: "银川", city: "银川", note: "宁夏首府、线路终点", lat: 38.4915, lon: 106.1669 }
     ]
   },
   {
@@ -512,16 +637,16 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；复用既有站点身份",
     stations: [
-      { id: "jingbao_02", name: "张家口", city: "张家口", lat: 40.7520, lon: 114.8828 },
-      { id: "zhangdaxi_02", name: "大同南", city: "大同", lat: 40.0200, lon: 113.1500 },
-      { id: "zhangdaxi_03", name: "朔州东", city: "朔州", lat: 39.3200, lon: 112.4300 },
-      { id: "zhangdaxi_04", name: "忻州西", city: "忻州", lat: 38.4200, lon: 112.7300 },
-      { id: "zhangdaxi_05", name: "太原南", city: "太原", lat: 37.7800, lon: 112.5600 },
-      { id: "zhangdaxi_06", name: "晋中", city: "晋中", lat: 37.6800, lon: 112.7300 },
-      { id: "zhangdaxi_07", name: "临汾西", city: "临汾", lat: 36.0900, lon: 111.5000 },
-      { id: "zhangdaxi_08", name: "运城北", city: "运城", lat: 35.0700, lon: 110.9900 },
-      { id: "lianxulan_08", name: "渭南北", city: "渭南", lat: 34.5200, lon: 109.4800 },
-      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.3800, lon: 108.9400 }
+      { id: "jingbao_02", name: "张家口", city: "张家口", lat: 40.752, lon: 114.8828 },
+      { id: "zhangdaxi_02", name: "大同南", city: "大同", lat: 40.02, lon: 113.15 },
+      { id: "zhangdaxi_03", name: "朔州东", city: "朔州", lat: 39.32, lon: 112.43 },
+      { id: "zhangdaxi_04", name: "忻州西", city: "忻州", lat: 38.42, lon: 112.73 },
+      { id: "zhangdaxi_05", name: "太原南", city: "太原", lat: 37.78, lon: 112.56 },
+      { id: "zhangdaxi_06", name: "晋中", city: "晋中", lat: 37.68, lon: 112.73 },
+      { id: "zhangdaxi_07", name: "临汾西", city: "临汾", lat: 36.09, lon: 111.5 },
+      { id: "zhangdaxi_08", name: "运城北", city: "运城", lat: 35.07, lon: 110.99 },
+      { id: "lianxulan_08", name: "渭南北", city: "渭南", lat: 34.52, lon: 109.48 },
+      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.38, lon: 108.94 }
     ]
   },
   {
@@ -534,11 +659,11 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；菏泽东、开封北复用既有站点身份",
     stations: [
-      { id: "rila_01", name: "日照西", city: "日照", lat: 35.4160, lon: 119.3540 },
-      { id: "rila_02", name: "临沂北", city: "临沂", lat: 35.1240, lon: 118.3780 },
-      { id: "rila_03", name: "济宁北", city: "济宁", lat: 35.5000, lon: 116.5800 },
-      { id: "jingxiongshang_06", name: "菏泽东", city: "菏泽", lat: 35.2450, lon: 115.5200 },
-      { id: "lianxulan_04", name: "开封北", city: "开封", lat: 34.8200, lon: 114.3500 }
+      { id: "rila_01", name: "日照西", city: "日照", lat: 35.416, lon: 119.354 },
+      { id: "rila_02", name: "临沂北", city: "临沂", lat: 35.124, lon: 118.378 },
+      { id: "rila_03", name: "济宁北", city: "济宁", lat: 35.5, lon: 116.58 },
+      { id: "jingxiongshang_06", name: "菏泽东", city: "菏泽", lat: 35.245, lon: 115.52 },
+      { id: "lianxulan_04", name: "开封北", city: "开封", lat: 34.82, lon: 114.35 }
     ]
   },
   {
@@ -551,13 +676,13 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户指定线路合并；石家庄、太原南、银川复用既有站点身份；巴彦浩特为新终点",
     stations: [
-      { id: "jingguang_03", name: "石家庄", city: "石家庄", lat: 38.0225, lon: 114.4840 },
-      { id: "shita_02", name: "阳泉北", city: "阳泉", lat: 38.0600, lon: 113.6300 },
-      { id: "zhangdaxi_05", name: "太原南", city: "太原", lat: 37.7800, lon: 112.5600 },
+      { id: "jingguang_03", name: "石家庄", city: "石家庄", lat: 38.0225, lon: 114.484 },
+      { id: "shita_02", name: "阳泉北", city: "阳泉", lat: 38.06, lon: 113.63 },
+      { id: "zhangdaxi_05", name: "太原南", city: "太原", lat: 37.78, lon: 112.56 },
       { id: "taiyin_02", name: "吕梁", city: "吕梁", lat: 37.5675, lon: 111.1311 },
-      { id: "xiyubao_04", name: "榆林南", city: "榆林", lat: 38.2190, lon: 109.7340 },
+      { id: "xiyubao_04", name: "榆林南", city: "榆林", lat: 38.219, lon: 109.734 },
       { id: "baoyin_06", name: "银川", city: "银川", lat: 38.4942, lon: 106.1633 },
-      { id: "taiyin_04", name: "巴彦浩特", city: "阿拉善盟", lat: 38.8390, lon: 105.6680 }
+      { id: "taiyin_04", name: "巴彦浩特", city: "巴彦浩特", lat: 38.839, lon: 105.668 }
     ]
   },
   {
@@ -570,10 +695,10 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；成都东复用既有站点身份",
     stations: [
-      { id: "xicheng_06", name: "成都东", city: "成都", lat: 30.6320, lon: 104.1410 },
-      { id: "chengyu_02", name: "资阳北", city: "资阳", lat: 30.1360, lon: 104.6160 },
+      { id: "xicheng_06", name: "成都东", city: "成都", lat: 30.632, lon: 104.141 },
+      { id: "chengyu_02", name: "资阳北", city: "资阳", lat: 30.136, lon: 104.616 },
       { id: "chengyu_03", name: "内江北", city: "内江", lat: 29.6126, lon: 105.0817 },
-      { id: "chengyu_04", name: "重庆西", city: "重庆", lat: 29.5020, lon: 106.4380 }
+      { id: "chengyu_04", name: "重庆西", city: "重庆", lat: 29.502, lon: 106.438 }
     ]
   },
   {
@@ -586,27 +711,10 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；全线复用既有站点身份",
     stations: [
-      { id: "jinghu_06", name: "济南西", city: "济南", lat: 36.6700, lon: 116.9000 },
-      { id: "jingxiongshang_04", name: "聊城西", city: "聊城", lat: 36.4300, lon: 115.9200 },
-      { id: "jingxiongshang_05", name: "濮阳东", city: "濮阳", lat: 35.7700, lon: 115.0600 },
-      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.7600, lon: 113.7700 }
-    ]
-  },
-  {
-    id: "baoyin_high_speed",
-    name: "包银高铁",
-    shortName: "包银",
-    type: "high_speed",
-    typeLabel: "高速",
-    region: "china_mainland",
-    status: "预研线路",
-    source: "用户提供参考坐标；包头复用既有站点身份",
-    stations: [
-      { id: "jingbao_05", name: "包头", city: "包头", note: "与京包高铁衔接", lat: 40.6054, lon: 109.8366 },
-      { id: "baoyin_02", name: "巴彦淖尔", city: "巴彦淖尔", note: "河套平原中心", lat: 40.7336, lon: 107.4048 },
-      { id: "baoyin_04", name: "乌海", city: "乌海", note: "内蒙古西部节点", lat: 39.6689, lon: 106.8010 },
-      { id: "baoyin_05", name: "石嘴山", city: "石嘴山", note: "宁夏北部地级市", lat: 38.9575, lon: 106.3770 },
-      { id: "baoyin_06", name: "银川", city: "银川", note: "宁夏首府、线路终点", lat: 38.4942, lon: 106.1633 }
+      { id: "jinghu_06", name: "济南西", city: "济南", lat: 36.67, lon: 116.9 },
+      { id: "jingxiongshang_04", name: "聊城西", city: "聊城", lat: 36.43, lon: 115.92 },
+      { id: "jingxiongshang_05", name: "濮阳东", city: "濮阳", lat: 35.77, lon: 115.06 },
+      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.76, lon: 113.77 }
     ]
   },
   {
@@ -619,13 +727,13 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；广州南复用既有站点身份",
     stations: [
-      { id: "jingguang_24", name: "广州南", city: "广州", lat: 22.9900, lon: 113.2700 },
-      { id: "nanguang_02", name: "佛山西", city: "佛山", lat: 23.0900, lon: 112.9000 },
-      { id: "nanguang_03", name: "肇庆东", city: "肇庆", lat: 23.1100, lon: 112.6100 },
-      { id: "nanguang_04", name: "云浮东", city: "云浮", lat: 22.9300, lon: 112.0500 },
-      { id: "nanguang_05", name: "梧州南", city: "梧州", lat: 23.5000, lon: 111.2500 },
-      { id: "nanguang_06", name: "贵港", city: "贵港", lat: 23.0900, lon: 109.6100 },
-      { id: "nanguang_07", name: "南宁东", city: "南宁", lat: 22.8400, lon: 108.3700 }
+      { id: "jingguang_24", name: "广州南", city: "广州", lat: 22.99, lon: 113.27 },
+      { id: "nanguang_02", name: "佛山西", city: "佛山", lat: 23.09, lon: 112.9 },
+      { id: "nanguang_03", name: "肇庆东", city: "肇庆", lat: 23.11, lon: 112.61 },
+      { id: "nanguang_04", name: "云浮东", city: "云浮", lat: 22.93, lon: 112.05 },
+      { id: "nanguang_05", name: "梧州南", city: "梧州", lat: 23.5, lon: 111.25 },
+      { id: "nanguang_06", name: "贵港", city: "贵港", lat: 23.09, lon: 109.61 },
+      { id: "nanguang_07", name: "南宁东", city: "南宁", lat: 22.84, lon: 108.37 }
     ]
   },
   {
@@ -638,10 +746,10 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；云浮东、贵港复用既有站点身份",
     stations: [
-      { id: "nanguang_04", name: "云浮东", city: "云浮", lat: 22.9300, lon: 112.0500 },
-      { id: "yuegui_02", name: "茂名", city: "茂名", lat: 21.6600, lon: 110.9200 },
-      { id: "yuegui_03", name: "玉林", city: "玉林", lat: 22.6300, lon: 110.1500 },
-      { id: "nanguang_06", name: "贵港", city: "贵港", lat: 23.0900, lon: 109.6100 }
+      { id: "nanguang_04", name: "云浮东", city: "云浮", lat: 22.93, lon: 112.05 },
+      { id: "yuegui_02", name: "茂名", city: "茂名", lat: 21.66, lon: 110.92 },
+      { id: "yuegui_03", name: "玉林", city: "玉林", lat: 22.63, lon: 110.15 },
+      { id: "nanguang_06", name: "贵港", city: "贵港", lat: 23.09, lon: 109.61 }
     ]
   },
   {
@@ -654,12 +762,12 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；佛山西、云浮东、茂名复用既有站点身份",
     stations: [
-      { id: "nanguang_02", name: "佛山西", city: "佛山", lat: 23.0900, lon: 112.9000 },
-      { id: "nanguang_03", name: "肇庆东", city: "肇庆", lat: 23.1100, lon: 112.6100 },
-      { id: "nanguang_04", name: "云浮东", city: "云浮", lat: 22.9300, lon: 112.0500 },
-      { id: "guangzhan_03", name: "阳江", city: "阳江", lat: 21.8700, lon: 111.9800 },
-      { id: "yuegui_02", name: "茂名", city: "茂名", lat: 21.6600, lon: 110.9200 },
-      { id: "guangzhan_05", name: "湛江北", city: "湛江", lat: 21.2700, lon: 110.3500 }
+      { id: "nanguang_02", name: "佛山西", city: "佛山", lat: 23.09, lon: 112.9 },
+      { id: "nanguang_03", name: "肇庆东", city: "肇庆", lat: 23.11, lon: 112.61 },
+      { id: "nanguang_04", name: "云浮东", city: "云浮", lat: 22.93, lon: 112.05 },
+      { id: "guangzhan_03", name: "阳江", city: "阳江", lat: 21.87, lon: 111.98 },
+      { id: "yuegui_02", name: "茂名", city: "茂名", lat: 21.66, lon: 110.92 },
+      { id: "guangzhan_05", name: "湛江北", city: "湛江", lat: 21.27, lon: 110.35 }
     ]
   },
   {
@@ -672,11 +780,11 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；南宁东、百色、昆明南复用既有站点身份",
     stations: [
-      { id: "nanguang_07", name: "南宁东", city: "南宁", lat: 22.8400, lon: 108.3700 },
-      { id: "nankun_02", name: "百色", city: "百色", lat: 23.9000, lon: 106.6100 },
-      { id: "nankun_03", name: "文山", city: "文山", lat: 23.3700, lon: 104.2400 },
-      { id: "nankun_04", name: "蒙自", city: "蒙自", lat: 23.3700, lon: 103.3800 },
-      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.8740, lon: 102.8620 }
+      { id: "nanguang_07", name: "南宁东", city: "南宁", lat: 22.84, lon: 108.37 },
+      { id: "nankun_02", name: "百色", city: "百色", lat: 23.9, lon: 106.61 },
+      { id: "nankun_03", name: "文山", city: "文山", lat: 23.37, lon: 104.24 },
+      { id: "nankun_04", name: "蒙自", city: "蒙自", lat: 23.37, lon: 103.38 },
+      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.874, lon: 102.862 }
     ]
   },
   {
@@ -689,9 +797,9 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；百色、昆明南复用既有站点身份",
     stations: [
-      { id: "nankun_02", name: "百色", city: "百色", lat: 23.9000, lon: 106.6100 },
-      { id: "nankun_railway_03", name: "兴义", city: "兴义", lat: 25.0900, lon: 104.9000 },
-      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.8740, lon: 102.8620 }
+      { id: "nankun_02", name: "百色", city: "百色", lat: 23.9, lon: 106.61 },
+      { id: "nankun_railway_03", name: "兴义", city: "兴义", lat: 25.09, lon: 104.9 },
+      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.874, lon: 102.862 }
     ]
   },
   {
@@ -704,12 +812,12 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户确认线路方案；重庆西、贵阳北、南宁东复用既有站点身份",
     stations: [
-      { id: "chengyu_04", name: "重庆西", city: "重庆", lat: 29.5020, lon: 106.4380 },
+      { id: "chengyu_04", name: "重庆西", city: "重庆", lat: 29.502, lon: 106.438 },
       { id: "yunan_02", name: "遵义", city: "遵义", lat: 27.7254, lon: 106.9272 },
-      { id: "hukun_18", name: "贵阳北", city: "贵阳", lat: 26.6500, lon: 106.6300 },
-      { id: "yunan_04", name: "都匀东", city: "都匀", lat: 26.2600, lon: 107.5200 },
-      { id: "yunan_05", name: "河池西", city: "河池", lat: 24.6900, lon: 108.0200 },
-      { id: "nanguang_07", name: "南宁东", city: "南宁", lat: 22.8400, lon: 108.3700 }
+      { id: "hukun_18", name: "贵阳北", city: "贵阳", lat: 26.65, lon: 106.63 },
+      { id: "yunan_04", name: "都匀东", city: "都匀", lat: 26.26, lon: 107.52 },
+      { id: "yunan_05", name: "河池西", city: "河池", lat: 24.69, lon: 108.02 },
+      { id: "nanguang_07", name: "南宁东", city: "南宁", lat: 22.84, lon: 108.37 }
     ]
   },
   {
@@ -722,20 +830,53 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；杭州东、惠州北、深圳北复用既有站点身份",
     stations: [
-      { id: "shanghehang_09", name: "杭州东", city: "杭州", lat: 30.3150, lon: 120.2100 },
-      { id: "hangshen_02", name: "绍兴北", city: "绍兴", lat: 30.1090, lon: 120.5360 },
-      { id: "hangshen_03", name: "宁波", city: "宁波", lat: 29.8620, lon: 121.5360 },
-      { id: "hangshen_04", name: "台州西", city: "台州", lat: 28.6570, lon: 121.3040 },
-      { id: "hangshen_05", name: "温州南", city: "温州", lat: 27.9720, lon: 120.5850 },
-      { id: "hangshen_06", name: "宁德", city: "宁德", lat: 26.6650, lon: 119.5880 },
-      { id: "hangshen_07", name: "福州南", city: "福州", lat: 25.9850, lon: 119.3900 },
-      { id: "hangshen_08", name: "莆田", city: "莆田", lat: 25.3550, lon: 119.0630 },
+      { id: "shanghehang_09", name: "杭州东", city: "杭州", lat: 30.315, lon: 120.21 },
+      { id: "hangshen_02", name: "绍兴北", city: "绍兴", lat: 30.109, lon: 120.536 },
+      { id: "hangshen_03", name: "宁波", city: "宁波", lat: 29.862, lon: 121.536 },
+      { id: "hangshen_04", name: "台州西", city: "台州", lat: 28.657, lon: 121.304 },
+      { id: "hangshen_05", name: "温州南", city: "温州", lat: 27.972, lon: 120.585 },
+      { id: "hangshen_06", name: "宁德", city: "宁德", lat: 26.665, lon: 119.588 },
+      { id: "hangshen_07", name: "福州南", city: "福州", lat: 25.985, lon: 119.39 },
+      { id: "hangshen_08", name: "莆田", city: "莆田", lat: 25.355, lon: 119.063 },
       { id: "hangshen_09", name: "泉州东", city: "泉州", lat: 24.9247, lon: 118.7658 },
-      { id: "hangshen_10", name: "厦门北", city: "厦门", lat: 24.6370, lon: 118.0740 },
-      { id: "hangshen_11", name: "漳州", city: "漳州", lat: 24.5030, lon: 117.6640 },
-      { id: "hangshen_12", name: "潮汕", city: "潮州／汕头", lat: 23.5400, lon: 116.5900 },
-      { id: "hangshen_13", name: "汕尾", city: "汕尾", lat: 22.7860, lon: 115.3820 },
-      { id: "heshen_08", name: "惠州北", city: "惠州", lat: 23.1200, lon: 114.4200 }
+      { id: "hangshen_10", name: "厦门北", city: "厦门", lat: 24.637, lon: 118.074 },
+      { id: "hangshen_11", name: "漳州", city: "漳州", lat: 24.503, lon: 117.664 },
+      { id: "hangshen_12", name: "潮汕", city: "揭阳/潮汕", lat: 23.54, lon: 116.59 },
+      { id: "hangshen_13", name: "汕尾", city: "汕尾", lat: 22.786, lon: 115.382 },
+      { id: "heshen_08", name: "惠州北", city: "惠州", lat: 23.12, lon: 114.42 }
+    ]
+  },
+  {
+    id: "hangshen_lishui_branch_high_speed",
+    name: "杭深高铁丽水支线",
+    shortName: "杭深丽水支线",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "支线预研线路",
+    parentLineId: "hangshen_high_speed",
+    networkRole: "branch",
+    source: "用户提供参考坐标；温州南、金华复用既有站点身份",
+    stations: [
+      { id: "hangshen_05", name: "温州南", city: "温州", lat: 27.972, lon: 120.585 },
+      { id: "hangshen_lishui_02", name: "丽水站", city: "丽水", lat: 28.45, lon: 119.919 },
+      { id: "hukun_04", name: "金华", city: "金华", lat: 29.1, lon: 119.65 }
+    ]
+  },
+  {
+    id: "hangshen_zhoushan_branch_high_speed",
+    name: "杭深高铁舟山支线",
+    shortName: "杭深舟山支线",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "支线预研线路",
+    parentLineId: "hangshen_high_speed",
+    networkRole: "branch",
+    source: "用户提供参考坐标；宁波复用既有站点身份",
+    stations: [
+      { id: "hangshen_03", name: "宁波", city: "宁波", lat: 29.862, lon: 121.536 },
+      { id: "hangshen_zhoushan_02", name: "舟山", city: "舟山", lat: 30.016, lon: 122.107 }
     ]
   },
   {
@@ -746,17 +887,18 @@ const RAILWAYS = [
     typeLabel: "高速",
     region: "china_mainland",
     status: "预研线路",
-    source: "用户提供参考坐标；兰州西复用既有站点身份",
+    source: "用户提供线路方向；兰州西、乌鲁木齐和伊宁复用既有站点身份；乌伊段并入兰新高铁",
     stations: [
       { id: "lianxulan_14", name: "兰州西", city: "兰州", lat: 36.0675, lon: 103.7492 },
       { id: "lanxin_02", name: "海东西", city: "海东", lat: 36.5095, lon: 102.0535 },
       { id: "lanxin_03", name: "西宁", city: "西宁", lat: 36.6217, lon: 101.8067 },
-      { id: "lanxin_04", name: "张掖西", city: "张掖", lat: 38.9250, lon: 100.4210 },
+      { id: "lanxin_04", name: "张掖西", city: "张掖", lat: 38.925, lon: 100.421 },
       { id: "lanxin_05", name: "酒泉南", city: "酒泉", lat: 39.7037, lon: 98.5362 },
-      { id: "lanxin_06", name: "嘉峪关南", city: "嘉峪关", lat: 39.6870, lon: 98.2900 },
-      { id: "lanxin_07", name: "哈密", city: "哈密", lat: 42.8200, lon: 93.5150 },
-      { id: "lanxin_08", name: "吐鲁番北", city: "吐鲁番", lat: 43.0160, lon: 89.1830 },
-      { id: "lanxin_09", name: "乌鲁木齐", city: "乌鲁木齐", lat: 43.8310, lon: 87.5350 }
+      { id: "lanxin_06", name: "嘉峪关南", city: "嘉峪关", lat: 39.687, lon: 98.29 },
+      { id: "lanxin_07", name: "哈密", city: "哈密", lat: 42.82, lon: 93.515 },
+      { id: "lanxin_08", name: "吐鲁番北", city: "吐鲁番", lat: 43.016, lon: 89.183 },
+      { id: "lanxin_09", name: "乌鲁木齐", city: "乌鲁木齐", lat: 43.831, lon: 87.535 },
+      { id: "yiku_01", name: "伊宁", city: "伊宁", lat: 43.977, lon: 81.273 }
     ]
   },
   {
@@ -769,32 +911,34 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；兰州西、张掖西复用既有站点身份",
     stations: [
-      { id: "lianxulan_14", name: "兰州西", city: "兰州", lat: 36.0670, lon: 103.7490 },
-      { id: "lanzhang_02", name: "武威东", city: "武威", lat: 37.9200, lon: 102.7100 },
-      { id: "lanzhang_03", name: "金昌南", city: "金昌", lat: 38.4300, lon: 102.1800 },
-      { id: "lanxin_04", name: "张掖西", city: "张掖", lat: 38.9250, lon: 100.4130 }
+      { id: "lianxulan_14", name: "兰州西", city: "兰州", lat: 36.067, lon: 103.749 },
+      { id: "lanzhang_02", name: "武威东", city: "武威", lat: 37.92, lon: 102.71 },
+      { id: "lanzhang_03", name: "金昌南", city: "金昌", lat: 38.43, lon: 102.18 },
+      { id: "lanxin_04", name: "张掖西", city: "张掖", lat: 38.925, lon: 100.413 }
     ]
   },
   {
     id: "jiqing_high_speed",
-    name: "济青高铁",
-    shortName: "济青",
+    name: "济青威高铁",
+    shortName: "济青威",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
     status: "预研线路",
     source: "用户提供参考坐标",
     stations: [
-      { id: "jiqing_01", name: "济南东", city: "济南", lat: 36.7670, lon: 117.2090 },
-      { id: "jiqing_02", name: "淄博北", city: "淄博", lat: 36.8750, lon: 118.1030 },
-      { id: "jiqing_03", name: "潍坊北", city: "潍坊", lat: 36.7800, lon: 119.1550 },
-      { id: "jiqing_04", name: "青岛北", city: "青岛", lat: 36.1690, lon: 120.3760 }
+      { id: "jiqing_01", name: "济南东", city: "济南", lat: 36.767, lon: 117.209 },
+      { id: "jiqing_02", name: "淄博北", city: "淄博", lat: 36.875, lon: 118.103 },
+      { id: "jiqing_03", name: "潍坊北", city: "潍坊", lat: 36.78, lon: 119.155 },
+      { id: "jiqing_04", name: "青岛北", city: "青岛", lat: 36.169, lon: 120.376 },
+      { id: "qingwei_02", name: "烟台南", city: "烟台", lat: 37.431, lon: 121.383 },
+      { id: "qingwei_03", name: "威海", city: "威海", lat: 37.424, lon: 122.109 }
     ]
   },
   {
     id: "jiqing_binlin_branch_high_speed",
-    name: "济青高铁滨临支线",
-    shortName: "济青滨临支线",
+    name: "济青威高铁滨临支线",
+    shortName: "济青威滨临支线",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
@@ -803,9 +947,9 @@ const RAILWAYS = [
     networkRole: "branch",
     source: "用户指定站序；滨州、淄博、临沂复用既有站点身份",
     stations: [
-      { id: "jinwei_02", name: "滨州", city: "滨州", lat: 37.3800, lon: 118.0170 },
-      { id: "jiqing_02", name: "淄博北", city: "淄博", lat: 36.8750, lon: 118.1030 },
-      { id: "rila_02", name: "临沂北", city: "临沂", lat: 35.1240, lon: 118.3780 }
+      { id: "jinwei_02", name: "滨州", city: "滨州", lat: 37.38, lon: 118.017 },
+      { id: "jiqing_02", name: "淄博北", city: "淄博", lat: 36.875, lon: 118.103 },
+      { id: "rila_02", name: "临沂北", city: "临沂", lat: 35.124, lon: 118.378 }
     ]
   },
   {
@@ -818,9 +962,9 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；宝鸡、固原、中卫复用既有站点身份",
     stations: [
-      { id: "lianxulan_11", name: "宝鸡南", city: "宝鸡", lat: 34.3500, lon: 107.1500 },
+      { id: "lianxulan_11", name: "宝鸡南", city: "宝鸡", lat: 34.35, lon: 107.15 },
       { id: "baozhong_02", name: "平凉", city: "平凉", lat: 35.5506, lon: 106.7079 },
-      { id: "baozhong_03", name: "固原", city: "固原", lat: 36.0110, lon: 106.2850 },
+      { id: "baozhong_03", name: "固原", city: "固原", lat: 36.011, lon: 106.285 },
       { id: "yinlan_03", name: "中卫南", city: "中卫", lat: 37.4767, lon: 105.1744 }
     ]
   },
@@ -834,11 +978,11 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；乐山、昆明南复用既有站点身份",
     stations: [
-      { id: "chenggui_03", name: "乐山", city: "乐山", lat: 29.5700, lon: 103.7600 },
-      { id: "chengkun_02", name: "西昌西", city: "凉山州", lat: 27.8718, lon: 102.1591 },
+      { id: "chenggui_03", name: "乐山", city: "乐山", lat: 29.57, lon: 103.76 },
+      { id: "chengkun_02", name: "西昌西", city: "西昌", lat: 27.8718, lon: 102.1591 },
       { id: "chengkun_03", name: "攀枝花南", city: "攀枝花", lat: 26.4714, lon: 101.7463 },
-      { id: "chengkun_04", name: "楚雄", city: "楚雄州", lat: 25.0360, lon: 101.5460 },
-      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.8740, lon: 102.8620 }
+      { id: "chengkun_04", name: "楚雄", city: "楚雄", lat: 25.036, lon: 101.546 },
+      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.874, lon: 102.862 }
     ]
   },
   {
@@ -851,41 +995,24 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；昆明南复用既有站点身份",
     stations: [
-      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.8740, lon: 102.8620 },
-      { id: "kunmo_02", name: "玉溪", city: "玉溪", lat: 24.3510, lon: 102.5420 },
-      { id: "kunmo_03", name: "普洱", city: "普洱", lat: 22.7890, lon: 100.9810 },
-      { id: "kunmo_04", name: "景洪", city: "西双版纳州", lat: 22.0060, lon: 100.7970 }
-    ]
-  },
-  {
-    id: "darui_conventional",
-    name: "大瑞铁路",
-    shortName: "大瑞",
-    type: "conventional",
-    typeLabel: "普速",
-    region: "china_mainland",
-    status: "普速预研线路",
-    source: "用户提供参考坐标；大理复用既有站点身份",
-    stations: [
-      { id: "diancang_03", name: "大理", city: "大理州", lat: 25.5920, lon: 100.2485 },
-      { id: "darui_02", name: "保山", city: "保山", lat: 25.1270, lon: 99.1770 },
-      { id: "darui_03", name: "芒市", city: "德宏州", lat: 24.4340, lon: 98.5840 }
+      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.874, lon: 102.862 },
+      { id: "kunmo_02", name: "玉溪", city: "玉溪", lat: 24.351, lon: 102.542 },
+      { id: "kunmo_03", name: "普洱", city: "普洱", lat: 22.789, lon: 100.981 },
+      { id: "kunmo_04", name: "景洪", city: "景洪", lat: 22.006, lon: 100.797 }
     ]
   },
   {
     id: "darui_lushui_branch_conventional",
-    name: "大瑞铁路泸水支线",
-    shortName: "大瑞泸水支线",
+    name: "保山—泸水铁路",
+    shortName: "保泸",
     type: "conventional",
     typeLabel: "普速",
     region: "china_mainland",
-    status: "支线预研线路",
-    parentLineId: "darui_conventional",
-    networkRole: "branch",
-    source: "用户提供参考坐标；保山复用大瑞铁路既有站点身份",
+    status: "普速预研线路",
+    source: "原中缅泸水支线；父线海外段已移除，暂作独立境内预研线",
     stations: [
-      { id: "darui_02", name: "保山", city: "保山", lat: 25.1270, lon: 99.1770 },
-      { id: "darui_lushui_02", name: "泸水", city: "怒江州", lat: 25.8510, lon: 98.8570 }
+      { id: "darui_02", name: "保山", city: "保山", lat: 25.127, lon: 99.177 },
+      { id: "darui_lushui_02", name: "泸水", city: "泸水", lat: 25.851, lon: 98.857 }
     ]
   },
   {
@@ -900,9 +1027,9 @@ const RAILWAYS = [
     networkRole: "branch",
     source: "用户指定站序；普洱、临沧、大理复用既有站点身份",
     stations: [
-      { id: "kunmo_03", name: "普洱", city: "普洱", lat: 22.7890, lon: 100.9810 },
-      { id: "dalin_02", name: "临沧", city: "临沧", lat: 23.8860, lon: 100.0880 },
-      { id: "diancang_03", name: "大理", city: "大理州", lat: 25.5920, lon: 100.2485 }
+      { id: "kunmo_03", name: "普洱", city: "普洱", lat: 22.789, lon: 100.981 },
+      { id: "dalin_02", name: "临沧", city: "临沧", lat: 23.886, lon: 100.088 },
+      { id: "diancang_03", name: "大理", city: "大理", lat: 25.592, lon: 100.2485 }
     ]
   },
   {
@@ -913,14 +1040,31 @@ const RAILWAYS = [
     typeLabel: "高速",
     region: "china_mainland",
     status: "预研线路",
-    source: "用户提供参考坐标；哈尔滨复用既有站点身份",
+    source: "用户提供参考坐标；哈尔滨复用既有站点身份；鹤岗为延伸终点",
     stations: [
-      { id: "jingha_09", name: "哈尔滨西", city: "哈尔滨", lat: 45.7070, lon: 126.5770 },
+      { id: "jingha_09", name: "哈尔滨西", city: "哈尔滨", lat: 45.707, lon: 126.577 },
       { id: "hamujia_02", name: "牡丹江", city: "牡丹江", lat: 44.5877, lon: 129.6065 },
       { id: "hamujia_03", name: "鸡西西", city: "鸡西", lat: 45.3088, lon: 130.8148 },
       { id: "hamujia_04", name: "七台河西", city: "七台河", lat: 45.7423, lon: 130.7737 },
       { id: "hamujia_05", name: "双鸭山西", city: "双鸭山", lat: 46.7054, lon: 131.0846 },
-      { id: "hamujia_06", name: "佳木斯", city: "佳木斯", lat: 46.8040, lon: 130.3836 }
+      { id: "hamujia_06", name: "佳木斯", city: "佳木斯", lat: 46.804, lon: 130.3836 },
+      { id: "hamujia_07", name: "鹤岗市", city: "鹤岗", lat: 47.35, lon: 130.297 }
+    ]
+  },
+  {
+    id: "hayi_high_speed",
+    name: "哈伊高铁",
+    shortName: "哈伊",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "预研线路",
+    source: "用户提供参考坐标；哈尔滨复用既有站点身份；黑河为哈伊黑通道终点",
+    stations: [
+      { id: "jingha_09", name: "哈尔滨西", city: "哈尔滨", lat: 45.707, lon: 126.577 },
+      { id: "hayi_02", name: "绥化", city: "绥化", lat: 46.646, lon: 126.99 },
+      { id: "hayi_03", name: "伊春", city: "伊春", lat: 47.728, lon: 128.84 },
+      { id: "hayi_04", name: "黑河", city: "黑河", lat: 50.245, lon: 127.528 }
     ]
   },
   {
@@ -933,18 +1077,18 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；萍乡北、吉安西、赣州西、漳州、厦门北复用既有站点身份",
     stations: [
-      { id: "yuxia_01", name: "重庆东", city: "重庆", lat: 29.5000, lon: 106.6500 },
-      { id: "yuxia_02", name: "黔江", city: "重庆黔江", lat: 29.4750, lon: 108.7700 },
-      { id: "yuxia_03", name: "张家界西", city: "张家界", lat: 29.1300, lon: 110.4500 },
-      { id: "yuxia_04", name: "常德", city: "常德", lat: 29.0550, lon: 111.7000 },
-      { id: "yuxia_05", name: "益阳南", city: "益阳", lat: 28.5250, lon: 112.3550 },
-      { id: "yuxia_06", name: "长沙西", city: "长沙", lat: 28.3200, lon: 112.8050 },
-      { id: "hukun_11", name: "萍乡北", city: "萍乡", lat: 27.6200, lon: 113.9000 },
-      { id: "heshen_05", name: "吉安西", city: "吉安", lat: 27.1000, lon: 114.9800 },
-      { id: "heshen_06", name: "赣州西", city: "赣州", lat: 25.8200, lon: 114.9200 },
-      { id: "yuxia_10", name: "龙岩", city: "龙岩", lat: 25.0950, lon: 117.0150 },
-      { id: "hangshen_11", name: "漳州", city: "漳州", lat: 24.5030, lon: 117.6640 },
-      { id: "hangshen_10", name: "厦门北", city: "厦门", lat: 24.6370, lon: 118.0740 }
+      { id: "yuxia_01", name: "重庆东", city: "重庆", lat: 29.5, lon: 106.65 },
+      { id: "yuxia_02", name: "黔江", city: "黔江", lat: 29.475, lon: 108.77 },
+      { id: "yuxia_03", name: "张家界西", city: "张家界", lat: 29.13, lon: 110.45 },
+      { id: "yuxia_04", name: "常德", city: "常德", lat: 29.055, lon: 111.7 },
+      { id: "yuxia_05", name: "益阳南", city: "益阳", lat: 28.525, lon: 112.355 },
+      { id: "yuxia_06", name: "长沙西", city: "长沙", lat: 28.32, lon: 112.805 },
+      { id: "hukun_11", name: "萍乡北", city: "萍乡", lat: 27.62, lon: 113.9 },
+      { id: "heshen_05", name: "吉安西", city: "吉安", lat: 27.1, lon: 114.98 },
+      { id: "heshen_06", name: "赣州西", city: "赣州", lat: 25.82, lon: 114.92 },
+      { id: "yuxia_10", name: "龙岩", city: "龙岩", lat: 25.095, lon: 117.015 },
+      { id: "hangshen_11", name: "漳州", city: "漳州", lat: 24.503, lon: 117.664 },
+      { id: "hangshen_10", name: "厦门北", city: "厦门", lat: 24.637, lon: 118.074 }
     ]
   },
   {
@@ -957,29 +1101,31 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；合肥南、芜湖、上饶、福州南复用既有站点身份",
     stations: [
-      { id: "shanghehang_05", name: "合肥南", city: "合肥", lat: 31.7800, lon: 117.3000 },
-      { id: "shanghehang_06", name: "芜湖", city: "芜湖", lat: 31.3400, lon: 118.3900 },
-      { id: "hefu_03", name: "铜陵北", city: "铜陵", lat: 30.9450, lon: 117.8400 },
-      { id: "hefu_04", name: "黄山北", city: "黄山", lat: 29.8150, lon: 118.2950 },
-      { id: "hukun_06", name: "上饶", city: "上饶", lat: 28.4500, lon: 117.9700 },
-      { id: "hefu_06", name: "南平", city: "南平", lat: 27.6550, lon: 118.0800 },
-      { id: "hangshen_07", name: "福州南", city: "福州", lat: 25.9850, lon: 119.3900 }
+      { id: "shanghehang_05", name: "合肥南", city: "合肥", lat: 31.78, lon: 117.3 },
+      { id: "shanghehang_06", name: "芜湖", city: "芜湖", lat: 31.34, lon: 118.39 },
+      { id: "hefu_03", name: "铜陵北", city: "铜陵", lat: 30.945, lon: 117.84 },
+      { id: "hefu_04", name: "黄山北", city: "黄山", lat: 29.815, lon: 118.295 },
+      { id: "hukun_06", name: "上饶", city: "上饶", lat: 28.45, lon: 117.97 },
+      { id: "hefu_06", name: "南平", city: "南平", lat: 27.655, lon: 118.08 },
+      { id: "hangshen_07", name: "福州南", city: "福州", lat: 25.985, lon: 119.39 }
     ]
   },
   {
     id: "heanqihuang_high_speed",
-    name: "合安池黄高铁",
-    shortName: "合安池黄",
+    name: "合福高铁安池支线",
+    shortName: "合福安池支线",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
+    status: "支线预研线路",
+    parentLineId: "hefu_high_speed",
+    networkRole: "branch",
     source: "用户提供参考坐标；合肥南、黄山北复用既有站点身份",
     stations: [
-      { id: "shanghehang_05", name: "合肥南", city: "合肥", lat: 31.7800, lon: 117.3000 },
-      { id: "heanqihuang_02", name: "安庆站", city: "安庆", lat: 30.5430, lon: 117.0630 },
-      { id: "heanqihuang_03", name: "池州站", city: "池州", lat: 30.6640, lon: 117.4910 },
-      { id: "hefu_04", name: "黄山北", city: "黄山", lat: 29.8150, lon: 118.2950 }
+      { id: "shanghehang_05", name: "合肥南", city: "合肥", lat: 31.78, lon: 117.3 },
+      { id: "heanqihuang_02", name: "安庆站", city: "安庆", lat: 30.543, lon: 117.063 },
+      { id: "heanqihuang_03", name: "池州站", city: "池州", lat: 30.664, lon: 117.491 },
+      { id: "hefu_04", name: "黄山北", city: "黄山", lat: 29.815, lon: 118.295 }
     ]
   },
   {
@@ -992,28 +1138,30 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；襄阳东、汉口复用既有站点身份",
     stations: [
-      { id: "xiwu_01", name: "西安东", city: "西安", lat: 34.2490, lon: 109.1370 },
-      { id: "xiwu_02", name: "商洛西", city: "商洛", lat: 33.8720, lon: 109.8340 },
-      { id: "xiwu_03", name: "十堰东", city: "十堰", lat: 32.6460, lon: 110.8540 },
-      { id: "zhengyu_04", name: "襄阳东", city: "襄阳", lat: 32.0400, lon: 112.2000 },
-      { id: "xiwu_05", name: "随州南", city: "随州", lat: 31.6350, lon: 113.3820 },
-      { id: "huyurong_08", name: "汉口", city: "武汉", lat: 30.6200, lon: 114.2700 }
+      { id: "xiwu_01", name: "西安东", city: "西安", lat: 34.249, lon: 109.137 },
+      { id: "xiwu_02", name: "商洛西", city: "商洛", lat: 33.872, lon: 109.834 },
+      { id: "xiwu_03", name: "十堰东", city: "十堰", lat: 32.646, lon: 110.854 },
+      { id: "zhengyu_04", name: "襄阳东", city: "襄阳", lat: 32.04, lon: 112.2 },
+      { id: "xiwu_05", name: "随州南", city: "随州", lat: 31.635, lon: 113.382 },
+      { id: "huyurong_08", name: "汉口", city: "武汉", lat: 30.62, lon: 114.27 }
     ]
   },
   {
-    id: "hanshi_high_speed",
-    name: "汉十南高铁",
-    shortName: "汉十南",
+    id: "hannanxinhe_high_speed",
+    name: "汉南信合高铁",
+    shortName: "汉南信合",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
     status: "预研线路",
-    source: "用户指定站序；汉中、安康、十堰、南阳复用既有站点身份",
+    source: "用户指定线路合并；汉中、安康、十堰、南阳、信阳、六安复用既有站点身份",
     stations: [
-      { id: "xicheng_02", name: "汉中", city: "汉中", lat: 33.0630, lon: 107.0230 },
-      { id: "xiyu_02", name: "安康西", city: "安康", lat: 32.7330, lon: 108.9464 },
-      { id: "xiwu_03", name: "十堰东", city: "十堰", lat: 32.6460, lon: 110.8540 },
-      { id: "zhengyu_03", name: "南阳东", city: "南阳", lat: 32.9800, lon: 112.6000 }
+      { id: "xicheng_02", name: "汉中", city: "汉中", lat: 33.063, lon: 107.023 },
+      { id: "xiyu_02", name: "安康西", city: "安康", lat: 32.733, lon: 108.9464 },
+      { id: "xiwu_03", name: "十堰东", city: "十堰", lat: 32.646, lon: 110.854 },
+      { id: "zhengyu_03", name: "南阳东", city: "南阳", lat: 32.98, lon: 112.6 },
+      { id: "jingguang_13", name: "信阳东", city: "信阳", lat: 32.15, lon: 114.12 },
+      { id: "heshen_02", name: "六安", city: "六安", lat: 31.75, lon: 116.5 }
     ]
   },
   {
@@ -1026,11 +1174,11 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；沈阳北复用既有站点身份",
     stations: [
-      { id: "jingha_05", name: "沈阳北", city: "沈阳", lat: 41.8170, lon: 123.4360 },
-      { id: "shenda_02", name: "辽阳", city: "辽阳", lat: 41.2700, lon: 123.1740 },
-      { id: "shenda_03", name: "鞍山西", city: "鞍山", lat: 41.1080, lon: 122.9220 },
-      { id: "shenda_04", name: "营口东", city: "营口", lat: 40.6250, lon: 122.3580 },
-      { id: "shenda_05", name: "大连北", city: "大连", lat: 39.0140, lon: 121.6150 }
+      { id: "jingha_05", name: "沈阳北", city: "沈阳", lat: 41.817, lon: 123.436 },
+      { id: "shenda_02", name: "辽阳", city: "辽阳", lat: 41.27, lon: 123.174 },
+      { id: "shenda_03", name: "鞍山西", city: "鞍山", lat: 41.108, lon: 122.922 },
+      { id: "shenda_04", name: "营口东", city: "营口", lat: 40.625, lon: 122.358 },
+      { id: "shenda_05", name: "大连北", city: "大连", lat: 39.014, lon: 121.615 }
     ]
   },
   {
@@ -1045,9 +1193,88 @@ const RAILWAYS = [
     networkRole: "branch",
     source: "用户提供参考坐标；营口东复用沈大高铁主线站点身份",
     stations: [
-      { id: "jinqinshen_05", name: "锦州南", city: "锦州", sourceLat: 41.0172, sourceLon: 121.1254, lat: 41.0600, lon: 121.1510 },
-      { id: "shenda_branch_02", name: "盘锦", city: "盘锦", lat: 41.1240, lon: 122.0700 },
-      { id: "shenda_04", name: "营口东", city: "营口", sourceLat: 40.6195, sourceLon: 122.4260, lat: 40.6250, lon: 122.3580 }
+      { id: "jinqinshen_05", name: "锦州南", city: "锦州", sourceLat: 41.0172, sourceLon: 121.1254, lat: 41.06, lon: 121.151 },
+      { id: "shenda_branch_02", name: "盘锦", city: "盘锦", lat: 41.124, lon: 122.07 },
+      { id: "shenda_04", name: "营口东", city: "营口", sourceLat: 40.6195, sourceLon: 122.426, lat: 40.625, lon: 122.358 }
+    ]
+  },
+  {
+    id: "jingha_futong_branch_high_speed",
+    name: "京哈高铁抚通支线",
+    shortName: "京哈抚通支线",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "支线预研线路",
+    parentLineId: "jingha_high_speed",
+    networkRole: "branch",
+    source: "用户提供参考坐标；沈阳北复用既有站点身份",
+    stations: [
+      { id: "jingha_05", name: "沈阳北", city: "沈阳", lat: 41.817, lon: 123.436 },
+      { id: "shenfu_02", name: "抚顺", city: "抚顺", lat: 41.88, lon: 123.957 },
+      { id: "changtongbai_03", name: "通化站", city: "通化", lat: 41.728, lon: 125.939 }
+    ]
+  },
+  {
+    id: "changtongbai_high_speed",
+    name: "长通白高铁",
+    shortName: "长通白",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "预研线路",
+    source: "用户提供参考坐标；长春复用既有站点身份",
+    stations: [
+      { id: "jingha_08", name: "长春西", city: "长春", lat: 43.877, lon: 125.201 },
+      { id: "changtongbai_02", name: "辽源站", city: "辽源", lat: 42.902, lon: 125.145 },
+      { id: "changtongbai_03", name: "通化站", city: "通化", lat: 41.728, lon: 125.939 },
+      { id: "changtongbai_04", name: "白山站", city: "白山", lat: 41.944, lon: 126.418 }
+    ]
+  },
+  {
+    id: "changjisui_high_speed",
+    name: "长吉珲高铁",
+    shortName: "长吉珲",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "预研线路",
+    source: "用户提供参考坐标；长春复用既有站点身份；本线暂到延吉",
+    stations: [
+      { id: "jingha_08", name: "长春西", city: "长春", lat: 43.877, lon: 125.201 },
+      { id: "changjisui_02", name: "吉林市", city: "吉林市", lat: 43.837, lon: 126.55 },
+      { id: "changjisui_03", name: "延吉", city: "延吉", lat: 42.906, lon: 129.515 }
+    ]
+  },
+  {
+    id: "changsongbai_high_speed",
+    name: "长松白高铁",
+    shortName: "长松白",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "预研线路",
+    source: "用户提供参考坐标；长春复用既有站点身份；乌兰浩特复用通海铁路节点",
+    stations: [
+      { id: "jingha_08", name: "长春西", city: "长春", lat: 43.877, lon: 125.201 },
+      { id: "changsongbai_02", name: "松原", city: "松原", lat: 45.141, lon: 124.825 },
+      { id: "changsongbai_03", name: "白城", city: "白城", lat: 45.619, lon: 122.838 },
+      { id: "tonghai_02", name: "乌兰浩特", city: "乌兰浩特", lat: 46.072, lon: 122.093 }
+    ]
+  },
+  {
+    id: "shendan_high_speed",
+    name: "沈丹高铁",
+    shortName: "沈丹",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "预研线路",
+    source: "用户提供参考坐标；沈阳北、丹东复用既有站点身份",
+    stations: [
+      { id: "jingha_05", name: "沈阳北", city: "沈阳", lat: 41.817, lon: 123.436 },
+      { id: "shendan_02", name: "本溪", city: "本溪", lat: 41.294, lon: 123.766 },
+      { id: "danda_01", name: "丹东", city: "丹东", lat: 40.129, lon: 124.397 }
     ]
   },
   {
@@ -1060,8 +1287,8 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；大连北复用既有站点身份",
     stations: [
-      { id: "danda_01", name: "丹东", city: "丹东", lat: 40.1290, lon: 124.3970 },
-      { id: "shenda_05", name: "大连北", city: "大连", lat: 39.0140, lon: 121.6150 }
+      { id: "danda_01", name: "丹东", city: "丹东", lat: 40.129, lon: 124.397 },
+      { id: "shenda_05", name: "大连北", city: "大连", lat: 39.014, lon: 121.615 }
     ]
   },
   {
@@ -1074,12 +1301,12 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；沈阳北复用既有站点身份",
     stations: [
-      { id: "jinqinshen_01", name: "天津", city: "天津", lat: 39.1420, lon: 117.1760 },
-      { id: "jinqinshen_02", name: "唐山", city: "唐山", lat: 39.6320, lon: 118.1800 },
-      { id: "jinqinshen_03", name: "秦皇岛", city: "秦皇岛", lat: 39.9490, lon: 119.6040 },
-      { id: "jinqinshen_04", name: "葫芦岛北", city: "葫芦岛", lat: 40.7560, lon: 120.8400 },
-      { id: "jinqinshen_05", name: "锦州南", city: "锦州", lat: 41.0600, lon: 121.1510 },
-      { id: "jingha_05", name: "沈阳北", city: "沈阳", lat: 41.8170, lon: 123.4360 }
+      { id: "jinqinshen_01", name: "天津", city: "天津", lat: 39.142, lon: 117.176 },
+      { id: "jinqinshen_02", name: "唐山", city: "唐山", lat: 39.632, lon: 118.18 },
+      { id: "jinqinshen_03", name: "秦皇岛", city: "秦皇岛", lat: 39.949, lon: 119.604 },
+      { id: "jinqinshen_04", name: "葫芦岛北", city: "葫芦岛", lat: 40.756, lon: 120.84 },
+      { id: "jinqinshen_05", name: "锦州南", city: "锦州", lat: 41.06, lon: 121.151 },
+      { id: "jingha_05", name: "沈阳北", city: "沈阳", lat: 41.817, lon: 123.436 }
     ]
   },
   {
@@ -1092,10 +1319,10 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；潍坊北复用既有站点身份",
     stations: [
-      { id: "jinwei_01", name: "滨海", city: "天津", lat: 39.0320, lon: 117.7100 },
-      { id: "jinwei_02", name: "滨州", city: "滨州", lat: 37.3800, lon: 118.0170 },
-      { id: "jinwei_03", name: "东营南", city: "东营", lat: 37.3870, lon: 118.6730 },
-      { id: "jiqing_03", name: "潍坊北", city: "潍坊", lat: 36.7800, lon: 119.1550 }
+      { id: "jinwei_01", name: "滨海", city: "天津", lat: 39.032, lon: 117.71 },
+      { id: "jinwei_02", name: "滨州", city: "滨州", lat: 37.38, lon: 118.017 },
+      { id: "jinwei_03", name: "东营南", city: "东营", lat: 37.387, lon: 118.673 },
+      { id: "jiqing_03", name: "潍坊北", city: "潍坊", lat: 36.78, lon: 119.155 }
     ]
   },
   {
@@ -1108,23 +1335,25 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；连云港、南通复用既有站点身份",
     stations: [
-      { id: "lianxulan_01", name: "连云港", city: "连云港", lat: 34.6000, lon: 119.2200 },
-      { id: "liuyantong_02", name: "盐城", city: "盐城", lat: 33.3470, lon: 120.1610 },
-      { id: "huyurong_02", name: "南通", city: "南通", lat: 31.9800, lon: 120.9000 }
+      { id: "lianxulan_01", name: "连云港", city: "连云港", lat: 34.6, lon: 119.22 },
+      { id: "liuyantong_02", name: "盐城", city: "盐城", lat: 33.347, lon: 120.161 },
+      { id: "huyurong_02", name: "南通", city: "南通", lat: 31.98, lon: 120.9 }
     ]
   },
   {
-    id: "nanping_high_speed",
-    name: "南凭高铁",
-    shortName: "南凭",
+    id: "xuyan_high_speed",
+    name: "徐盐高铁",
+    shortName: "徐盐",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
     status: "预研线路",
-    source: "用户指定先行建设南宁至崇左段；南宁东复用既有站点身份",
+    source: "用户提供参考坐标；徐州东、盐城复用既有站点身份",
     stations: [
-      { id: "nanguang_07", name: "南宁东", city: "南宁", lat: 22.8400, lon: 108.3700 },
-      { id: "nanping_02", name: "崇左", city: "崇左", lat: 22.3830, lon: 107.3650 }
+      { id: "jinghu_09", name: "徐州东", city: "徐州", lat: 34.265, lon: 117.28 },
+      { id: "xuyan_02", name: "宿迁站", city: "宿迁", lat: 33.94, lon: 118.296 },
+      { id: "xuyan_03", name: "淮安东站", city: "淮安", lat: 33.627, lon: 119.104 },
+      { id: "liuyantong_02", name: "盐城", city: "盐城", lat: 33.347, lon: 120.161 }
     ]
   },
   {
@@ -1137,10 +1366,10 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；南宁东、湛江北复用既有站点身份",
     stations: [
-      { id: "nanguang_07", name: "南宁东", city: "南宁", lat: 22.8400, lon: 108.3700 },
-      { id: "nanzhan_02", name: "钦州东", city: "钦州", lat: 21.9600, lon: 108.6500 },
-      { id: "nanzhan_03", name: "北海", city: "北海", lat: 21.4800, lon: 109.1200 },
-      { id: "guangzhan_05", name: "湛江北", city: "湛江", lat: 21.2700, lon: 110.3500 }
+      { id: "nanguang_07", name: "南宁东", city: "南宁", lat: 22.84, lon: 108.37 },
+      { id: "nanzhan_02", name: "钦州东", city: "钦州", lat: 21.96, lon: 108.65 },
+      { id: "nanzhan_03", name: "北海", city: "北海", lat: 21.48, lon: 109.12 },
+      { id: "guangzhan_05", name: "湛江北", city: "湛江", lat: 21.27, lon: 110.35 }
     ]
   },
   {
@@ -1155,8 +1384,8 @@ const RAILWAYS = [
     networkRole: "branch",
     source: "用户指定支线；钦州东复用南湛高铁既有站点身份",
     stations: [
-      { id: "nanzhan_02", name: "钦州东", city: "钦州", lat: 21.9600, lon: 108.6500 },
-      { id: "nanzhan_fangchenggang_02", name: "防城港北", city: "防城港", lat: 21.6870, lon: 108.3540 }
+      { id: "nanzhan_02", name: "钦州东", city: "钦州", lat: 21.96, lon: 108.65 },
+      { id: "nanzhan_fangchenggang_02", name: "防城港北", city: "防城港", lat: 21.687, lon: 108.354 }
     ]
   },
   {
@@ -1169,10 +1398,10 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户指定使用既有站点身份",
     stations: [
-      { id: "zhengyu_04", name: "襄阳东", city: "襄阳", lat: 32.0400, lon: 112.2000 },
-      { id: "huyurong_10", name: "荆门西", city: "荆门", lat: 31.0500, lon: 112.1600 },
-      { id: "huyurong_11", name: "宜昌北", city: "宜昌", lat: 30.7600, lon: 111.3000 },
-      { id: "yuxia_04", name: "常德", city: "常德", lat: 29.0550, lon: 111.7000 }
+      { id: "zhengyu_04", name: "襄阳东", city: "襄阳", lat: 32.04, lon: 112.2 },
+      { id: "huyurong_10", name: "荆门西", city: "荆门", lat: 31.05, lon: 112.16 },
+      { id: "huyurong_11", name: "宜昌北", city: "宜昌", lat: 30.76, lon: 111.3 },
+      { id: "yuxia_04", name: "常德", city: "常德", lat: 29.055, lon: 111.7 }
     ]
   },
   {
@@ -1185,12 +1414,12 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；衡阳东、桂林西、来宾北、南宁东复用既有站点身份",
     stations: [
-      { id: "jingguang_20", name: "衡阳东", city: "衡阳", sourceLat: 26.8997, sourceLon: 112.7045, lat: 26.8500, lon: 112.6200 },
+      { id: "jingguang_20", name: "衡阳东", city: "衡阳", sourceLat: 26.8997, sourceLon: 112.7045, lat: 26.85, lon: 112.62 },
       { id: "nanheng_02", name: "永州", city: "永州", lat: 26.4577, lon: 111.5655 },
       { id: "guigang_03", name: "桂林西", city: "桂林", sourceLat: 25.3315, sourceLon: 110.2982, lat: 25.3575, lon: 110.2625 },
       { id: "nanheng_04", name: "柳州", city: "柳州", lat: 24.3105, lon: 109.3834 },
-      { id: "nanheng_05", name: "来宾北", city: "来宾", lat: 23.7330, lon: 109.2290 },
-      { id: "nanguang_07", name: "南宁东", city: "南宁", sourceLat: 22.8446, sourceLon: 108.4100, lat: 22.8400, lon: 108.3700 }
+      { id: "nanheng_05", name: "来宾北", city: "来宾", lat: 23.733, lon: 109.229 },
+      { id: "nanguang_07", name: "南宁东", city: "南宁", sourceLat: 22.8446, sourceLon: 108.41, lat: 22.84, lon: 108.37 }
     ]
   },
   {
@@ -1203,8 +1432,8 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；益阳南、娄底南、永州复用既有站点身份",
     stations: [
-      { id: "yuxia_05", name: "益阳南", city: "益阳", lat: 28.5250, lon: 112.3550 },
-      { id: "hukun_15", name: "娄底南", city: "娄底", lat: 27.7000, lon: 112.0000 },
+      { id: "yuxia_05", name: "益阳南", city: "益阳", lat: 28.525, lon: 112.355 },
+      { id: "hukun_15", name: "娄底南", city: "娄底", lat: 27.7, lon: 112 },
       { id: "yishaoyong_02", name: "邵阳", city: "邵阳", lat: 27.2136, lon: 111.4611 },
       { id: "nanheng_02", name: "永州", city: "永州", lat: 26.4577, lon: 111.5655 }
     ]
@@ -1221,23 +1450,25 @@ const RAILWAYS = [
     networkRole: "branch",
     source: "用户指定站序；怀化南、桂林西复用既有站点身份",
     stations: [
-      { id: "hukun_16", name: "怀化南", city: "怀化", lat: 27.5500, lon: 109.9600 },
+      { id: "hukun_16", name: "怀化南", city: "怀化", lat: 27.55, lon: 109.96 },
       { id: "guigang_03", name: "桂林西", city: "桂林", lat: 25.3575, lon: 110.2625 }
     ]
   },
   {
     id: "changjiu_high_speed",
-    name: "常九高铁",
-    shortName: "常九",
+    name: "渝厦高铁常九支线",
+    shortName: "渝厦常九支线",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
-    source: "用户指定站序；常德、岳阳、九江复用既有站点身份",
+    status: "支线预研线路",
+    parentLineId: "yuxia_high_speed",
+    networkRole: "branch",
+    source: "用户指定线路调整；复用渝厦高铁常德站与既有岳阳、九江站点身份",
     stations: [
-      { id: "yuxia_04", name: "常德", city: "常德", lat: 29.0550, lon: 111.7000 },
-      { id: "jingguang_17", name: "岳阳东", city: "岳阳", lat: 29.3800, lon: 113.1600 },
-      { id: "heshen_03", name: "九江", city: "九江", lat: 29.7200, lon: 115.9800 }
+      { id: "yuxia_04", name: "常德", city: "常德", lat: 29.055, lon: 111.7 },
+      { id: "jingguang_17", name: "岳阳东", city: "岳阳", lat: 29.38, lon: 113.16 },
+      { id: "heshen_03", name: "九江", city: "九江", lat: 29.72, lon: 115.98 }
     ]
   },
   {
@@ -1250,8 +1481,8 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；湛江北复用既有站点身份",
     stations: [
-      { id: "guangzhan_05", name: "湛江北", city: "湛江", sourceLat: 21.2730, sourceLon: 110.3570, lat: 21.2700, lon: 110.3500 },
-      { id: "zhanhai_02", name: "海口北", city: "海口", lat: 20.0500, lon: 110.1600 }
+      { id: "guangzhan_05", name: "湛江北", city: "湛江", sourceLat: 21.273, sourceLon: 110.357, lat: 21.27, lon: 110.35 },
+      { id: "zhanhai_02", name: "海口北", city: "海口", lat: 20.05, lon: 110.16 }
     ]
   },
   {
@@ -1265,25 +1496,10 @@ const RAILWAYS = [
     closed: true,
     source: "用户提供参考坐标；海口北复用湛海高铁站点身份",
     stations: [
-      { id: "zhanhai_02", name: "海口北", city: "海口", lat: 20.0500, lon: 110.1600 },
-      { id: "hainanring_02", name: "琼海", city: "琼海", lat: 19.2580, lon: 110.4740 },
-      { id: "hainanring_03", name: "三亚", city: "三亚", lat: 18.2520, lon: 109.5120 },
-      { id: "hainanring_04", name: "儋州", city: "儋州", lat: 19.7090, lon: 109.2000 }
-    ]
-  },
-  {
-    id: "qingwei_high_speed",
-    name: "青威城际",
-    shortName: "青威",
-    type: "high_speed",
-    typeLabel: "高速",
-    region: "china_mainland",
-    status: "预研线路",
-    source: "用户提供参考坐标；青岛北复用既有站点身份",
-    stations: [
-      { id: "jiqing_04", name: "青岛北", city: "青岛", lat: 36.1690, lon: 120.3760 },
-      { id: "qingwei_02", name: "烟台南", city: "烟台", lat: 37.4310, lon: 121.3830 },
-      { id: "qingwei_03", name: "威海", city: "威海", lat: 37.4240, lon: 122.1090 }
+      { id: "zhanhai_02", name: "海口北", city: "海口", lat: 20.05, lon: 110.16 },
+      { id: "hainanring_02", name: "琼海", city: "琼海", lat: 19.258, lon: 110.474 },
+      { id: "hainanring_03", name: "三亚", city: "三亚", lat: 18.252, lon: 109.512 },
+      { id: "hainanring_04", name: "儋州", city: "儋州", lat: 19.709, lon: 109.2 }
     ]
   },
   {
@@ -1296,12 +1512,12 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；郑州东、晋中、太原南复用既有站点身份",
     stations: [
-      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.7580, lon: 113.7690 },
-      { id: "zhengtai_02", name: "焦作", city: "焦作", lat: 35.2140, lon: 113.2400 },
-      { id: "zhengtai_03", name: "晋城东", city: "晋城", lat: 35.5090, lon: 112.9270 },
-      { id: "zhengtai_04", name: "长治东", city: "长治", lat: 36.1960, lon: 113.1730 },
-      { id: "zhangdaxi_06", name: "晋中", city: "晋中", lat: 37.6800, lon: 112.7300 },
-      { id: "zhangdaxi_05", name: "太原南", city: "太原", lat: 37.7800, lon: 112.5600 }
+      { id: "jingguang_09", name: "郑州东", city: "郑州", lat: 34.758, lon: 113.769 },
+      { id: "zhengtai_02", name: "焦作", city: "焦作", lat: 35.214, lon: 113.24 },
+      { id: "zhengtai_03", name: "晋城东", city: "晋城", lat: 35.509, lon: 112.927 },
+      { id: "zhengtai_04", name: "长治东", city: "长治", lat: 36.196, lon: 113.173 },
+      { id: "zhangdaxi_06", name: "晋中", city: "晋中", lat: 37.68, lon: 112.73 },
+      { id: "zhangdaxi_05", name: "太原南", city: "太原", lat: 37.78, lon: 112.56 }
     ]
   },
   {
@@ -1314,9 +1530,9 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；西安北、咸阳西、银川复用既有站点身份",
     stations: [
-      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.3769, lon: 108.9390 },
-      { id: "lianxulan_10", name: "咸阳西", city: "咸阳", lat: 34.3300, lon: 108.6500 },
-      { id: "xiyin_03", name: "庆阳", city: "庆阳", lat: 35.7130, lon: 107.6770 },
+      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.3769, lon: 108.939 },
+      { id: "lianxulan_10", name: "咸阳西", city: "咸阳", lat: 34.33, lon: 108.65 },
+      { id: "xiyin_03", name: "庆阳", city: "庆阳", lat: 35.713, lon: 107.677 },
       { id: "xiyin_04", name: "吴忠", city: "吴忠", lat: 37.9875, lon: 106.1919 },
       { id: "baoyin_06", name: "银川", city: "银川", lat: 38.4942, lon: 106.1633 }
     ]
@@ -1331,11 +1547,11 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；西安东、广安南、重庆北复用既有站点身份",
     stations: [
-      { id: "xiwu_01", name: "西安东", city: "西安", lat: 34.2490, lon: 109.1370 },
-      { id: "xiyu_02", name: "安康西", city: "安康", lat: 32.7330, lon: 108.9464 },
-      { id: "xiyu_03", name: "达州南", city: "达州", lat: 31.1020, lon: 107.4800 },
-      { id: "langyu_05", name: "广安南", city: "广安", lat: 30.4700, lon: 106.6300 },
-      { id: "huyurong_14", name: "重庆北", city: "重庆", lat: 29.6100, lon: 106.5500 }
+      { id: "xiwu_01", name: "西安东", city: "西安", lat: 34.249, lon: 109.137 },
+      { id: "xiyu_02", name: "安康西", city: "安康", lat: 32.733, lon: 108.9464 },
+      { id: "xiyu_03", name: "达州南", city: "达州", lat: 31.102, lon: 107.48 },
+      { id: "langyu_05", name: "广安南", city: "广安", lat: 30.47, lon: 106.63 },
+      { id: "huyurong_14", name: "重庆北", city: "重庆", lat: 29.61, lon: 106.55 }
     ]
   },
   {
@@ -1348,11 +1564,11 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；成都、南充北、达州南、万州北复用既有站点身份",
     stations: [
-      { id: "huyurong_15", name: "成都", city: "成都", lat: 30.7200, lon: 103.9800 },
-      { id: "chengdawan_03", name: "遂宁", city: "遂宁", lat: 30.5480, lon: 105.5700 },
-      { id: "langyu_04", name: "南充北", city: "南充", lat: 30.8560, lon: 106.0710 },
-      { id: "xiyu_03", name: "达州南", city: "达州", lat: 31.1020, lon: 107.4800 },
-      { id: "zhengyu_06", name: "万州北", city: "万州", lat: 30.8200, lon: 108.3900 }
+      { id: "huyurong_15", name: "成都", city: "成都", lat: 30.72, lon: 103.98 },
+      { id: "chengdawan_03", name: "遂宁", city: "遂宁", lat: 30.548, lon: 105.57 },
+      { id: "langyu_04", name: "南充北", city: "南充", lat: 30.856, lon: 106.071 },
+      { id: "xiyu_03", name: "达州南", city: "达州", lat: 31.102, lon: 107.48 },
+      { id: "zhengyu_06", name: "万州北", city: "万州", lat: 30.82, lon: 108.39 }
     ]
   },
   {
@@ -1365,13 +1581,13 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；贵阳北、都匀东、肇庆东、佛山西、广州南复用既有站点身份",
     stations: [
-      { id: "hukun_18", name: "贵阳北", city: "贵阳", lat: 26.6500, lon: 106.6300 },
-      { id: "yunan_04", name: "都匀东", city: "黔南州", lat: 26.2600, lon: 107.5200 },
+      { id: "hukun_18", name: "贵阳北", city: "贵阳", lat: 26.65, lon: 106.63 },
+      { id: "yunan_04", name: "都匀东", city: "都匀", lat: 26.26, lon: 107.52 },
       { id: "guigang_03", name: "桂林西", city: "桂林", lat: 25.3575, lon: 110.2625 },
-      { id: "guigang_04", name: "贺州", city: "贺州", lat: 24.4130, lon: 111.5660 },
-      { id: "nanguang_03", name: "肇庆东", city: "肇庆", lat: 23.1100, lon: 112.6100 },
-      { id: "nanguang_02", name: "佛山西", city: "佛山", lat: 23.0900, lon: 112.9000 },
-      { id: "jingguang_24", name: "广州南", city: "广州", lat: 22.9900, lon: 113.2700 }
+      { id: "guigang_04", name: "贺州", city: "贺州", lat: 24.413, lon: 111.566 },
+      { id: "nanguang_03", name: "肇庆东", city: "肇庆", lat: 23.11, lon: 112.61 },
+      { id: "nanguang_02", name: "佛山西", city: "佛山", lat: 23.09, lon: 112.9 },
+      { id: "jingguang_24", name: "广州南", city: "广州", lat: 22.99, lon: 113.27 }
     ]
   },
   {
@@ -1384,10 +1600,10 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；天津南、雄安、保定东、忻州西复用既有站点身份",
     stations: [
-      { id: "jinghu_03", name: "天津南", city: "天津", lat: 39.0200, lon: 117.0600 },
-      { id: "jingxiongshang_02", name: "雄安", city: "雄安", lat: 39.0010, lon: 116.1000 },
-      { id: "jingguang_02", name: "保定东", city: "保定", lat: 39.0870, lon: 115.5700 },
-      { id: "zhangdaxi_04", name: "忻州西", city: "忻州", lat: 38.4200, lon: 112.7300 }
+      { id: "jinghu_03", name: "天津南", city: "天津", lat: 39.02, lon: 117.06 },
+      { id: "jingxiongshang_02", name: "雄安", city: "雄安", lat: 39.001, lon: 116.1 },
+      { id: "jingguang_02", name: "保定东", city: "保定", lat: 39.087, lon: 115.57 },
+      { id: "zhangdaxi_04", name: "忻州西", city: "忻州", lat: 38.42, lon: 112.73 }
     ]
   },
   {
@@ -1400,9 +1616,9 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户指定使用既有站点身份",
     stations: [
-      { id: "jingguang_03", name: "石家庄", city: "石家庄", lat: 38.0225, lon: 114.4840 },
-      { id: "jingxiongshang_03", name: "衡水", city: "衡水", lat: 37.7380, lon: 115.7000 },
-      { id: "jinghu_05", name: "德州东", city: "德州", lat: 37.4400, lon: 116.3600 }
+      { id: "jingguang_03", name: "石家庄", city: "石家庄", lat: 38.0225, lon: 114.484 },
+      { id: "jingxiongshang_03", name: "衡水", city: "衡水", lat: 37.738, lon: 115.7 },
+      { id: "jinghu_05", name: "德州东", city: "德州", lat: 37.44, lon: 116.36 }
     ]
   },
   {
@@ -1415,9 +1631,9 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；张家界西、怀化南复用既有站点身份",
     stations: [
-      { id: "yuxia_03", name: "张家界西", city: "张家界", lat: 29.1300, lon: 110.4500 },
-      { id: "zhangjihua_02", name: "吉首东", city: "湘西州", lat: 28.3140, lon: 109.7750 },
-      { id: "hukun_16", name: "怀化南", city: "怀化", lat: 27.5500, lon: 109.9600 }
+      { id: "yuxia_03", name: "张家界西", city: "张家界", lat: 29.13, lon: 110.45 },
+      { id: "zhangjihua_02", name: "吉首东", city: "吉首", lat: 28.314, lon: 109.775 },
+      { id: "hukun_16", name: "怀化南", city: "怀化", lat: 27.55, lon: 109.96 }
     ]
   },
   {
@@ -1432,8 +1648,8 @@ const RAILWAYS = [
     networkRole: "branch",
     source: "用户提供参考坐标；吉首东接入张吉怀高铁主线",
     stations: [
-      { id: "zhangjihua_02", name: "吉首东", city: "湘西州", lat: 28.3140, lon: 109.7750 },
-      { id: "zhangjihua_branch_01", name: "铜仁凤凰", city: "铜仁", lat: 27.8700, lon: 109.2500 }
+      { id: "zhangjihua_02", name: "吉首东", city: "吉首", lat: 28.314, lon: 109.775 },
+      { id: "zhangjihua_branch_01", name: "铜仁凤凰", city: "铜仁", lat: 27.87, lon: 109.25 }
     ]
   },
   {
@@ -1444,11 +1660,13 @@ const RAILWAYS = [
     typeLabel: "高速",
     region: "china_mainland",
     status: "预研线路",
+    parentLineId: "hukun_high_speed",
+    networkRole: "branch",
     source: "国家铁路局站点名单；公开地图参考坐标；安顺西、昭通东复用既有站点身份",
     stations: [
-      { id: "hukun_19", name: "安顺西", city: "安顺", lat: 26.2500, lon: 105.9300 },
+      { id: "hukun_19", name: "安顺西", city: "安顺", lat: 26.25, lon: 105.93 },
       { id: "anliu_05", name: "六盘水", city: "六盘水", lat: 26.5941, lon: 104.8501 },
-      { id: "yukun_04", name: "昭通东", city: "昭通", lat: 27.3210, lon: 103.7840 }
+      { id: "yukun_04", name: "昭通东", city: "昭通", lat: 27.321, lon: 103.784 }
     ]
   },
   {
@@ -1461,10 +1679,10 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户指定站序；全线复用既有站点身份",
     stations: [
-      { id: "yukun_04", name: "昭通东", city: "昭通", lat: 27.3210, lon: 103.7840 },
-      { id: "chenggui_05", name: "毕节", city: "毕节", lat: 27.3000, lon: 105.2800 },
+      { id: "yukun_04", name: "昭通东", city: "昭通", lat: 27.321, lon: 103.784 },
+      { id: "chenggui_05", name: "毕节", city: "毕节", lat: 27.3, lon: 105.28 },
       { id: "yunan_02", name: "遵义", city: "遵义", lat: 27.7254, lon: 106.9272 },
-      { id: "yuxia_02", name: "黔江", city: "重庆黔江", lat: 29.4750, lon: 108.7700 }
+      { id: "yuxia_02", name: "黔江", city: "黔江", lat: 29.475, lon: 108.77 }
     ]
   },
   {
@@ -1477,11 +1695,11 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；西安北、包头复用既有站点身份",
     stations: [
-      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.3769, lon: 108.9390 },
-      { id: "xiyubao_02", name: "铜川", city: "铜川", lat: 34.8980, lon: 108.9660 },
-      { id: "xiyubao_03", name: "延安", city: "延安", lat: 36.5850, lon: 109.4900 },
-      { id: "xiyubao_04", name: "榆林南", city: "榆林", lat: 38.2190, lon: 109.7340 },
-      { id: "xiyubao_05", name: "鄂尔多斯", city: "鄂尔多斯", lat: 39.6080, lon: 109.9900 },
+      { id: "lianxulan_09", name: "西安北", city: "西安", lat: 34.3769, lon: 108.939 },
+      { id: "xiyubao_02", name: "铜川", city: "铜川", lat: 34.898, lon: 108.966 },
+      { id: "xiyubao_03", name: "延安", city: "延安", lat: 36.585, lon: 109.49 },
+      { id: "xiyubao_04", name: "榆林南", city: "榆林", lat: 38.219, lon: 109.734 },
+      { id: "xiyubao_05", name: "鄂尔多斯", city: "鄂尔多斯", lat: 39.608, lon: 109.99 },
       { id: "jingbao_05", name: "包头", city: "包头", lat: 40.6054, lon: 109.8366 }
     ]
   },
@@ -1495,11 +1713,11 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；青海湖、共和、昌都复用既有站点身份",
     stations: [
-      { id: "qinghaihu_02", name: "青海湖", city: "海北州／青海湖景区", lat: 36.9600, lon: 100.9000 },
-      { id: "qinghaihu_03", name: "共和", city: "海南州", lat: 36.2840, lon: 100.6200 },
-      { id: "qingchang_02", name: "玛沁", city: "果洛州", lat: 34.4770, lon: 100.2390 },
-      { id: "qingchang_03", name: "玉树", city: "玉树州", lat: 33.0040, lon: 96.9780 },
-      { id: "chuanzang_04", name: "昌都", city: "昌都", lat: 31.1400, lon: 97.1720 }
+      { id: "qinghaihu_02", name: "青海湖", city: "青海湖", lat: 36.96, lon: 100.9 },
+      { id: "qinghaihu_03", name: "共和", city: "共和", lat: 36.284, lon: 100.62 },
+      { id: "qingchang_02", name: "玛沁", city: "玛沁", lat: 34.477, lon: 100.239 },
+      { id: "qingchang_03", name: "玉树", city: "玉树", lat: 33.004, lon: 96.978 },
+      { id: "chuanzang_04", name: "昌都", city: "昌都", lat: 31.14, lon: 97.172 }
     ]
   },
   {
@@ -1512,11 +1730,11 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考站序；乌鲁木齐、昌吉、奎屯复用既有站点身份",
     stations: [
-      { id: "lanxin_09", name: "乌鲁木齐", city: "乌鲁木齐", lat: 43.8310, lon: 87.5350 },
-      { id: "beijiang_04", name: "昌吉", city: "昌吉州", lat: 43.9464, lon: 87.1911 },
+      { id: "lanxin_09", name: "乌鲁木齐", city: "乌鲁木齐", lat: 43.831, lon: 87.535 },
+      { id: "beijiang_04", name: "昌吉", city: "昌吉", lat: 43.9464, lon: 87.1911 },
       { id: "wubo_03", name: "石河子", city: "石河子", lat: 44.2675, lon: 86.0605 },
-      { id: "beijiang_01", name: "奎屯", city: "伊犁州东部", lat: 44.4260, lon: 84.9020 },
-      { id: "wubo_04", name: "博乐", city: "博尔塔拉州", lat: 44.9060, lon: 82.0660 }
+      { id: "beijiang_01", name: "奎屯", city: "奎屯", lat: 44.426, lon: 84.902 },
+      { id: "wubo_04", name: "博乐", city: "博乐", lat: 44.906, lon: 82.066 }
     ]
   },
   {
@@ -1531,22 +1749,8 @@ const RAILWAYS = [
     networkRole: "branch",
     source: "用户提供参考坐标；克拉玛依复用北疆铁路站点身份",
     stations: [
-      { id: "beijiang_02", name: "克拉玛依", city: "克拉玛依", lat: 45.5800, lon: 84.8700 },
-      { id: "beijiang_tacheng_02", name: "塔城", city: "塔城地区", lat: 46.7480, lon: 82.9860 }
-    ]
-  },
-  {
-    id: "wuyi_high_speed",
-    name: "乌伊高铁",
-    shortName: "乌伊",
-    type: "high_speed",
-    typeLabel: "高速",
-    region: "china_mainland",
-    status: "预研线路",
-    source: "用户指定复用既有乌鲁木齐、伊宁站点身份",
-    stations: [
-      { id: "lanxin_09", name: "乌鲁木齐", city: "乌鲁木齐", lat: 43.8310, lon: 87.5350 },
-      { id: "yiku_01", name: "伊宁", city: "伊犁州", lat: 43.9770, lon: 81.2730 }
+      { id: "beijiang_02", name: "克拉玛依", city: "克拉玛依", lat: 45.58, lon: 84.87 },
+      { id: "beijiang_tacheng_02", name: "塔城", city: "塔城", lat: 46.748, lon: 82.986 }
     ]
   },
   {
@@ -1559,11 +1763,11 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；乌鲁木齐复用兰新铁路站点身份",
     stations: [
-      { id: "beijiang_01", name: "奎屯", city: "伊犁州东部", lat: 44.4260, lon: 84.9020 },
-      { id: "beijiang_02", name: "克拉玛依", city: "克拉玛依", lat: 45.5800, lon: 84.8700 },
-      { id: "beijiang_03", name: "阿勒泰", city: "阿勒泰地区", lat: 47.8470, lon: 88.1330 },
-      { id: "beijiang_04", name: "昌吉", city: "昌吉州", lat: 43.9464, lon: 87.1911 },
-      { id: "lanxin_09", name: "乌鲁木齐", city: "乌鲁木齐", lat: 43.8310, lon: 87.5350 }
+      { id: "beijiang_01", name: "奎屯", city: "奎屯", lat: 44.426, lon: 84.902 },
+      { id: "beijiang_02", name: "克拉玛依", city: "克拉玛依", lat: 45.58, lon: 84.87 },
+      { id: "beijiang_03", name: "阿勒泰", city: "阿勒泰", lat: 47.847, lon: 88.133 },
+      { id: "beijiang_04", name: "昌吉", city: "昌吉", lat: 43.9464, lon: 87.1911 },
+      { id: "lanxin_09", name: "乌鲁木齐", city: "乌鲁木齐", lat: 43.831, lon: 87.535 }
     ]
   },
   {
@@ -1576,8 +1780,8 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；库尔勒复用南疆铁路站点身份",
     stations: [
-      { id: "yiku_01", name: "伊宁", city: "伊犁州", lat: 43.9770, lon: 81.2730 },
-      { id: "nanjiang_01", name: "库尔勒", city: "巴音郭楞州", lat: 41.7260, lon: 86.1740 }
+      { id: "yiku_01", name: "伊宁", city: "伊宁", lat: 43.977, lon: 81.273 },
+      { id: "nanjiang_01", name: "库尔勒", city: "库尔勒", lat: 41.726, lon: 86.174 }
     ]
   },
   {
@@ -1590,9 +1794,9 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；格尔木、若羌、库尔勒复用既有站点身份",
     stations: [
-      { id: "qingzang_03", name: "格尔木", city: "海西州", lat: 36.3829, lon: 94.9061 },
-      { id: "heruo_03", name: "若羌", city: "巴音郭楞州", lat: 39.0250, lon: 88.1680 },
-      { id: "nanjiang_01", name: "库尔勒", city: "巴音郭楞州", lat: 41.7260, lon: 86.1740 }
+      { id: "qingzang_03", name: "格尔木", city: "格尔木", lat: 36.3829, lon: 94.9061 },
+      { id: "heruo_03", name: "若羌", city: "若羌", lat: 39.025, lon: 88.168 },
+      { id: "nanjiang_01", name: "库尔勒", city: "库尔勒", lat: 41.726, lon: 86.174 }
     ]
   },
   {
@@ -1605,9 +1809,9 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；和田复用既有站点身份",
     stations: [
-      { id: "xinzang_01", name: "和田", city: "和田地区", lat: 37.1110, lon: 79.9220 },
-      { id: "heruo_02", name: "且末", city: "巴音郭楞州", lat: 38.1450, lon: 85.5290 },
-      { id: "heruo_03", name: "若羌", city: "巴音郭楞州", lat: 39.0250, lon: 88.1680 }
+      { id: "xinzang_01", name: "和田", city: "和田", lat: 37.111, lon: 79.922 },
+      { id: "heruo_02", name: "且末", city: "且末", lat: 38.145, lon: 85.529 },
+      { id: "heruo_03", name: "若羌", city: "若羌", lat: 39.025, lon: 88.168 }
     ]
   },
   {
@@ -1620,14 +1824,14 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；和田复用新藏铁路站点身份",
     stations: [
-      { id: "nanjiang_01", name: "库尔勒", city: "巴音郭楞州", lat: 41.7260, lon: 86.1740 },
-      { id: "nanjiang_02", name: "库车", city: "阿克苏地区", lat: 41.7060, lon: 82.9630 },
-      { id: "nanjiang_03", name: "阿克苏", city: "阿克苏地区", lat: 41.1240, lon: 80.2630 },
-      { id: "nanjiang_05", name: "阿图什", city: "克孜勒苏州", lat: 39.7197, lon: 76.2164 },
-      { id: "nanjiang_04", name: "喀什", city: "喀什地区", lat: 39.5150, lon: 76.0630 },
+      { id: "nanjiang_01", name: "库尔勒", city: "库尔勒", lat: 41.726, lon: 86.174 },
+      { id: "nanjiang_02", name: "库车", city: "库车", lat: 41.706, lon: 82.963 },
+      { id: "nanjiang_03", name: "阿克苏", city: "阿克苏", lat: 41.124, lon: 80.263 },
+      { id: "nanjiang_05", name: "阿图什", city: "阿图什", lat: 39.7197, lon: 76.2164 },
+      { id: "nanjiang_04", name: "喀什", city: "喀什", lat: 39.515, lon: 76.063 },
       { id: "nanjiang_06", name: "莎车", city: "莎车县", lat: 38.3742, lon: 77.2297 },
       { id: "nanjiang_07", name: "叶城", city: "叶城县", lat: 37.8932, lon: 77.4708 },
-      { id: "xinzang_01", name: "和田", city: "和田地区", lat: 37.1110, lon: 79.9220 }
+      { id: "xinzang_01", name: "和田", city: "和田", lat: 37.111, lon: 79.922 }
     ]
   },
   {
@@ -1640,10 +1844,10 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；拉萨复用既有站点身份",
     stations: [
-      { id: "xinzang_01", name: "和田", city: "和田地区", lat: 37.1110, lon: 79.9220 },
-      { id: "xinzang_02", name: "阿里", city: "阿里地区噶尔县", lat: 32.5010, lon: 80.1050 },
-      { id: "xinzang_03", name: "日喀则", city: "日喀则", lat: 29.2670, lon: 88.8800 },
-      { id: "chuanzang_07", name: "拉萨", city: "拉萨", lat: 29.6250, lon: 91.0686 }
+      { id: "xinzang_01", name: "和田", city: "和田", lat: 37.111, lon: 79.922 },
+      { id: "xinzang_02", name: "阿里", city: "阿里", lat: 32.501, lon: 80.105 },
+      { id: "xinzang_03", name: "日喀则", city: "日喀则", lat: 29.267, lon: 88.88 },
+      { id: "chuanzang_07", name: "拉萨", city: "拉萨", lat: 29.625, lon: 91.0686 }
     ]
   },
   {
@@ -1656,11 +1860,11 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；昆明南、楚雄、林芝复用既有站点身份",
     stations: [
-      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.8740, lon: 102.8620 },
-      { id: "chengkun_04", name: "楚雄", city: "楚雄州", lat: 25.0360, lon: 101.5460 },
-      { id: "diancang_03", name: "大理", city: "大理州", lat: 25.5920, lon: 100.2485 },
+      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.874, lon: 102.862 },
+      { id: "chengkun_04", name: "楚雄", city: "楚雄", lat: 25.036, lon: 101.546 },
+      { id: "diancang_03", name: "大理", city: "大理", lat: 25.592, lon: 100.2485 },
       { id: "diancang_04", name: "丽江", city: "丽江", lat: 26.8138, lon: 100.2512 },
-      { id: "diancang_05", name: "香格里拉", city: "迪庆州", lat: 27.8140, lon: 99.6889 },
+      { id: "diancang_05", name: "香格里拉", city: "香格里拉", lat: 27.814, lon: 99.6889 },
       { id: "chuanzang_05", name: "林芝", city: "林芝", lat: 29.5296, lon: 94.4373 }
     ]
   },
@@ -1675,11 +1879,11 @@ const RAILWAYS = [
     source: "用户提供参考坐标；西宁、拉萨复用既有站点身份",
     stations: [
       { id: "lanxin_03", name: "西宁", city: "西宁", lat: 36.6217, lon: 101.8067 },
-      { id: "qinghaihu_02", name: "青海湖", city: "海北州／青海湖景区", lat: 36.9600, lon: 100.9000 },
-      { id: "qingzang_02", name: "德令哈", city: "海西州", lat: 37.3148, lon: 97.3830 },
-      { id: "qingzang_03", name: "格尔木", city: "海西州", lat: 36.3829, lon: 94.9061 },
+      { id: "qinghaihu_02", name: "青海湖", city: "青海湖", lat: 36.96, lon: 100.9 },
+      { id: "qingzang_02", name: "德令哈", city: "德令哈", lat: 37.3148, lon: 97.383 },
+      { id: "qingzang_03", name: "格尔木", city: "格尔木", lat: 36.3829, lon: 94.9061 },
       { id: "qingzang_04", name: "那曲", city: "那曲", lat: 31.4454, lon: 91.9896 },
-      { id: "chuanzang_07", name: "拉萨", city: "拉萨", lat: 29.6250, lon: 91.0686 }
+      { id: "chuanzang_07", name: "拉萨", city: "拉萨", lat: 29.625, lon: 91.0686 }
     ]
   },
   {
@@ -1692,13 +1896,13 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；成都复用既有站点身份",
     stations: [
-      { id: "huyurong_15", name: "成都", city: "成都", lat: 30.7200, lon: 103.9800 },
-      { id: "chuanzang_02", name: "雅安", city: "雅安", lat: 30.0310, lon: 103.0550 },
-      { id: "chuanzang_03", name: "康定", city: "康定", lat: 30.0500, lon: 101.9650 },
-      { id: "chuanzang_04", name: "昌都", city: "昌都", lat: 31.1400, lon: 97.1720 },
+      { id: "huyurong_15", name: "成都", city: "成都", lat: 30.72, lon: 103.98 },
+      { id: "chuanzang_02", name: "雅安", city: "雅安", lat: 30.031, lon: 103.055 },
+      { id: "chuanzang_03", name: "康定", city: "康定", lat: 30.05, lon: 101.965 },
+      { id: "chuanzang_04", name: "昌都", city: "昌都", lat: 31.14, lon: 97.172 },
       { id: "chuanzang_05", name: "林芝", city: "林芝", lat: 29.5296, lon: 94.4373 },
-      { id: "chuanzang_06", name: "山南", city: "山南", lat: 29.2400, lon: 91.7700 },
-      { id: "chuanzang_07", name: "拉萨", city: "拉萨", lat: 29.6250, lon: 91.0686 }
+      { id: "chuanzang_06", name: "山南", city: "山南", lat: 29.24, lon: 91.77 },
+      { id: "chuanzang_07", name: "拉萨", city: "拉萨", lat: 29.625, lon: 91.0686 }
     ]
   },
   {
@@ -1711,10 +1915,10 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；成都东、资阳北、宜宾复用既有站点身份",
     stations: [
-      { id: "xicheng_06", name: "成都东", city: "成都", lat: 30.6320, lon: 104.1410 },
-      { id: "chengyu_02", name: "资阳北", city: "资阳", lat: 30.1360, lon: 104.6160 },
-      { id: "chengziyi_03", name: "自贡", city: "自贡", lat: 29.3270, lon: 104.8350 },
-      { id: "yukun_03", name: "宜宾西", city: "宜宾", lat: 28.7510, lon: 104.6200 }
+      { id: "xicheng_06", name: "成都东", city: "成都", lat: 30.632, lon: 104.141 },
+      { id: "chengyu_02", name: "资阳北", city: "资阳", lat: 30.136, lon: 104.616 },
+      { id: "chengziyi_03", name: "自贡", city: "自贡", lat: 29.327, lon: 104.835 },
+      { id: "yukun_03", name: "宜宾西", city: "宜宾", lat: 28.751, lon: 104.62 }
     ]
   },
   {
@@ -1727,11 +1931,11 @@ const RAILWAYS = [
     status: "预研线路",
     source: "用户提供参考坐标；重庆西、昆明南复用既有站点身份",
     stations: [
-      { id: "chengyu_04", name: "重庆西", city: "重庆", lat: 29.5020, lon: 106.4380 },
-      { id: "yukun_02", name: "泸州", city: "泸州", lat: 28.9470, lon: 105.4140 },
-      { id: "yukun_03", name: "宜宾西", city: "宜宾", lat: 28.7510, lon: 104.6200 },
-      { id: "yukun_04", name: "昭通东", city: "昭通", lat: 27.3210, lon: 103.7840 },
-      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.8740, lon: 102.8620 }
+      { id: "chengyu_04", name: "重庆西", city: "重庆", lat: 29.502, lon: 106.438 },
+      { id: "yukun_02", name: "泸州", city: "泸州", lat: 28.947, lon: 105.414 },
+      { id: "yukun_03", name: "宜宾西", city: "宜宾", lat: 28.751, lon: 104.62 },
+      { id: "yukun_04", name: "昭通东", city: "昭通", lat: 27.321, lon: 103.784 },
+      { id: "hukun_21", name: "昆明南", city: "昆明", lat: 24.874, lon: 102.862 }
     ]
   },
   {
@@ -1761,26 +1965,28 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；成都东、海东西复用既有站点身份",
     stations: [
-      { id: "xicheng_06", name: "成都东", city: "成都", lat: 30.6320, lon: 104.1410 },
-      { id: "chuanqing_02", name: "马尔康", city: "阿坝州", lat: 31.9050, lon: 102.2280 },
-      { id: "chuanqing_03", name: "合作", city: "甘南州", lat: 34.9850, lon: 102.9110 },
-      { id: "chuanqing_04", name: "同仁", city: "黄南州", lat: 35.6650, lon: 102.0780 },
+      { id: "xicheng_06", name: "成都东", city: "成都", lat: 30.632, lon: 104.141 },
+      { id: "chuanqing_02", name: "马尔康", city: "马尔康", lat: 31.905, lon: 102.228 },
+      { id: "chuanqing_03", name: "合作", city: "合作", lat: 34.985, lon: 102.911 },
+      { id: "chuanqing_04", name: "同仁", city: "同仁", lat: 35.665, lon: 102.078 },
       { id: "lanxin_02", name: "海东西", city: "海东", lat: 36.5095, lon: 102.0535 }
     ]
   },
   {
     id: "lanhe_conventional",
-    name: "兰合铁路",
-    shortName: "兰合",
+    name: "川青铁路兰合支线",
+    shortName: "川青兰合支线",
     type: "conventional",
     typeLabel: "普速",
     region: "china_mainland",
-    status: "普速预研线路",
+    status: "普速支线预研线路",
+    parentLineId: "chuanqing_conventional",
+    networkRole: "branch",
     source: "用户提供参考坐标；兰州西、合作复用既有站点身份",
     stations: [
       { id: "lianxulan_14", name: "兰州西", city: "兰州", lat: 36.0675, lon: 103.7492 },
-      { id: "lanhe_02", name: "临夏", city: "临夏州", lat: 35.6010, lon: 103.2100 },
-      { id: "chuanqing_03", name: "合作", city: "甘南州", lat: 34.9850, lon: 102.9110 }
+      { id: "lanhe_02", name: "临夏", city: "临夏", lat: 35.601, lon: 103.21 },
+      { id: "chuanqing_03", name: "合作", city: "合作", lat: 34.985, lon: 102.911 }
     ]
   },
   {
@@ -1793,24 +1999,57 @@ const RAILWAYS = [
     status: "普速预研线路",
     source: "用户提供参考坐标；哈尔滨西复用既有站点身份",
     stations: [
-      { id: "jingha_09", name: "哈尔滨西", city: "哈尔滨", lat: 45.7070, lon: 126.5770 },
-      { id: "binzhou_02", name: "大庆西", city: "大庆", lat: 46.6280, lon: 124.8730 },
-      { id: "binzhou_03", name: "齐齐哈尔", city: "齐齐哈尔", lat: 47.3540, lon: 123.9180 },
-      { id: "binzhou_04", name: "海拉尔", city: "呼伦贝尔", lat: 49.2120, lon: 119.7580 }
+      { id: "jingha_09", name: "哈尔滨西", city: "哈尔滨", lat: 45.707, lon: 126.577 },
+      { id: "binzhou_02", name: "大庆西", city: "大庆", lat: 46.628, lon: 124.873 },
+      { id: "binzhou_03", name: "齐齐哈尔", city: "齐齐哈尔", lat: 47.354, lon: 123.918 },
+      { id: "binzhou_04", name: "海拉尔", city: "呼伦贝尔", lat: 49.212, lon: 119.758 }
+    ]
+  },
+  {
+    id: "binzhou_linbranch_conventional",
+    name: "滨洲铁路林区支线",
+    shortName: "滨洲林区支线",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "支线预研线路",
+    parentLineId: "binzhou_conventional",
+    networkRole: "branch",
+    source: "用户提供参考坐标；齐齐哈尔复用滨洲铁路既有站点身份",
+    stations: [
+      { id: "binzhou_03", name: "齐齐哈尔", city: "齐齐哈尔", lat: 47.354, lon: 123.918 },
+      { id: "binzhou_linbranch_02", name: "加格达奇", city: "加格达奇", lat: 50.415, lon: 124.117 }
+    ]
+  },
+  {
+    id: "tonghai_conventional",
+    name: "通海铁路",
+    shortName: "通海",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "普速预研线路",
+    source: "用户提供参考坐标；通辽、海拉尔复用既有站点身份",
+    stations: [
+      { id: "jingha_chifeng_03", name: "通辽", city: "通辽", lat: 43.617, lon: 122.265 },
+      { id: "tonghai_02", name: "乌兰浩特", city: "乌兰浩特", lat: 46.072, lon: 122.093 },
+      { id: "binzhou_04", name: "海拉尔", city: "呼伦贝尔", lat: 49.212, lon: 119.758 }
     ]
   },
   {
     id: "wuxi_high_speed",
-    name: "乌锡高铁",
-    shortName: "乌锡",
+    name: "京包高铁乌锡支线",
+    shortName: "京包乌锡支线",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
-    source: "用户提供参考坐标；乌兰察布复用既有站点身份",
+    status: "支线预研线路",
+    parentLineId: "jingbao_high_speed",
+    networkRole: "branch",
+    source: "用户指定线路调整；乌兰察布复用京包高铁既有站点身份",
     stations: [
       { id: "jingbao_03", name: "乌兰察布", city: "乌兰察布", lat: 40.9642, lon: 113.1633 },
-      { id: "wuxi_02", name: "锡林浩特", city: "锡林郭勒盟", lat: 43.9330, lon: 116.0870 }
+      { id: "wuxi_02", name: "锡林浩特", city: "锡林浩特", lat: 43.933, lon: 116.087 }
     ]
   },
   {
@@ -1826,7 +2065,76 @@ const RAILWAYS = [
     source: "用户指定复用既有站点身份",
     stations: [
       { id: "jingbao_03", name: "乌兰察布", city: "乌兰察布", lat: 40.9642, lon: 113.1633 },
-      { id: "zhangdaxi_02", name: "大同南", city: "大同", lat: 40.0200, lon: 113.1500 }
+      { id: "zhangdaxi_02", name: "大同南", city: "大同", lat: 40.02, lon: 113.15 }
+    ]
+  },
+  {
+    id: "jingtang_intercity_high_speed",
+    name: "京唐城际",
+    shortName: "京唐",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "县级／市级挂名站原则；坐标参考维基百科与 OSM；唐山复用津秦沈既有站点身份",
+    stations: [
+      { id: "jingtang_01", name: "北京通州", city: "北京", lat: 39.908, lon: 116.7 },
+      { id: "jingtang_02", name: "燕郊", city: "三河", lat: 39.941, lon: 116.8257 },
+      { id: "jingtang_03", name: "大厂", city: "大厂", lat: 39.8886, lon: 116.8976 },
+      { id: "jingtang_04", name: "香河", city: "香河", lat: 39.7188, lon: 117.0277 },
+      { id: "jingtang_05", name: "宝坻", city: "天津", lat: 39.6605, lon: 117.299 },
+      { id: "jingtang_06", name: "玉田南", city: "玉田", lat: 39.6964, lon: 117.8087 },
+      { id: "jingtang_07", name: "唐山西", city: "唐山", lat: 39.6953, lon: 118.0171 },
+      { id: "jinqinshen_02", name: "唐山", city: "唐山", lat: 39.632, lon: 118.18 }
+    ]
+  },
+  {
+    id: "jingjin_intercity_high_speed",
+    name: "京津城际",
+    shortName: "京津",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "县级挂名站原则；亦庄按同类中间站补入；坐标参考维基百科与 OSM；北京南、天津复用既有站点身份",
+    stations: [
+      { id: "jinghu_01", name: "北京南", city: "北京", lat: 39.8636, lon: 116.3728 },
+      { id: "jingjin_yizhuang", name: "亦庄", city: "北京", lat: 39.8119, lon: 116.5962 },
+      { id: "jingjin_02", name: "武清", city: "天津", lat: 39.371, lon: 117.01 },
+      { id: "jinqinshen_01", name: "天津", city: "天津", lat: 39.142, lon: 117.176 }
+    ]
+  },
+  {
+    id: "jingxiong_intercity_high_speed",
+    name: "京雄城际",
+    shortName: "京雄",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "县级挂名站原则；坐标参考维基百科与 OSM；北京西、雄安复用既有站点身份",
+    stations: [
+      { id: "jingguang_01", name: "北京西", city: "北京", lat: 39.8936, lon: 116.3157 },
+      { id: "jingxiong_02", name: "北京大兴", city: "北京", lat: 39.7194, lon: 116.3225 },
+      { id: "jingxiong_03", name: "大兴机场", city: "北京", lat: 39.5139, lon: 116.4099 },
+      { id: "jingxiong_04", name: "固安东", city: "固安", lat: 39.3709, lon: 116.399 },
+      { id: "jingxiong_05", name: "霸州北", city: "霸州", lat: 39.1853, lon: 116.3205 },
+      { id: "jingxiongshang_02", name: "雄安", city: "雄安", lat: 39.001, lon: 116.1 }
+    ]
+  },
+  {
+    id: "fangshan_suburban_conventional",
+    name: "房山市郊线",
+    shortName: "房山市郊",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "预研线路",
+    source: "用户指定站序；房山东用真实站名与坐标；石景山东为区级挂名（可虚构）；北京西复用既有站点身份",
+    stations: [
+      { id: "fangshan_suburban_01", name: "房山东", city: "北京", lat: 39.7647, lon: 116.1704 },
+      { id: "fangshan_suburban_02", name: "石景山东", city: "北京", lat: 39.8945, lon: 116.2146 },
+      { id: "jingguang_01", name: "北京西", city: "北京", lat: 39.8936, lon: 116.3157 }
     ]
   }
 ];

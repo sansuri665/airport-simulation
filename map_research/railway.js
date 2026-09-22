@@ -3,11 +3,15 @@
 
   const SVG_NS = "http://www.w3.org/2000/svg";
   const VIEW = { left: 40, right: 146, bottom: -10, top: 56 };
-  const MAP_LAYOUT_SCALE = 9.9;
+  // 放大地理展开，给城区多站／县级站预留间距；默认视野缩放会按比例压低。
+  const MAP_LAYOUT_SCALE = 52;
   const MAP_FOCUS = { lon: 112, lat: 31 };
-  const MIN_ZOOM = 0.2;
-  const STATION_LABEL_MIN_ZOOM = 0.6;
+  const MIN_ZOOM = 0.04;
+  const MAX_ZOOM = 48;
+  const STATION_LABEL_MIN_ZOOM = 0.22;
   const STATION_RADII = { ".railway-hit": 18, ".railway-halo": 9, ".railway-core": 4 };
+  // 地理距离内若有其它站，视为密集簇：默认隐藏站名，点击后只显示该站。
+  const LABEL_DENSE_KM = 7;
   const viewport = document.getElementById("viewport");
   const gridLayer = document.getElementById("gridLayer");
   const railwayLayer = document.getElementById("railwayLayer");
@@ -20,8 +24,24 @@
   const lineModeButton = document.getElementById("lineModeButton");
   const stationModeButton = document.getElementById("stationModeButton");
   const railwayNote = document.getElementById("railwayNote");
-  const DEFAULT_VIEW = { x: -197.2, y: 77.6, scale: 1 };
-  const state = { ...DEFAULT_VIEW, filtered: RAILWAYS, searchQuery: "", regionScope: "global", dataMode: "lines", selectedLine: null, selectedStation: null, dragging: false, pointer: null, dragMoved: false };
+  const REGION_VIEW_PRESETS = {
+    all: { lat: 35, lon: 105, scale: 0.19 },
+    china_mainland: { lat: 35, lon: 105, scale: 0.07 },
+    hk_macao_taiwan: { lat: 23.5, lon: 119.5, scale: 0.24 }
+  };
+  const DEFAULT_VIEW = { x: 0, y: 0, scale: REGION_VIEW_PRESETS.all.scale };
+  const state = {
+    ...DEFAULT_VIEW,
+    filtered: RAILWAYS,
+    searchQuery: "",
+    regionScope: "all",
+    dataMode: "lines",
+    selectedLine: null,
+    selectedStation: null,
+    dragging: false,
+    pointer: null,
+    dragMoved: false
+  };
   let displayedLinesCache = null;
   let stationRecordsCache = null;
   let routeVisualLayer = null;
@@ -29,8 +49,11 @@
   const routeNodes = new Map();
   const stationNodes = new Map();
   const stationLineIds = new Map();
+  const stationGeo = new Map();
+  let denseStationIds = new Set();
   let stationMarkerScale = null;
   let searchFrame = 0;
+  let skipClearOnPointerUp = false;
 
   const regionLabels = Object.fromEntries([...regionSelect.options].map((option) => [option.value, option.textContent]));
   const svgNode = (tag, attrs = {}) => {
@@ -54,27 +77,40 @@
     };
   }
 
-  function getDisplayedStations(line) {
-    if (state.regionScope === "global" || !line.regions) return line.stations;
-    if (!line.regions.includes(state.regionScope)) return [];
+  function setRegionView(region) {
+    const preset = REGION_VIEW_PRESETS[region] || REGION_VIEW_PRESETS.all;
+    const projected = project(preset);
+    state.scale = preset.scale;
+    state.x = 600 - projected.x * state.scale;
+    state.y = 380 - projected.y * state.scale;
+    updateTransform();
+  }
+
+  function filterStationsForRegion(line) {
+    if (state.regionScope === "all") return line.stations;
+    if (line.region !== state.regionScope && !(line.regions || []).includes(state.regionScope)) return [];
 
     const displayed = [];
     line.stations.forEach((station, index) => {
       const next = line.stations[index + 1];
-      const stationRegion = station.region || line.region;
-      const nextRegion = next && (next.region || line.region);
-      if (stationRegion === state.regionScope) displayed.push(station);
-      if (next && stationRegion !== nextRegion && (stationRegion === state.regionScope || nextRegion === state.regionScope)) {
-        displayed.push({
-          id: `${line.id}__boundary__${state.regionScope}`,
-          name: line.boundaryLabel || "区域交界中点",
-          city: "区域交界点",
-          city_id: null,
-          region: state.regionScope,
-          isBoundary: true,
-          lat: (station.lat + next.lat) / 2,
-          lon: (station.lon + next.lon) / 2
-        });
+      const stationRegion = station.region || (line.region === "cross_region" ? null : line.region);
+      const nextRegion = next && (next.region || (line.region === "cross_region" ? null : line.region));
+      const stationInScope = stationRegion === state.regionScope || (!station.region && line.region === state.regionScope);
+      if (stationInScope) displayed.push(station);
+      if (next) {
+        const nextInScope = nextRegion === state.regionScope || (!next.region && line.region === state.regionScope);
+        if (stationInScope !== nextInScope && (stationInScope || nextInScope)) {
+          displayed.push({
+            id: `${line.id}__boundary__${state.regionScope}`,
+            name: line.boundaryLabel || "区域交界中点",
+            city: "区域交界点",
+            city_id: null,
+            region: state.regionScope,
+            isBoundary: true,
+            lat: (station.lat + next.lat) / 2,
+            lon: (station.lon + next.lon) / 2
+          });
+        }
       }
     });
     return displayed;
@@ -83,7 +119,7 @@
   function getDisplayedLines() {
     if (displayedLinesCache) return displayedLinesCache;
     displayedLinesCache = orderLines(state.filtered)
-      .map((line) => ({ ...line, stations: getDisplayedStations(line) }))
+      .map((line) => ({ ...line, stations: filterStationsForRegion(line) }))
       .filter((line) => line.stations.length > 0);
     return displayedLinesCache;
   }
@@ -93,9 +129,11 @@
     const records = new Map();
     lines.forEach((line) => line.stations.filter((station) => !station.isBoundary).forEach((station) => {
       const record = records.get(station.id) || { station, lines: [], lineIds: [], types: [] };
-      if (!record.lines.includes(line.name)) record.lines.push(line.name);
-      if (!record.lineIds.includes(line.id)) record.lineIds.push(line.id);
-      if (!record.types.includes(line.type)) record.types.push(line.type);
+      if (!line.stationOnly) {
+        if (!record.lines.includes(line.name)) record.lines.push(line.name);
+        if (!record.lineIds.includes(line.id)) record.lineIds.push(line.id);
+        if (!record.types.includes(line.type)) record.types.push(line.type);
+      }
       records.set(station.id, record);
     }));
     const values = [...records.values()];
@@ -139,7 +177,7 @@
   }
 
   function getSearchMatchedLines() {
-    const lines = getDisplayedLines();
+    const lines = getDisplayedLines().filter((line) => !line.stationOnly);
     if (!state.searchQuery) return lines;
     return lines.filter((line) => textMatches([
       line.id,
@@ -196,17 +234,58 @@
     document.getElementById("zoomReadout").textContent = `${Math.round(state.scale * 100)}%`;
   }
 
+  function distanceKm(a, b) {
+    const toRad = Math.PI / 180;
+    const dLat = (b.lat - a.lat) * toRad;
+    const dLon = (b.lon - a.lon) * toRad;
+    const lat1 = a.lat * toRad;
+    const lat2 = b.lat * toRad;
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+    return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+
+  function rebuildDenseStationIds() {
+    const ids = [...stationGeo.keys()];
+    const dense = new Set();
+    for (let i = 0; i < ids.length; i += 1) {
+      const a = stationGeo.get(ids[i]);
+      for (let j = i + 1; j < ids.length; j += 1) {
+        const b = stationGeo.get(ids[j]);
+        if (distanceKm(a, b) <= LABEL_DENSE_KM) {
+          dense.add(ids[i]);
+          dense.add(ids[j]);
+        }
+      }
+    }
+    denseStationIds = dense;
+  }
+
+  function updateDenseLabels() {
+    stationNodes.forEach((group, stationId) => {
+      const label = group.querySelector(".railway-label");
+      const suppress = denseStationIds.has(stationId) && state.selectedStation !== stationId;
+      group.classList.toggle("label-suppressed", suppress);
+      if (label) {
+        if (suppress) label.setAttribute("display", "none");
+        else label.removeAttribute("display");
+      }
+    });
+  }
+
   function renderRailways() {
     railwayLayer.replaceChildren();
     routeNodes.clear();
     stationNodes.clear();
     stationLineIds.clear();
+    stationGeo.clear();
+    denseStationIds = new Set();
     const displayedLines = getDisplayedLines();
     const stationRecords = getStationRecords(displayedLines);
     const hitLayer = svgNode("g", { class: "railway-hit-layer" });
     routeVisualLayer = svgNode("g", { class: "railway-route-visual-layer" });
     stationVisualLayer = svgNode("g", { class: "railway-station-visual-layer" });
     displayedLines.forEach((line) => {
+      if (line.stationOnly) return;
       const routeStations = line.closed ? [...line.stations, line.stations[0]] : line.stations;
       const points = routeStations.map((station) => {
         const point = project(station);
@@ -223,18 +302,22 @@
       const { x, y } = project(station);
       const typeClass = types.length === 1 ? ` ${types[0]}` : "";
       const group = svgNode("g", { class: `railway-station${typeClass}`, "data-id": station.id });
-      group.appendChild(svgNode("circle", { cx: x, cy: y, r: 18, class: "railway-hit" }));
-      group.appendChild(svgNode("circle", { cx: x, cy: y, r: 9, class: "railway-halo" }));
-      group.appendChild(svgNode("circle", { cx: x, cy: y, r: 4, class: "railway-core" }));
+      group.appendChild(svgNode("circle", { cx: x, cy: y, r: STATION_RADII[".railway-hit"], class: "railway-hit" }));
+      group.appendChild(svgNode("circle", { cx: x, cy: y, r: STATION_RADII[".railway-halo"], class: "railway-halo" }));
+      group.appendChild(svgNode("circle", { cx: x, cy: y, r: STATION_RADII[".railway-core"], class: "railway-core" }));
       const label = svgNode("text", { x, y: y + 32, class: "railway-label" });
       label.textContent = station.name;
       group.appendChild(label);
       stationNodes.set(station.id, group);
       stationLineIds.set(station.id, lineIds);
+      stationGeo.set(station.id, { lat: station.lat, lon: station.lon });
       stationVisualLayer.appendChild(group);
     });
     railwayLayer.append(hitLayer, routeVisualLayer, stationVisualLayer);
+    stationMarkerScale = null;
+    rebuildDenseStationIds();
     updateMapSelection();
+    updateTransform();
   }
 
   function updateMapSelection() {
@@ -250,6 +333,7 @@
     });
     const selectedStation = state.selectedStation && stationNodes.get(state.selectedStation);
     if (selectedStation && stationVisualLayer) stationVisualLayer.appendChild(selectedStation);
+    updateDenseLabels();
   }
 
   function updateListSelection() {
@@ -288,10 +372,11 @@
     const matchedLines = state.dataMode === "lines" ? getSearchMatchedLines() : null;
     const matchedStations = state.dataMode === "stations" ? getSearchStationRecords() : null;
     const resultCount = state.dataMode === "lines" ? matchedLines.length : matchedStations.length;
+    const actualLines = state.filtered.filter((line) => !line.stationOnly);
     document.getElementById("railwayCount").textContent = resultCount;
-    const typeSummary = [...new Set(state.filtered.map((line) => line.typeLabel))].join(" / ");
+    const typeSummary = [...new Set(actualLines.map((line) => line.typeLabel))].join(" / ");
     railwayNote.textContent = state.dataMode === "lines"
-      ? (state.searchQuery ? `匹配到 ${resultCount} 条铁路线路，地图仍显示当前区域全部线路。` : `当前显示 ${state.filtered.length} 条${typeSummary}铁路预研线路。`)
+      ? (state.searchQuery ? `匹配到 ${resultCount} 条铁路线路，地图仍显示当前区域全部线路。` : `当前显示 ${actualLines.length} 条${typeSummary}铁路预研线路。`)
       : (state.searchQuery ? `匹配到 ${resultCount} 个铁路站点，地图仍显示当前区域全部站点。` : `当前显示 ${resultCount} 个铁路站点，线路与站点均保留在地图上。`);
     if (!resultCount) {
       const empty = document.createElement("div");
@@ -305,7 +390,7 @@
       matchedLines.forEach((line) => {
         const row = document.createElement("button");
         row.type = "button";
-        row.className = `airport-row railway-row railway-row-${line.type}`;
+        row.className = `airport-row railway-row railway-row-${line.type}${line.stationOnly ? " railway-row-station-only" : ""}`;
         row.dataset.lineId = line.id;
         const dot = document.createElement("i");
         dot.className = "row-dot railway-row-dot";
@@ -317,7 +402,7 @@
         const detail = document.createElement("span");
         detail.className = "row-city";
         const stationCount = line.stations.filter((station) => !station.isBoundary).length;
-        detail.textContent = `${line.typeLabel} · ${stationCount} 个站点`;
+        detail.textContent = line.stationOnly ? `站点集合 · ${stationCount} 个站点` : `${line.typeLabel} · ${stationCount} 个站点`;
         main.append(name, detail);
         const code = document.createElement("span");
         code.className = "row-code";
@@ -344,7 +429,7 @@
       name.textContent = station.name;
       const detail = document.createElement("span");
       detail.className = "row-city";
-      detail.textContent = `${station.city} · ${lines.join(" / ")}`;
+      detail.textContent = lines.length ? `${station.city} · ${lines.join(" / ")}` : station.city;
       main.append(name, detail);
       row.append(dot, main);
       fragment.appendChild(row);
@@ -369,7 +454,7 @@
 
   function applyRegion() {
     const region = state.regionScope;
-    state.filtered = region === "global"
+    state.filtered = region === "all"
       ? RAILWAYS
       : RAILWAYS.filter((line) => line.region === region || (line.regions || []).includes(region));
     invalidateDisplayedData();
@@ -379,28 +464,22 @@
     regionReadout.textContent = regionLabels[region];
     renderRailways();
     renderList();
-    if (region === "global") {
-      Object.assign(state, DEFAULT_VIEW);
-      updateTransform();
-    } else if (displayedLines.length) {
-      centerOnItems(displayedLines);
-    }
+    setRegionView(region);
   }
 
   function resetView() {
     searchInput.value = "";
-    state.regionScope = "global";
+    state.regionScope = "all";
     state.searchQuery = "";
     state.selectedLine = null;
     state.selectedStation = null;
     state.filtered = RAILWAYS;
     invalidateDisplayedData();
-    regionSelect.value = "global";
-    regionReadout.textContent = regionLabels.global;
-    Object.assign(state, DEFAULT_VIEW);
-    updateTransform();
+    regionSelect.value = "all";
+    regionReadout.textContent = regionLabels.all;
     renderRailways();
     renderList();
+    setRegionView("all");
   }
 
   function setDataMode(mode) {
@@ -419,7 +498,7 @@
     const pointX = ((clientX - rect.left) / rect.width) * 1200;
     const pointY = ((clientY - rect.top) / rect.height) * 760;
     const oldScale = state.scale;
-    state.scale = Math.max(MIN_ZOOM, Math.min(12, nextScale));
+    state.scale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, nextScale));
     state.x = pointX - ((pointX - state.x) / oldScale) * state.scale;
     state.y = pointY - ((pointY - state.y) / oldScale) * state.scale;
     updateTransform();
@@ -437,6 +516,7 @@
     if (!station && !route) return;
     event.preventDefault();
     event.stopPropagation();
+    skipClearOnPointerUp = true;
     if (station) selectStation(station.dataset.id);
     else selectLine(route.dataset.id);
   });
@@ -459,6 +539,7 @@
 
   mapStage.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
+    skipClearOnPointerUp = false;
     mapStage.focus();
     state.dragging = true;
     state.dragMoved = false;
@@ -480,7 +561,8 @@
     state.pointer = null;
     mapStage.classList.remove("dragging");
     if (event.pointerId !== undefined && mapStage.hasPointerCapture(event.pointerId)) mapStage.releasePointerCapture(event.pointerId);
-    if (!state.dragMoved) clearSelection();
+    if (!state.dragMoved && !skipClearOnPointerUp) clearSelection();
+    skipClearOnPointerUp = false;
   };
   mapStage.addEventListener("pointerup", endDrag);
   mapStage.addEventListener("pointercancel", endDrag);
@@ -514,5 +596,5 @@
   renderGrid();
   renderRailways();
   renderList();
-  updateTransform();
+  setRegionView("all");
 })();
