@@ -1381,9 +1381,10 @@ const RAILWAYS = [
     typeLabel: "高速",
     region: "china_mainland",
     status: "运营线路",
-    source: "由原津秦沈拆出；秦皇岛／葫芦岛北／锦州南／沈阳北复用既有站点身份",
+    source: "由原津秦沈拆出；山海关坐标参考维基百科；秦皇岛／葫芦岛北／锦州南／沈阳北复用既有站点身份",
     stations: [
       { id: "jinqinshen_03", name: "秦皇岛", city: "秦皇岛", lat: 39.949, lon: 119.604 },
+      { id: "qinshen_shanhaiguan", name: "山海关", city: "秦皇岛", lat: 39.9989, lon: 119.7618 },
       { id: "jinqinshen_04", name: "葫芦岛北", city: "葫芦岛", lat: 40.756, lon: 120.84 },
       { id: "jinqinshen_05", name: "锦州南", city: "锦州", lat: 41.06, lon: 121.151 },
       { id: "jingha_05", name: "沈阳北", city: "沈阳", lat: 41.817, lon: 123.436 }
@@ -2412,6 +2413,37 @@ const RAILWAYS = [
       { id: "jingtong_aohan", name: "敖汉", city: "敖汉", lat: 42.6375, lon: 119.9952 },
       { id: "jingtong_naiman", name: "奈曼", city: "奈曼", lat: 42.8391, lon: 120.6719 },
       { id: "jingha_chifeng_03", name: "通辽", city: "通辽", lat: 43.617, lon: 122.265 }
+    ]
+  },
+  {
+    id: "tangcao_conventional",
+    name: "唐曹铁路",
+    shortName: "唐曹",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "唐山复用津秦；唐海南／曹妃甸东坐标参考 OSM",
+    stations: [
+      { id: "jinqinshen_02", name: "唐山", city: "唐山", lat: 39.632, lon: 118.18 },
+      { id: "tangcao_tanghainan", name: "唐海南", city: "唐山", lat: 39.2375, lon: 118.4262 },
+      { id: "tangcao_caofeidiandong", name: "曹妃甸东", city: "唐山", lat: 39.2169, lon: 118.5847 }
+    ]
+  },
+  {
+    id: "luangang_conventional",
+    name: "滦港铁路",
+    shortName: "滦港",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "滦州为市治近似；滦南／乐亭／京唐港坐标参考 OSM",
+    stations: [
+      { id: "luangang_luanzhou", name: "滦州", city: "滦州", lat: 39.74, lon: 118.6975 },
+      { id: "luangang_luannan", name: "滦南", city: "滦南", lat: 39.5023, lon: 118.7145 },
+      { id: "luangang_laoting", name: "乐亭", city: "乐亭", lat: 39.4186, lon: 118.877 },
+      { id: "luangang_jingtanggang", name: "京唐港", city: "乐亭", lat: 39.2438, lon: 118.9965 }
     ]
   }
 ];
