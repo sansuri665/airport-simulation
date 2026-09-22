@@ -95,6 +95,7 @@ const RAILWAYS = [
     source: "京广普速石家庄—郑州段，与京广高铁北段平行；石家庄复用京广枢纽；其余为普速站／旗县治坐标（偏西于高铁东站）",
     stations: [
       { id: "jingguang_03", name: "石家庄", city: "石家庄", lat: 38.0225, lon: 114.484 },
+      { id: "shizheng_luancheng", name: "栾城", city: "栾城", lat: 37.9, lon: 114.52 },
       { id: "shizheng_yuanshi", name: "元氏", city: "元氏", lat: 37.759, lon: 114.538 },
       { id: "shizheng_gaoyi", name: "高邑", city: "高邑", lat: 37.604, lon: 114.592 },
       { id: "shizheng_lincheng", name: "临城", city: "临城", lat: 37.443, lon: 114.496 },
@@ -1823,10 +1824,11 @@ const RAILWAYS = [
     typeLabel: "普速",
     region: "china_mainland",
     status: "运营线路",
-    source: "石家庄东复用石济；献县复用保沧；沧州西复用京沪；晋州／安平／饶阳／武强为旗县治走廊近似",
+    source: "石家庄东复用石济；献县复用保沧；沧州西复用京沪；晋州／深泽／安平／饶阳／武强为旗县治走廊近似",
     stations: [
       { id: "shiji_shijiazhuangdong", name: "石家庄东", city: "石家庄", lat: 38.0502, lon: 114.6215 },
       { id: "shicang_jinzhou", name: "晋州", city: "晋州", lat: 38.033, lon: 115.034 },
+      { id: "shicang_shenze", name: "深泽", city: "深泽", lat: 38.186, lon: 115.194 },
       { id: "shicang_anping", name: "安平", city: "安平", lat: 38.229, lon: 115.514 },
       { id: "shicang_raoyang", name: "饶阳", city: "饶阳", lat: 38.233, lon: 115.721 },
       { id: "shicang_wuqiang", name: "武强", city: "武强", lat: 38.037, lon: 115.968 },
@@ -1842,7 +1844,7 @@ const RAILWAYS = [
     typeLabel: "普速",
     region: "china_mainland",
     status: "运营线路",
-    source: "石家庄复用京广；吴桥复用津德；黄骅北复用津潍；其余为旗县治走廊近似",
+    source: "石家庄复用京广；吴桥复用津德；终点改接黄骅（与朔黄共用）；其余为旗县治走廊近似",
     stations: [
       { id: "jingguang_03", name: "石家庄", city: "石家庄", lat: 38.0225, lon: 114.484 },
       { id: "shihuang_zhaoxian", name: "赵县", city: "赵县", lat: 37.749, lon: 114.77 },
@@ -1854,7 +1856,141 @@ const RAILWAYS = [
       { id: "shihuang_nanpi", name: "南皮", city: "南皮", lat: 38.04, lon: 116.704 },
       { id: "shihuang_mengcun", name: "孟村", city: "孟村", lat: 38.052, lon: 117.098 },
       { id: "shihuang_yanshan", name: "盐山", city: "盐山", lat: 38.058, lon: 117.222 },
-      { id: "jinwei_huanghuabei", name: "黄骅北", city: "黄骅", lat: 38.401, lon: 117.385 }
+      { id: "shuohuang_huanghua", name: "黄骅", city: "黄骅", lat: 38.367, lon: 117.333 }
+    ]
+  },
+  {
+    id: "shuohuang_conventional",
+    name: "朔黄铁路",
+    shortName: "朔黄",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "五台县复用津雄忻；原平复用京原；肃宁复用保沧；沧州复用津德；黄骅与石黄南共用；神池南／宁武西参考 OSM，其余旗县治走廊近似",
+    stations: [
+      { id: "shuohuang_shenchinan", name: "神池南", city: "神池", lat: 39.0784, lon: 112.1943 },
+      { id: "shuohuang_ningwuxi", name: "宁武西", city: "宁武", lat: 38.9947, lon: 112.2859 },
+      { id: "jingyuan_yuanping", name: "原平", city: "原平", lat: 38.7194, lon: 112.7278 },
+      { id: "jinxiongxin_wutaixian", name: "五台县", city: "五台", lat: 38.728, lon: 113.255 },
+      { id: "shuohuang_yuxian", name: "盂县", city: "盂县", lat: 38.257, lon: 113.319 },
+      { id: "shuohuang_pingshan", name: "平山", city: "平山", lat: 38.407, lon: 113.868 },
+      { id: "shuohuang_lingshou", name: "灵寿", city: "灵寿", lat: 38.521, lon: 114.204 },
+      { id: "shuohuang_xingtang", name: "行唐", city: "行唐", lat: 38.439, lon: 114.548 },
+      { id: "shuohuang_dingzhou", name: "定州", city: "定州", lat: 38.511, lon: 114.997 },
+      { id: "shuohuang_anguo", name: "安国", city: "安国", lat: 38.428, lon: 115.33 },
+      { id: "shuohuang_boye", name: "博野", city: "博野", lat: 38.458, lon: 115.46 },
+      { id: "shuohuang_lixian", name: "蠡县", city: "蠡县", lat: 38.49, lon: 115.58 },
+      { id: "baocang_suning", name: "肃宁", city: "肃宁", lat: 38.426, lon: 115.827 },
+      { id: "shuohuang_hejiannan", name: "河间南", city: "河间", lat: 38.4, lon: 116.09 },
+      { id: "jinde_cangzhou", name: "沧州", city: "沧州", lat: 38.306, lon: 116.868 },
+      { id: "shuohuang_huanghua", name: "黄骅", city: "黄骅", lat: 38.367, lon: 117.333 }
+    ]
+  },
+  {
+    id: "xinghuang_conventional",
+    name: "邢黄铁路",
+    shortName: "邢黄",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "邢台复用石郑；任泽为区治近似；冀州复用石黄南；巨鹿／南宫为旗县治走廊近似",
+    stations: [
+      { id: "shizheng_xingtai", name: "邢台", city: "邢台", lat: 37.069, lon: 114.486 },
+      { id: "xinghuang_renze", name: "任泽", city: "任泽", lat: 37.126, lon: 114.68 },
+      { id: "xinghuang_julu", name: "巨鹿", city: "巨鹿", lat: 37.217, lon: 115.034 },
+      { id: "xinghuang_nangong", name: "南宫", city: "南宫", lat: 37.356, lon: 115.392 },
+      { id: "shihuang_jizhou", name: "冀州", city: "冀州", lat: 37.544, lon: 115.58 }
+    ]
+  },
+  {
+    id: "xingqing_intercity_high_speed",
+    name: "邢清城际",
+    shortName: "邢清",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "邢台东复用京广；临清东复用京雄商；南和／平乡南／广宗南／威县／临西为旗县治走廊近似",
+    stations: [
+      { id: "jingguang_04", name: "邢台东", city: "邢台", lat: 37.07, lon: 114.57 },
+      { id: "xingqing_nanhe", name: "南和", city: "南和", lat: 37.006, lon: 114.679 },
+      { id: "xingqing_pingxiangnan", name: "平乡南", city: "平乡", lat: 37.02, lon: 115.03 },
+      { id: "xingqing_guangzongnan", name: "广宗南", city: "广宗", lat: 37.03, lon: 115.15 },
+      { id: "xingqing_weixian", name: "威县", city: "威县", lat: 36.982, lon: 115.267 },
+      { id: "xingqing_linxi", name: "临西", city: "临西", lat: 36.862, lon: 115.49 },
+      { id: "jingxiongshang_linqingdong", name: "临清东", city: "临清", lat: 36.85, lon: 115.8 }
+    ]
+  },
+  {
+    id: "liaohanchang_high_speed",
+    name: "聊邯长高铁",
+    shortName: "聊邯长",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "聊城西复用京雄商；邯郸东复用京广；长治东复用郑太；馆陶／大名／肥乡与邯馆北／邯南共用；其余旗县治近似",
+    stations: [
+      { id: "jingxiongshang_04", name: "聊城西", city: "聊城", lat: 36.43, lon: 115.92 },
+      { id: "handan_guantao", name: "馆陶", city: "馆陶", lat: 36.544, lon: 115.281 },
+      { id: "handan_daming", name: "大名", city: "大名", lat: 36.282, lon: 115.141 },
+      { id: "liaohanchang_guangping", name: "广平", city: "广平", lat: 36.482, lon: 114.939 },
+      { id: "handan_feixiang", name: "肥乡", city: "肥乡", lat: 36.551, lon: 114.796 },
+      { id: "jingguang_05", name: "邯郸东", city: "邯郸", lat: 36.615, lon: 114.565 },
+      { id: "liaohanchang_wuan", name: "武安", city: "武安", lat: 36.697, lon: 114.195 },
+      { id: "liaohanchang_shexian", name: "涉县", city: "涉县", lat: 36.569, lon: 113.67 },
+      { id: "zhengtai_04", name: "长治东", city: "长治", lat: 36.196, lon: 113.173 }
+    ]
+  },
+  {
+    id: "hanan_intercity_high_speed",
+    name: "邯南城际",
+    shortName: "邯南",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "邯郸复用石郑；大名与聊邯长共用；成安／魏县为旗县治近似",
+    stations: [
+      { id: "shizheng_handan", name: "邯郸", city: "邯郸", lat: 36.601, lon: 114.47 },
+      { id: "hanan_chengan", name: "成安", city: "成安", lat: 36.442, lon: 114.685 },
+      { id: "hanan_weixian", name: "魏县", city: "魏县", lat: 36.36, lon: 114.93 },
+      { id: "handan_daming", name: "大名", city: "大名", lat: 36.282, lon: 115.141 }
+    ]
+  },
+  {
+    id: "hanan_linzhang_branch_high_speed",
+    name: "邯南城际临漳支线",
+    shortName: "邯南临漳支线",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    parentLineId: "hanan_intercity_high_speed",
+    networkRole: "branch",
+    source: "成安复用邯南正线；临漳为旗县治近似",
+    stations: [
+      { id: "hanan_chengan", name: "成安", city: "成安", lat: 36.442, lon: 114.685 },
+      { id: "hanan_linzhang", name: "临漳", city: "临漳", lat: 36.334, lon: 114.598 }
+    ]
+  },
+  {
+    id: "handanguanbei_intercity_high_speed",
+    name: "邯馆北城际",
+    shortName: "邯馆北",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "邯郸东复用京广；馆陶与聊邯长共用；鸡泽南／曲周／邱县南为旗县治走廊近似",
+    stations: [
+      { id: "jingguang_05", name: "邯郸东", city: "邯郸", lat: 36.615, lon: 114.565 },
+      { id: "handanguanbei_jizenan", name: "鸡泽南", city: "鸡泽", lat: 36.86, lon: 114.88 },
+      { id: "handanguanbei_quzhou", name: "曲周", city: "曲周", lat: 36.77, lon: 114.959 },
+      { id: "handanguanbei_qiuxiannan", name: "邱县南", city: "邱县", lat: 36.78, lon: 115.18 },
+      { id: "handan_guantao", name: "馆陶", city: "馆陶", lat: 36.544, lon: 115.281 }
     ]
   },
   {
