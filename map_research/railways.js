@@ -865,7 +865,7 @@ const RAILWAYS = [
     typeLabel: "高速",
     region: "china_mainland",
     status: "运营线路",
-    source: "太原南复用张大西；银川复用包银／西银；走廊坐标拉平；绥德以西至盐池后按真实相对位置接入灵武—永宁（银川东南）—银川",
+    source: "太原南复用张大西；银川复用包银／西银；绥德西复用延榆；走廊坐标拉平；绥德西以西至盐池后按真实相对位置接入灵武—永宁（银川东南）—银川",
     stations: [
       { id: "zhangdaxi_05", name: "太原南", city: "太原", lat: 37.78, lon: 112.56 },
       { id: "taisui_qingxu", name: "清徐", city: "清徐", lat: 37.62, lon: 112.28 },
@@ -875,7 +875,7 @@ const RAILWAYS = [
       { id: "taisui_lvliang", name: "吕梁", city: "吕梁", lat: 37.4, lon: 111.1 },
       { id: "taisui_liulin", name: "柳林", city: "柳林", lat: 37.42, lon: 110.7 },
       { id: "taiyin_wubu", name: "吴堡", city: "吴堡", lat: 37.46, lon: 110.48 },
-      { id: "taisui_suide", name: "绥德", city: "绥德", lat: 37.5, lon: 110.25 },
+      { id: "yanyu_suidexi", name: "绥德西", city: "绥德", lat: 37.5, lon: 110.12 },
       { id: "taiyin_jingbian", name: "靖边", city: "靖边", lat: 37.483, lon: 108.804 },
       { id: "taiyin_dingbian", name: "定边", city: "定边", lat: 37.398, lon: 107.794 },
       { id: "taiyin_yanchi", name: "盐池", city: "盐池", lat: 37.78, lon: 107.4 },
@@ -1500,24 +1500,61 @@ const RAILWAYS = [
     ]
   },
 {
-    id: "hannanxinhe_high_speed",
-    name: "汉南信合高铁",
-    shortName: "汉南信合",
+    id: "hananshi_high_speed",
+    name: "汉安十高铁",
+    shortName: "汉安十",
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
-    source: "用户指定线路合并；汉中、安康、十堰、南阳、信阳、六安复用既有站点身份",
+    status: "运营线路",
+    source: "由原汉南信合西段拆出；汉中／安康西／十堰东复用既有；西乡南／石泉／汉阴／旬阳／白河为旗县治走廊近似",
     stations: [
       { id: "xicheng_02", name: "汉中", city: "汉中", lat: 33.063, lon: 107.023 },
+      { id: "hananshi_xixiangnan", name: "西乡南", city: "西乡", lat: 32.9, lon: 107.7 },
+      { id: "hananshi_shiquan", name: "石泉", city: "石泉", lat: 33.04, lon: 108.244 },
+      { id: "hananshi_hanyin", name: "汉阴", city: "汉阴", lat: 32.892, lon: 108.505 },
       { id: "xiyu_02", name: "安康西", city: "安康", lat: 32.733, lon: 108.9464 },
+      { id: "hananshi_xunyang", name: "旬阳", city: "旬阳", lat: 32.906, lon: 109.417 },
+      { id: "hananshi_baihe", name: "白河", city: "白河", lat: 32.719, lon: 109.925 },
+      { id: "xiwu_03", name: "十堰东", city: "十堰", lat: 32.646, lon: 110.854 }
+    ]
+  },
+  {
+    id: "shinanxinhe_high_speed",
+    name: "十南信合高铁",
+    shortName: "十南信合",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "由原汉南信合东段拆出；十堰东／南阳东／信阳东／六安复用既有",
+    stations: [
       { id: "xiwu_03", name: "十堰东", city: "十堰", lat: 32.646, lon: 110.854 },
       { id: "zhengyu_03", name: "南阳东", city: "南阳", lat: 32.98, lon: 112.6 },
       { id: "jingguang_13", name: "信阳东", city: "信阳", lat: 32.15, lon: 114.12 },
       { id: "heshen_02", name: "六安", city: "六安", lat: 31.75, lon: 116.5 }
     ]
   },
-{
+  {
+    id: "shangnan_high_speed",
+    name: "商南高铁",
+    shortName: "商南",
+    type: "high_speed",
+    typeLabel: "高速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "商洛西复用西武；南阳东复用郑渝／十南信合；丹凤／商南／西峡为旗县治，内乡南／镇平南为方位站走廊近似",
+    stations: [
+      { id: "xiwu_02", name: "商洛西", city: "商洛", lat: 33.872, lon: 109.834 },
+      { id: "shangnan_danfeng", name: "丹凤", city: "丹凤", lat: 33.704, lon: 110.427 },
+      { id: "shangnan_shangnan", name: "商南", city: "商南", lat: 33.528, lon: 110.88 },
+      { id: "shangnan_xixia", name: "西峡", city: "西峡", lat: 33.493, lon: 111.394 },
+      { id: "shangnan_neixiangnan", name: "内乡南", city: "内乡", lat: 33.15, lon: 111.86 },
+      { id: "shangnan_zhenpingnan", name: "镇平南", city: "镇平", lat: 33.05, lon: 112.14 },
+      { id: "zhengyu_03", name: "南阳东", city: "南阳", lat: 32.98, lon: 112.6 }
+    ]
+  },
+  {
     id: "shenda_high_speed",
     name: "沈大高铁",
     shortName: "沈大",
