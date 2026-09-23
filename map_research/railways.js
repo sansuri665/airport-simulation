@@ -685,14 +685,20 @@ const RAILWAYS = [
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
-    source: "原京包银拆分；包头复用京包高铁既有站点身份",
+    status: "运营线路",
+    source: "包头复用京包；银川复用枢纽；白彦花西／乌海南／惠农南为方位站，其余旗县治走廊近似",
     stations: [
-      { id: "jingbao_05", name: "包头", city: "包头", lat: 40.6039, lon: 109.8312 },
-      { id: "baoyin_02", name: "巴彦淖尔", city: "巴彦淖尔", note: "河套平原中心", lat: 40.7336, lon: 107.4048 },
-      { id: "baoyin_04", name: "乌海", city: "乌海", note: "内蒙古西部节点", lat: 39.6689, lon: 106.801 },
-      { id: "baoyin_05", name: "石嘴山", city: "石嘴山", note: "宁夏北部地级市", lat: 38.9575, lon: 106.377 },
-      { id: "baoyin_06", name: "银川", city: "银川", note: "宁夏首府、线路终点", lat: 38.487, lon: 106.27 }
+      { id: "jingbao_05", name: "包头", city: "包头", lat: 40.604, lon: 109.831 },
+      { id: "baoyin_baiyanhuaxi", name: "白彦花西", city: "乌拉特前旗", lat: 40.64, lon: 109.12 },
+      { id: "baoyin_wulateqianqi", name: "乌拉特前旗", city: "乌拉特前旗", lat: 40.894, lon: 109.101 },
+      { id: "baoyin_wuyuan", name: "五原", city: "五原", lat: 41.035, lon: 108.092 },
+      { id: "baoyin_02", name: "巴彦淖尔", city: "巴彦淖尔", lat: 40.734, lon: 107.405 },
+      { id: "baoyin_dengkou", name: "磴口", city: "磴口", lat: 40.556, lon: 106.695 },
+      { id: "baoyin_04", name: "乌海", city: "乌海", lat: 39.669, lon: 106.801 },
+      { id: "baoyin_wuhainan", name: "乌海南", city: "乌海", lat: 39.48, lon: 106.85 },
+      { id: "baoyin_huinongnan", name: "惠农南", city: "石嘴山", lat: 39.1, lon: 106.52 },
+      { id: "baoyin_05", name: "石嘴山", city: "石嘴山", lat: 38.958, lon: 106.377 },
+      { id: "baoyin_06", name: "银川", city: "银川", lat: 38.487, lon: 106.27 }
     ]
   },
 {
@@ -865,7 +871,7 @@ const RAILWAYS = [
     typeLabel: "高速",
     region: "china_mainland",
     status: "运营线路",
-    source: "太原南复用张大西；银川复用包银／西银；绥德西复用延榆；走廊坐标拉平；绥德西以西至盐池后按真实相对位置接入灵武—永宁（银川东南）—银川",
+    source: "太原南复用张大西；绥德西复用延榆；河东机场／银川复用西银／包银；西段按绥德西—横山—靖边—定边—盐池—宁东—河东机场—银川",
     stations: [
       { id: "zhangdaxi_05", name: "太原南", city: "太原", lat: 37.78, lon: 112.56 },
       { id: "taisui_qingxu", name: "清徐", city: "清徐", lat: 37.62, lon: 112.28 },
@@ -876,11 +882,12 @@ const RAILWAYS = [
       { id: "taisui_liulin", name: "柳林", city: "柳林", lat: 37.42, lon: 110.7 },
       { id: "taiyin_wubu", name: "吴堡", city: "吴堡", lat: 37.46, lon: 110.48 },
       { id: "yanyu_suidexi", name: "绥德西", city: "绥德", lat: 37.5, lon: 110.12 },
+      { id: "taiyin_hengshan", name: "横山", city: "横山", lat: 37.867, lon: 109.408 },
       { id: "taiyin_jingbian", name: "靖边", city: "靖边", lat: 37.483, lon: 108.804 },
       { id: "taiyin_dingbian", name: "定边", city: "定边", lat: 37.398, lon: 107.794 },
       { id: "taiyin_yanchi", name: "盐池", city: "盐池", lat: 37.78, lon: 107.4 },
-      { id: "taiyin_lingwu", name: "灵武", city: "灵武", lat: 38.02, lon: 106.34 },
-      { id: "taiyin_yongning", name: "永宁", city: "永宁", lat: 38.28, lon: 106.25 },
+      { id: "taiyin_ningdong", name: "宁东", city: "灵武", lat: 38.146, lon: 106.542 },
+      { id: "xiyin_hedongjichang", name: "河东机场", city: "银川", lat: 38.322, lon: 106.393 },
       { id: "baoyin_06", name: "银川", city: "银川", lat: 38.487, lon: 106.27 }
     ]
   },
@@ -1289,7 +1296,21 @@ const RAILWAYS = [
       { id: "baozhong_02", name: "平凉", city: "平凉", lat: 35.227, lon: 106.496 },
       { id: "baozhong_03", name: "固原", city: "固原", lat: 35.935, lon: 106.233 },
       { id: "baozhong_tongxin", name: "同心", city: "同心", lat: 36.978, lon: 105.903 },
-      { id: "baozhong_zhongwei", name: "中卫", city: "中卫", lat: 37.0, lon: 105.5 }
+      { id: "baozhong_zhongwei", name: "中卫", city: "中卫", lat: 37.52, lon: 105.19 }
+    ]
+  },
+  {
+    id: "alashan_conventional",
+    name: "阿拉善铁路",
+    shortName: "阿拉善",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "银川复用包银／西银；巴彦浩特为阿拉善左旗治走廊近似",
+    stations: [
+      { id: "baoyin_06", name: "银川", city: "银川", lat: 38.487, lon: 106.27 },
+      { id: "alashan_bayanhaote", name: "巴彦浩特", city: "阿拉善左旗", lat: 38.868, lon: 105.399 }
     ]
   },
   {
@@ -1966,7 +1987,6 @@ const RAILWAYS = [
       { id: "xiyin_04", name: "吴忠", city: "吴忠", lat: 37.997, lon: 106.199 },
       { id: "xiyin_lingwubei", name: "灵武北", city: "灵武", lat: 38.18, lon: 106.36 },
       { id: "xiyin_hedongjichang", name: "河东机场", city: "银川", lat: 38.322, lon: 106.393 },
-      { id: "xiyin_yinchuandong", name: "银川东", city: "银川", lat: 38.45, lon: 106.32 },
       { id: "baoyin_06", name: "银川", city: "银川", lat: 38.487, lon: 106.27 }
     ]
   },
@@ -2502,14 +2522,21 @@ const RAILWAYS = [
     type: "high_speed",
     typeLabel: "高速",
     region: "china_mainland",
-    status: "预研线路",
-    source: "用户提供参考坐标；银川、吴忠、兰州西复用既有站点身份",
+    status: "运营线路",
+    source: "银川／河东机场／灵武北／吴忠复用西银／包银；中卫南／白银南／兰州西复用既有；红寺堡北／中宁东／平川西／靖远北／秦王川为方位或旗县治走廊近似",
     stations: [
       { id: "baoyin_06", name: "银川", city: "银川", lat: 38.487, lon: 106.27 },
+      { id: "xiyin_hedongjichang", name: "河东机场", city: "银川", lat: 38.322, lon: 106.393 },
+      { id: "xiyin_lingwubei", name: "灵武北", city: "灵武", lat: 38.18, lon: 106.36 },
       { id: "xiyin_04", name: "吴忠", city: "吴忠", lat: 37.997, lon: 106.199 },
-      { id: "yinlan_03", name: "中卫南", city: "中卫", lat: 37.4767, lon: 105.1744 },
-      { id: "yinlan_04", name: "白银南", city: "白银", lat: 36.4765, lon: 104.1804 },
-      { id: "lianxulan_14", name: "兰州西", city: "兰州", lat: 36.0675, lon: 103.7492 }
+      { id: "yinlan_hongsibaobei", name: "红寺堡北", city: "红寺堡", lat: 37.42, lon: 106.15 },
+      { id: "yinlan_zhongningdong", name: "中宁东", city: "中宁", lat: 37.35, lon: 105.75 },
+      { id: "yinlan_03", name: "中卫南", city: "中卫", lat: 37.45, lon: 105.18 },
+      { id: "yinlan_pingchuanxi", name: "平川西", city: "平川", lat: 36.72, lon: 104.85 },
+      { id: "yinlan_jingyuanbei", name: "靖远北", city: "靖远", lat: 36.55, lon: 104.7 },
+      { id: "yinlan_04", name: "白银南", city: "白银", lat: 36.477, lon: 104.18 },
+      { id: "yinlan_qinwangchuan", name: "秦王川", city: "兰州新区", lat: 36.47, lon: 103.77 },
+      { id: "lianxulan_14", name: "兰州西", city: "兰州", lat: 36.068, lon: 103.749 }
     ]
   },
 {
