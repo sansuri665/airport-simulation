@@ -1321,14 +1321,13 @@ const RAILWAYS = [
     typeLabel: "普速",
     region: "china_mainland",
     status: "运营线路",
-    source: "宝鸡复用宝中；广元复用西成；宁强别于西成宁强南；凤县／徽县／略阳为旗县治走廊近似",
+    source: "宝鸡复用宝中；止于宁强（别于西成宁强南）；凤县／徽县／略阳为旗县治走廊近似",
     stations: [
       { id: "baoji_baoji", name: "宝鸡", city: "宝鸡", lat: 34.37, lon: 107.24 },
       { id: "baocheng_fengxian", name: "凤县", city: "凤县", lat: 34.015, lon: 106.77 },
       { id: "baocheng_huixian", name: "徽县", city: "徽县", lat: 33.886, lon: 106.005 },
       { id: "baocheng_lueyang", name: "略阳", city: "略阳", lat: 33.33, lon: 106.149 },
-      { id: "baocheng_ningqiang", name: "宁强", city: "宁强", lat: 32.942, lon: 106.226 },
-      { id: "xicheng_03", name: "广元", city: "广元", lat: 32.44, lon: 105.828 }
+      { id: "baocheng_ningqiang", name: "宁强", city: "宁强", lat: 32.942, lon: 106.226 }
     ]
   },
 {
