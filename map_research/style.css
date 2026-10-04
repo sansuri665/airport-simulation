@@ -46,6 +46,7 @@ button { color: inherit; }
 }
 
 .research-switcher { display: flex; align-items: center; gap: 5px; margin-left: auto; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: #091116; }
+.topbar > .research-switcher { margin-left: 18px; margin-right: auto; }
 .research-tab { padding: 8px 14px; border-radius: 999px; color: var(--muted); font-size: 12px; text-decoration: none; transition: .16s ease; }
 .research-tab:hover { color: var(--text); background: #102025; }
 .research-tab.active { color: #07100f; background: var(--accent); box-shadow: 0 0 18px #73e0bf38; }
@@ -91,6 +92,7 @@ h2 { margin-bottom: 0; font-size: 16px; }
 .route-path-legend { display: none; bottom: 52px; }
 .path-mode .route-path-legend.visible { display: flex; }
 .legend-swatch { width: 16px; height: 3px; border-radius: 99px; background: var(--accent-2); box-shadow: 0 0 7px #56b8ef88; }
+.legend-swatch.station { width: 8px; height: 8px; border-radius: 50%; background: #c9f1ff; box-shadow: 0 0 7px #56b8ef88; }
 .legend-swatch.conventional { background: #f6ae63; box-shadow: 0 0 7px #f6ae6388; }
 .legend-swatch.airport-in-range { background: var(--accent); box-shadow: 0 0 7px #73e0bf88; }
 .legend-swatch.airport-out-of-range { background: #56636a; box-shadow: none; }
