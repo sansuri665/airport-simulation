@@ -140,6 +140,7 @@ h2 { margin-bottom: 0; font-size: 16px; }
 .railway-station.selected .railway-core { fill: #fff1be; stroke: var(--orange); }
 .railway-station.selected .railway-halo { fill: var(--orange); opacity: .48; }
 .railway-station.selected .railway-label { fill: #fff1be; }
+.railway-station.dimmed { opacity: .28; }
 .railway-station.selected-line .railway-core { fill: #fff1be; stroke: var(--orange); }
 .railway-station.selected-line .railway-halo { fill: var(--orange); opacity: .48; }
 .railway-station.selected-line .railway-label { fill: #fff1be; }
@@ -148,6 +149,8 @@ h2 { margin-bottom: 0; font-size: 16px; }
 .railway-row .row-dot { background: var(--accent-2); box-shadow: 0 0 8px #56b8ef88; }
 .railway-row-conventional .row-dot { background: #f6ae63; box-shadow: 0 0 8px #f6ae6388; }
 .railway-station-row { grid-template-columns: 9px minmax(0, 1fr); }
+.corridor-heading { width: 100%; margin: 8px 0 2px; padding: 8px 8px 4px; border: 0; color: var(--accent); text-align: left; background: transparent; cursor: pointer; font-size: 12px; font-weight: 700; }
+.corridor-heading.active { color: #fff1be; }
 
 .map-footer { justify-content: space-between; gap: 12px; min-height: 39px; padding: 0 17px; color: #60747d; font-size: 11px; }
 

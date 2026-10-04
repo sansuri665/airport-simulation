@@ -5,7 +5,7 @@
 ## 入口
 
 - [`railway.html`](railway.html)：中国大陆 / 港澳台铁路线路与站点查看
-- [`beijing-stations.html`](beijing-stations.html)：17 个北京高速铁路站点，不按线路归属
+- [`new-railway.html`](new-railway.html)：新铁路线路。合并北京高速站点与京津四条通道；之后的地图改动写在这一页
 - [`index.html`](index.html)：跳转到铁路页
 
 在仓库根目录启动独立静态服务：
@@ -23,8 +23,8 @@ py -m http.server 8780 --directory map_research
 | `railways.js` | 中国大陆 / 港澳台铁路线路与站点 |
 | `railway.js` | 铁路地图查看交互 |
 | `railway.html` | 铁路预研页面 |
-| `beijing-stations.js` | 北京高速站点查看交互 |
-| `beijing-stations.html` | 北京高速站点页面 |
+| `new-railway.js` | 新铁路线路查看交互 |
+| `new-railway.html` | 新铁路线路页面 |
 | `style.css` | 页面样式 |
 
 ## 范围

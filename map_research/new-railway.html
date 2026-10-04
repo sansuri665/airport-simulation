@@ -1,9 +1,9 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>铁路预研</title>
+  <title>新铁路线路</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -11,11 +11,11 @@
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">✦</div>
-        <div><h1>铁路预研</h1></div>
+        <div><h1>新铁路线路</h1></div>
       </div>
       <nav class="research-switcher" aria-label="预研页面">
-        <a class="research-tab active" href="./railway.html" aria-current="page">铁路线路</a>
-        <a class="research-tab" href="./new-railway.html">新铁路线路</a>
+        <a class="research-tab" href="./railway.html">铁路线路</a>
+        <a class="research-tab active" href="./new-railway.html" aria-current="page">新铁路线路</a>
       </nav>
       <div class="top-actions">
         <span class="status-pill"><i></i><span>本地静态数据</span></span>
@@ -26,9 +26,9 @@
     </header>
 
     <main class="workspace">
-      <section class="map-card" aria-label="铁路线路地图">
+      <section class="map-card" aria-label="新铁路线路地图">
         <div class="map-stage" id="mapStage" tabindex="0">
-          <svg id="mapSvg" viewBox="0 0 1200 760" role="img" aria-label="铁路预研线路图">
+          <svg id="mapSvg" viewBox="0 0 1200 760" role="img" aria-label="新铁路线路站点图">
             <defs>
               <pattern id="microGrid" width="24" height="24" patternUnits="userSpaceOnUse">
                 <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#18232c" stroke-width="1"></path>
@@ -45,17 +45,17 @@
               <g id="railwayLayer"></g>
             </g>
           </svg>
-          <div class="map-title-overlay">铁路线路</div>
+          <div class="map-title-overlay">新铁路线路</div>
           <div class="map-hint">滚轮缩放　·　拖动平移　·　W A S D 移动</div>
-          <div class="map-legend" aria-label="线路类型图例">
-            <span><i class="legend-swatch high-speed"></i>高速</span>
-            <span><i class="legend-swatch conventional"></i>普速</span>
+          <div class="map-legend" aria-label="站点图例">
+            <span><i class="legend-swatch station"></i>站点</span>
+            <span><i class="legend-swatch"></i>相邻段</span>
           </div>
           <div class="zoom-readout" id="zoomReadout">100%</div>
         </div>
         <div class="map-footer">
-          <span>铁路预研 · 中国大陆 / 港澳台 · 站点坐标为参考值</span>
-          <span id="regionReadout">全部（中国大陆 + 港澳台）</span>
+          <span>铁路预研 · 新铁路线路 · 坐标为参考值</span>
+          <span id="selectionReadout">未选择</span>
         </div>
       </section>
 
@@ -63,37 +63,25 @@
         <section class="side-section search-section">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">RAILWAY INDEX</p>
-              <h2>铁路数据</h2>
+              <p class="eyebrow">NEW RAILWAY</p>
+              <h2>铁路站点</h2>
             </div>
-            <span class="count-badge" id="railwayCount">0</span>
+            <span class="count-badge" id="entryCount">0</span>
           </div>
           <label class="search-box">
             <span aria-hidden="true">⌕</span>
-            <input id="searchInput" type="search" placeholder="搜索线路、车站或城市" autocomplete="off">
+            <input id="searchInput" type="search" placeholder="搜索车站或城市" autocomplete="off">
           </label>
-          <p class="search-note railway-note" id="railwayNote">当前显示中国大陆与港澳台铁路预研线路。</p>
-          <div class="railway-data-tabs" role="group" aria-label="右侧铁路数据类型">
-            <button class="railway-data-tab active" id="lineModeButton" type="button" aria-pressed="true">铁路线路</button>
-            <button class="railway-data-tab" id="stationModeButton" type="button" aria-pressed="false">铁路站点</button>
-          </div>
-          <div class="region-filter" role="group" aria-label="按区域查看铁路地图">
-            <span class="filter-label">按区域查看</span>
-            <select class="region-select" id="regionSelect" aria-label="区域">
-              <option value="all">全部（中国大陆 + 港澳台）</option>
-              <option value="china_mainland">中国大陆</option>
-              <option value="hk_macao_taiwan">港澳台</option>
-            </select>
-          </div>
+          <p class="search-note railway-note" id="pageNote">当前显示铁路站点。</p>
         </section>
 
-        <section class="airport-list railway-list" id="railwayList" aria-label="铁路线路列表"></section>
+        <section class="airport-list railway-list" id="entryList" aria-label="新铁路线路列表"></section>
       </aside>
     </main>
 
     <footer class="page-footer">铁路预研独立于 Airport 主项目数据链路。</footer>
   </div>
   <script src="./railways.js"></script>
-  <script src="./railway.js"></script>
+  <script src="./new-railway.js"></script>
 </body>
 </html>
