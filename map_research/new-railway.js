@@ -135,7 +135,50 @@
     锦州南: "锦州",
     南堡北: "唐山",
     唐海南: "唐山",
-    曹妃甸东: "唐山"
+    曹妃甸东: "唐山",
+    雄安城际: "雄安",
+    小里: "徐水",
+    蠡县西: "蠡县",
+    安国东: "安国",
+    无极: "无极",
+    正定东: "正定",
+    裕华东: "石家庄",
+    保定南: "保定",
+    望都北: "望都",
+    唐县: "唐县",
+    曲阳: "曲阳",
+    阜平: "阜平",
+    五台山: "五台",
+    五台县: "五台",
+    定襄北: "定襄",
+    忻州西: "忻州",
+    阳曲西: "阳曲",
+    太原南: "太原",
+    原平西: "原平",
+    雁门关: "代县",
+    朔州东: "朔州",
+    山阴南: "山阴",
+    应县西: "应县",
+    怀仁东: "怀仁",
+    大同南: "大同",
+    涞源: "涞源",
+    灵丘: "灵丘",
+    恒山: "浑源",
+    任丘西: "任丘",
+    肃宁河间: "肃宁",
+    深州东: "深州",
+    衡水南: "衡水",
+    枣强南: "枣强",
+    清河西: "清河",
+    临清东: "临清",
+    聊城西: "聊城",
+    阳谷东: "阳谷",
+    台前东: "台前",
+    梁山: "梁山",
+    郓城: "郓城",
+    菏泽东: "菏泽",
+    曹县西: "曹县",
+    商丘: "商丘"
   };
   const ORDER_NAME_ALIAS = {
     北京通州: "北京城市副中心",
@@ -432,6 +475,94 @@
         ["tangcao_nanpubei", "南堡北", 39.27659, 118.19932],
         ["tangcao_tanghainan", "唐海南", 39.23737, 118.42620],
         ["tangcao_caofeidiandong", "曹妃甸东", 39.21691, 118.58471]
+      ]
+    },
+    {
+      id: "xiongan_yuhuadong",
+      name: "雄安—裕华东通道",
+      stations: [
+        ["jingxiongshang_02", "雄安", 39.055749, 116.153230],
+        ["shixiong_xionganchengji", "雄安城际", 39.00063, 115.93069],
+        ["shixiong_xiaoli", "小里", 39.000, 115.820],
+        ["jingguang_02", "保定东", 38.86346, 115.59573],
+        ["shibao_lixianxi", "蠡县西", 38.493, 115.535],
+        ["shibao_anguodong", "安国东", 38.420, 115.350],
+        ["shibao_wuji", "无极", 38.250, 114.960],
+        ["jingguang_zhengdingairport", "正定机场", 38.25131, 114.70333],
+        ["shixiong_zhengdingdong", "正定东", 38.15, 114.62],
+        ["shixiong_yuhuadong", "裕华东", 38.0088, 114.6593]
+      ]
+    },
+    {
+      id: "baodingdong_xinzhouxi",
+      name: "保定东—忻州西通道",
+      stations: [
+        ["jingguang_02", "保定东", 38.86346, 115.59573],
+        ["jinxiongxin_baodingnan", "保定南", 38.781, 115.414],
+        ["jinxiongxin_wangdoubei", "望都北", 38.74900, 115.11572],
+        ["jinxiongxin_tangxian", "唐县", 38.748, 114.981],
+        ["jinxiongxin_quyang", "曲阳", 38.622, 114.745],
+        ["jinxiongxin_fuping", "阜平", 38.849, 114.195],
+        ["jinxiongxin_wutaishan", "五台山", 38.93, 113.67],
+        ["jinxiongxin_wutaixian", "五台县", 38.72, 113.26],
+        ["jinxiongxin_dingxiangbei", "定襄北", 38.59, 112.97],
+        ["zhangdaxi_04", "忻州西", 38.44247, 112.68668]
+      ]
+    },
+    {
+      id: "xinzhouxi_taiyuannan",
+      name: "忻州西—太原南通道",
+      stations: [
+        ["zhangdaxi_04", "忻州西", 38.44247, 112.68668],
+        ["zhangdaxi_yangquxi", "阳曲西", 38.0721, 112.6409],
+        ["zhangdaxi_05", "太原南", 37.79133, 112.60482]
+      ]
+    },
+    {
+      id: "xinzhouxi_datongnan",
+      name: "忻州西—大同南通道",
+      stations: [
+        ["zhangdaxi_04", "忻州西", 38.44247, 112.68668],
+        ["zhangdaxi_yuanpingxi", "原平西", 38.739, 112.670],
+        ["zhangdaxi_yanmenguan", "雁门关", 39.04839, 112.79194],
+        ["zhangdaxi_03", "朔州东", 39.30236, 112.59166],
+        ["zhangdaxi_shanyinnan", "山阴南", 39.49187, 112.83203],
+        ["zhangdaxi_yingxianxi", "应县西", 39.62325, 113.00671],
+        ["zhangdaxi_huairendong", "怀仁东", 39.79206, 113.15673],
+        ["zhangdaxi_02", "大同南", 40.04333, 113.35784]
+      ]
+    },
+    {
+      id: "baodingdong_datongnan",
+      name: "保定东—大同南通道",
+      stations: [
+        ["jingguang_02", "保定东", 38.86346, 115.59573],
+        ["dabao_laiyuan", "涞源", 39.370, 114.710],
+        ["dabao_lingqiu", "灵丘", 39.462, 114.223],
+        ["dabao_hengshan", "恒山", 39.690, 113.720],
+        ["zhangdaxi_02", "大同南", 40.04333, 113.35784]
+      ]
+    },
+    {
+      id: "xiongan_shangqiu",
+      name: "雄安—商丘通道",
+      stations: [
+        ["jingxiongshang_02", "雄安", 39.055749, 116.153230],
+        ["jingxiongshang_renqiuxi", "任丘西", 38.70294, 116.02126],
+        ["jingxiongshang_suninghejian", "肃宁河间", 38.416, 115.934],
+        ["jingxiongshang_shenzhoudong", "深州东", 38.00489, 115.67193],
+        ["jingxiongshang_03", "衡水南", 37.69773, 115.63496],
+        ["jingxiongshang_zaoqiangnan", "枣强南", 37.32479, 115.66533],
+        ["jingxiongshang_qinghexi", "清河西", 37.07252, 115.60515],
+        ["jingxiongshang_linqingdong", "临清东", 36.82285, 115.75720],
+        ["jingxiongshang_04", "聊城西", 36.43047, 115.87512],
+        ["jingxiongshang_yanggudong", "阳谷东", 36.19711, 115.88712],
+        ["jingxiongshang_taqiandong", "台前东", 36.00671, 115.92394],
+        ["jingxiongshang_liangshan", "梁山", 35.81861, 115.93111],
+        ["jingxiongshang_yuncheng", "郓城", 35.60194, 115.89500],
+        ["jingxiongshang_06", "菏泽东", 35.18472, 115.55711],
+        ["jingxiongshang_caoxianxi", "曹县西", 34.84784, 115.49951],
+        ["jingxiongshang_07", "商丘", 34.44423, 115.65701]
       ]
     }
   ];
