@@ -114,7 +114,28 @@
     济南东: "济南",
     东营南: "东营",
     寿光东: "寿光",
-    潍坊北: "潍坊"
+    潍坊北: "潍坊",
+    丰润西: "唐山",
+    团瓢庄: "遵化",
+    半壁山: "兴隆",
+    承德西: "承德",
+    滦平东: "滦平",
+    丰宁: "丰宁",
+    赤城: "赤城",
+    张家口南: "张家口",
+    滦河: "滦州",
+    昌黎: "昌黎",
+    北戴河: "秦皇岛",
+    秦皇岛: "秦皇岛",
+    山海关: "秦皇岛",
+    东戴河: "绥中",
+    绥中北: "绥中",
+    兴城西: "兴城",
+    葫芦岛北: "葫芦岛",
+    锦州南: "锦州",
+    南堡北: "唐山",
+    唐海南: "唐山",
+    曹妃甸东: "唐山"
   };
   const ORDER_NAME_ALIAS = {
     北京通州: "北京城市副中心",
@@ -367,6 +388,50 @@
         ["jinwei_03", "东营南", 37.3560, 118.5450],
         ["jinwei_shouguangdong", "寿光东", 36.905, 118.865],
         ["jiqing_03", "潍坊北", 36.7954, 119.1894]
+      ]
+    },
+    {
+      id: "tangshan_zhangjiakounan",
+      name: "唐山—张家口南通道",
+      type: "conventional",
+      stations: [
+        ["jinqinshen_02", "唐山", 39.62424, 118.11170],
+        ["zhangtang_fengrunxi", "丰润西", 39.85386, 118.01946],
+        ["zhangtang_tuanpiaozhuang", "团瓢庄", 40.10, 117.96],
+        ["zhangtang_banbishan", "半壁山", 40.3700, 117.9289],
+        ["zhangtang_chengdexi", "承德西", 40.76, 117.72],
+        ["zhangtang_luanpingdong", "滦平东", 40.99, 117.43],
+        ["zhangtang_fengning", "丰宁", 41.16411, 116.63313],
+        ["zhangtang_chicheng", "赤城", 40.84602, 115.87461],
+        ["zhangtang_zhangjiakounan", "张家口南", 40.70265, 114.87428]
+      ]
+    },
+    {
+      id: "tangshan_jinzhounan",
+      name: "唐山—锦州南通道",
+      stations: [
+        ["jinqinshen_02", "唐山", 39.62424, 118.11170],
+        ["jinqin_luanhe", "滦河", 39.85387, 118.67248],
+        ["jinqin_changli", "昌黎", 39.70291, 119.16145],
+        ["jinqin_beidaihe", "北戴河", 39.84958, 119.41372],
+        ["jinqinshen_03", "秦皇岛", 39.96486, 119.58632],
+        ["qinshen_shanhaiguan", "山海关", 40.0000, 119.7681],
+        ["qinshen_dongdaihe", "东戴河", 40.04095, 119.84086],
+        ["qinshen_suizhongbei", "绥中北", 40.34710, 120.31893],
+        ["qinshen_xingchengxi", "兴城西", 40.59088, 120.61064],
+        ["jinqinshen_04", "葫芦岛北", 40.74169, 120.75820],
+        ["jinqinshen_05", "锦州南", 41.01450, 121.12116]
+      ]
+    },
+    {
+      id: "tangshan_caofeidiandong",
+      name: "唐山—曹妃甸东通道",
+      type: "conventional",
+      stations: [
+        ["jinqinshen_02", "唐山", 39.62424, 118.11170],
+        ["tangcao_nanpubei", "南堡北", 39.27659, 118.19932],
+        ["tangcao_tanghainan", "唐海南", 39.23737, 118.42620],
+        ["tangcao_caofeidiandong", "曹妃甸东", 39.21691, 118.58471]
       ]
     }
   ];
