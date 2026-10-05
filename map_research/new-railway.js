@@ -178,7 +178,37 @@
     郓城: "郓城",
     菏泽东: "菏泽",
     曹县西: "曹县",
-    商丘: "商丘"
+    商丘: "商丘",
+    鹿泉: "鹿泉",
+    井陉北: "井陉",
+    阳泉北: "盂县",
+    石家庄东: "石家庄",
+    藁城南: "藁城",
+    辛集南: "辛集",
+    衡水北: "衡水",
+    景州: "景县",
+    平原东: "平原",
+    禹城东: "禹城",
+    齐河: "齐河",
+    高邑西: "高邑",
+    邢台东: "邢台",
+    邯郸东: "邯郸",
+    安阳东: "安阳",
+    鹤壁东: "鹤壁",
+    新乡东: "新乡",
+    郑州东: "郑州",
+    行唐: "行唐",
+    西合营: "蔚县",
+    阳原: "阳原",
+    武邑: "武邑",
+    阜城南: "阜城",
+    交河: "泊头",
+    泊头西: "泊头",
+    泊头东: "泊头",
+    沧州东: "沧州",
+    黄骅南: "黄骅",
+    黄骅东: "黄骅",
+    黄骅港: "黄骅"
   };
   const ORDER_NAME_ALIAS = {
     北京通州: "北京城市副中心",
@@ -515,7 +545,7 @@
       stations: [
         ["zhangdaxi_04", "忻州西", 38.44247, 112.68668],
         ["zhangdaxi_yangquxi", "阳曲西", 38.0721, 112.6409],
-        ["zhangdaxi_05", "太原南", 37.79133, 112.60482]
+        ["zhangdaxi_05", "太原南", 37.79128, 112.60467]
       ]
     },
     {
@@ -563,6 +593,99 @@
         ["jingxiongshang_06", "菏泽东", 35.18472, 115.55711],
         ["jingxiongshang_caoxianxi", "曹县西", 34.84784, 115.49951],
         ["jingxiongshang_07", "商丘", 34.44423, 115.65701]
+      ]
+    },
+    {
+      id: "shijiazhuang_taiyuannan",
+      name: "石家庄—太原南通道",
+      stations: [
+        ["jingguang_03", "石家庄", 38.01111, 114.47722],
+        ["shita_luquan", "鹿泉", 38.0860, 114.3040],
+        ["shita_jingxingbei", "井陉北", 38.1514, 114.0191],
+        ["shita_02", "阳泉北", 38.1144, 113.4312],
+        ["zhangdaxi_05", "太原南", 37.79128, 112.60467]
+      ]
+    },
+    {
+      id: "shijiazhuang_jinandong",
+      name: "石家庄—济南东通道",
+      stations: [
+        ["jingguang_03", "石家庄", 38.01111, 114.47722],
+        ["shiji_shijiazhuangdong", "石家庄东", 38.04965, 114.62140],
+        ["shiji_gaochengnan", "藁城南", 37.9849, 114.8490],
+        ["shiji_xinjinan", "辛集南", 37.8817, 115.2045],
+        ["shiji_hengshuibei", "衡水北", 37.7727, 115.6692],
+        ["shiji_jingzhou", "景州", 37.6450, 116.1326],
+        ["jinghu_05", "德州东", 37.41089, 116.45493],
+        ["shiji_pingyuandong", "平原东", 37.21734, 116.57632],
+        ["shiji_yuchengdong", "禹城东", 37.0626, 116.6852],
+        ["shiji_qihe", "齐河", 36.8436, 116.8571],
+        ["jiqing_01", "济南东", 36.7484, 117.1541]
+      ]
+    },
+    {
+      id: "shijiazhuang_zhengzhoudong",
+      name: "石家庄—郑州东通道",
+      stations: [
+        ["jingguang_03", "石家庄", 38.01111, 114.47722],
+        ["jingguang_gaoyixi", "高邑西", 37.62906, 114.52419],
+        ["jingguang_04", "邢台东", 37.09114, 114.58545],
+        ["jingguang_05", "邯郸东", 36.625, 114.568],
+        ["jingguang_06", "安阳东", 36.08415, 114.44796],
+        ["jingguang_07", "鹤壁东", 35.70606, 114.29439],
+        ["jingguang_08", "新乡东", 35.31471, 113.97293],
+        ["jingguang_09", "郑州东", 34.76001, 113.77306]
+      ]
+    },
+    {
+      id: "shijiazhuang_zhangjiakou",
+      name: "石家庄—张家口通道",
+      stations: [
+        ["jingguang_03", "石家庄", 38.01111, 114.47722],
+        ["shizhang_xingtang", "行唐", 38.438, 114.553],
+        ["jinxiongxin_quyang", "曲阳", 38.622, 114.745],
+        ["dabao_laiyuan", "涞源", 39.370, 114.710],
+        ["shizhang_xiheying", "西合营", 39.94615, 114.76034],
+        ["shizhang_yangyuan", "阳原", 40.113, 114.150],
+        ["jingbao_xuanhuabei", "宣化北", 40.631230, 115.042504],
+        ["jingbao_02", "张家口", 40.750675, 114.876969]
+      ]
+    },
+    {
+      id: "hengshuibei_hengshuinan",
+      name: "衡水北—衡水南通道",
+      stations: [
+        ["shiji_hengshuibei", "衡水北", 37.7727, 115.6692],
+        ["jingxiongshang_03", "衡水南", 37.69773, 115.63496]
+      ]
+    },
+    {
+      id: "shijiazhuang_huanghuagang",
+      name: "石家庄—黄骅港通道",
+      stations: [
+        ["jingguang_03", "石家庄", 38.01111, 114.47722],
+        ["shiji_shijiazhuangdong", "石家庄东", 38.04965, 114.62140],
+        ["shiji_gaochengnan", "藁城南", 37.9849, 114.8490],
+        ["shiji_xinjinan", "辛集南", 37.8817, 115.2045],
+        ["shiji_hengshuibei", "衡水北", 37.7727, 115.6692],
+        ["hengcang_wuyi", "武邑", 37.800, 115.879],
+        ["hengcang_fuchengnan", "阜城南", 37.840, 116.170],
+        ["shihuang_jiaohe", "交河", 37.990, 116.310],
+        ["baocang_botouxi", "泊头西", 38.080, 116.520],
+        ["shihuang_botoudong", "泊头东", 38.120, 116.680],
+        ["jinghu_04", "沧州西", 38.30602, 116.76211],
+        ["shihuang_cangzhoudong", "沧州东", 38.365, 116.915],
+        ["shihuang_huanghuanan", "黄骅南", 38.32, 117.35],
+        ["shihuang_huanghuadong", "黄骅东", 38.30, 117.54],
+        ["shihuang_huanghuagang", "黄骅港", 38.2762, 117.7297]
+      ]
+    },
+    {
+      id: "huanghuanan_huanghuabei",
+      name: "黄骅南—黄骅北通道",
+      stations: [
+        ["shihuang_huanghuanan", "黄骅南", 38.32, 117.35],
+        ["jinwei_huanghuabei", "黄骅北", 38.401, 117.385]
       ]
     }
   ];
