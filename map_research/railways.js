@@ -735,14 +735,15 @@ const RAILWAYS = [
     typeLabel: "普速",
     region: "china_mainland",
     status: "运营线路",
-    source: "巴彦淖尔／磴口复用包银；杭锦后旗—额济纳为旗县治走廊近似（乌拉特后旗沿走廊拉平）",
+    source: "巴彦淖尔／磴口复用包银；额济纳后续至哈密复用兰新；其余旗县治走廊近似（乌拉特后旗沿走廊拉平）",
     stations: [
       { id: "baoyin_02", name: "巴彦淖尔", city: "巴彦淖尔", lat: 40.734, lon: 107.405 },
       { id: "linha_hangjinhouqi", name: "杭锦后旗", city: "杭锦后旗", lat: 40.888, lon: 107.045 },
       { id: "linha_wulatehouqi", name: "乌拉特后旗", city: "乌拉特后旗", lat: 40.95, lon: 106.85 },
       { id: "baoyin_dengkou", name: "磴口", city: "磴口", lat: 40.556, lon: 106.695 },
       { id: "linha_alashanyouqi", name: "阿拉善右旗", city: "阿拉善右旗", lat: 40.204, lon: 102.532 },
-      { id: "linha_ejina", name: "额济纳", city: "额济纳", lat: 41.746, lon: 100.319 }
+      { id: "linha_ejina", name: "额济纳", city: "额济纳", lat: 41.746, lon: 100.319 },
+      { id: "lanxin_07", name: "哈密", city: "哈密", lat: 42.82, lon: 93.515 }
     ]
   },
 {
@@ -1259,7 +1260,7 @@ const RAILWAYS = [
     typeLabel: "高速",
     region: "china_mainland",
     status: "运营线路",
-    source: "按用户加密站序至哈密后接吐鲁番北—乌鲁木齐—伊宁；兰州西／海东西／西宁／张掖西／酒泉南／嘉峪关南／哈密／乌鲁木齐／伊宁复用既有；其余旗县治／方位站走廊近似",
+    source: "甘肃／青海段按用户加密；新疆段为哈密—鄯善北—吐鲁番北—乌鲁木齐（不再延至伊宁）；枢纽站复用既有",
     stations: [
       { id: "lianxulan_14", name: "兰州西", city: "兰州", lat: 36.068, lon: 103.749 },
       { id: "lanxin_minhenan", name: "民和南", city: "民和", lat: 36.1, lon: 102.75 },
@@ -1279,9 +1280,9 @@ const RAILWAYS = [
       { id: "lanxin_yumen", name: "玉门", city: "玉门", lat: 40.236, lon: 97.432 },
       { id: "lanxin_liuyuannan", name: "柳园南", city: "瓜州", lat: 41.0, lon: 95.55 },
       { id: "lanxin_07", name: "哈密", city: "哈密", lat: 42.82, lon: 93.515 },
+      { id: "lanxin_shanshanbei", name: "鄯善北", city: "鄯善", lat: 42.9, lon: 90.9 },
       { id: "lanxin_08", name: "吐鲁番北", city: "吐鲁番", lat: 43.016, lon: 89.183 },
-      { id: "lanxin_09", name: "乌鲁木齐", city: "乌鲁木齐", lat: 43.831, lon: 87.535 },
-      { id: "yiku_01", name: "伊宁", city: "伊宁", lat: 43.977, lon: 81.273 }
+      { id: "lanxin_09", name: "乌鲁木齐", city: "乌鲁木齐", lat: 43.831, lon: 87.535 }
     ]
   },
 {
@@ -2367,67 +2368,141 @@ const RAILWAYS = [
     ]
   },
 {
-    id: "wubo_conventional",
-    name: "乌博铁路",
-    shortName: "乌博",
-    type: "conventional",
-    typeLabel: "普速",
-    region: "china_mainland",
-    status: "普速预研线路",
-    source: "用户提供参考站序；乌鲁木齐、昌吉、奎屯复用既有站点身份",
-    stations: [
-      { id: "lanxin_09", name: "乌鲁木齐", city: "乌鲁木齐", lat: 43.831, lon: 87.535 },
-      { id: "beijiang_04", name: "昌吉", city: "昌吉", lat: 43.9464, lon: 87.1911 },
-      { id: "wubo_03", name: "石河子", city: "石河子", lat: 44.2675, lon: 86.0605 },
-      { id: "beijiang_01", name: "奎屯", city: "奎屯", lat: 44.426, lon: 84.902 },
-      { id: "wubo_04", name: "博乐", city: "博乐", lat: 44.906, lon: 82.066 }
-    ]
-  },
-{
-    id: "beijiang_tacheng_branch",
-    name: "北疆铁路·塔城支线",
-    shortName: "塔城支线",
-    type: "conventional",
-    typeLabel: "普速",
-    region: "china_mainland",
-    status: "普速支线预研",
-    parentLineId: "beijiang_conventional",
-    networkRole: "branch",
-    source: "用户提供参考坐标；克拉玛依复用北疆铁路站点身份",
-    stations: [
-      { id: "beijiang_02", name: "克拉玛依", city: "克拉玛依", lat: 45.58, lon: 84.87 },
-      { id: "beijiang_tacheng_02", name: "塔城", city: "塔城", lat: 46.748, lon: 82.986 }
-    ]
-  },
-{
     id: "beijiang_conventional",
     name: "北疆铁路",
     shortName: "北疆",
     type: "conventional",
     typeLabel: "普速",
     region: "china_mainland",
-    status: "普速预研线路",
-    source: "用户提供参考坐标；乌鲁木齐复用兰新铁路站点身份",
+    status: "运营线路",
+    source: "按用户全站序；乌鲁木齐复用兰新，昌吉／奎屯沿用既有；其余旗县治走廊近似",
     stations: [
+      { id: "lanxin_09", name: "乌鲁木齐", city: "乌鲁木齐", lat: 43.831, lon: 87.535 },
+      { id: "beijiang_04", name: "昌吉", city: "昌吉", lat: 43.946, lon: 87.191 },
+      { id: "beijiang_hutubi", name: "呼图壁", city: "呼图壁", lat: 44.19, lon: 86.9 },
+      { id: "beijiang_manasi", name: "玛纳斯", city: "玛纳斯", lat: 44.3, lon: 86.32 },
+      { id: "beijiang_shihezi", name: "石河子", city: "石河子", lat: 44.302, lon: 86.078 },
+      { id: "beijiang_shawan", name: "沙湾", city: "沙湾", lat: 44.35, lon: 85.54 },
       { id: "beijiang_01", name: "奎屯", city: "奎屯", lat: 44.426, lon: 84.902 },
-      { id: "beijiang_02", name: "克拉玛依", city: "克拉玛依", lat: 45.58, lon: 84.87 },
-      { id: "beijiang_03", name: "阿勒泰", city: "阿勒泰", lat: 47.847, lon: 88.133 },
-      { id: "beijiang_04", name: "昌吉", city: "昌吉", lat: 43.9464, lon: 87.1911 },
-      { id: "lanxin_09", name: "乌鲁木齐", city: "乌鲁木齐", lat: 43.831, lon: 87.535 }
+      { id: "beijiang_wusu", name: "乌苏", city: "乌苏", lat: 44.473, lon: 84.259 },
+      { id: "beijiang_jinghe", name: "精河", city: "精河", lat: 44.58, lon: 82.983 },
+      { id: "beijiang_alashankou", name: "阿拉山口", city: "博乐", lat: 45.363, lon: 82.434 }
     ]
   },
-{
-    id: "yiku_conventional",
-    name: "伊库铁路",
-    shortName: "伊库",
+  {
+    id: "bozhou_branch_conventional",
+    name: "北疆铁路博州支线",
+    shortName: "北疆博州支线",
     type: "conventional",
     typeLabel: "普速",
     region: "china_mainland",
-    status: "普速预研线路",
-    source: "用户提供参考坐标；库尔勒复用南疆铁路站点身份",
+    status: "运营线路",
+    parentLineId: "beijiang_conventional",
+    networkRole: "branch",
+    source: "精河复用北疆；双河／博乐为旗县治走廊近似",
     stations: [
-      { id: "yiku_01", name: "伊宁", city: "伊宁", lat: 43.977, lon: 81.273 },
-      { id: "nanjiang_01", name: "库尔勒", city: "库尔勒", lat: 41.726, lon: 86.174 }
+      { id: "beijiang_jinghe", name: "精河", city: "精河", lat: 44.58, lon: 82.983 },
+      { id: "bozhou_shuanghe", name: "双河", city: "双河", lat: 44.842, lon: 82.361 },
+      { id: "bozhou_bole", name: "博乐", city: "博乐", lat: 44.82, lon: 81.872 }
+    ]
+  },
+  {
+    id: "jingyihuo_conventional",
+    name: "精伊霍铁路",
+    shortName: "精伊霍",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "精河复用北疆；伊宁沿用既有身份；尼勒克／霍城／霍尔果斯为旗县治走廊近似",
+    stations: [
+      { id: "beijiang_jinghe", name: "精河", city: "精河", lat: 44.58, lon: 82.983 },
+      { id: "jingyihuo_nileke", name: "尼勒克", city: "尼勒克", lat: 43.825, lon: 83.394 },
+      { id: "yiku_01", name: "伊宁", city: "伊宁", lat: 43.905, lon: 81.275 },
+      { id: "jingyihuo_huocheng", name: "霍城", city: "霍城", lat: 44.2, lon: 80.9 },
+      { id: "jingyihuo_huoerguosi", name: "霍尔果斯", city: "霍尔果斯", lat: 44.217, lon: 80.412 }
+    ]
+  },
+  {
+    id: "kuia_conventional",
+    name: "奎阿铁路",
+    shortName: "奎阿",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "奎屯复用北疆；克拉玛依／阿勒泰沿用既有；福海／北屯为旗县治走廊近似",
+    stations: [
+      { id: "beijiang_01", name: "奎屯", city: "奎屯", lat: 44.426, lon: 84.902 },
+      { id: "beijiang_02", name: "克拉玛依", city: "克拉玛依", lat: 45.58, lon: 84.87 },
+      { id: "kuia_fuhai", name: "福海", city: "福海", lat: 46.33, lon: 87.897 },
+      { id: "kuia_beitun", name: "北屯", city: "北屯", lat: 47.325, lon: 87.831 },
+      { id: "beijiang_03", name: "阿勒泰", city: "阿勒泰", lat: 47.847, lon: 88.133 }
+    ]
+  },
+  {
+    id: "keta_conventional",
+    name: "克塔铁路",
+    shortName: "克塔",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "克拉玛依复用奎阿／原北疆；塔城沿用原塔城支线身份；托里／额敏为旗县治走廊近似",
+    stations: [
+      { id: "beijiang_02", name: "克拉玛依", city: "克拉玛依", lat: 45.58, lon: 84.87 },
+      { id: "keta_tuoli", name: "托里县", city: "托里", lat: 45.692, lon: 83.888 },
+      { id: "keta_emin", name: "额敏", city: "额敏", lat: 46.634, lon: 84.078 },
+      { id: "beijiang_tacheng_02", name: "塔城", city: "塔城", lat: 46.791, lon: 83.208 }
+    ]
+  },
+  {
+    id: "afuzhun_conventional",
+    name: "阿富准铁路",
+    shortName: "阿富准",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "阿勒泰复用奎阿；富蕴／准东为旗县治／矿区走廊近似",
+    stations: [
+      { id: "beijiang_03", name: "阿勒泰", city: "阿勒泰", lat: 47.847, lon: 88.133 },
+      { id: "afuzhun_fuyun", name: "富蕴", city: "富蕴", lat: 46.751, lon: 89.219 },
+      { id: "afuzhun_zhundong", name: "准东", city: "昌吉", lat: 44.736, lon: 89.11 }
+    ]
+  },
+  {
+    id: "wujiang_conventional",
+    name: "乌将铁路",
+    shortName: "乌将",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "乌鲁木齐复用兰新；准东复用阿富准；阜康／吉木萨尔／将军庙为旗县治／矿区走廊近似",
+    stations: [
+      { id: "lanxin_09", name: "乌鲁木齐", city: "乌鲁木齐", lat: 43.831, lon: 87.535 },
+      { id: "wujiang_fukang", name: "阜康", city: "阜康", lat: 44.15, lon: 87.95 },
+      { id: "wujiang_jimusaer", name: "吉木萨尔", city: "吉木萨尔", lat: 44.29, lon: 89.03 },
+      { id: "afuzhun_zhundong", name: "准东", city: "昌吉", lat: 44.736, lon: 89.11 },
+      { id: "wujiang_jiangjunmiao", name: "将军庙", city: "奇台", lat: 44.72, lon: 89.95 }
+    ]
+  },
+  {
+    id: "jiangnao_conventional",
+    name: "将淖铁路",
+    shortName: "将淖",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "将军庙复用乌将；奇台／木垒／巴里坤／淖毛湖为旗县治走廊近似",
+    stations: [
+      { id: "wujiang_jiangjunmiao", name: "将军庙", city: "奇台", lat: 44.72, lon: 89.95 },
+      { id: "jiangnao_qitai", name: "奇台", city: "奇台", lat: 44.425, lon: 89.878 },
+      { id: "jiangnao_mulei", name: "木垒", city: "木垒", lat: 43.985, lon: 90.78 },
+      { id: "jiangnao_balikun", name: "巴里坤", city: "巴里坤", lat: 44.278, lon: 92.827 },
+      { id: "jiangnao_naomaohu", name: "淖毛湖", city: "伊吾", lat: 43.632, lon: 95.056 }
     ]
   },
 {
@@ -2469,16 +2544,43 @@ const RAILWAYS = [
     type: "conventional",
     typeLabel: "普速",
     region: "china_mainland",
-    status: "普速预研线路",
-    source: "用户提供参考坐标；和田复用新藏铁路站点身份",
+    status: "运营线路",
+    source: "按用户全站序止于喀什；库尔勒／库车／阿克苏／阿图什／喀什复用既有；吐鲁番别于兰新吐鲁番北；其余旗县治走廊近似",
     stations: [
+      { id: "nanjiang_turpan", name: "吐鲁番", city: "吐鲁番", lat: 42.95, lon: 89.18 },
+      { id: "nanjiang_tuokexun", name: "托克逊", city: "托克逊", lat: 42.428, lon: 88.448 },
+      { id: "nanjiang_malan", name: "马兰", city: "和硕", lat: 42.2, lon: 87.33 },
+      { id: "nanjiang_heshuo", name: "和硕", city: "和硕", lat: 42.267, lon: 86.862 },
+      { id: "nanjiang_yanqi", name: "焉耆", city: "焉耆", lat: 42.058, lon: 86.572 },
       { id: "nanjiang_01", name: "库尔勒", city: "库尔勒", lat: 41.726, lon: 86.174 },
+      { id: "nanjiang_luntai", name: "轮台", city: "轮台", lat: 41.768, lon: 84.615 },
       { id: "nanjiang_02", name: "库车", city: "库车", lat: 41.706, lon: 82.963 },
+      { id: "nanjiang_xinhe", name: "新和", city: "新和", lat: 41.371, lon: 82.008 },
       { id: "nanjiang_03", name: "阿克苏", city: "阿克苏", lat: 41.124, lon: 80.263 },
-      { id: "nanjiang_05", name: "阿图什", city: "阿图什", lat: 39.7197, lon: 76.2164 },
+      { id: "nanjiang_bachu", name: "巴楚", city: "巴楚", lat: 39.767, lon: 78.25 },
+      { id: "nanjiang_05", name: "阿图什", city: "阿图什", lat: 39.72, lon: 76.216 },
+      { id: "nanjiang_04", name: "喀什", city: "喀什", lat: 39.515, lon: 76.063 }
+    ]
+  },
+  {
+    id: "kahe_conventional",
+    name: "喀和铁路",
+    shortName: "喀和",
+    type: "conventional",
+    typeLabel: "普速",
+    region: "china_mainland",
+    status: "运营线路",
+    source: "由原南疆喀什以南段拆出；喀什／莎车／叶城／和田复用既有；其余旗县治走廊近似",
+    stations: [
       { id: "nanjiang_04", name: "喀什", city: "喀什", lat: 39.515, lon: 76.063 },
-      { id: "nanjiang_06", name: "莎车", city: "莎车县", lat: 38.3742, lon: 77.2297 },
-      { id: "nanjiang_07", name: "叶城", city: "叶城县", lat: 37.8932, lon: 77.4708 },
+      { id: "kahe_shule", name: "疏勒", city: "疏勒", lat: 39.2, lon: 76.2 },
+      { id: "kahe_aketao", name: "阿克陶", city: "阿克陶", lat: 38.9, lon: 75.8 },
+      { id: "kahe_yingjisha", name: "英吉沙", city: "英吉沙", lat: 38.744, lon: 76.467 },
+      { id: "nanjiang_06", name: "莎车", city: "莎车", lat: 38.374, lon: 77.23 },
+      { id: "kahe_zepu", name: "泽普", city: "泽普", lat: 38.127, lon: 77.246 },
+      { id: "nanjiang_07", name: "叶城", city: "叶城", lat: 37.893, lon: 77.471 },
+      { id: "kahe_pishan", name: "皮山", city: "皮山", lat: 37.4, lon: 78.3 },
+      { id: "kahe_moyu", name: "墨玉", city: "墨玉", lat: 37.27, lon: 79.5 },
       { id: "xinzang_01", name: "和田", city: "和田", lat: 37.111, lon: 79.922 }
     ]
   },
