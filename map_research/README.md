@@ -33,7 +33,7 @@ py -m http.server 8780 --bind 127.0.0.1 --directory map_research
 
 ## 数据维护
 
-当前数据包含 **2,289 个站点、2,555 条连接**，其中高速连接 1,773 条、普速连接 782 条。
+当前数据包含 **2,288 个站点、2,553 条连接**，其中高速连接 1,773 条、普速连接 780 条。
 
 `window.RAILWAY_DATA.stations` 每个 ID 对应一个站点，保存名称、城市、经纬度和区域。`connections` 保存 `{ id, from, to, type }`，`from`、`to` 引用两个站点 ID，`type` 为 `high_speed` 或 `conventional`。
 
