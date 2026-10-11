@@ -1759,6 +1759,29 @@
     海盐: "海盐",
     慈溪: "慈溪",
     庄桥: "宁波",
+    绍兴北: "绍兴",
+    绍兴东: "绍兴",
+    余姚北: "余姚",
+    宁波: "宁波",
+    云龙: "宁波",
+    奉化: "宁波",
+    溪口: "宁波",
+    新昌北: "新昌",
+    嵊州新昌: "嵊州",
+    东阳北: "东阳",
+    宁海: "宁海",
+    三门县: "三门",
+    临海: "临海",
+    台州西: "台州",
+    温岭: "温岭",
+    雁荡山: "乐清",
+    温州南: "温州",
+    宁波东: "宁波",
+    邱隘: "宁波",
+    北仑西: "宁波",
+    金塘: "舟山",
+    马岙: "舟山",
+    舟山: "舟山",
     桐乡: "桐乡",
     海宁西: "海宁",
     临平南: "杭州",
@@ -6541,6 +6564,66 @@
         ["tongsujiayong_haiyan", "海盐", 30.50163, 120.90777],
         ["tongsujiayong_cixi", "慈溪", 30.24004, 121.25977],
         ["tongsujiayong_zhuangqiao", "庄桥", 29.92614, 121.53133]
+      ]
+    },
+    {
+      id: "hangzhoudong_ningbo",
+      name: "杭州东—宁波通道",
+      type: "high_speed",
+      stations: [
+        ["shanghehang_09", "杭州东", 30.29329, 120.20838],
+        ["hanghuang_hangzhounan", "杭州南", 30.17469, 120.29005],
+        ["hangyong_shaoxingbei", "绍兴北", 30.09866, 120.53949],
+        ["hangyong_shaoxingdong", "绍兴东", 30.05435, 120.85287],
+        ["hangyong_yuyaobei", "余姚北", 30.10083, 121.16371],
+        ["tongsujiayong_zhuangqiao", "庄桥", 29.92614, 121.53133],
+        ["hangshen_03", "宁波", 29.86463, 121.53266]
+      ]
+    },
+    {
+      id: "ningbo_yiwu",
+      name: "宁波—义乌通道",
+      type: "high_speed",
+      stations: [
+        ["hangshen_03", "宁波", 29.86463, 121.53266],
+        ["yongjin_yunlong", "云龙", 29.77410, 121.59261],
+        ["yongjin_fenghua", "奉化", 29.62798, 121.46465],
+        ["yongjin_xikou", "溪口", 29.68000, 121.24800],
+        ["yongjin_xinchangbei", "新昌北", 29.53886, 120.97980],
+        ["yongjin_shengzhouxinchang", "嵊州新昌", 29.52966, 120.81582],
+        ["yongjin_dongyangbei", "东阳北", 29.31544, 120.27404],
+        ["hukun_yiwu", "义乌", 29.38084, 120.03870]
+      ]
+    },
+    {
+      id: "ningbo_wenzhounan",
+      name: "宁波—温州南通道",
+      type: "high_speed",
+      stations: [
+        ["hangshen_03", "宁波", 29.86463, 121.53266],
+        ["yongjin_fenghua", "奉化", 29.62798, 121.46465],
+        ["yongtaiwen_ninghai", "宁海", 29.33921, 121.41534],
+        ["yongtaiwen_sanmenxian", "三门县", 29.05789, 121.35878],
+        ["yongtaiwen_linhai", "临海", 28.88071, 121.24520],
+        ["hangshen_04", "台州西", 28.65700, 121.30400],
+        ["yongtaiwen_wenling", "温岭", 28.48220, 121.32083],
+        ["yongtaiwen_yandangshan", "雁荡山", 28.34450, 121.14782],
+        ["wenfuhsr_yueqing", "乐清", 28.08770, 120.85554],
+        ["hangshen_05", "温州南", 27.97200, 120.58500]
+      ]
+    },
+    {
+      id: "ningbo_zhoushan",
+      name: "宁波—舟山通道",
+      type: "high_speed",
+      stations: [
+        ["hangshen_03", "宁波", 29.86463, 121.53266],
+        ["yongzhou_ningbodong", "宁波东", 29.85086, 121.58099],
+        ["yongzhou_qiuga", "邱隘", 29.84320, 121.65330],
+        ["yongzhou_beilunxi", "北仑西", 29.90500, 121.71900],
+        ["yongzhou_jintang", "金塘", 30.01300, 121.85100],
+        ["yongzhou_maao", "马岙", 30.12700, 122.09400],
+        ["hangshen_zhoushan_02", "舟山", 30.10500, 122.15800]
       ]
     }
   ];
