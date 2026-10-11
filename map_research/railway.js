@@ -1,600 +1,305 @@
 (() => {
-  "use strict";
-
-  const SVG_NS = "http://www.w3.org/2000/svg";
-  const VIEW = { left: 40, right: 146, bottom: -10, top: 56 };
-  // 放大地理展开，给城区多站／县级站预留间距；默认视野缩放会按比例压低。
-  const MAP_LAYOUT_SCALE = 52;
-  const MAP_FOCUS = { lon: 112, lat: 31 };
-  const MIN_ZOOM = 0.04;
-  const MAX_ZOOM = 48;
-  const STATION_LABEL_MIN_ZOOM = 0.22;
-  const STATION_RADII = { ".railway-hit": 18, ".railway-halo": 9, ".railway-core": 4 };
-  // 地理距离内若有其它站，视为密集簇：默认隐藏站名，点击后只显示该站。
-  const LABEL_DENSE_KM = 7;
-  const viewport = document.getElementById("viewport");
-  const gridLayer = document.getElementById("gridLayer");
-  const railwayLayer = document.getElementById("railwayLayer");
-  const mapStage = document.getElementById("mapStage");
-  const mapSvg = document.getElementById("mapSvg");
-  const regionSelect = document.getElementById("regionSelect");
-  const regionReadout = document.getElementById("regionReadout");
-  const railwayList = document.getElementById("railwayList");
-  const searchInput = document.getElementById("searchInput");
-  const lineModeButton = document.getElementById("lineModeButton");
-  const stationModeButton = document.getElementById("stationModeButton");
-  const railwayNote = document.getElementById("railwayNote");
-  const REGION_VIEW_PRESETS = {
-    all: { lat: 35, lon: 105, scale: 0.19 },
-    china_mainland: { lat: 35, lon: 105, scale: 0.07 },
-    hk_macao_taiwan: { lat: 23.5, lon: 119.5, scale: 0.24 }
-  };
-  const DEFAULT_VIEW = { x: 0, y: 0, scale: REGION_VIEW_PRESETS.all.scale };
-  const state = {
-    ...DEFAULT_VIEW,
-    filtered: RAILWAYS,
-    searchQuery: "",
-    regionScope: "all",
-    dataMode: "lines",
-    selectedLine: null,
-    selectedStation: null,
-    dragging: false,
-    pointer: null,
-    dragMoved: false
-  };
-  let displayedLinesCache = null;
-  let stationRecordsCache = null;
-  let routeVisualLayer = null;
-  let stationVisualLayer = null;
+  'use strict';
+  const { stations, connections } = window.RAILWAY_DATA;
+  const $ = id => document.getElementById(id);
+  const NS = 'http://www.w3.org/2000/svg';
+  const byStation = new Map(stations.map(s => [s.id, s]));
+  const edgesByStation = new Map(stations.map(s => [s.id, []]));
+  const typeName = type => type === 'conventional' ? '普速' : '高速';
+  const edges = connections.map(e => ({ ...e, from: byStation.get(e.from), to: byStation.get(e.to) }));
+  const edgeMap = new Map(edges.map(e => [e.id, e]));
+  const displayName = e => `${e.from.name} — ${e.to.name}`;
+  edges.forEach(e => { edgesByStation.get(e.from.id).push(e); edgesByStation.get(e.to.id).push(e); });
+  const typesByStation = new Map(stations.map(s => [s.id, new Set(edgesByStation.get(s.id).map(e => e.type))]));
+  const sortedStations = [...stations].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+  const hubs = new Set(['北京西','上海虹桥','广州南','武汉','成都东','重庆北','郑州东','西安北','昆明南','兰州西','乌鲁木齐','拉萨','哈尔滨','沈阳','长春','满洲里','漠河','海口','福州','南昌西','台北','高雄','香港西九龙','南宁东','杭州东','济南西','太原南','银川','西宁','喀什','抚远','格尔木','齐齐哈尔']);
+  const state = { type: 'all', mode: 'connections', query: '', selected: null, labels: true, scale: 1, x: 0, y: 0, width: 1000, height: 700 };
+  let shownStations = new Set();
+  let shownEdges = new Set();
+  let drag = null;
+  let renderFrame = 0;
   const routeNodes = new Map();
   const stationNodes = new Map();
-  const stationLineIds = new Map();
-  const stationGeo = new Map();
-  let denseStationIds = new Set();
-  let stationMarkerScale = null;
-  let searchFrame = 0;
-  let skipClearOnPointerUp = false;
-
-  const regionLabels = Object.fromEntries([...regionSelect.options].map((option) => [option.value, option.textContent]));
-  const svgNode = (tag, attrs = {}) => {
-    const node = document.createElementNS(SVG_NS, tag);
-    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+  const svg = $('mapSvg');
+  const stage = $('mapStage');
+  const viewport = $('viewport');
+  const svgNode = (name, attrs = {}) => {
+    const node = document.createElementNS(NS, name);
+    for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
     return node;
   };
+  const element = (tag, className, text) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  };
+  const project = ({ lat, lon }) => ({ x: lon * 20, y: -Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360)) * 180 / Math.PI * 20 });
+  const projected = new Map(stations.map(s => [s.id, project(s)]));
+  const typeMatches = c => state.type === 'all' || c.type === state.type;
+  const matchesQuery = values => !state.query || values.some(value => String(value || '').toLowerCase().includes(state.query));
 
-  function rawProject({ lat, lon }) {
-    const x = 50 + ((lon - VIEW.left) / (VIEW.right - VIEW.left)) * 1100;
-    const y = 700 - ((lat - VIEW.bottom) / (VIEW.top - VIEW.bottom)) * 640;
-    return { x, y };
-  }
-
-  function project(point) {
-    const raw = rawProject(point);
-    const focus = rawProject(MAP_FOCUS);
-    return {
-      x: focus.x + (raw.x - focus.x) * MAP_LAYOUT_SCALE,
-      y: focus.y + (raw.y - focus.y) * MAP_LAYOUT_SCALE
-    };
-  }
-
-  function setRegionView(region) {
-    const preset = REGION_VIEW_PRESETS[region] || REGION_VIEW_PRESETS.all;
-    const projected = project(preset);
-    state.scale = preset.scale;
-    state.x = 600 - projected.x * state.scale;
-    state.y = 380 - projected.y * state.scale;
-    updateTransform();
-  }
-
-  function filterStationsForRegion(line) {
-    if (state.regionScope === "all") return line.stations;
-    if (line.region !== state.regionScope && !(line.regions || []).includes(state.regionScope)) return [];
-
-    const displayed = [];
-    line.stations.forEach((station, index) => {
-      const next = line.stations[index + 1];
-      const stationRegion = station.region || (line.region === "cross_region" ? null : line.region);
-      const nextRegion = next && (next.region || (line.region === "cross_region" ? null : line.region));
-      const stationInScope = stationRegion === state.regionScope || (!station.region && line.region === state.regionScope);
-      if (stationInScope) displayed.push(station);
-      if (next) {
-        const nextInScope = nextRegion === state.regionScope || (!next.region && line.region === state.regionScope);
-        if (stationInScope !== nextInScope && (stationInScope || nextInScope)) {
-          displayed.push({
-            id: `${line.id}__boundary__${state.regionScope}`,
-            name: line.boundaryLabel || "区域交界中点",
-            city: "区域交界点",
-            city_id: null,
-            region: state.regionScope,
-            isBoundary: true,
-            lat: (station.lat + next.lat) / 2,
-            lon: (station.lon + next.lon) / 2
-          });
-        }
-      }
-    });
-    return displayed;
-  }
-
-  function getDisplayedLines() {
-    if (displayedLinesCache) return displayedLinesCache;
-    displayedLinesCache = orderLines(state.filtered)
-      .map((line) => ({ ...line, stations: filterStationsForRegion(line) }))
-      .filter((line) => line.stations.length > 0);
-    return displayedLinesCache;
-  }
-
-  function getStationRecords(lines = getDisplayedLines()) {
-    if (lines === displayedLinesCache && stationRecordsCache) return stationRecordsCache;
-    const records = new Map();
-    lines.forEach((line) => line.stations.filter((station) => !station.isBoundary).forEach((station) => {
-      const record = records.get(station.id) || { station, lines: [], lineIds: [], types: [] };
-      if (!line.stationOnly) {
-        if (!record.lines.includes(line.name)) record.lines.push(line.name);
-        if (!record.lineIds.includes(line.id)) record.lineIds.push(line.id);
-        if (!record.types.includes(line.type)) record.types.push(line.type);
-      }
-      records.set(station.id, record);
-    }));
-    const values = [...records.values()];
-    if (lines === displayedLinesCache) stationRecordsCache = values;
-    return values;
-  }
-
-  function invalidateDisplayedData() {
-    displayedLinesCache = null;
-    stationRecordsCache = null;
-  }
-
-  function orderLines(lines) {
-    const lineIds = new Set(lines.map((line) => line.id));
-    const children = new Map();
-    lines.forEach((line) => {
-      if (!line.parentLineId || !lineIds.has(line.parentLineId)) return;
-      const siblings = children.get(line.parentLineId) || [];
-      siblings.push(line);
-      children.set(line.parentLineId, siblings);
-    });
-
-    const ordered = [];
-    const visited = new Set();
-    const appendTree = (line) => {
-      if (visited.has(line.id)) return;
-      visited.add(line.id);
-      ordered.push(line);
-      (children.get(line.id) || []).forEach(appendTree);
-    };
-
-    lines.forEach((line) => {
-      if (!line.parentLineId || !lineIds.has(line.parentLineId)) appendTree(line);
-    });
-    lines.forEach(appendTree);
-    return ordered;
-  }
-
-  function textMatches(values) {
-    return values.some((value) => String(value || "").toLowerCase().includes(state.searchQuery));
-  }
-
-  function getSearchMatchedLines() {
-    const lines = getDisplayedLines().filter((line) => !line.stationOnly);
-    if (!state.searchQuery) return lines;
-    return lines.filter((line) => textMatches([
-      line.id,
-      line.name,
-      line.shortName,
-      line.type,
-      line.typeLabel,
-      ...line.stations.filter((station) => !station.isBoundary).flatMap((station) => [station.id, station.name, station.city, station.city_id])
-    ]));
-  }
-
-  function getSearchStationRecords() {
-    const records = getStationRecords(getDisplayedLines());
-    if (!state.searchQuery) return records;
-    return records.filter(({ station, lines }) => textMatches([
-      station.id,
-      station.name,
-      station.city,
-      station.city_id,
-      ...lines
-    ]));
-  }
-
-  function renderGrid() {
-    gridLayer.replaceChildren();
-    for (let lon = 40; lon <= 150; lon += 10) {
-      const x = project({ lat: VIEW.bottom, lon }).x;
-      gridLayer.appendChild(svgNode("line", { x1: x, y1: 60, x2: x, y2: 700, class: "grid-line" }));
-      const label = svgNode("text", { x: x + 4, y: 718, class: "grid-label" });
-      label.textContent = `${lon}°E`;
-      gridLayer.appendChild(label);
+  function buildMap() {
+    for (let lon = 70; lon <= 140; lon += 5) {
+      const a = project({ lat: 15, lon }), b = project({ lat: 56, lon });
+      $('gridLayer').append(svgNode('line', { x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'grid-line' }));
     }
-    for (let lat = -10; lat <= 60; lat += 5) {
-      const y = project({ lat, lon: VIEW.left }).y;
-      gridLayer.appendChild(svgNode("line", { x1: 50, y1: y, x2: 1150, y2: y, class: "grid-line" }));
-      const label = svgNode("text", { x: 26, y: y + 4, class: "grid-label" });
-      label.textContent = `${lat}°N`;
-      gridLayer.appendChild(label);
+    for (let lat = 15; lat <= 55; lat += 5) {
+      const a = project({ lat, lon: 70 }), b = project({ lat, lon: 140 });
+      $('gridLayer').append(svgNode('line', { x1:a.x,y1:a.y,x2:b.x,y2:b.y,class:'grid-line' }));
     }
-  }
-
-  function updateTransform() {
-    viewport.setAttribute("transform", `translate(${state.x} ${state.y}) scale(${state.scale})`);
-    railwayLayer.classList.toggle("hide-station-labels", state.scale < STATION_LABEL_MIN_ZOOM);
-    const nextMarkerScale = state.scale < STATION_LABEL_MIN_ZOOM ? STATION_LABEL_MIN_ZOOM / state.scale : 1;
-    if (nextMarkerScale !== stationMarkerScale) {
-      stationMarkerScale = nextMarkerScale;
-      stationNodes.forEach((group) => {
-        Object.entries(STATION_RADII).forEach(([selector, radius]) => {
-          group.querySelector(selector)?.setAttribute("r", String(radius * stationMarkerScale));
-        });
-      });
+    const routes = document.createDocumentFragment(), hits = document.createDocumentFragment();
+    for (const edge of edges) {
+      const a = projected.get(edge.from.id), b = projected.get(edge.to.id);
+      const attrs = { d:`M${a.x},${a.y}L${b.x},${b.y}`, 'data-edge-id':edge.id };
+      const path = svgNode('path', { ...attrs, class:`railway-route ${edge.type}` });
+      const hit = svgNode('path', { ...attrs, class:'railway-route-hit' });
+      const title = svgNode('title'); title.textContent = `${edge.from.name} — ${edge.to.name} · ${typeName(edge.type)}`; hit.append(title);
+      routes.append(path); hits.append(hit); routeNodes.set(edge.id, { path, hit });
     }
-    document.getElementById("zoomReadout").textContent = `${Math.round(state.scale * 100)}%`;
-  }
-
-  function distanceKm(a, b) {
-    const toRad = Math.PI / 180;
-    const dLat = (b.lat - a.lat) * toRad;
-    const dLon = (b.lon - a.lon) * toRad;
-    const lat1 = a.lat * toRad;
-    const lat2 = b.lat * toRad;
-    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
-    return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(h)));
-  }
-
-  function rebuildDenseStationIds() {
-    const ids = [...stationGeo.keys()];
-    const dense = new Set();
-    for (let i = 0; i < ids.length; i += 1) {
-      const a = stationGeo.get(ids[i]);
-      for (let j = i + 1; j < ids.length; j += 1) {
-        const b = stationGeo.get(ids[j]);
-        if (distanceKm(a, b) <= LABEL_DENSE_KM) {
-          dense.add(ids[i]);
-          dense.add(ids[j]);
-        }
-      }
+    $('routeLayer').append(routes); $('hitLayer').append(hits);
+    const points = document.createDocumentFragment();
+    for (const s of stations) {
+      const types = typesByStation.get(s.id);
+      const kind = types.size > 1 ? 'shared' : types.has('conventional') ? 'conventional' : 'high_speed';
+      const group = svgNode('g', { class:`railway-station ${kind}`, 'data-station-id':s.id });
+      const title = svgNode('title'); title.textContent = s.name;
+      const hit = svgNode('circle', { r:9, class:'station-hit' });
+      const core = svgNode('circle', { r:2.5, class:'station-core' });
+      const label = svgNode('text', { x:7, y:3.5, class:'station-label' }); label.textContent = s.name;
+      group.append(title, hit, core, label); points.append(group);
+      stationNodes.set(s.id, { group, core, label });
     }
-    denseStationIds = dense;
+    $('stationLayer').append(points);
   }
 
-  function updateDenseLabels() {
-    stationNodes.forEach((group, stationId) => {
-      const label = group.querySelector(".railway-label");
-      const suppress = denseStationIds.has(stationId) && state.selectedStation !== stationId;
-      group.classList.toggle("label-suppressed", suppress);
-      if (label) {
-        if (suppress) label.setAttribute("display", "none");
-        else label.removeAttribute("display");
-      }
-    });
-  }
-
-  function renderRailways() {
-    railwayLayer.replaceChildren();
-    routeNodes.clear();
-    stationNodes.clear();
-    stationLineIds.clear();
-    stationGeo.clear();
-    denseStationIds = new Set();
-    const displayedLines = getDisplayedLines();
-    const stationRecords = getStationRecords(displayedLines);
-    const hitLayer = svgNode("g", { class: "railway-hit-layer" });
-    routeVisualLayer = svgNode("g", { class: "railway-route-visual-layer" });
-    stationVisualLayer = svgNode("g", { class: "railway-station-visual-layer" });
-    displayedLines.forEach((line) => {
-      if (line.stationOnly) return;
-      const routeStations = line.closed ? [...line.stations, line.stations[0]] : line.stations;
-      const points = routeStations.map((station) => {
-        const point = project(station);
-        return `${point.x},${point.y}`;
-      }).join(" ");
-      const hitRoute = svgNode("polyline", { points, class: "railway-route-hit", "data-id": line.id });
-      hitLayer.appendChild(hitRoute);
-      const route = svgNode("polyline", { points, class: `railway-route ${line.type}`, "data-id": line.id });
-      routeNodes.set(line.id, route);
-      routeVisualLayer.appendChild(route);
-    });
-
-    stationRecords.forEach(({ station, lineIds, types }) => {
-      const { x, y } = project(station);
-      const typeClass = types.length === 1 ? ` ${types[0]}` : "";
-      const group = svgNode("g", { class: `railway-station${typeClass}`, "data-id": station.id });
-      group.appendChild(svgNode("circle", { cx: x, cy: y, r: STATION_RADII[".railway-hit"], class: "railway-hit" }));
-      group.appendChild(svgNode("circle", { cx: x, cy: y, r: STATION_RADII[".railway-halo"], class: "railway-halo" }));
-      group.appendChild(svgNode("circle", { cx: x, cy: y, r: STATION_RADII[".railway-core"], class: "railway-core" }));
-      const label = svgNode("text", { x, y: y + 32, class: "railway-label" });
-      label.textContent = station.name;
-      group.appendChild(label);
-      stationNodes.set(station.id, group);
-      stationLineIds.set(station.id, lineIds);
-      stationGeo.set(station.id, { lat: station.lat, lon: station.lon });
-      stationVisualLayer.appendChild(group);
-    });
-    railwayLayer.append(hitLayer, routeVisualLayer, stationVisualLayer);
-    stationMarkerScale = null;
-    rebuildDenseStationIds();
-    updateMapSelection();
-    updateTransform();
-  }
-
-  function updateMapSelection() {
-    routeNodes.forEach((route, lineId) => {
-      route.classList.toggle("selected", state.selectedLine === lineId);
-    });
-    const selectedRoute = state.selectedLine && routeNodes.get(state.selectedLine);
-    if (selectedRoute && routeVisualLayer) routeVisualLayer.appendChild(selectedRoute);
-
-    stationNodes.forEach((group, stationId) => {
-      group.classList.toggle("selected", state.selectedStation === stationId);
-      group.classList.toggle("selected-line", Boolean(state.selectedLine && stationLineIds.get(stationId)?.includes(state.selectedLine)));
-    });
-    const selectedStation = state.selectedStation && stationNodes.get(state.selectedStation);
-    if (selectedStation && stationVisualLayer) stationVisualLayer.appendChild(selectedStation);
-    updateDenseLabels();
-  }
-
-  function updateListSelection() {
-    railwayList.querySelectorAll(".railway-row").forEach((row) => {
-      const active = row.dataset.lineId
-        ? row.dataset.lineId === state.selectedLine
-        : row.dataset.stationId === state.selectedStation;
-      row.classList.toggle("active", active);
-    });
-    railwayList.querySelector(".railway-row.active")?.scrollIntoView({ block: "nearest" });
-  }
-
-  function selectLine(lineId) {
-    state.selectedLine = lineId;
-    state.selectedStation = null;
-    updateMapSelection();
-    updateListSelection();
-  }
-
-  function selectStation(stationId) {
-    state.selectedLine = null;
-    state.selectedStation = stationId;
-    updateMapSelection();
-    updateListSelection();
-  }
-
-  function clearSelection() {
-    state.selectedLine = null;
-    state.selectedStation = null;
-    updateMapSelection();
-    updateListSelection();
+  function applyFilters(fit = false) {
+    shownStations = new Set(stations.filter(s => state.type === 'all' || typesByStation.get(s.id).has(state.type)).map(s => s.id));
+    shownEdges = new Set(edges.filter(e => typeMatches(e) && shownStations.has(e.from.id) && shownStations.has(e.to.id)).map(e => e.id));
+    for (const [id, nodes] of routeNodes) { nodes.path.style.display = nodes.hit.style.display = shownEdges.has(id) ? '' : 'none'; }
+    for (const [id, node] of stationNodes) node.group.style.display = shownStations.has(id) ? '' : 'none';
+    state.selected = null;
+    updateSelection(); renderList();
+    $('mapTitle').textContent = `泛中国${state.type === 'all' ? '铁路' : typeName(state.type)}网络`;
+    $('mapSummary').textContent = `${shownEdges.size.toLocaleString('zh-CN')} 条连接 / ${shownStations.size.toLocaleString('zh-CN')} 个站点`;
+    if (fit) fitPoints([...shownStations]); else scheduleTransform();
   }
 
   function renderList() {
-    railwayList.replaceChildren();
-    const matchedLines = state.dataMode === "lines" ? getSearchMatchedLines() : null;
-    const matchedStations = state.dataMode === "stations" ? getSearchStationRecords() : null;
-    const resultCount = state.dataMode === "lines" ? matchedLines.length : matchedStations.length;
-    const actualLines = state.filtered.filter((line) => !line.stationOnly);
-    document.getElementById("railwayCount").textContent = resultCount;
-    const typeSummary = [...new Set(actualLines.map((line) => line.typeLabel))].join(" / ");
-    railwayNote.textContent = state.dataMode === "lines"
-      ? (state.searchQuery ? `匹配到 ${resultCount} 条铁路线路，地图仍显示当前区域全部线路。` : `当前显示 ${actualLines.length} 条${typeSummary}铁路预研线路。`)
-      : (state.searchQuery ? `匹配到 ${resultCount} 个铁路站点，地图仍显示当前区域全部站点。` : `当前显示 ${resultCount} 个铁路站点，线路与站点均保留在地图上。`);
-    if (!resultCount) {
-      const empty = document.createElement("div");
-      empty.className = "empty-list";
-      empty.textContent = state.searchQuery ? "没有匹配的铁路线路或站点" : "当前区域暂无铁路线路数据";
-      railwayList.appendChild(empty);
-      return;
-    }
     const fragment = document.createDocumentFragment();
-    if (state.dataMode === "lines") {
-      matchedLines.forEach((line) => {
-        const row = document.createElement("button");
-        row.type = "button";
-        row.className = `airport-row railway-row railway-row-${line.type}${line.stationOnly ? " railway-row-station-only" : ""}`;
-        row.dataset.lineId = line.id;
-        const dot = document.createElement("i");
-        dot.className = "row-dot railway-row-dot";
-        const main = document.createElement("span");
-        main.className = "row-main";
-        const name = document.createElement("span");
-        name.className = "row-name";
-        name.textContent = line.name;
-        const detail = document.createElement("span");
-        detail.className = "row-city";
-        const stationCount = line.stations.filter((station) => !station.isBoundary).length;
-        detail.textContent = line.stationOnly ? `站点集合 · ${stationCount} 个站点` : `${line.typeLabel} · ${stationCount} 个站点`;
-        main.append(name, detail);
-        const code = document.createElement("span");
-        code.className = "row-code";
-        code.textContent = line.shortName;
-        row.append(dot, main, code);
-        fragment.appendChild(row);
-      });
-      railwayList.appendChild(fragment);
-      updateListSelection();
-      return;
-    }
-
-    matchedStations.forEach(({ station, lines }) => {
-      const row = document.createElement("button");
-      row.type = "button";
-      row.className = "airport-row railway-row railway-station-row";
-      row.dataset.stationId = station.id;
-      const dot = document.createElement("i");
-      dot.className = "row-dot railway-row-dot";
-      const main = document.createElement("span");
-      main.className = "row-main";
-      const name = document.createElement("span");
-      name.className = "row-name";
-      name.textContent = station.name;
-      const detail = document.createElement("span");
-      detail.className = "row-city";
-      detail.textContent = lines.length ? `${station.city} · ${lines.join(" / ")}` : station.city;
-      main.append(name, detail);
-      row.append(dot, main);
-      fragment.appendChild(row);
+    const items = state.mode === 'connections'
+      ? edges.filter(e => shownEdges.has(e.id) && matchesQuery([displayName(e),e.from.name,e.from.city,e.to.name,e.to.city]))
+      : sortedStations.filter(s => shownStations.has(s.id) && matchesQuery([s.name,s.city]));
+    $('entryCount').textContent = `${items.length} ${state.mode === 'connections' ? '条' : '站'}`;
+    $('pageNote').textContent = state.query ? '搜索筛选列表，点击结果定位地图' : state.mode === 'connections' ? '选择连接，查看两端站点' : '选择站点，查看直接相连的站点';
+    items.forEach((item, i) => {
+      const isRoute = state.mode === 'connections';
+      const row = element('button','entry-row'); row.type = 'button';
+      row.dataset[isRoute ? 'edgeId' : 'stationId'] = item.id;
+      const order = element('span','entry-index',String(i+1).padStart(2,'0'));
+      const main = element('span','entry-main');
+      main.append(element('span','entry-name',isRoute ? displayName(item) : item.name));
+      const description = isRoute ? `${typeName(item.type)} · 2 个端点` : `${item.city || '铁路站点'} · ${edgesByStation.get(item.id).filter(e=>shownEdges.has(e.id)).length} 条连接`;
+      main.append(element('span','entry-description',description));
+      const types = !isRoute && typesByStation.get(item.id);
+      const kind = isRoute ? item.type : types.size>1 ? 'shared' : types.has('conventional') ? 'conventional' : 'high_speed';
+      row.append(order, main, element('i',`entry-type ${kind}`)); fragment.append(row);
     });
-    railwayList.appendChild(fragment);
-    updateListSelection();
+    if (!items.length) fragment.append(element('div','empty-list','没有匹配结果。试试其他站名，或切换连接类型。'));
+    $('entryList').replaceChildren(fragment); updateActiveRows();
   }
 
-  function centerOnItems(lines) {
-    const stations = lines.flatMap((line) => line.stations);
-    if (!stations.length) return;
-    const points = stations.map(project);
-    const minX = Math.min(...points.map((point) => point.x));
-    const maxX = Math.max(...points.map((point) => point.x));
-    const minY = Math.min(...points.map((point) => point.y));
-    const maxY = Math.max(...points.map((point) => point.y));
-    state.scale = 1;
-    state.x = 600 - (minX + maxX) / 2;
-    state.y = 380 - (minY + maxY) / 2;
-    updateTransform();
+  function selectionIds() {
+    const litStations = new Set(), litEdges = new Set();
+    const selected = state.selected;
+    if (selected?.kind === 'station') {
+      litStations.add(selected.id);
+      edgesByStation.get(selected.id).forEach(e => { if(shownEdges.has(e.id)) { litEdges.add(e.id); litStations.add(e.from.id); litStations.add(e.to.id); } });
+    } else if (selected?.kind === 'edge') {
+      const e = edgeMap.get(selected.id); litStations.add(e.from.id); litStations.add(e.to.id); litEdges.add(e.id);
+    }
+    return { litStations, litEdges };
   }
 
-  function applyRegion() {
-    const region = state.regionScope;
-    state.filtered = region === "all"
-      ? RAILWAYS
-      : RAILWAYS.filter((line) => line.region === region || (line.regions || []).includes(region));
-    invalidateDisplayedData();
-    const displayedLines = getDisplayedLines();
-    if (state.selectedLine && !displayedLines.some((line) => line.id === state.selectedLine)) state.selectedLine = null;
-    if (state.selectedStation && !getStationRecords(displayedLines).some(({ station }) => station.id === state.selectedStation)) state.selectedStation = null;
-    regionReadout.textContent = regionLabels[region];
-    renderRailways();
-    renderList();
-    setRegionView(region);
+  function updateSelection() {
+    const {litStations,litEdges} = selectionIds();
+    const selecting = !!state.selected;
+    routeNodes.forEach(({path,hit},id) => {
+      const lit = litEdges.has(id);
+      path.classList.toggle('selected',lit); path.classList.toggle('dimmed',selecting&&!lit);
+      if (lit) { $('routeLayer').append(path); $('hitLayer').append(hit); }
+    });
+    stationNodes.forEach(({group},id) => {
+      group.classList.toggle('selected',litStations.has(id));
+      group.classList.toggle('dimmed',selecting&&!litStations.has(id));
+      if (litStations.has(id)) $('stationLayer').append(group);
+    });
+    updateActiveRows(); renderDetail(); scheduleTransform();
   }
 
+  function updateActiveRows() {
+    $('entryList').querySelectorAll('.entry-row').forEach(row => {
+      const active = state.selected?.kind === 'edge' ? row.dataset.edgeId === state.selected.id : state.selected?.kind === 'station' && row.dataset.stationId === state.selected.id;
+      row.classList.toggle('active',!!active); row.setAttribute('aria-pressed',String(!!active));
+    });
+  }
+
+  function select(kind,id,center=false) {
+    state.selected = {kind,id}; updateSelection();
+    if (center) {
+      if (kind === 'edge') { const e=edgeMap.get(id); fitPoints([e.from.id,e.to.id],true); }
+      if (kind === 'station') {
+        const p = projected.get(id); state.scale = Math.max(state.scale,4);
+        const usable = usableWidth(true); state.x = usable/2-p.x*state.scale; state.y = state.height/2-p.y*state.scale; scheduleTransform();
+      }
+    }
+  }
+
+  function connectionLink(e,stationId) {
+    const other=e.from.id===stationId ? e.to : e.from;
+    const button = element('button','detail-link',other.name); button.type='button'; button.dataset.edgeId=e.id;
+    button.append(element('small','',`${typeName(e.type)} · 查看连接`)); return button;
+  }
+
+  function renderDetail() {
+    const selected = state.selected;
+    $('detailPanel').hidden = !selected;
+    $('detailBody').replaceChildren();
+    if (!selected) { $('selectionReadout').textContent='全网视图'; return; }
+    const body = $('detailBody');
+    if (selected.kind === 'station') {
+      const s = byStation.get(selected.id);
+      $('detailKind').textContent='铁路站点 / STATION'; $('detailTitle').textContent=s.name;
+      $('detailMeta').textContent=`${s.city || '铁路站点'} · ${s.lat.toFixed(5)}°N, ${s.lon.toFixed(5)}°E`;
+      body.append(element('p','detail-subtitle','直接相连的站点'));
+      const adjacent=edgesByStation.get(s.id).filter(e=>shownEdges.has(e.id));
+      adjacent.forEach(e=>body.append(connectionLink(e,s.id)));
+      if(!adjacent.length) body.append(element('p','detail-meta','当前筛选下没有连接'));
+    } else {
+      const e=edgeMap.get(selected.id);
+      $('detailKind').textContent=`${typeName(e.type)} / CONNECTION`;
+      $('detailTitle').textContent=displayName(e);
+      $('detailMeta').textContent='2 个端点 · 直接连接';
+      for(const s of [e.from,e.to]) {
+        const button=element('button','detail-link',s.name); button.type='button'; button.dataset.stationId=s.id;
+        button.append(element('small','',`${s.lat.toFixed(5)}°N, ${s.lon.toFixed(5)}°E`)); body.append(button);
+      }
+    }
+    $('selectionReadout').textContent=$('detailTitle').textContent;
+  }
+
+  function usableWidth(detail=false) { return detail && state.width>620 ? state.width-340 : state.width; }
+  function fitPoints(ids,detail=false) {
+    if (!ids.length) return;
+    const points=ids.map(id=>projected.get(id));
+    const xs=points.map(p=>p.x), ys=points.map(p=>p.y);
+    const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
+    const width=usableWidth(detail);
+    state.scale=Math.min(16,Math.max(.15,Math.min(Math.max(100,width-110)/Math.max(20,right-left),Math.max(100,state.height-170)/Math.max(20,bottom-top))));
+    state.x=width/2-(left+right)/2*state.scale; state.y=(state.height+20)/2-(top+bottom)/2*state.scale;
+    scheduleTransform();
+  }
+  function scheduleTransform() { cancelAnimationFrame(renderFrame); renderFrame=requestAnimationFrame(updateTransform); }
+  function updateTransform() {
+    viewport.setAttribute('transform',`translate(${state.x} ${state.y}) scale(${state.scale})`);
+    const {litStations}=selectionIds();
+    const selectedStation=state.selected?.kind==='station' ? state.selected.id : null;
+    const candidates=[];
+    for (const [id,node] of stationNodes) {
+      if(!shownStations.has(id)) continue;
+      const p=projected.get(id),sx=p.x*state.scale+state.x,sy=p.y*state.scale+state.y;
+      const onscreen=sx>-30&&sx<state.width+30&&sy>-30&&sy<state.height+30;
+      node.group.style.display=onscreen?'':'none';
+      if(!onscreen) continue;
+      node.group.setAttribute('transform',`translate(${p.x} ${p.y}) scale(${1/state.scale})`);
+      node.core.setAttribute('r',litStations.has(id)?3.4:state.scale<1.2?1.65:2.5);
+      node.label.style.display='none';
+      const s=byStation.get(id),lit=litStations.has(id),hub=hubs.has(s.name);
+      if(state.labels && (lit || hub || state.scale>2.2) && (!state.selected||lit)) candidates.push({node,sx,sy,name:s.name,priority:id===selectedStation?0:lit?1:hub?2:3});
+    }
+    candidates.sort((a,b)=>a.priority-b.priority);
+    const cells=new Map();
+    for(const c of candidates) {
+      const box={x:c.sx+6,y:c.sy-6,w:c.name.length*10+6,h:14};
+      if(box.x<0||box.x+box.w>state.width||box.y<0||box.y+box.h>state.height) continue;
+      const keys=[]; for(let x=Math.floor(box.x/70);x<=Math.floor((box.x+box.w)/70);x++) for(let y=Math.floor(box.y/20);y<=Math.floor((box.y+box.h)/20);y++) keys.push(`${x}:${y}`);
+      const overlaps=keys.some(key=>(cells.get(key)||[]).some(b=>box.x<b.x+b.w&&box.x+box.w>b.x&&box.y<b.y+b.h&&box.y+box.h>b.y));
+      if(overlaps && c.priority!==0) continue;
+      c.node.label.style.display=''; keys.forEach(key=>{if(!cells.has(key))cells.set(key,[]);cells.get(key).push(box);});
+    }
+    $('zoomReadout').value=`${Math.round(state.scale*100)}%`;
+  }
+  function zoomAt(scale,x=state.width/2,y=state.height/2) {
+    const old=state.scale; state.scale=Math.max(.15,Math.min(40,scale));
+    state.x=x-(x-state.x)/old*state.scale; state.y=y-(y-state.y)/old*state.scale; scheduleTransform();
+  }
   function resetView() {
-    searchInput.value = "";
-    state.regionScope = "all";
-    state.searchQuery = "";
-    state.selectedLine = null;
-    state.selectedStation = null;
-    state.filtered = RAILWAYS;
-    invalidateDisplayedData();
-    regionSelect.value = "all";
-    regionReadout.textContent = regionLabels.all;
-    renderRailways();
-    renderList();
-    setRegionView("all");
+    state.type='all'; state.query=''; state.selected=null;
+    $('searchInput').value='';
+    document.querySelectorAll('[data-type]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.type==='all')));
+    applyFilters(true);
   }
 
-  function setDataMode(mode) {
-    state.dataMode = mode;
-    state.selectedStation = null;
-    lineModeButton.classList.toggle("active", mode === "lines");
-    stationModeButton.classList.toggle("active", mode === "stations");
-    lineModeButton.setAttribute("aria-pressed", String(mode === "lines"));
-    stationModeButton.setAttribute("aria-pressed", String(mode === "stations"));
-    updateMapSelection();
-    renderList();
+  $('searchInput').addEventListener('input',()=>{state.query=$('searchInput').value.trim().toLowerCase();renderList();});
+  document.querySelectorAll('[data-type]').forEach(button=>button.addEventListener('click',()=>{
+    state.type=button.dataset.type;
+    document.querySelectorAll('[data-type]').forEach(b=>b.setAttribute('aria-pressed',String(b===button))); applyFilters();
+  }));
+  document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
+    state.mode=button.dataset.mode;
+    document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));renderList();
+  }));
+  function handleItemClick(event) {
+    const edge=event.target.closest('[data-edge-id]'),station=event.target.closest('[data-station-id]');
+    if(edge) select('edge',edge.dataset.edgeId,true);
+    else if(station) select('station',station.dataset.stationId,true);
   }
-
-  function zoomAt(nextScale, clientX, clientY) {
-    const rect = mapSvg.getBoundingClientRect();
-    const pointX = ((clientX - rect.left) / rect.width) * 1200;
-    const pointY = ((clientY - rect.top) / rect.height) * 760;
-    const oldScale = state.scale;
-    state.scale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, nextScale));
-    state.x = pointX - ((pointX - state.x) / oldScale) * state.scale;
-    state.y = pointY - ((pointY - state.y) / oldScale) * state.scale;
-    updateTransform();
+  $('entryList').addEventListener('click',handleItemClick); $('detailBody').addEventListener('click',handleItemClick);
+  $('closeDetail').addEventListener('click',()=>{state.selected=null;updateSelection();});
+  $('fitButton').addEventListener('click',()=>fitPoints([...shownStations]));
+  $('resetButton').addEventListener('click',resetView);
+  $('zoomInButton').addEventListener('click',()=>zoomAt(state.scale*1.35));
+  $('zoomOutButton').addEventListener('click',()=>zoomAt(state.scale/1.35));
+  $('labelButton').addEventListener('click',()=>{state.labels=!state.labels;$('labelButton').setAttribute('aria-pressed',String(state.labels));scheduleTransform();});
+  stage.addEventListener('wheel',event=>{
+    event.preventDefault(); const rect=svg.getBoundingClientRect();zoomAt(state.scale*Math.exp(-event.deltaY*.0012),event.clientX-rect.left,event.clientY-rect.top);
+  },{passive:false});
+  stage.addEventListener('pointerdown',event=>{
+    if(event.button!==0||event.target.closest('.map-controls'))return;
+    stage.focus({preventScroll:true}); drag={id:event.pointerId,x:event.clientX,y:event.clientY,startX:event.clientX,startY:event.clientY,moved:false,target:event.target};stage.setPointerCapture(event.pointerId);
+  });
+  stage.addEventListener('pointermove',event=>{
+    if(!drag||event.pointerId!==drag.id)return;
+    if(Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)>4)drag.moved=true;
+    if(drag.moved){stage.classList.add('dragging');state.x+=event.clientX-drag.x;state.y+=event.clientY-drag.y;scheduleTransform();}
+    drag.x=event.clientX;drag.y=event.clientY;
+  });
+  function endDrag(event) {
+    if(!drag||event.pointerId!==drag.id)return;
+    const previous=drag;drag=null;stage.classList.remove('dragging');
+    if(stage.hasPointerCapture(event.pointerId))stage.releasePointerCapture(event.pointerId);
+    if(event.type==='pointercancel'||previous.moved)return;
+    const station=previous.target.closest('[data-station-id]'),edge=previous.target.closest('[data-edge-id]');
+    if(station)select('station',station.dataset.stationId);else if(edge)select('edge',edge.dataset.edgeId);else{state.selected=null;updateSelection();}
   }
-
-  mapStage.addEventListener("wheel", (event) => {
-    event.preventDefault();
-    zoomAt(state.scale * Math.exp(-event.deltaY * 0.001), event.clientX, event.clientY);
-  }, { passive: false });
-
-  railwayLayer.addEventListener("pointerdown", (event) => {
-    if (event.button !== 0) return;
-    const station = event.target.closest(".railway-station");
-    const route = event.target.closest(".railway-route-hit");
-    if (!station && !route) return;
-    event.preventDefault();
-    event.stopPropagation();
-    skipClearOnPointerUp = true;
-    if (station) selectStation(station.dataset.id);
-    else selectLine(route.dataset.id);
+  stage.addEventListener('pointerup',endDrag);stage.addEventListener('pointercancel',endDrag);
+  stage.addEventListener('keydown',event=>{
+    if(event.target!==stage)return;
+    const moves={w:[0,50],ArrowUp:[0,50],s:[0,-50],ArrowDown:[0,-50],a:[50,0],ArrowLeft:[50,0],d:[-50,0],ArrowRight:[-50,0]};
+    const move=moves[event.key];
+    if(move){event.preventDefault();state.x+=move[0];state.y+=move[1];scheduleTransform();}
+    else if(['+','=','-'].includes(event.key)){event.preventDefault();zoomAt(state.scale*(event.key==='-'?1/1.3:1.3));}
+    else if(event.key==='Escape'){state.selected=null;updateSelection();}
   });
-
-  railwayList.addEventListener("click", (event) => {
-    const row = event.target.closest(".railway-row");
-    if (!row) return;
-    if (row.dataset.lineId) {
-      const line = getDisplayedLines().find((item) => item.id === row.dataset.lineId);
-      selectLine(row.dataset.lineId);
-      if (line) centerOnItems([line]);
-      return;
-    }
-    if (row.dataset.stationId) {
-      const record = getStationRecords().find(({ station }) => station.id === row.dataset.stationId);
-      selectStation(row.dataset.stationId);
-      if (record) centerOnItems([{ stations: [record.station] }]);
-    }
-  });
-
-  mapStage.addEventListener("pointerdown", (event) => {
-    if (event.button !== 0) return;
-    skipClearOnPointerUp = false;
-    mapStage.focus();
-    state.dragging = true;
-    state.dragMoved = false;
-    state.pointer = { x: event.clientX, y: event.clientY };
-    mapStage.classList.add("dragging");
-    mapStage.setPointerCapture(event.pointerId);
-  });
-  mapStage.addEventListener("pointermove", (event) => {
-    if (!state.dragging || !state.pointer) return;
-    state.x += event.clientX - state.pointer.x;
-    state.y += event.clientY - state.pointer.y;
-    if (Math.abs(event.clientX - state.pointer.x) > 3 || Math.abs(event.clientY - state.pointer.y) > 3) state.dragMoved = true;
-    state.pointer = { x: event.clientX, y: event.clientY };
-    updateTransform();
-  });
-  const endDrag = (event) => {
-    if (!state.dragging) return;
-    state.dragging = false;
-    state.pointer = null;
-    mapStage.classList.remove("dragging");
-    if (event.pointerId !== undefined && mapStage.hasPointerCapture(event.pointerId)) mapStage.releasePointerCapture(event.pointerId);
-    if (!state.dragMoved && !skipClearOnPointerUp) clearSelection();
-    skipClearOnPointerUp = false;
-  };
-  mapStage.addEventListener("pointerup", endDrag);
-  mapStage.addEventListener("pointercancel", endDrag);
-
-  mapStage.addEventListener("keydown", (event) => {
-    const key = event.key.toLowerCase();
-    const step = event.shiftKey ? 100 : 48;
-    const moves = { w: [0, step], a: [step, 0], s: [0, -step], d: [-step, 0] };
-    if (!moves[key]) return;
-    event.preventDefault();
-    state.x += moves[key][0];
-    state.y += moves[key][1];
-    updateTransform();
-  });
-
-  regionSelect.addEventListener("change", () => {
-    state.regionScope = regionSelect.value;
-    applyRegion();
-  });
-  searchInput.addEventListener("input", () => {
-    state.searchQuery = searchInput.value.trim().toLowerCase();
-    cancelAnimationFrame(searchFrame);
-    searchFrame = requestAnimationFrame(renderList);
-  });
-  lineModeButton.addEventListener("click", () => setDataMode("lines"));
-  stationModeButton.addEventListener("click", () => setDataMode("stations"));
-  document.getElementById("resetButton").addEventListener("click", resetView);
-  document.getElementById("zoomInButton").addEventListener("click", () => zoomAt(state.scale * 1.2, mapStage.getBoundingClientRect().left + mapStage.clientWidth / 2, mapStage.getBoundingClientRect().top + mapStage.clientHeight / 2));
-  document.getElementById("zoomOutButton").addEventListener("click", () => zoomAt(state.scale / 1.2, mapStage.getBoundingClientRect().left + mapStage.clientWidth / 2, mapStage.getBoundingClientRect().top + mapStage.clientHeight / 2));
-
-  renderGrid();
-  renderRailways();
-  renderList();
-  setRegionView("all");
+  let initialized=false;
+  new ResizeObserver(()=>{
+    const rect=stage.getBoundingClientRect(); if(!rect.width||!rect.height)return;
+    const previousWidth=state.width,previousHeight=state.height;
+    state.width=rect.width;state.height=rect.height;svg.setAttribute('viewBox',`0 0 ${state.width} ${state.height}`);
+    if(!initialized){initialized=true;fitPoints([...shownStations]);}
+    else {state.x+=(state.width-previousWidth)/2;state.y+=(state.height-previousHeight)/2;scheduleTransform();}
+  }).observe(stage);
+  $('totalConnections').textContent=edges.length.toLocaleString('zh-CN');
+  $('totalStations').textContent=stations.length.toLocaleString('zh-CN');
+  buildMap(); applyFilters();
 })();

@@ -3,97 +3,79 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>铁路预研</title>
-  <link rel="stylesheet" href="./style.css">
+  <meta name="theme-color" content="#10191e">
+  <title>铁路网络 · 地图研究</title>
+  <link rel="stylesheet" href="./style.css?v=20261012-full-network">
 </head>
 <body>
-  <div class="app-shell">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">✦</div>
-        <div><h1>铁路预研</h1></div>
-      </div>
-      <nav class="research-switcher" aria-label="预研页面">
-        <a class="research-tab active" href="./railway.html" aria-current="page">铁路线路</a>
-        <a class="research-tab" href="./new-railway.html">新铁路线路</a>
-      </nav>
-      <div class="top-actions">
-        <span class="status-pill"><i></i><span>本地静态数据</span></span>
-        <button class="control-button" id="resetButton" type="button">重置视图</button>
-        <button class="zoom-button" id="zoomOutButton" type="button" aria-label="缩小">−</button>
-        <button class="zoom-button" id="zoomInButton" type="button" aria-label="放大">＋</button>
-      </div>
-    </header>
+  <header class="topbar">
+    <a class="brand" href="./railway.html" aria-label="铁路网络首页">
+      <svg class="brand-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M10 5v16m12-16v16M10 10h12M10 17h12M7 28l5-7h8l5 7M10 25h12"/></svg>
+      <span><span class="brand-name">铁路网络</span><span class="brand-caption">RAIL ATLAS / 地图研究</span></span>
+    </a>
+    <div class="network-stats" aria-label="网络概览">
+      <span><strong id="totalConnections">—</strong> 条连接</span>
+      <span><strong id="totalStations">—</strong> 个站点</span>
+      <span class="data-status"><i></i>本地预研数据</span>
+    </div>
+  </header>
 
-    <main class="workspace">
-      <section class="map-card" aria-label="铁路线路地图">
-        <div class="map-stage" id="mapStage" tabindex="0">
-          <svg id="mapSvg" viewBox="0 0 1200 760" role="img" aria-label="铁路预研线路图">
-            <defs>
-              <pattern id="microGrid" width="24" height="24" patternUnits="userSpaceOnUse">
-                <path d="M 24 0 L 0 0 0 24" fill="none" stroke="#18232c" stroke-width="1"></path>
-              </pattern>
-              <filter id="glow" x="-200%" y="-200%" width="400%" height="400%">
-                <feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur>
-                <feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
-              </filter>
-            </defs>
-            <rect class="map-background" x="0" y="0" width="1200" height="760"></rect>
-            <rect class="micro-grid" x="0" y="0" width="1200" height="760"></rect>
-            <g id="viewport">
-              <g id="gridLayer"></g>
-              <g id="railwayLayer"></g>
-            </g>
-          </svg>
-          <div class="map-title-overlay">铁路线路</div>
-          <div class="map-hint">滚轮缩放　·　拖动平移　·　W A S D 移动</div>
-          <div class="map-legend" aria-label="线路类型图例">
-            <span><i class="legend-swatch high-speed"></i>高速</span>
-            <span><i class="legend-swatch conventional"></i>普速</span>
-          </div>
-          <div class="zoom-readout" id="zoomReadout">100%</div>
+  <main class="workspace">
+    <aside class="explorer" aria-label="网络浏览器">
+      <div class="explorer-header">
+        <div class="section-title"><span class="eyebrow">EXPLORE THE NETWORK</span><span class="edition">2026.10</span></div>
+        <h1>查看站点之间的连接</h1>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
+          <input id="searchInput" type="search" placeholder="搜索站点、城市或连接" aria-label="搜索站点、城市或连接" autocomplete="off">
         </div>
-        <div class="map-footer">
-          <span>铁路预研 · 中国大陆 / 港澳台 · 站点坐标为参考值</span>
-          <span id="regionReadout">全部（中国大陆 + 港澳台）</span>
+        <div class="type-filter" role="group" aria-label="连接类型">
+          <button type="button" data-type="all" aria-pressed="true">全部</button>
+          <button type="button" data-type="high_speed" aria-pressed="false"><i class="swatch high-speed"></i>高速</button>
+          <button type="button" data-type="conventional" aria-pressed="false"><i class="swatch conventional"></i>普速</button>
         </div>
+      </div>
+      <div class="list-toolbar">
+        <div class="mode-switch" role="group" aria-label="浏览方式">
+          <button type="button" data-mode="connections" aria-pressed="true">连接</button>
+          <button type="button" data-mode="stations" aria-pressed="false">站点</button>
+        </div>
+        <span id="entryCount" class="result-count" aria-live="polite">—</span>
+      </div>
+      <div id="entryList" class="entry-list" aria-label="连接与站点列表"></div>
+      <div class="explorer-footer"><span id="pageNote">选择连接，查看两端站点</span><span>↗</span></div>
+    </aside>
+
+    <section class="map-card" aria-label="铁路网络地图">
+      <div class="map-stage" id="mapStage" tabindex="0" aria-label="铁路地图，滚轮缩放，拖动或方向键平移">
+        <svg id="mapSvg" role="img" aria-label="铁路网络经纬度示意图">
+          <defs><pattern id="microGrid" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.65" fill="#72878d" opacity="0.20"/></pattern></defs>
+          <rect width="100%" height="100%" fill="url(#microGrid)"/>
+          <g id="viewport"><g id="gridLayer"></g><g id="routeLayer"></g><g id="hitLayer"></g><g id="stationLayer"></g></g>
+        </svg>
+        <div class="map-heading"><span class="eyebrow">RAILWAY NETWORK</span><h2 id="mapTitle">泛中国铁路网络</h2><p id="mapSummary"></p></div>
+        <div class="north-marker" aria-hidden="true"><span>N</span><svg viewBox="0 0 20 30"><path d="M10 2 17 24 10 20 3 24Z"/></svg></div>
+        <div class="map-controls" role="group" aria-label="地图控制">
+          <button id="fitButton" type="button" title="适配当前网络" aria-label="适配当前网络">⛶</button>
+          <span class="control-divider"></span>
+          <button id="zoomInButton" type="button" aria-label="放大">＋</button>
+          <output id="zoomReadout">100%</output>
+          <button id="zoomOutButton" type="button" aria-label="缩小">−</button>
+          <span class="control-divider"></span>
+          <button id="labelButton" type="button" aria-pressed="true" title="显示站名">站名</button>
+        </div>
+        <div class="map-legend"><span><i class="swatch high-speed"></i>高速</span><span><i class="swatch conventional"></i>普速</span><span class="legend-interchange">◉ 共用站点</span></div>
+        <div class="map-hint">滚轮缩放 · 拖动平移 · 点击连接查看</div>
+      </div>
+      <div class="map-footer"><span>经纬度示意 / 坐标仅供研究</span><span id="selectionReadout" aria-live="polite">全网视图</span><button id="resetButton" type="button">重置视图 ↺</button></div>
+      <section id="detailPanel" class="detail-panel" hidden aria-label="所选连接或站点详情">
+        <div class="detail-heading"><div><span id="detailKind" class="eyebrow"></span><h2 id="detailTitle"></h2></div><button id="closeDetail" type="button" aria-label="关闭详情">×</button></div>
+        <p id="detailMeta" class="detail-meta"></p>
+        <div id="detailBody" class="detail-body"></div>
       </section>
-
-      <aside class="sidebar">
-        <section class="side-section search-section">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">RAILWAY INDEX</p>
-              <h2>铁路数据</h2>
-            </div>
-            <span class="count-badge" id="railwayCount">0</span>
-          </div>
-          <label class="search-box">
-            <span aria-hidden="true">⌕</span>
-            <input id="searchInput" type="search" placeholder="搜索线路、车站或城市" autocomplete="off">
-          </label>
-          <p class="search-note railway-note" id="railwayNote">当前显示中国大陆与港澳台铁路预研线路。</p>
-          <div class="railway-data-tabs" role="group" aria-label="右侧铁路数据类型">
-            <button class="railway-data-tab active" id="lineModeButton" type="button" aria-pressed="true">铁路线路</button>
-            <button class="railway-data-tab" id="stationModeButton" type="button" aria-pressed="false">铁路站点</button>
-          </div>
-          <div class="region-filter" role="group" aria-label="按区域查看铁路地图">
-            <span class="filter-label">按区域查看</span>
-            <select class="region-select" id="regionSelect" aria-label="区域">
-              <option value="all">全部（中国大陆 + 港澳台）</option>
-              <option value="china_mainland">中国大陆</option>
-              <option value="hk_macao_taiwan">港澳台</option>
-            </select>
-          </div>
-        </section>
-
-        <section class="airport-list railway-list" id="railwayList" aria-label="铁路线路列表"></section>
-      </aside>
-    </main>
-
-    <footer class="page-footer">铁路预研独立于 Airport 主项目数据链路。</footer>
-  </div>
-  <script src="./railways.js"></script>
-  <script src="./railway.js"></script>
+    </section>
+  </main>
+  <script src="./railway-data.js?v=20261012-yantai-link"></script>
+  <script src="./railway.js?v=20261012-full-network"></script>
 </body>
 </html>
