@@ -6573,7 +6573,7 @@
       stations: [
         ["shanghehang_09", "杭州东", 30.29329, 120.20838],
         ["hanghuang_hangzhounan", "杭州南", 30.17469, 120.29005],
-        ["hangyong_shaoxingbei", "绍兴北", 30.09866, 120.53949],
+        ["hangshen_02", "绍兴北", 30.09866, 120.53949],
         ["hangyong_shaoxingdong", "绍兴东", 30.05435, 120.85287],
         ["hangyong_yuyaobei", "余姚北", 30.10083, 121.16371],
         ["tongsujiayong_zhuangqiao", "庄桥", 29.92614, 121.53133],
