@@ -4877,6 +4877,9 @@ window.RAILWAY_DATA = {
     {"id":"high_speed:chengyi_yibin|yukun_03","from":"chengyi_yibin","to":"yukun_03","type":"high_speed"},
     {"id":"high_speed:liuhe_liuzhoudong|nanheng_04","from":"liuhe_liuzhoudong","to":"nanheng_04","type":"high_speed"},
     {"id":"high_speed:hengliu_guilin|nanheng_guilinbei","from":"hengliu_guilin","to":"nanheng_guilinbei","type":"high_speed"},
-    {"id":"high_speed:guigang_03|nanheng_guilinbei","from":"guigang_03","to":"nanheng_guilinbei","type":"high_speed"}
+    {"id":"high_speed:guigang_03|nanheng_guilinbei","from":"guigang_03","to":"nanheng_guilinbei","type":"high_speed"},
+    {"id":"conventional:hukun_16|yuhuai_huaihua","from":"yuhuai_huaihua","to":"hukun_16","type":"conventional"},
+    {"id":"high_speed:huyurong_08|jingguang_15","from":"huyurong_08","to":"jingguang_15","type":"high_speed"},
+    {"id":"high_speed:huyurong_wuhantianhe|wuxiao_tianheairport","from":"huyurong_wuhantianhe","to":"wuxiao_tianheairport","type":"high_speed"}
   ]
 };

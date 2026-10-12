@@ -12,6 +12,9 @@ assert(connectionIds.has('conventional:houma_houma|zhangdaxi_houmaxi'),'侯马�
 assert(connectionIds.has('conventional:jingbao_03|jiningnan'),'乌兰察布—集宁南 conventional connection exists');
 assert(connectionIds.has('conventional:baoyin_02|linha_linhe'),'巴彦淖尔—临河 conventional connection exists');
 assert(connectionIds.has('conventional:baozhong_zhongwei|yinlan_03'),'中卫—中卫南 conventional connection exists');
+assert(connectionIds.has('conventional:hukun_16|yuhuai_huaihua'),'怀化—怀化南 conventional connection exists');
+assert(connectionIds.has('high_speed:huyurong_08|jingguang_15'),'汉口—武汉 high-speed connection exists');
+assert(connectionIds.has('high_speed:huyurong_wuhantianhe|wuxiao_tianheairport'),'武汉天河—天河机场 high-speed connection exists');
 assert(connectionIds.has('high_speed:lianxulan_09|xiping_xian'),'西安北—西安站 high_speed connection exists');
 assert(connectionIds.has('high_speed:xiwu_01|xiping_xian'),'西安站—西安东 high_speed connection exists');
 assert(connectionIds.has('conventional:baoji_baoji|lianxulan_11'),'宝鸡—宝鸡南 conventional connection exists');
@@ -1143,6 +1146,206 @@ for(const b of yuxi.boundaries) {
 for(const other of resolve(data,defs).filter(div=>div.id!=='yuxi')) {
   assert.equal([...yuxi.stationIds].filter(id=>other.stationIds.has(id)).length,0,`Yuxi overlaps ${other.name}`);
 }
+const nanningDef=defs.find(def=>def.id==='nanning');
+assert(nanningDef,'Nanning division must be configured');
+assert.equal(nanningDef.seedStationId,byName('南宁'));
+const [nanning]=resolve(data,[nanningDef]);
+assert.equal(nanning.errors.length,0,`Nanning division: ${nanning.errors.join('; ')}`);
+assert.equal(nanning.stationIds.size,36);
+assert.equal(nanning.edgeIds.size,35);
+assert.equal(nanning.boundaries.length,9);
+const expectedNanningSides=new Map([
+  ['high_speed:nankun_02|nankun_funing',['百色','富宁']],
+  ['high_speed:xingbai_ceheng|xingbai_tianlin',['田林','册亨']],
+  ['high_speed:guibai_bama|guibai_donglan',['巴马','东兰']],
+  ['high_speed:guinan_duan|yunan_05',['都安','河池西']],
+  ['high_speed:liunan_binyang|nanheng_05',['宾阳','来宾北']],
+  ['high_speed:nanguang_05|nanguang_tengxian',['藤县','梧州南']],
+  ['high_speed:shennan_cenxidong|shennan_rongxiannan',['容县南','岑溪东']],
+  ['high_speed:guitan_luchuan|nanzhan_lianjiangnan',['陆川','廉江南']],
+  ['high_speed:nanzhan_baishazhen|nanzhan_lianjiangnan',['白沙镇','廉江南']]
+]);
+for(const b of nanning.boundaries) {
+  assert.equal(data.stations.find(s=>s.id===b.insideId).name,expectedNanningSides.get(b.edgeId)[0]);
+  assert.equal(data.stations.find(s=>s.id===b.outsideId).name,expectedNanningSides.get(b.edgeId)[1]);
+}
+for(const other of resolve(data,defs).filter(div=>div.id!=='nanning')) {
+  assert.equal([...nanning.stationIds].filter(id=>other.stationIds.has(id)).length,0,`Nanning overlaps ${other.name}`);
+}
+const liuzhouDef=defs.find(def=>def.id==='liuzhou');
+assert(liuzhouDef,'Liuzhou division must be configured');
+assert.equal(liuzhouDef.seedStationId,byName('柳州'));
+const [liuzhou]=resolve(data,[liuzhouDef]);
+assert.equal(liuzhou.errors.length,0,`Liuzhou division: ${liuzhou.errors.join('; ')}`);
+assert.equal(liuzhou.stationIds.size,27);
+assert.equal(liuzhou.edgeIds.size,26);
+assert.equal(liuzhou.boundaries.length,10);
+const expectedLiuzhouSides=new Map([
+  ['high_speed:guinan_huanjiang|guinan_libo',['环江','荔波']],
+  ['conventional:qiangui_dushan|qiangui_nandan',['南丹','独山']],
+  ['high_speed:guibai_bama|guibai_donglan',['东兰','巴马']],
+  ['high_speed:guinan_duan|yunan_05',['河池西','都安']],
+  ['high_speed:liunan_binyang|nanheng_05',['来宾北','宾阳']],
+  ['high_speed:hengliu_luzhaibei|hengliu_yongfunan',['鹿寨北','永福南']],
+  ['high_speed:guibai_rongandong|guibai_yongfu',['融安东','永福']],
+  ['high_speed:liuhe_huangyao|liuhe_zhaoping',['昭平','黄姚']],
+  ['conventional:liuwu_tengxianbei|liuwu_wuzhou',['藤县北','梧州']],
+  ['conventional:jiaoliu_sanjiangxian|jiaoliu_tongdao',['三江县','通道']]
+]);
+for(const b of liuzhou.boundaries) {
+  assert.equal(data.stations.find(s=>s.id===b.insideId).name,expectedLiuzhouSides.get(b.edgeId)[0]);
+  assert.equal(data.stations.find(s=>s.id===b.outsideId).name,expectedLiuzhouSides.get(b.edgeId)[1]);
+}
+for(const other of resolve(data,defs).filter(div=>div.id!=='liuzhou')) {
+  assert.equal([...liuzhou.stationIds].filter(id=>other.stationIds.has(id)).length,0,`Liuzhou overlaps ${other.name}`);
+}
+const guilinDef=defs.find(def=>def.id==='guilin');
+assert(guilinDef,'Guilin division must be configured');
+assert.equal(guilinDef.seedStationId,byName('桂林'));
+const [guilin]=resolve(data,[guilinDef]);
+assert.equal(guilin.errors.length,0,`Guilin division: ${guilin.errors.join('; ')}`);
+assert.equal(guilin.stationIds.size,19);
+assert.equal(guilin.edgeIds.size,18);
+assert.equal(guilin.boundaries.length,13);
+const expectedGuilinSides=new Map([
+  ['high_speed:guigang_congjiang|guigang_sanjiangnan',['三江南','从江']],
+  ['high_speed:hengliu_luzhaibei|hengliu_yongfunan',['永福南','鹿寨北']],
+  ['high_speed:guibai_rongandong|guibai_yongfu',['永福','融安东']],
+  ['high_speed:liuhe_huangyao|liuhe_zhaoping',['黄姚','昭平']],
+  ['conventional:liuwu_tengxianbei|liuwu_wuzhou',['梧州','藤县北']],
+  ['high_speed:nanguang_05|nanguang_tengxian',['梧州南','藤县']],
+  ['high_speed:shennan_cenxidong|shennan_rongxiannan',['岑溪东','容县南']],
+  ['high_speed:guigang_04|guigang_huaiji',['贺州','怀集']],
+  ['high_speed:nanguang_05|nanguang_yunan',['梧州南','郁南']],
+  ['high_speed:shennan_cenxidong|shennan_luodingbei',['岑溪东','罗定北']],
+  ['high_speed:nanheng_lingling|nanheng_quanzhounan',['全州南','零陵']],
+  ['high_speed:huaigui_xinning|huaigui_ziyuan',['资源','新宁']],
+  ['high_speed:guichen_guanyang|guichen_jiangyongbei',['灌阳','江永北']]
+]);
+for(const b of guilin.boundaries) {
+  assert.equal(data.stations.find(s=>s.id===b.insideId).name,expectedGuilinSides.get(b.edgeId)[0]);
+  assert.equal(data.stations.find(s=>s.id===b.outsideId).name,expectedGuilinSides.get(b.edgeId)[1]);
+}
+for(const other of resolve(data,defs).filter(div=>div.id!=='guilin')) {
+  assert.equal([...guilin.stationIds].filter(id=>other.stationIds.has(id)).length,0,`Guilin overlaps ${other.name}`);
+}
+const guangzhouDef=defs.find(def=>def.id==='guangzhou');
+assert(guangzhouDef,'Guangzhou division must be configured');
+assert.deepEqual(new Set(guangzhouDef.seedStationIds),new Set([byName('广州南'),byName('增城')]));
+const [guangzhou]=resolve(data,[guangzhouDef]);
+assert.equal(guangzhou.errors.length,0,`Guangzhou division: ${guangzhou.errors.join('; ')}`);
+assert.equal(guangzhou.stationIds.size,55);
+assert.equal(guangzhou.edgeIds.size,58);
+assert.equal(guangzhou.boundaries.length,15);
+const expectedGuangzhouSides=new Map([
+  ['high_speed:guangshen_humen|guangshen_qingsheng',['庆盛','虎门']],
+  ['high_speed:guangshen2_dongguanzhongxin|guangshen2_huangpu',['黄埔','东莞城际']],
+  ['high_speed:shennan_binhaiwan|shennan_nansha',['南沙','东莞滨海湾']],
+  ['high_speed:guangzhu_zhuhaibei|shennan_shenzhenxili',['珠海北','深圳西丽']],
+  ['high_speed:guangshan_luofushan|guangshan_zengcheng',['增城','罗浮山']],
+  ['high_speed:guanghe_conghua|guanghe_yonghan',['从化','永汉']],
+  ['high_speed:jingguang_21|jingguang_lechangdong',['乐昌东','郴州西']],
+  ['high_speed:guangqingyong_lanshan|guangqingyong_lianzhou',['连州','蓝山']],
+  ['high_speed:ganguang_lianping|ganguang_quannan',['连平','全南']],
+  ['conventional:ganshao_dayu|ganshao_nanxiong',['南雄','大余']],
+  ['high_speed:guigang_04|guigang_huaiji',['怀集','贺州']],
+  ['high_speed:nanguang_05|nanguang_yunan',['郁南','梧州南']],
+  ['high_speed:shennan_cenxidong|shennan_luodingbei',['罗定北','岑溪东']],
+  ['high_speed:guangzhan_xinxingnan|guangzhan_yangchundong',['新兴南','阳春东']],
+  ['high_speed:guangzhan_03|shenzhan_enping',['恩平','阳江']]
+]);
+for(const b of guangzhou.boundaries) {
+  assert.equal(data.stations.find(s=>s.id===b.insideId).name,expectedGuangzhouSides.get(b.edgeId)[0]);
+  assert.equal(data.stations.find(s=>s.id===b.outsideId).name,expectedGuangzhouSides.get(b.edgeId)[1]);
+}
+for(const other of resolve(data,defs).filter(div=>div.id!=='guangzhou')) {
+  assert.equal([...guangzhou.stationIds].filter(id=>other.stationIds.has(id)).length,0,`Guangzhou overlaps ${other.name}`);
+}
+const shenzhenDef=defs.find(def=>def.id==='shenzhen');
+assert(shenzhenDef,'Shenzhen division must be configured');
+assert.equal(shenzhenDef.seedStationId,byName('深圳北'));
+const [shenzhen]=resolve(data,[shenzhenDef]);
+assert.equal(shenzhen.errors.length,0,`Shenzhen division: ${shenzhen.errors.join('; ')}`);
+assert.equal(shenzhen.stationIds.size,29);
+assert.equal(shenzhen.edgeIds.size,28);
+assert.equal(shenzhen.boundaries.length,10);
+const expectedShenzhenSides=new Map([
+  ['high_speed:guangshen_humen|guangshen_qingsheng',['虎门','庆盛']],
+  ['high_speed:guangshen2_dongguanzhongxin|guangshen2_huangpu',['东莞城际','黄埔']],
+  ['high_speed:shennan_binhaiwan|shennan_nansha',['东莞滨海湾','南沙']],
+  ['high_speed:guangzhu_zhuhaibei|shennan_shenzhenxili',['深圳西丽','珠海北']],
+  ['high_speed:guangshan_luofushan|guangshan_zengcheng',['罗浮山','增城']],
+  ['high_speed:guanghe_conghua|guanghe_yonghan',['永汉','从化']],
+  ['high_speed:ganshen_dingnannan|ganshen_hepingbei',['和平北','定南南']],
+  ['high_speed:ganshen_longchuanxi|meilong_wuhua',['龙川西','五华']],
+  ['high_speed:guangshan_shenshan|hangshen_13',['深汕','汕尾']],
+  ['high_speed:hangshen_13|xiashen_houmen',['鲘门','汕尾']]
+]);
+for(const b of shenzhen.boundaries) {
+  assert.equal(data.stations.find(s=>s.id===b.insideId).name,expectedShenzhenSides.get(b.edgeId)[0]);
+  assert.equal(data.stations.find(s=>s.id===b.outsideId).name,expectedShenzhenSides.get(b.edgeId)[1]);
+}
+for(const other of resolve(data,defs).filter(div=>div.id!=='shenzhen')) {
+  assert.equal([...shenzhen.stationIds].filter(id=>other.stationIds.has(id)).length,0,`Shenzhen overlaps ${other.name}`);
+}
+const shantouDef=defs.find(def=>def.id==='shantou');
+assert(shantouDef,'Shantou division must be configured');
+assert.equal(shantouDef.seedStationId,byName('汕头'));
+const [shantou]=resolve(data,[shantouDef]);
+assert.equal(shantou.errors.length,0,`Shantou division: ${shantou.errors.join('; ')}`);
+assert.equal(shantou.stationIds.size,26);
+assert.equal(shantou.edgeIds.size,26);
+assert.equal(shantou.boundaries.length,6);
+const expectedShantouSides=new Map([
+  ['high_speed:ganshen_longchuanxi|meilong_wuhua',['五华','龙川西']],
+  ['high_speed:guangshan_shenshan|hangshen_13',['汕尾','深汕']],
+  ['high_speed:hangshen_13|xiashen_houmen',['汕尾','鲘门']],
+  ['high_speed:zhangshan_raopingnan|zhangshan_zhaoannan',['饶平南','诏安南']],
+  ['conventional:longlong_jiaoling|longlong_wuping',['蕉岭','武平']],
+  ['conventional:ruimei_pingyuan|ruimei_xunwu',['平远','寻乌']]
+]);
+for(const b of shantou.boundaries) {
+  assert.equal(data.stations.find(s=>s.id===b.insideId).name,expectedShantouSides.get(b.edgeId)[0]);
+  assert.equal(data.stations.find(s=>s.id===b.outsideId).name,expectedShantouSides.get(b.edgeId)[1]);
+}
+for(const other of resolve(data,defs).filter(div=>div.id!=='shantou')) {
+  assert.equal([...shantou.stationIds].filter(id=>other.stationIds.has(id)).length,0,`Shantou overlaps ${other.name}`);
+}
+const zhanjiangDef=defs.find(def=>def.id==='zhanjiang');
+assert(zhanjiangDef,'Zhanjiang division must be configured');
+assert.equal(zhanjiangDef.seedStationId,byName('湛江西'));
+const [zhanjiang]=resolve(data,[zhanjiangDef]);
+assert.equal(zhanjiang.errors.length,0,`Zhanjiang division: ${zhanjiang.errors.join('; ')}`);
+assert.equal(zhanjiang.stationIds.size,16);
+assert.equal(zhanjiang.edgeIds.size,16);
+assert.equal(zhanjiang.boundaries.length,5);
+const expectedZhanjiangSides=new Map([
+  ['high_speed:nanzhan_baishazhen|nanzhan_lianjiangnan',['廉江南','白沙镇']],
+  ['high_speed:guitan_luchuan|nanzhan_lianjiangnan',['廉江南','陆川']],
+  ['high_speed:guangzhan_xinxingnan|guangzhan_yangchundong',['阳春东','新兴南']],
+  ['high_speed:guangzhan_03|shenzhan_enping',['阳江','恩平']],
+  ['high_speed:zhanhai_02|zhanhai_xuwennan',['徐闻南','海口北']]
+]);
+for(const b of zhanjiang.boundaries) {
+  assert.equal(data.stations.find(s=>s.id===b.insideId).name,expectedZhanjiangSides.get(b.edgeId)[0]);
+  assert.equal(data.stations.find(s=>s.id===b.outsideId).name,expectedZhanjiangSides.get(b.edgeId)[1]);
+}
+for(const other of resolve(data,defs).filter(div=>div.id!=='zhanjiang')) {
+  assert.equal([...zhanjiang.stationIds].filter(id=>other.stationIds.has(id)).length,0,`Zhanjiang overlaps ${other.name}`);
+}
+const haikouDef=defs.find(def=>def.id==='haikou');
+assert(haikouDef,'Haikou division must be configured');
+assert.equal(haikouDef.seedStationId,byName('海口北'));
+const [haikou]=resolve(data,[haikouDef]);
+assert.equal(haikou.errors.length,0,`Haikou division: ${haikou.errors.join('; ')}`);
+assert.equal(haikou.stationIds.size,26);
+assert.equal(haikou.edgeIds.size,26);
+assert.equal(haikou.boundaries.length,1);
+assert.equal(data.stations.find(s=>s.id===haikou.boundaries[0].insideId).name,'海口北');
+assert.equal(data.stations.find(s=>s.id===haikou.boundaries[0].outsideId).name,'徐闻南');
+for(const other of resolve(data,defs).filter(div=>div.id!=='haikou')) {
+  assert.equal([...haikou.stationIds].filter(id=>other.stationIds.has(id)).length,0,`Haikou overlaps ${other.name}`);
+}
 assert.equal(JSON.stringify(data),before,'ownership must not change physical connections');
 const sample={stations:[{id:'a',lat:0,lon:0},{id:'b',lat:0,lon:1},{id:'c',lat:0,lon:2},{id:'d',lat:0,lon:-1},{id:'e',lat:0,lon:-2}],connections:[
   {id:'ab',from:'a',to:'b',type:'high_speed'},{id:'bc',from:'b',to:'c',type:'high_speed'},
@@ -1156,4 +1359,4 @@ assert(resolve(bypass,defs)[0].errors.length>0,'a bypass must invalidate the bou
 assert(resolve(data,[{...defs[0],boundaryEdgeIds:['missing']}])[0].errors.length>0);
 const overlapping=resolve(data,[...defs,{...defs[0],id:'duplicate'}]);
 assert(overlapping[0].errors.length>0&&overlapping.at(-1).errors.length>0,'overlapping divisions must be reported');
-console.log('PASS: Jiamusi 33/32, Mudanjiang 18/17, Chifeng 27/25, Zhangjiakou 22/20, Beijing 48/45, Tangshan 13/12, Tianjin 23/23, Xiong’an 17/17, Shijiazhuang 29/28, Datong 12/11, Taiyuan 23/22, Changzhi 11/9, Houma 15/14, Jining 12/11, Hohhot 8/7, Baotou 20/19, Yinchuan 12/11, Zhongwei 11/10, Xi’an 48/48, Baoji 12/11, Ankang 12/11, Suide 7/6, Lanzhou 38/37, Pingliang 17/16, Wuwei 9/7, Zhangye 20/18, Xining 12/11, Golmud 20/19, Hami 5/4, Urumqi 10/8, Kuitun 19/18, Korla 17/16, Kashgar 13/12, Lhasa 33/33, Chengdu 86/89, Chongqing 39/41, Guangyuan 17/15, Dazhou 10/8, Wanzhou 10/9, Yibin 24/23, Guiyang 31/31, Liupanshui 18/17, Kunming 30/30, Dali 22/21, and Yuxi 24/23; all boundaries close without overlap.');
+console.log('PASS: Jiamusi 33/32, Mudanjiang 18/17, Chifeng 27/25, Zhangjiakou 22/20, Beijing 48/45, Tangshan 13/12, Tianjin 23/23, Xiong’an 17/17, Shijiazhuang 29/28, Datong 12/11, Taiyuan 23/22, Changzhi 11/9, Houma 15/14, Jining 12/11, Hohhot 8/7, Baotou 20/19, Yinchuan 12/11, Zhongwei 11/10, Xi’an 48/48, Baoji 12/11, Ankang 12/11, Suide 7/6, Lanzhou 38/37, Pingliang 17/16, Wuwei 9/7, Zhangye 20/18, Xining 12/11, Golmud 20/19, Hami 5/4, Urumqi 10/8, Kuitun 19/18, Korla 17/16, Kashgar 13/12, Lhasa 33/33, Chengdu 86/89, Chongqing 39/41, Guangyuan 17/15, Dazhou 10/8, Wanzhou 10/9, Yibin 24/23, Guiyang 31/31, Liupanshui 18/17, Kunming 30/30, Dali 22/21, Yuxi 24/23, Nanning 36/35, Liuzhou 27/26, Guilin 19/18, Guangzhou 55/58, Shenzhen 29/28, Shantou 26/26, Zhanjiang 16/16, and Haikou 26/26; all boundaries close without overlap.');
