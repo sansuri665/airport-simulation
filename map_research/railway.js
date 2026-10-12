@@ -183,6 +183,21 @@
     });
   }
 
+  function focusDivisionInList(id) {
+    if(!byDivision.has(id)) return;
+    state.mode='divisions';
+    state.query=''; $('searchInput').value='';
+    document.querySelectorAll('[data-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.mode==='divisions')));
+    renderList();
+    const row=$('entryList').querySelector(`[data-division-id="${id}"]`);
+    row?.scrollIntoView({block:'nearest',behavior:'smooth'});
+  }
+
+  function focusMapSelectionDivision() {
+    const d=activeDivision();
+    if(d) focusDivisionInList(d.id);
+  }
+
   function select(kind,id,center=false,divisionOverride=undefined) {
     const owner=validDivisions.find(d=>kind==='station'?d.stationIds.has(id):kind==='edge'&&(d.edgeIds.has(id)||d.boundaries.some(b=>b.edgeId===id)));
     state.selected = {kind,id,divisionId:divisionOverride===undefined?owner?.id:divisionOverride}; updateSelection();
@@ -355,14 +370,15 @@
     if(stage.hasPointerCapture(event.pointerId))stage.releasePointerCapture(event.pointerId);
     if(event.type==='pointercancel'||previous.moved)return;
     const division=previous.target.closest('[data-division-id]'),station=previous.target.closest('[data-station-id]'),edge=previous.target.closest('[data-edge-id]');
-    if(division)select('division',division.dataset.divisionId);
-    else if(station)select('station',station.dataset.stationId);
+    if(division){select('division',division.dataset.divisionId);focusDivisionInList(division.dataset.divisionId);}
+    else if(station){select('station',station.dataset.stationId);focusMapSelectionDivision();}
     else if(edge) {
       const id=edge.dataset.edgeId,e=edgeMap.get(id),a=projected.get(e.from.id),b=projected.get(e.to.id),rect=svg.getBoundingClientRect();
       const x=(event.clientX-rect.left-state.x)/state.scale,y=(event.clientY-rect.top-state.y)/state.scale;
       const t=((x-a.x)*(b.x-a.x)+(y-a.y)*(b.y-a.y))/((b.x-a.x)**2+(b.y-a.y)**2);
       const owner=validDivisions.find(d=>d.edgeIds.has(id)||d.boundaries.some(c=>c.edgeId===id&&(c.insideId===e.from.id?t<=.5:t>=.5)));
       select('edge',id,false,owner?.id||null);
+      focusMapSelectionDivision();
     } else{state.selected=null;updateSelection();}
   }
   stage.addEventListener('pointerup',endDrag);stage.addEventListener('pointercancel',endDrag);
