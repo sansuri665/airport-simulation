@@ -6,14 +6,20 @@
   const byStation = new Map(stations.map(s => [s.id, s]));
   const edgesByStation = new Map(stations.map(s => [s.id, []]));
   const typeName = type => type === 'conventional' ? '普速' : '高速';
+  const formatCoordinate = value => (Math.round(value*1e5+1e-7)/1e5).toFixed(5);
+  const divisionMileage = d => `高速约 ${Math.round(d.lengthKm.high_speed).toLocaleString('zh-CN')} 公里 · 普速约 ${Math.round(d.lengthKm.conventional).toLocaleString('zh-CN')} 公里`;
   const edges = connections.map(e => ({ ...e, from: byStation.get(e.from), to: byStation.get(e.to) }));
   const edgeMap = new Map(edges.map(e => [e.id, e]));
   const displayName = e => `${e.from.name} — ${e.to.name}`;
   edges.forEach(e => { edgesByStation.get(e.from.id).push(e); edgesByStation.get(e.to.id).push(e); });
+  const divisions = window.resolveRailwayDivisions(window.RAILWAY_DATA,window.RAILWAY_DIVISIONS);
+  const byDivision = new Map(divisions.map(d=>[d.id,d]));
+  const validDivisions = divisions.filter(d=>!d.errors.length);
   const typesByStation = new Map(stations.map(s => [s.id, new Set(edgesByStation.get(s.id).map(e => e.type))]));
   const sortedStations = [...stations].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
   const hubs = new Set(['北京西','上海虹桥','广州南','武汉','成都东','重庆北','郑州东','西安北','昆明南','兰州西','乌鲁木齐','拉萨','哈尔滨','沈阳','长春','满洲里','漠河','海口','福州','南昌西','台北','高雄','香港西九龙','南宁东','杭州东','济南西','太原南','银川','西宁','喀什','抚远','格尔木','齐齐哈尔']);
-  const state = { type: 'all', mode: 'connections', query: '', selected: null, labels: true, scale: 1, x: 0, y: 0, width: 1000, height: 700 };
+  const state = { type: 'all', mode: 'divisions', query: '', selected: null, labels: true, scale: 1, x: 0, y: 0, width: 1000, height: 700 };
+  const divisionNodes = [];
   let shownStations = new Set();
   let shownEdges = new Set();
   let drag = null;
@@ -71,14 +77,27 @@
       stationNodes.set(s.id, { group, core, label });
     }
     $('stationLayer').append(points);
+    for(const d of validDivisions) {
+      const segments=d.boundaries.map(b=>({edgeId:b.edgeId,from:projected.get(b.insideId),to:project(b)}));
+      for(const segment of segments) {
+        const path=svgNode('path',{d:`M${segment.from.x},${segment.from.y}L${segment.to.x},${segment.to.y}`,class:`division-half ${edgeMap.get(segment.edgeId).type}`,'data-division-id':d.id,'data-edge-id':segment.edgeId});
+        $('divisionLayer').append(path); divisionNodes.push({path,divisionId:d.id,edgeId:segment.edgeId});
+      }
+    }
   }
+
+  function updateDivisions() {
+    const d=activeDivision();
+    for(const node of divisionNodes) node.path.style.display=d?.id===node.divisionId&&shownEdges.has(node.edgeId)?'':'none';
+  }
+  function activeDivision() { return byDivision.get(state.selected?.kind==='division'?state.selected.id:state.selected?.divisionId); }
 
   function applyFilters(fit = false) {
     shownStations = new Set(stations.filter(s => state.type === 'all' || typesByStation.get(s.id).has(state.type)).map(s => s.id));
     shownEdges = new Set(edges.filter(e => typeMatches(e) && shownStations.has(e.from.id) && shownStations.has(e.to.id)).map(e => e.id));
     for (const [id, nodes] of routeNodes) { nodes.path.style.display = nodes.hit.style.display = shownEdges.has(id) ? '' : 'none'; }
     for (const [id, node] of stationNodes) node.group.style.display = shownStations.has(id) ? '' : 'none';
-    state.selected = null;
+    if(state.selected?.kind!=='division') state.selected = null;
     updateSelection(); renderList();
     $('mapTitle').textContent = `泛中国${state.type === 'all' ? '铁路' : typeName(state.type)}网络`;
     $('mapSummary').textContent = `${shownEdges.size.toLocaleString('zh-CN')} 条连接 / ${shownStations.size.toLocaleString('zh-CN')} 个站点`;
@@ -87,6 +106,22 @@
 
   function renderList() {
     const fragment = document.createDocumentFragment();
+    if(state.mode==='divisions') {
+      const items=divisions.filter(d=>matchesQuery([d.name,...[...d.stationIds].map(id=>byStation.get(id).name)]));
+      $('entryCount').textContent=`${items.length} 家`;
+      $('pageNote').textContent='点击分局内的站点或连接，整体高亮管辖网';
+      for(const d of items) {
+        const row=element('button','entry-row division-row');row.type='button';row.dataset.divisionId=d.id;row.disabled=!!d.errors.length;
+        const main=element('span','entry-main');main.append(element('span','entry-name',d.name));
+        main.append(element('span','entry-description',d.errors.length?'边界待检查：'+d.errors.join('；'):`${d.stationIds.size} 个站点`));
+        if(!d.errors.length) {
+          const mileage=element('span','entry-description',divisionMileage(d));mileage.title='按站点坐标连线估算，跨界连接仅计分局内半段';main.append(mileage);
+        }
+        row.append(main);fragment.append(row);
+      }
+      if(!items.length) fragment.append(element('div','empty-list','没有匹配的分局。'));
+      $('entryList').replaceChildren(fragment);updateActiveRows();return;
+    }
     const items = state.mode === 'connections'
       ? edges.filter(e => shownEdges.has(e.id) && matchesQuery([displayName(e),e.from.name,e.from.city,e.to.name,e.to.city]))
       : sortedStations.filter(s => shownStations.has(s.id) && matchesQuery([s.name,s.city]));
@@ -112,7 +147,11 @@
   function selectionIds() {
     const litStations = new Set(), litEdges = new Set();
     const selected = state.selected;
-    if (selected?.kind === 'station') {
+    const d=activeDivision();
+    if (d) {
+      d.stationIds.forEach(id=>{if(shownStations.has(id))litStations.add(id);});
+      d.edgeIds.forEach(id=>{if(shownEdges.has(id))litEdges.add(id);});
+    } else if (selected?.kind === 'station') {
       litStations.add(selected.id);
       edgesByStation.get(selected.id).forEach(e => { if(shownEdges.has(e.id)) { litEdges.add(e.id); litStations.add(e.from.id); litStations.add(e.to.id); } });
     } else if (selected?.kind === 'edge') {
@@ -134,19 +173,21 @@
       group.classList.toggle('dimmed',selecting&&!litStations.has(id));
       if (litStations.has(id)) $('stationLayer').append(group);
     });
-    updateActiveRows(); renderDetail(); scheduleTransform();
+    updateDivisions(); updateActiveRows(); renderDetail(); scheduleTransform();
   }
 
   function updateActiveRows() {
     $('entryList').querySelectorAll('.entry-row').forEach(row => {
-      const active = state.selected?.kind === 'edge' ? row.dataset.edgeId === state.selected.id : state.selected?.kind === 'station' && row.dataset.stationId === state.selected.id;
+      const active = (row.dataset.divisionId&&row.dataset.divisionId===activeDivision()?.id) || (state.selected?.kind === 'edge' ? row.dataset.edgeId === state.selected.id : state.selected?.kind === 'station' && row.dataset.stationId === state.selected.id);
       row.classList.toggle('active',!!active); row.setAttribute('aria-pressed',String(!!active));
     });
   }
 
-  function select(kind,id,center=false) {
-    state.selected = {kind,id}; updateSelection();
+  function select(kind,id,center=false,divisionOverride=undefined) {
+    const owner=validDivisions.find(d=>kind==='station'?d.stationIds.has(id):kind==='edge'&&(d.edgeIds.has(id)||d.boundaries.some(b=>b.edgeId===id)));
+    state.selected = {kind,id,divisionId:divisionOverride===undefined?owner?.id:divisionOverride}; updateSelection();
     if (center) {
+      if(activeDivision()) {fitDivision(activeDivision());return;}
       if (kind === 'edge') { const e=edgeMap.get(id); fitPoints([e.from.id,e.to.id],true); }
       if (kind === 'station') {
         const p = projected.get(id); state.scale = Math.max(state.scale,4);
@@ -167,10 +208,27 @@
     $('detailBody').replaceChildren();
     if (!selected) { $('selectionReadout').textContent='全网视图'; return; }
     const body = $('detailBody');
-    if (selected.kind === 'station') {
+    if(selected.kind==='division') {
+      const d=byDivision.get(selected.id);
+      $('detailKind').textContent='已划定分局 / DIVISION';$('detailTitle').textContent=d.name;
+      $('detailMeta').textContent=`${d.stationIds.size} 个站点 · ${divisionMileage(d)}（站点连线估算）`;
+      body.append(element('p','division-note',`从${byStation.get(d.seedStationId).name}沿相连铁路延伸至交界中点和网内末端。交界只区分管辖权，铁路仍然连通。`));
+      if(state.type!=='all') body.append(element('p','division-note',`地图当前仅显示${typeName(state.type)}连接；上方统计为完整分局。`));
+      body.append(element('p','detail-subtitle','管辖交界 · 靠分局一侧归属'));
+      d.boundaries.forEach((b,i)=>{
+        const e=edgeMap.get(b.edgeId),button=element('button','detail-link',`${i+1} · ${displayName(e)}`);
+        button.type='button';button.dataset.boundaryIndex=i;button.dataset.boundaryDivision=d.id;button.disabled=!shownEdges.has(e.id);
+        button.append(element('small','',`${typeName(e.type)} · ${formatCoordinate(b.lat)}, ${formatCoordinate(b.lon)}`),element('small','',`${byStation.get(b.insideId).name} ↔ 交界中点`));body.append(button);
+      });
+      body.append(element('p','detail-subtitle','管辖站点'));
+      for(const id of d.stationIds) {
+        const button=element('button','detail-link',byStation.get(id).name);button.type='button';button.dataset.stationId=id;button.disabled=!shownStations.has(id);body.append(button);
+      }
+    } else if (selected.kind === 'station') {
       const s = byStation.get(selected.id);
       $('detailKind').textContent='铁路站点 / STATION'; $('detailTitle').textContent=s.name;
       $('detailMeta').textContent=`${s.city || '铁路站点'} · ${s.lat.toFixed(5)}°N, ${s.lon.toFixed(5)}°E`;
+      for(const d of validDivisions.filter(d=>d.stationIds.has(s.id))) body.append(divisionLink(d));
       body.append(element('p','detail-subtitle','直接相连的站点'));
       const adjacent=edgesByStation.get(s.id).filter(e=>shownEdges.has(e.id));
       adjacent.forEach(e=>body.append(connectionLink(e,s.id)));
@@ -180,6 +238,11 @@
       $('detailKind').textContent=`${typeName(e.type)} / CONNECTION`;
       $('detailTitle').textContent=displayName(e);
       $('detailMeta').textContent='2 个端点 · 直接连接';
+      for(const d of validDivisions) {
+        if(d.edgeIds.has(e.id)) body.append(divisionLink(d));
+        const b=d.boundaries.find(b=>b.edgeId===e.id);
+        if(b) { body.append(divisionLink(d));body.append(element('p','division-note',`${byStation.get(b.insideId).name}至交界中点归该分局；另一半未划定。`)); }
+      }
       for(const s of [e.from,e.to]) {
         const button=element('button','detail-link',s.name); button.type='button'; button.dataset.stationId=s.id;
         button.append(element('small','',`${s.lat.toFixed(5)}°N, ${s.lon.toFixed(5)}°E`)); body.append(button);
@@ -189,9 +252,13 @@
   }
 
   function usableWidth(detail=false) { return detail && state.width>620 ? state.width-340 : state.width; }
-  function fitPoints(ids,detail=false) {
-    if (!ids.length) return;
-    const points=ids.map(id=>projected.get(id));
+  function divisionLink(d) {
+    const button=element('button','detail-link division-link',d.name);button.type='button';button.dataset.divisionId=d.id;return button;
+  }
+  function fitDivision(d) { fitCoordinates([...d.stationIds].filter(id=>shownStations.has(id)).map(id=>projected.get(id)).concat(d.boundaries.filter(b=>shownEdges.has(b.edgeId)).map(project)),true); }
+  function fitPoints(ids,detail=false) { fitCoordinates(ids.map(id=>projected.get(id)),detail); }
+  function fitCoordinates(points,detail=false) {
+    if (!points.length) return;
     const xs=points.map(p=>p.x), ys=points.map(p=>p.y);
     const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
     const width=usableWidth(detail);
@@ -212,7 +279,7 @@
       node.group.style.display=onscreen?'':'none';
       if(!onscreen) continue;
       node.group.setAttribute('transform',`translate(${p.x} ${p.y}) scale(${1/state.scale})`);
-      node.core.setAttribute('r',litStations.has(id)?3.4:state.scale<1.2?1.65:2.5);
+      node.core.setAttribute('r',(state.scale<1.2?1.65:2.5)+(litStations.has(id)?.3:0));
       node.label.style.display='none';
       const s=byStation.get(id),lit=litStations.has(id),hub=hubs.has(s.name);
       if(state.labels && (lit || hub || state.scale>2.2) && (!state.selected||lit)) candidates.push({node,sx,sy,name:s.name,priority:id===selectedStation?0:lit?1:hub?2:3});
@@ -250,13 +317,20 @@
     document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));renderList();
   }));
   function handleItemClick(event) {
+    const boundary=event.target.closest('[data-boundary-index]');
+    if(boundary) {
+      const d=byDivision.get(boundary.dataset.boundaryDivision),b=d.boundaries[Number(boundary.dataset.boundaryIndex)];
+      select('division',d.id);fitCoordinates([projected.get(b.insideId),projected.get(b.outsideId),project(b)],true);return;
+    }
+    const division=event.target.closest('[data-division-id]');
+    if(division){select('division',division.dataset.divisionId,true);return;}
     const edge=event.target.closest('[data-edge-id]'),station=event.target.closest('[data-station-id]');
     if(edge) select('edge',edge.dataset.edgeId,true);
     else if(station) select('station',station.dataset.stationId,true);
   }
   $('entryList').addEventListener('click',handleItemClick); $('detailBody').addEventListener('click',handleItemClick);
   $('closeDetail').addEventListener('click',()=>{state.selected=null;updateSelection();});
-  $('fitButton').addEventListener('click',()=>fitPoints([...shownStations]));
+  $('fitButton').addEventListener('click',()=>activeDivision()?fitDivision(activeDivision()):fitPoints([...shownStations]));
   $('resetButton').addEventListener('click',resetView);
   $('zoomInButton').addEventListener('click',()=>zoomAt(state.scale*1.35));
   $('zoomOutButton').addEventListener('click',()=>zoomAt(state.scale/1.35));
@@ -279,8 +353,16 @@
     const previous=drag;drag=null;stage.classList.remove('dragging');
     if(stage.hasPointerCapture(event.pointerId))stage.releasePointerCapture(event.pointerId);
     if(event.type==='pointercancel'||previous.moved)return;
-    const station=previous.target.closest('[data-station-id]'),edge=previous.target.closest('[data-edge-id]');
-    if(station)select('station',station.dataset.stationId);else if(edge)select('edge',edge.dataset.edgeId);else{state.selected=null;updateSelection();}
+    const division=previous.target.closest('[data-division-id]'),station=previous.target.closest('[data-station-id]'),edge=previous.target.closest('[data-edge-id]');
+    if(division)select('division',division.dataset.divisionId);
+    else if(station)select('station',station.dataset.stationId);
+    else if(edge) {
+      const id=edge.dataset.edgeId,e=edgeMap.get(id),a=projected.get(e.from.id),b=projected.get(e.to.id),rect=svg.getBoundingClientRect();
+      const x=(event.clientX-rect.left-state.x)/state.scale,y=(event.clientY-rect.top-state.y)/state.scale;
+      const t=((x-a.x)*(b.x-a.x)+(y-a.y)*(b.y-a.y))/((b.x-a.x)**2+(b.y-a.y)**2);
+      const owner=validDivisions.find(d=>d.edgeIds.has(id)||d.boundaries.some(c=>c.edgeId===id&&(c.insideId===e.from.id?t<=.5:t>=.5)));
+      select('edge',id,false,owner?.id||null);
+    } else{state.selected=null;updateSelection();}
   }
   stage.addEventListener('pointerup',endDrag);stage.addEventListener('pointercancel',endDrag);
   stage.addEventListener('keydown',event=>{
