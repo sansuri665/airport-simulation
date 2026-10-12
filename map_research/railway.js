@@ -212,7 +212,8 @@
       const d=byDivision.get(selected.id);
       $('detailKind').textContent='已划定分局 / DIVISION';$('detailTitle').textContent=d.name;
       $('detailMeta').textContent=`${d.stationIds.size} 个站点 · ${divisionMileage(d)}（站点连线估算）`;
-      body.append(element('p','division-note',`从${byStation.get(d.seedStationId).name}沿相连铁路延伸至交界中点和网内末端。交界只区分管辖权，铁路仍然连通。`));
+      const centers=(d.seedStationIds||[d.seedStationId]).map(id=>byStation.get(id).name).join('、');
+      body.append(element('p','division-note',`以${centers}为中心站，各自沿相连铁路延伸至交界中点和网内末端。交界只区分管辖权，铁路仍然连通。`));
       if(state.type!=='all') body.append(element('p','division-note',`地图当前仅显示${typeName(state.type)}连接；上方统计为完整分局。`));
       body.append(element('p','detail-subtitle','管辖交界 · 靠分局一侧归属'));
       d.boundaries.forEach((b,i)=>{

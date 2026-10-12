@@ -7,6 +7,94 @@ window.RAILWAY_DIVISIONS = [
       'high_speed:ha_jm_demoli|ha_jm_fangzheng',
       'conventional:ha_yc_tieli|suihua_jiamusi_taoshan'
     ]
+  },
+  {
+    id: 'mudanjiang', name: '牡丹江铁路分局公司', seedStationId: 'hamujia_02',
+    boundaryEdgeIds: [
+      'high_speed:hamu_hengdaohezi_dong|hamu_yabulixi',
+      'high_speed:hamujia_03|hamujia_04',
+      'conventional:mudanjiang_tumen_dongjingcheng|mudanjiang_tumen_ludao'
+    ]
+  },
+  {
+    id: 'qiqihar', name: '齐齐哈尔铁路分局公司', seedStationId: 'binzhou_03',
+    boundaryEdgeIds: [
+      'high_speed:haqi_anda|haqi_daqingdong',
+      'conventional:siping_qiqihar_tailai|siping_qiqihar_zhenlai',
+      'conventional:tongliao_daqing_daanbei|tongliao_daqing_xinzhao',
+      'conventional:harbin_heihe_beian|qiqi_beian_kedong'
+    ]
+  },
+  {
+    id: 'harbin', name: '哈尔滨铁路分局公司', seedStationId: 'harbin',
+    boundaryEdgeIds: [
+      'high_speed:hada_fuyubei|hada_shuangchengbei',
+      'high_speed:haqi_anda|haqi_daqingdong',
+      'high_speed:hamu_hengdaohezi_dong|hamu_yabulixi',
+      'high_speed:ha_jm_demoli|ha_jm_fangzheng',
+      'conventional:ha_yc_tieli|suihua_jiamusi_taoshan',
+      'conventional:harbin_heihe_beian|qiqi_beian_kedong'
+    ]
+  },
+  {
+    id: 'meihekou', name: '梅河口铁路分局公司', seedStationId: 'shenyangjilin_meihekou',
+    boundaryEdgeIds: [
+      'conventional:changtongbai_02|siping_meihekou_shiling',
+      'conventional:shenyangjilin_caoshi|shenyangjilin_shanchengzhen',
+      'conventional:shenyangjilin_chaoyangzhen|shenyangjilin_panshi',
+      'high_speed:shenbai_tonghua|shenbai_xinbin',
+      'high_speed:shenbai_changbaishan|shenbai_changbaishanxi'
+    ]
+  },
+  {
+    id: 'changchun', name: '长春铁路分局公司', seedStationId: 'changchun',
+    boundaryEdgeIds: [
+      'high_speed:hada_fuyubei|hada_shuangchengbei',
+      'high_speed:hada_gongzhulingnan|jingha_07',
+      'conventional:shenyangjilin_chaoyangzhen|shenyangjilin_panshi',
+      'high_speed:shenbai_changbaishan|shenbai_changbaishanxi',
+      'conventional:siping_qiqihar_tailai|siping_qiqihar_zhenlai',
+      'conventional:tongliao_daqing_daanbei|tongliao_daqing_xinzhao',
+      'conventional:tongliao_daqing_baolongshan|tongliao_daqing_taipingchuan',
+      'conventional:siping_qiqihar_baokang|siping_qiqihar_maolin'
+    ]
+  },
+  {
+    id: 'siping', name: '四平铁路分局公司', seedStationIds: ['siping', 'jingha_07'],
+    boundaryEdgeIds: [
+      'high_speed:hada_gongzhulingnan|jingha_07',
+      'high_speed:hada_changtuxi|jingha_07',
+      'conventional:changtongbai_02|siping_meihekou_shiling',
+      'conventional:siping_qiqihar_baokang|siping_qiqihar_maolin',
+      'conventional:dahushan_ouli|dahushan_shuangliao'
+    ]
+  },
+  {
+    id: 'tongliao', name: '通辽铁路分局公司', seedStationId: 'jingha_chifeng_03',
+    boundaryEdgeIds: [
+      'conventional:tongliao_daqing_baolongshan|tongliao_daqing_taipingchuan',
+      'conventional:dahushan_ouli|dahushan_shuangliao',
+      'conventional:jingha_ganqika|jingha_zhangwu',
+      'high_speed:jingha_ganqika|jingha_zhanggutai',
+      'conventional:daban|kailu',
+      'conventional:jingtong_aohan|jingtong_naiman'
+    ]
+  },
+  {
+    id: 'shenyang', name: '沈阳铁路分局公司', seedStationId: 'jingha_shenyang',
+    boundaryEdgeIds: [
+      'high_speed:hada_changtuxi|jingha_07',
+      'conventional:shenyangjilin_caoshi|shenyangjilin_shanchengzhen',
+      'high_speed:shenbai_tonghua|shenbai_xinbin',
+      'high_speed:jingha_ganqika|jingha_zhanggutai',
+      'conventional:jingha_ganqika|jingha_zhangwu',
+      'high_speed:jingha_heishanbei|jingha_xinminbei',
+      'high_speed:jingha_panjinbei|jingha_taian',
+      'conventional:jingha_zhangwu|jinzhou_xinlitun_xinlitun',
+      'high_speed:hada_haichengxi|shenda_branch_02',
+      'high_speed:hada_haichengxi|shenda_04',
+      'high_speed:danda_01|danda_dandongxi'
+    ]
   }
 ];
 
@@ -22,10 +110,11 @@ window.resolveRailwayDivisions = function(data, definitions) {
   data.connections.forEach(e=>{ adjacent.get(e.from).push(e); adjacent.get(e.to).push(e); });
   const results = definitions.map(def=>{
     const blocked = new Set(def.boundaryEdgeIds), errors=[];
-    if(!stations.has(def.seedStationId)) errors.push('中心站不存在');
+    const seedStationIds = def.seedStationIds || [def.seedStationId];
+    if(!seedStationIds.length || seedStationIds.some(id=>!stations.has(id))) errors.push('中心站不存在');
     for(const id of blocked) if(!edges.has(id)) errors.push(`交界连接不存在：${id}`);
     const stationIds = new Set(), queue=[];
-    if(!errors.length) { stationIds.add(def.seedStationId); queue.push(def.seedStationId); }
+    if(!errors.length) { for(const id of seedStationIds) { stationIds.add(id); queue.push(id); } }
     for(const id of queue) for(const e of adjacent.get(id)) {
       if(blocked.has(e.id)) continue;
       const next=e.from===id?e.to:e.from;

@@ -6,7 +6,7 @@ const context={window:{}};
 for(const file of ['railway-data.js','railway-divisions.js']) vm.runInNewContext(fs.readFileSync(path.join(__dirname,file),'utf8'),context);
 const {RAILWAY_DATA:data,RAILWAY_DIVISIONS:defs,resolveRailwayDivisions:resolve}=context.window;
 const before=JSON.stringify(data);
-const [d]=resolve(data,defs);
+const [d,m]=resolve(data,defs);
 assert.equal(d.errors.length,0);
 assert.equal(d.stationIds.size,33);
 assert.equal(d.edgeIds.size,32);
@@ -19,6 +19,18 @@ assert.deepEqual(new Set(exits.map(e=>e.id)),new Set(defs[0].boundaryEdgeIds));
 for(const b of d.boundaries) { assert(d.stationIds.has(b.insideId)); assert(!d.stationIds.has(b.outsideId)); assert(!d.edgeIds.has(b.edgeId)); }
 assert(Math.abs(d.boundaries[0].lat-45.525585)<1e-9);
 assert(Math.abs(d.boundaries[0].lon-130.794315)<1e-9);
+assert.equal(m.errors.length,0,`Mudanjiang division: ${m.errors.join('; ')}`);
+assert.equal(m.stationIds.size,18);
+assert.equal(m.edgeIds.size,17);
+assert.equal(m.boundaries.length,3);
+for(const name of ['牡丹江','横道河子东','鸡西西','东京城','绥芬河']) assert(m.stationIds.has(byName(name)),name);
+for(const name of ['亚布力西','七台河西','鹿道','佳木斯','哈尔滨']) assert(!m.stationIds.has(byName(name)),name);
+const mudExits=data.connections.filter(e=>m.stationIds.has(e.from)!==m.stationIds.has(e.to));
+assert.deepEqual(new Set(mudExits.map(e=>e.id)),new Set(defs[1].boundaryEdgeIds));
+for(const b of m.boundaries) { assert(m.stationIds.has(b.insideId)); assert(!m.stationIds.has(b.outsideId)); assert(!m.edgeIds.has(b.edgeId)); }
+assert.equal([...d.stationIds].filter(id=>m.stationIds.has(id)).length,0,'the two divisions must not overlap');
+assert(Math.abs(m.boundaries[0].lat-44.848645)<1e-9);
+assert(Math.abs(m.boundaries[0].lon-128.839625)<1e-9);
 assert.equal(JSON.stringify(data),before,'ownership must not change physical connections');
 const sample={stations:[{id:'a',lat:0,lon:0},{id:'b',lat:0,lon:1},{id:'c',lat:0,lon:2},{id:'d',lat:0,lon:-1},{id:'e',lat:0,lon:-2}],connections:[
   {id:'ab',from:'a',to:'b',type:'high_speed'},{id:'bc',from:'b',to:'c',type:'high_speed'},
@@ -30,5 +42,6 @@ assert(Math.abs(measured.lengthKm.conventional-expectedKm)<1e-9,'conventional me
 const bypass={...data,connections:[...data.connections,{id:'test-bypass',from:byName('佳木斯'),to:byName('哈尔滨'),type:'high_speed'}]};
 assert(resolve(bypass,defs)[0].errors.length>0,'a bypass must invalidate the boundary');
 assert(resolve(data,[{...defs[0],boundaryEdgeIds:['missing']}])[0].errors.length>0);
-assert(resolve(data,[...defs,{...defs[0],id:'duplicate'}]).every(d=>d.errors.length>0),'overlapping divisions must be reported');
-console.log('PASS: 33 stations, 32 internal connections, 3 midpoint boundaries; no bypass; physical network unchanged; invalid and overlapping boundaries detected.');
+const overlapping=resolve(data,[...defs,{...defs[0],id:'duplicate'}]);
+assert(overlapping[0].errors.length>0&&overlapping[2].errors.length>0,'overlapping divisions must be reported');
+console.log('PASS: Jiamusi 33 stations/32 internal connections; Mudanjiang 18/17; both have 3 closed midpoint boundaries, no overlap, and physical network unchanged.');
