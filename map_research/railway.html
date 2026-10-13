@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#10191e">
   <title>铁路网络 · 地图研究</title>
-  <link rel="stylesheet" href="./style.css?v=20261012-division-mileage">
+  <link rel="stylesheet" href="./style.css?v=20261013-commerce-confirmed-65">
 </head>
 <body>
   <header class="topbar">
@@ -24,10 +24,10 @@
     <aside class="explorer" aria-label="网络浏览器">
       <div class="explorer-header">
         <div class="section-title"><span class="eyebrow">EXPLORE THE NETWORK</span><span class="edition">2026.10</span></div>
-        <h1>查看站点之间的连接</h1>
+        <h1>浏览铁路分局管辖网</h1>
         <div class="search-box">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
-          <input id="searchInput" type="search" placeholder="搜索分局、站点或连接" aria-label="搜索分局、站点或连接" autocomplete="off">
+          <input id="searchInput" type="search" placeholder="搜索分局或所属站点" aria-label="搜索分局或所属站点" autocomplete="off">
         </div>
         <div class="type-filter" role="group" aria-label="连接类型">
           <button type="button" data-type="all" aria-pressed="true">全部</button>
@@ -36,15 +36,11 @@
         </div>
       </div>
       <div class="list-toolbar">
-        <div class="mode-switch" role="group" aria-label="浏览方式">
-          <button type="button" data-mode="divisions" aria-pressed="true">分局</button>
-          <button type="button" data-mode="connections" aria-pressed="false">连接</button>
-          <button type="button" data-mode="stations" aria-pressed="false">站点</button>
-        </div>
+        <span class="list-heading">铁路分局</span>
         <span id="entryCount" class="result-count" aria-live="polite">—</span>
       </div>
-      <div id="entryList" class="entry-list" aria-label="分局、连接与站点列表"></div>
-      <div class="explorer-footer"><span id="pageNote">选择连接，查看两端站点</span><span>↗</span></div>
+      <div id="entryList" class="entry-list" aria-label="铁路分局列表"></div>
+      <div class="explorer-footer"><span id="pageNote">选择分局，查看管辖网</span><span>↗</span></div>
     </aside>
 
     <section class="map-card" aria-label="铁路网络地图">
@@ -69,15 +65,19 @@
         <div class="map-hint">滚轮缩放 · 拖动平移 · 点击连接查看</div>
       </div>
       <div class="map-footer"><span>经纬度示意 / 坐标仅供研究</span><span id="selectionReadout" aria-live="polite">全网视图</span><button id="resetButton" type="button">重置视图 ↺</button></div>
-      <section id="detailPanel" class="detail-panel" hidden aria-label="所选分局、连接或站点详情">
+      <section id="divisionPanel" class="detail-panel division-panel" hidden aria-label="铁路分局概览">
+        <div class="detail-heading"><div><span class="eyebrow">分局概览 / DIVISION</span><h2 id="divisionTitle"></h2></div><button id="closeDivision" type="button" aria-label="关闭分局概览">×</button></div>
+        <div id="divisionBody" class="detail-body division-body"></div>
+      </section>
+      <section id="detailPanel" class="detail-panel" hidden aria-label="站点或连接详情">
         <div class="detail-heading"><div><span id="detailKind" class="eyebrow"></span><h2 id="detailTitle"></h2></div><button id="closeDetail" type="button" aria-label="关闭详情">×</button></div>
         <p id="detailMeta" class="detail-meta"></p>
         <div id="detailBody" class="detail-body"></div>
       </section>
     </section>
   </main>
-  <script src="./railway-data.js?v=20261012-wuhan-huaihua-connectors"></script>
-  <script src="./railway-divisions.js?v=20261012-haikou-division"></script>
-  <script src="./railway.js?v=20261012-map-division-list"></script>
+  <script src="./railway-data.js?v=20261013-taiwan-station-names"></script>
+  <script src="./railway-divisions.js?v=20261013-commerce-confirmed-65"></script>
+  <script src="./railway.js?v=20261013-commerce-confirmed-65"></script>
 </body>
 </html>

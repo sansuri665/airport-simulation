@@ -12,8 +12,7 @@ window.RAILWAY_DIVISIONS = [
     id: 'mudanjiang', name: '牡丹江铁路分局公司', seedStationId: 'hamujia_02',
     boundaryEdgeIds: [
       'high_speed:hamu_hengdaohezi_dong|hamu_yabulixi',
-      'high_speed:hamujia_03|hamujia_04',
-      'conventional:mudanjiang_tumen_dongjingcheng|mudanjiang_tumen_ludao'
+      'high_speed:hamujia_03|hamujia_04'
     ]
   },
   {
@@ -27,6 +26,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'harbin', name: '哈尔滨铁路分局公司', seedStationId: 'harbin',
+    commercialStationIds: ['jingha_09'],
     boundaryEdgeIds: [
       'high_speed:hada_fuyubei|hada_shuangchengbei',
       'high_speed:haqi_anda|haqi_daqingdong',
@@ -48,6 +48,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'changchun', name: '长春铁路分局公司', seedStationId: 'changchun',
+    commercialStationIds: ['changchun'],
     boundaryEdgeIds: [
       'high_speed:hada_fuyubei|hada_shuangchengbei',
       'high_speed:hada_gongzhulingnan|jingha_07',
@@ -82,6 +83,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'shenyang', name: '沈阳铁路分局公司', seedStationId: 'jingha_shenyang',
+    commercialStationIds: ['jingha_05'],
     boundaryEdgeIds: [
       'high_speed:hada_changtuxi|jingha_07',
       'conventional:shenyangjilin_caoshi|shenyangjilin_shanchengzhen',
@@ -98,6 +100,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'dalian', name: '大连铁路分局公司', seedStationId: 'shenda_05',
+    commercialStationIds: ['shenda_05'],
     boundaryEdgeIds: [
       'high_speed:hada_haichengxi|shenda_04',
       'high_speed:shenda_04|shenda_branch_02',
@@ -145,6 +148,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'beijing', name: '北京铁路分局公司', seedStationIds: ['jingguang_01', 'jingbao_01', 'jingtang_01'],
+    commercialStationIds: ['jinghu_01', 'jingguang_01', 'jingguang_fengtai', 'jingbao_qinghe'],
     boundaryEdgeIds: [
       'high_speed:jingbao_badaling|jingbao_donghuayuanbei',
       'conventional:zhangtang_chicheng|zhangtang_fengning',
@@ -172,6 +176,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'tianjin', name: '天津铁路分局公司', seedStationId: 'tianjin',
+    commercialStationIds: ['tianjin', 'jinxing_01'],
     boundaryEdgeIds: [
       'high_speed:jingjin_yizhuang|wuqing',
       'high_speed:langfang|jinxing_01',
@@ -185,6 +190,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'xiongan', name: '雄安铁路分局公司', seedStationId: 'jingxiongshang_02',
+    commercialStationIds: ['jingxiongshang_02'],
     boundaryEdgeIds: [
       'high_speed:jingxiong_04|jingxiong_05',
       'high_speed:jingxiongshang_02|jingxiongshang_shuangxin',
@@ -201,6 +207,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'shijiazhuang', name: '石家庄铁路分局公司', seedStationId: 'jingguang_03',
+    commercialStationIds: ['jingguang_03'],
     boundaryEdgeIds: [
       'high_speed:jingguang_dingzhoudong|jingguang_zhengdingairport',
       'high_speed:shibao_anguodong|shibao_wuji',
@@ -227,6 +234,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'taiyuan', name: '太原铁路分局公司', seedStationId: 'zhangdaxi_05',
+    commercialStationIds: ['zhangdaxi_05'],
     boundaryEdgeIds: [
       'high_speed:zhangdaxi_03|zhangdaxi_yanmenguan',
       'high_speed:jinxiongxin_fuping|jinxiongxin_wutaishan',
@@ -269,6 +277,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'hohhot', name: '呼和浩特铁路分局公司', seedStationId: 'jingbao_04',
+    commercialStationIds: ['jingbao_04'],
     boundaryEdgeIds: [
       'high_speed:jingbao_qixianyingnan|jingbao_zhuozidong',
       'high_speed:jingbao_chasuqi|jingbao_salaqi',
@@ -308,6 +317,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'xian', name: '西安铁路分局公司', seedStationId: 'xiping_xian',
+    commercialStationIds: ['lianxulan_09', 'xiping_xian', 'xiwu_01'],
     boundaryEdgeIds: [
       'high_speed:lianxulan_qishan|lianxulan_yanglingnan',
       'high_speed:xiyu_02|xiyu_zhenanxi',
@@ -353,6 +363,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'lanzhou', name: '兰州铁路分局公司', seedStationId: 'langyu_lanzhou',
+    commercialStationIds: ['lianxulan_14'],
     boundaryEdgeIds: [
       'high_speed:lianxulan_11|lianxulan_dongcha',
       'conventional:dingping_huining|dingping_jingning',
@@ -398,6 +409,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'xining', name: '西宁铁路分局公司', seedStationId: 'lanxin_03',
+    commercialStationIds: ['lanxin_03'],
     boundaryEdgeIds: [
       'high_speed:lanxin_haidong|lanxin_minhenan',
       'high_speed:lanxin_menyuan|lanxin_shandanmachang',
@@ -425,6 +437,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'urumqi', name: '乌鲁木齐铁路分局公司', seedStationIds: ['lanxin_09','nanjiang_tuokexun'],
+    commercialStationIds: ['lanxin_09'],
     boundaryEdgeIds: [
       'high_speed:lanxin_shanshanbei|lanxin_tuha',
       'conventional:beijiang_shawanshi|beijiang_shihezi',
@@ -468,6 +481,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'chengdu', name: '成都铁路分局公司', seedStationIds: ['xicheng_06','yixipan_leibo'],
+    commercialStationIds: ['xicheng_06', 'chengdu_zhan', 'chuanzang_tianfu'],
     boundaryEdgeIds: [
       'high_speed:chengdawan_03|chengdawan_tongnan',
       'high_speed:chengyu_anyue|chengyu_dazushike',
@@ -486,6 +500,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'chongqing', name: '重庆铁路分局公司', seedStationId: 'huyurong_14',
+    commercialStationIds: ['huyurong_14', 'chengyu_04', 'yuxia_01', 'chongqing_caiyuanba'],
     boundaryEdgeIds: [
       'high_speed:langyu_04|langyu_wusheng',
       'high_speed:xiyu_dazu|xiyu_guangandong',
@@ -560,6 +575,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'guiyang', name: '贵阳铁路分局公司', seedStationId: 'qiangui_guiyang',
+    commercialStationIds: ['hukun_18'],
     boundaryEdgeIds: [
       'high_speed:yugui_qijiangdong|yugui_tongzidong',
       'high_speed:yugui2_wansheng|yugui2_zhengan',
@@ -589,6 +605,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'kunming', name: '昆明铁路分局公司', seedStationId: 'chengkun_kunming',
+    commercialStationIds: ['chengkun_kunming', 'hukun_21'],
     boundaryEdgeIds: [
       'high_speed:yukun_junlian|yukun_yanjinnan',
       'conventional:chengkun_03|chengkun_yongren',
@@ -620,6 +637,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'nanning', name: '南宁铁路分局公司', seedStationId: 'nankun_nanning',
+    commercialStationIds: ['nanguang_07'],
     boundaryEdgeIds: [
       'high_speed:nankun_02|nankun_funing',
       'high_speed:xingbai_ceheng|xingbai_tianlin',
@@ -634,6 +652,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'liuzhou', name: '柳州铁路分局公司', seedStationId: 'nanheng_04',
+    commercialStationIds: ['nanheng_04'],
     boundaryEdgeIds: [
       'high_speed:guinan_huanjiang|guinan_libo',
       'conventional:qiangui_dushan|qiangui_nandan',
@@ -649,6 +668,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'guilin', name: '桂林铁路分局公司', seedStationId: 'hengliu_guilin',
+    commercialStationIds: ['nanheng_guilinbei'],
     boundaryEdgeIds: [
       'high_speed:guigang_congjiang|guigang_sanjiangnan',
       'high_speed:hengliu_luzhaibei|hengliu_yongfunan',
@@ -667,6 +687,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'guangzhou', name: '广州铁路分局公司',
+    commercialStationIds: ['jingguang_24', 'guangzhan_guangzhoubaiyun'],
     seedStationIds: ['jingguang_24', 'guangshan_zengcheng'],
     boundaryEdgeIds: [
       'high_speed:guangshen_humen|guangshen_qingsheng',
@@ -688,6 +709,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'shenzhen', name: '深圳铁路分局公司', seedStationId: 'heshen_10',
+    commercialStationIds: ['heshen_10', 'shenzhen_hongkong_02'],
     boundaryEdgeIds: [
       'high_speed:guangshen_humen|guangshen_qingsheng',
       'high_speed:guangshen2_dongguanzhongxin|guangshen2_huangpu',
@@ -703,6 +725,7 @@ window.RAILWAY_DIVISIONS = [
   },
   {
     id: 'shantou', name: '汕头铁路分局公司', seedStationId: 'shanshan_shantou',
+    commercialStationIds: ['shanshan_shantou'],
     boundaryEdgeIds: [
       'high_speed:ganshen_longchuanxi|meilong_wuhua',
       'high_speed:guangshan_shenshan|hangshen_13',
@@ -726,6 +749,561 @@ window.RAILWAY_DIVISIONS = [
     id: 'haikou', name: '海口铁路分局公司', seedStationId: 'zhanhai_02',
     boundaryEdgeIds: [
       'high_speed:zhanhai_02|zhanhai_xuwennan'
+    ]
+  },
+  {
+    id: "zhengzhou", name: "郑州铁路分局公司", seedStationId: "jingguang_09",
+    commercialStationIds: ['jingguang_09'],
+    boundaryEdgeIds: [
+      "high_speed:jingguang_08|jingguang_09",
+      "high_speed:jingguang_09|zhengji_xinxiangnan",
+      "high_speed:zhengjiao_huanghejingqu|zhengtai_wuzhi",
+      "high_speed:lianxulan_06|lianxulan_gongyinan",
+      "high_speed:lianxulan_lankaonan|lianxulan_minquanbei",
+      "high_speed:jingguang_zhoukou_02|zhengfu_xihua",
+      "high_speed:jingguang_11|pingzhou_zhoukouxi",
+      "high_speed:jingguang_12|shangzhou_shangcaidong",
+      "high_speed:zhengyu_02|zhengyu_jiaxian",
+      "high_speed:jingguang_11|pingzhou_wuyangbei",
+      "high_speed:jingguang_12|nanxinhe_biyang",
+      "high_speed:jingguang_12|jingguang_minggangdong",
+      "high_speed:lianxulan_lankaonan|rila_zhuangzhai",
+      "high_speed:zhumafu_linquannan|zhumafu_xincaibei"
+    ]
+  },
+  {
+    id: "jiaozuo", name: "焦作铁路分局公司", seedStationId: "zhengtai_02",
+    boundaryEdgeIds: [
+      "high_speed:jingguang_08|jingguang_09",
+      "high_speed:jingguang_09|zhengji_xinxiangnan",
+      "high_speed:zhengjiao_huanghejingqu|zhengtai_wuzhi",
+      "high_speed:jiaoping_jiyuandong|jiaoping_mengjinbei",
+      "high_speed:zhengtai_03|zhengtai_jiaozuoxi",
+      "conventional:houyue_jiyuan|houyue_yangcheng",
+      "high_speed:jingguang_05|jingguang_06",
+      "high_speed:zhengji_nanle|zhengji_shenxian",
+      "conventional:xinyan_changyuan|xinyan_dongmingxian"
+    ]
+  },
+  {
+    id: "luoyang", name: "洛阳铁路分局公司", seedStationId: "lianxulan_06",
+    boundaryEdgeIds: [
+      "high_speed:lianxulan_06|lianxulan_gongyinan",
+      "high_speed:jiaoping_jiyuandong|jiaoping_mengjinbei",
+      "high_speed:jiaoping_ruzhounan|zhengyu_02",
+      "high_speed:jiaoping_ruyangdong|ruyangnan_lushanxi",
+      "high_speed:lianxulan_huashanbei|lianxulan_lingbaoxi",
+      "high_speed:lianxulan_07|zhangdaxi_08"
+    ]
+  },
+  {
+    id: "shangqiu", name: "商丘铁路分局公司", seedStationId: "jingxiongshang_07",
+    boundaryEdgeIds: [
+      "high_speed:lianxulan_lankaonan|lianxulan_minquanbei",
+      "high_speed:jingguang_zhoukou_02|zhengfu_xihua",
+      "high_speed:jingguang_11|pingzhou_zhoukouxi",
+      "high_speed:jingguang_12|shangzhou_shangcaidong",
+      "high_speed:jingxiongshang_07|jingxiongshang_caoxianxi",
+      "high_speed:jingxiongshang_07|jishang_shanxian",
+      "high_speed:lianxulan_xiaoxianbei|lianxulan_yongchengbei",
+      "high_speed:huaibeng_huaibeixi|lianxulan_yongchengbei",
+      "high_speed:shanghe_lumiao|shangzhou_shangqiudong",
+      "high_speed:zhengfu_jieshounan|zhengfu_shenqiubei"
+    ]
+  },
+  {
+    id: "nanyang", name: "南阳铁路分局公司", seedStationId: "zhengyu_03",
+    boundaryEdgeIds: [
+      "high_speed:zhengyu_02|zhengyu_jiaxian",
+      "high_speed:jingguang_11|pingzhou_wuyangbei",
+      "high_speed:jingguang_12|nanxinhe_biyang",
+      "high_speed:jiaoping_ruzhounan|zhengyu_02",
+      "high_speed:jiaoping_ruyangdong|ruyangnan_lushanxi",
+      "high_speed:shangnan_shangnandong|shangnan_xixiadong",
+      "high_speed:zhengyu_04|zhengyu_dengzhoudong",
+      "high_speed:shixia_xichuanxi|shixia_yunyangbei",
+      "high_speed:jingguang_13|nanxinhe_tongbaibei"
+    ]
+  },
+  {
+    id: "xiangyang", name: "襄阳铁路分局公司",
+    seedStationIds: ["zhengyu_04","jiaoliu_xiangyang"],
+    boundaryEdgeIds: [
+      "high_speed:xiwu_05|xiwu_anluxi",
+      "high_speed:huyurong_10|xiangjing_yicheng",
+      "high_speed:zhengyu_05|zhengyu_baokangxian",
+      "conventional:jiaoliu_jingmen|jiaoliu_yichengnan",
+      "high_speed:xiwu_manchuanguan|xiwu_yunxi",
+      "high_speed:hananshi_baihe|xiwu_03",
+      "high_speed:zhengyu_04|zhengyu_dengzhoudong",
+      "high_speed:shixia_xichuanxi|shixia_yunyangbei"
+    ]
+  },
+  {
+    id: "yichang", name: "宜昌铁路分局公司",
+    seedStationIds: ["huyurong_11","jiaoliu_jingmen"],
+    boundaryEdgeIds: [
+      "high_speed:huyurong_10|xiangjing_yicheng",
+      "high_speed:zhengyu_05|zhengyu_baokangxian",
+      "conventional:jiaoliu_jingmen|jiaoliu_yichengnan",
+      "high_speed:huyurong_jingshannan|huyurong_zhongxiangnan",
+      "conventional:hanyi_qianjiang|hanyi_xiantaoxi",
+      "high_speed:zhengyu_badong|zhengyu_wushan",
+      "conventional:yiwan_lichuan|yiwan_wanzhou",
+      "high_speed:yifu_huangshui|yifu_lichuan",
+      "high_speed:yichangde_lixian|yichangde_songzi",
+      "high_speed:jingyue_huarong|jingyue_shishou",
+      "conventional:jiaoliu_lixianbei|jiaoliu_songzixi"
+    ]
+  },
+  {
+    id: "wuhan", name: "武汉铁路分局公司",
+    commercialStationIds: ['jingguang_15', 'huyurong_08'],
+    seedStationId: "jingguang_15",
+    boundaryEdgeIds: [
+      "high_speed:xiwu_05|xiwu_anluxi",
+      "high_speed:huyurong_jingshannan|huyurong_zhongxiangnan",
+      "conventional:hanyi_qianjiang|hanyi_xiantaoxi",
+      "high_speed:jingguang_12|jingguang_minggangdong",
+      "high_speed:jingguang_13|nanxinhe_tongbaibei",
+      "high_speed:fuhuang_funan|fuhuang_huaibinnan",
+      "high_speed:nanxinhe_gushi|nanxinhe_jinzhaidong",
+      "high_speed:hewu_machengbei|hewu_nanxi",
+      "high_speed:wujiu_ruichangxi|wujiu_yangxin",
+      "high_speed:jingguang_17|jingguang_chibibei"
+    ]
+  },
+  {
+    id: "changsha", name: "长沙铁路分局公司", seedStationId: "jingguang_18",
+    commercialStationIds: ['jingguang_18'],
+    boundaryEdgeIds: [
+      "high_speed:jingguang_19|jingguang_hengshanxi",
+      "high_speed:hukun_15|hukun_shaoyangbei",
+      "high_speed:yuxia_03|yuxia_04",
+      "high_speed:changhuai_yuanling|qianzhangchang_taoyuan",
+      "high_speed:hukun_11|hukun_lilingdong",
+      "high_speed:changgan_liuyang|changgan_shangli",
+      "high_speed:csjj_pingjiang|csjj_xiushui",
+      "high_speed:jingguang_17|jingguang_chibibei",
+      "high_speed:yichangde_lixian|yichangde_songzi",
+      "high_speed:jingyue_huarong|jingyue_shishou"
+    ]
+  },
+  {
+    id: "hengyang", name: "衡阳铁路分局公司", seedStationId: "jingguang_20",
+    boundaryEdgeIds: [
+      "high_speed:jingguang_19|jingguang_hengshanxi",
+      "high_speed:hukun_15|hukun_shaoyangbei",
+      "high_speed:hukun_shaoyangbei|hukun_xinhuanan",
+      "conventional:huaigui_dongkou|huaishao_longhui",
+      "high_speed:nanheng_lingling|nanheng_quanzhounan",
+      "high_speed:guichen_guanyang|guichen_jiangyongbei",
+      "high_speed:jingguang_21|jingguang_lechangdong",
+      "high_speed:guangqingyong_lanshan|guangqingyong_lianzhou",
+      "high_speed:chenggan_guidong|chenggan_shangyou",
+      "high_speed:hengji_chaling|hengji_jinggangshan"
+    ]
+  },
+  {
+    id: "huaihua", name: "怀化铁路分局公司", seedStationId: "hukun_16",
+    boundaryEdgeIds: [
+      "high_speed:yuxia_03|yuxia_04",
+      "high_speed:changhuai_yuanling|qianzhangchang_taoyuan",
+      "high_speed:hukun_shaoyangbei|hukun_xinhuanan",
+      "conventional:huaigui_dongkou|huaishao_longhui",
+      "high_speed:hukun_tongrennan|hukun_xinhuangxi",
+      "high_speed:yuxia_02|yuxia_xianfeng",
+      "conventional:yuhuai_tongren|yuhuai_xiushan",
+      "high_speed:huaigui_xinning|huaigui_ziyuan",
+      "conventional:jiaoliu_sanjiangxian|jiaoliu_tongdao",
+      "conventional:jiaoliu_lixianbei|jiaoliu_songzixi"
+    ]
+  },
+  {
+    id: "jinan", name: "济南铁路分局公司",
+    commercialStationIds: ['jinghu_06', 'jinanhub_jinan'],
+    seedStationIds: ["jinanhub_jinan", "xinyan_heze"],
+    boundaryEdgeIds: [
+      "high_speed:jinghu_04|jinghu_05",
+      "high_speed:jinwei_02|jinwei_huimin",
+      "high_speed:jingxiongshang_linqingdong|jingxiongshang_qinghexi",
+      "high_speed:jingxiongshang_07|jingxiongshang_caoxianxi",
+      "high_speed:jinghu_05|shiji_jingzhou",
+      "high_speed:liaohanchang_guantaonan|liaohanchang_guanxiannan",
+      "high_speed:zhengji_nanle|zhengji_shenxian",
+      "high_speed:lianxulan_lankaonan|rila_zhuangzhai",
+      "high_speed:rila_mengshan|rila_sishuinan",
+      "high_speed:jinghu_08|jinghu_09",
+      "high_speed:jiqing_02|jiqing_linzibei",
+      "high_speed:lailin_menglianggu|lailin_mengyin",
+      "high_speed:jizao_taierzhuang|weisu_xinyidong",
+      "high_speed:jingxiongshang_07|jishang_shanxian",
+      "conventional:xinyan_changyuan|xinyan_dongmingxian"
+    ]
+  },
+  {
+    id: "qingdao", name: "青岛铁路分局公司",
+    seedStationId: "jiqing_04",
+    boundaryEdgeIds: [
+      "high_speed:rila_mengshan|rila_sishuinan",
+      "high_speed:jiqing_gaomibei|jiqing_jiaozhoubei",
+      "high_speed:lailin_menglianggu|lailin_mengyin",
+      "high_speed:linlian_ganyu|linlian_linshubei",
+      "high_speed:weilai_laixi|weilai_pingdu",
+      "high_speed:weiyan_fushan|weiyan_yantaixi",
+      "high_speed:weisu_wulianbei|weisu_zhuchengxi",
+      "high_speed:weisu_lanling|weisu_tanchengxi",
+      "high_speed:qingyan_ganyubei|qingyan_lanshanxi",
+      "conventional:yanda_lushunxi|yanda_yantaibei"
+    ]
+  },
+  {
+    id: "weifang", name: "潍坊铁路分局公司",
+    seedStationId: "jiqing_03",
+    boundaryEdgeIds: [
+      "high_speed:jinwei_haixingxi|jinwei_wudi",
+      "high_speed:jinwei_02|jinwei_huimin",
+      "high_speed:jiqing_02|jiqing_linzibei",
+      "high_speed:jiqing_gaomibei|jiqing_jiaozhoubei",
+      "high_speed:weilai_laixi|weilai_pingdu",
+      "high_speed:weiyan_fushan|weiyan_yantaixi",
+      "high_speed:weisu_wulianbei|weisu_zhuchengxi"
+    ]
+  },
+  {
+    id: "hefei", name: "合肥铁路分局公司",
+    commercialStationIds: ['shanghehang_05'],
+    seedStationIds: ["shanghehang_05","hefei_hefeixi"],
+    boundaryEdgeIds: [
+      "high_speed:nanxinhe_gushi|nanxinhe_jinzhaidong",
+      "high_speed:hewu_machengbei|hewu_nanxi",
+      "high_speed:shanghehang_hefeibeicheng|shanghehang_shuijiahu",
+      "high_speed:shanghehang_hanshannan|shanghehang_wuhubei",
+      "high_speed:hefu_03|hefu_nanling",
+      "high_speed:anjiu_anqingxi|anjiu_qianshan",
+      "high_speed:hexin_sihongbei|hexin_sixiandong",
+      "high_speed:hening_quanjiao|shanghehang_feidong",
+      "high_speed:huyurong_dashu|jinghu_12",
+      "high_speed:chihuang_chizhou|ningan_anqing"
+    ]
+  },
+  {
+    id: "bengbu", name: "蚌埠铁路分局公司",
+    seedStationId: "jinghu_11",
+    boundaryEdgeIds: [
+      "high_speed:huaibeng_huaibeixi|huaibeng_suzhouxi",
+      "high_speed:shanghehang_fengtainan|shanghehang_shouxian",
+      "high_speed:shanghehang_hefeibeicheng|shanghehang_shuijiahu",
+      "high_speed:huaibeng_shuangduiji|huaifu_mengcheng",
+      "high_speed:jinghu_10|jinghu_11",
+      "high_speed:jinghu_12|jinghu_dingyuan"
+    ]
+  },
+  {
+    id: "fuyang", name: "阜阳铁路分局公司",
+    seedStationId: "shanghehang_03",
+    boundaryEdgeIds: [
+      "high_speed:zhengfu_jieshounan|zhengfu_shenqiubei",
+      "high_speed:zhumafu_linquannan|zhumafu_xincaibei",
+      "high_speed:shanghe_lumiao|shangzhou_shangqiudong",
+      "high_speed:fuhuang_funan|fuhuang_huaibinnan",
+      "high_speed:shanghehang_fengtainan|shanghehang_shouxian",
+      "high_speed:huaibeng_shuangduiji|huaifu_mengcheng"
+    ]
+  },
+  {
+    id: "huangshan", name: "黄山铁路分局公司",
+    seedStationId: "hefu_04",
+    boundaryEdgeIds: [
+      "high_speed:hefu_03|hefu_nanling",
+      "high_speed:hefu_04|hefu_wuyuan",
+      "high_speed:hanghuang_qiandaohu|hanghuang_sanyang",
+      "high_speed:changjinghuang_fuliangdong|changjinghuang_qimennan",
+      "high_speed:shanghehang_07|xuanji_ningguonan",
+      "high_speed:chihuang_chizhou|ningan_tongling",
+      "high_speed:chihuang_chizhou|ningan_anqing"
+    ]
+  },
+  {
+    id: "nanjing", name: "南京铁路分局公司",
+    commercialStationIds: ['jinghu_13', 'ningxuan_nanjing'],
+    seedStationId: "jinghu_13",
+    boundaryEdgeIds: [
+      "high_speed:jinghu_12|jinghu_dingyuan",
+      "high_speed:shanghehang_hanshannan|shanghehang_wuhubei",
+      "high_speed:shanghehang_anji|shanghehang_guangdenan",
+      "high_speed:hening_quanjiao|shanghehang_feidong",
+      "high_speed:huyurong_dashu|jinghu_12",
+      "high_speed:huyurong_04|huyurong_taizhounan",
+      "high_speed:shanghehang_07|xuanji_ningguonan",
+      "high_speed:chihuang_chizhou|ningan_tongling",
+      "high_speed:jinghu_changzhoubei|jinghu_danyangbei",
+      "high_speed:yanjiang_jintan|yanjiang_wujin",
+      "high_speed:ninghang_changxing|ninghang_yixing",
+      "high_speed:huning_changzhou|huning_danyang",
+      "high_speed:ninghuai_jinhu|ninghuai_tianchang",
+      "high_speed:huyurong_04|lianzhen_gaoyou"
+    ]
+  },
+  {
+    id: "xuzhou", name: "徐州铁路分局公司",
+    commercialStationIds: ['jinghu_09'],
+    seedStationId: "jinghu_09",
+    boundaryEdgeIds: [
+      "high_speed:lianxulan_xiaoxianbei|lianxulan_yongchengbei",
+      "high_speed:huaibeng_huaibeixi|lianxulan_yongchengbei",
+      "high_speed:huaibeng_huaibeixi|huaibeng_suzhouxi",
+      "high_speed:jinghu_08|jinghu_09",
+      "high_speed:jinghu_10|jinghu_11",
+      "high_speed:xulian_pizhoudong|xulian_xinyinan",
+      "high_speed:xuyan_suining|xuyan_suqian"
+    ]
+  },
+  {
+    id: "suzhou", name: "苏州铁路分局公司",
+    seedStationId: "jinghu_suzhoubei",
+    boundaryEdgeIds: [
+      "high_speed:jinghu_changzhoubei|jinghu_danyangbei",
+      "high_speed:jinghu_18|jinghu_kunshannan",
+      "high_speed:huning_changzhou|huning_danyang",
+      "high_speed:huning_antingbei|jinghu_kunshannan",
+      "high_speed:husuhu_liantang|husuhu_suzhounan",
+      "high_speed:husuhu_huzhounanxun|husuhu_shengze",
+      "high_speed:tongsujiayong_changshuxi|yanjiang_zhangjiagang",
+      "high_speed:husuhu_suzhounan|tongsujiayong_jiashanbei"
+    ]
+  },
+  {
+    id: "nantong", name: "南通铁路分局公司",
+    seedStationIds: ["huyurong_02","yantong_nantongxi"],
+    boundaryEdgeIds: [
+      "high_speed:yantong_dongtai|yantong_yanchengdafeng",
+      "high_speed:huyurong_04|huyurong_taizhounan",
+      "high_speed:huyurong_chongming|huyurong_qidongxi",
+      "high_speed:yanjiang_jintan|yanjiang_wujin",
+      "high_speed:huyurong_taicang|yanjiang_changshu",
+      "high_speed:tongsujiayong_changshuxi|yanjiang_zhangjiagang"
+    ]
+  },
+  {
+    id: "lianyungang", name: "连云港铁路分局公司",
+    seedStationId: "lianxulan_01",
+    boundaryEdgeIds: [
+      "high_speed:linlian_ganyu|linlian_linshubei",
+      "high_speed:qingyan_ganyubei|qingyan_lanshanxi",
+      "high_speed:liuyantong_02|qingyan_sheyang",
+      "high_speed:xulian_pizhoudong|xulian_xinyinan",
+      "high_speed:lianzhen_guannan|lianzhen_lianshui"
+    ]
+  },
+  {
+    id: "huaian", name: "淮安铁路分局公司",
+    seedStationId: "xuyan_03",
+    boundaryEdgeIds: [
+      "high_speed:jizao_taierzhuang|weisu_xinyidong",
+      "high_speed:weisu_lanling|weisu_tanchengxi",
+      "high_speed:liuyantong_02|qingyan_sheyang",
+      "high_speed:yantong_dongtai|yantong_yanchengdafeng",
+      "high_speed:hexin_sihongbei|hexin_sixiandong",
+      "high_speed:ninghuai_jinhu|ninghuai_tianchang",
+      "high_speed:xuyan_suining|xuyan_suqian",
+      "high_speed:lianzhen_guannan|lianzhen_lianshui",
+      "high_speed:huyurong_04|lianzhen_gaoyou"
+    ]
+  },
+  {
+    id: "shanghai", name: "上海铁路分局公司",
+    commercialStationIds: ['jinghu_18', 'huning_shanghai', 'shanghai_shanghainan'],
+    seedStationId: "jinghu_18",
+    boundaryEdgeIds: [
+      "high_speed:huyurong_chongming|huyurong_qidongxi",
+      "high_speed:hukun_jiashannan|hukun_jinshanbei",
+      "high_speed:jinghu_18|jinghu_kunshannan",
+      "high_speed:huyurong_taicang|yanjiang_changshu",
+      "high_speed:huning_antingbei|jinghu_kunshannan",
+      "high_speed:husuhu_liantang|husuhu_suzhounan"
+    ]
+  },
+  {
+    id: "hangzhou", name: "杭州铁路分局公司",
+    commercialStationIds: ['shanghehang_09', 'hangwen_hangzhouxi'],
+    seedStationId: "shanghehang_09",
+    boundaryEdgeIds: [
+      "high_speed:husuhu_huzhounanxun|husuhu_shengze",
+      "high_speed:husuhu_suzhounan|tongsujiayong_jiashanbei",
+      "high_speed:hukun_jiashannan|hukun_jinshanbei",
+      "high_speed:shanghehang_anji|shanghehang_guangdenan",
+      "high_speed:ninghang_changxing|ninghang_yixing",
+      "high_speed:hanghuang_qiandaohu|hanghuang_sanyang",
+      "high_speed:hukun_yiwu|hukun_zhuji",
+      "high_speed:hangwen_pujiang|hangwen_tongludong",
+      "high_speed:jinjian_dayang|jinjian_lanxidong",
+      "high_speed:hangtai_shengzhoubei|yongjin_shengzhouxinchang",
+      "high_speed:hangyong_shaoxingdong|hangyong_yuyaobei",
+      "high_speed:tongsujiayong_cixi|tongsujiayong_haiyan"
+    ]
+  },
+  {
+    id: "ningbo", name: "宁波铁路分局公司",
+    commercialStationIds: ['hangshen_03'],
+    seedStationId: "hangshen_03",
+    boundaryEdgeIds: [
+      "high_speed:hangyong_shaoxingdong|hangyong_yuyaobei",
+      "high_speed:tongsujiayong_cixi|tongsujiayong_haiyan",
+      "high_speed:yongjin_xikou|yongjin_xinchangbei",
+      "high_speed:hangtai_tiantaishan|yongjin_shengzhouxinchang",
+      "high_speed:yongtaiwen_wenling|yongtaiwen_yandangshan"
+    ]
+  },
+  {
+    id: "jinhua", name: "金华铁路分局公司",
+    seedStationId: "hukun_04",
+    boundaryEdgeIds: [
+      "high_speed:hukun_yiwu|hukun_zhuji",
+      "high_speed:hangwen_pujiang|hangwen_tongludong",
+      "high_speed:jinjian_dayang|jinjian_lanxidong",
+      "high_speed:hangtai_shengzhoubei|yongjin_shengzhouxinchang",
+      "high_speed:yongjin_xikou|yongjin_xinchangbei",
+      "high_speed:hangtai_tiantaishan|yongjin_shengzhouxinchang",
+      "high_speed:hangshen_lishui_02|jinwen_qingtian",
+      "high_speed:hangwen_nanxijiang|hangwen_xianju",
+      "high_speed:hukun_jiangshan|hukun_yushannan",
+      "conventional:jiujingqu_changshan|jiujingqu_kaihua"
+    ]
+  },
+  {
+    id: "wenzhou", name: "温州铁路分局公司",
+    seedStationId: "hangshen_05",
+    boundaryEdgeIds: [
+      "high_speed:yongtaiwen_wenling|yongtaiwen_yandangshan",
+      "high_speed:hangshen_lishui_02|jinwen_qingtian",
+      "high_speed:hangwen_nanxijiang|hangwen_xianju",
+      "high_speed:wenfu_cangnan|wenfuhsr_fudingxi"
+    ]
+  },
+  {
+    id: "nanchang", name: "南昌铁路分局公司",
+    commercialStationIds: ['nanchang_station', 'heshen_04'],
+    seedStationId: "nanchang_station",
+    boundaryEdgeIds: [
+      "high_speed:changjiu_changbeiairport|changjiu_gongqingchengdong",
+      "high_speed:changjiu_gongqingcheng|changjiu_yongxiu",
+      "high_speed:hukun_07|hukun_08",
+      "high_speed:changjinghuang_jinxianbei|changjinghuang_yugan",
+      "high_speed:changgan_xiajiang|changgan_xingandong",
+      "high_speed:changgan_lianhuadong|changgan_yongxinnan",
+      "conventional:changfu_jianningbei|changfu_nanfeng",
+      "high_speed:hukun_11|hukun_lilingdong",
+      "high_speed:changgan_liuyang|changgan_shangli"
+    ]
+  },
+  {
+    id: "jiujiang", name: "九江铁路分局公司",
+    seedStationId: "heshen_03",
+    boundaryEdgeIds: [
+      "high_speed:changjiu_changbeiairport|changjiu_gongqingchengdong",
+      "high_speed:changjiu_gongqingcheng|changjiu_yongxiu",
+      "high_speed:changjinghuang_02|changjinghuang_lepingbei",
+      "conventional:changjinghuang_02|hefu_wuyuan",
+      "high_speed:changjinghuang_fuliangdong|changjinghuang_qimennan",
+      "high_speed:wujiu_ruichangxi|wujiu_yangxin",
+      "high_speed:anjiu_anqingxi|anjiu_qianshan",
+      "high_speed:csjj_pingjiang|csjj_xiushui"
+    ]
+  },
+  {
+    id: "shangrao", name: "上饶铁路分局公司",
+    seedStationIds: ["hukun_06","changjinghuang_lepingbei"],
+    boundaryEdgeIds: [
+      "high_speed:hukun_07|hukun_08",
+      "high_speed:changjinghuang_jinxianbei|changjinghuang_yugan",
+      "high_speed:changjinghuang_02|changjinghuang_lepingbei",
+      "conventional:changjinghuang_02|hefu_wuyuan",
+      "high_speed:hefu_04|hefu_wuyuan",
+      "high_speed:hukun_jiangshan|hukun_yushannan",
+      "conventional:jiujingqu_changshan|jiujingqu_kaihua",
+      "high_speed:hefu_wufushan|hefu_wuyishanbei"
+    ]
+  },
+  {
+    id: "ganzhou", name: "赣州铁路分局公司",
+    seedStationIds: ["heshen_06","ganshao_ganzhou"],
+    boundaryEdgeIds: [
+      "high_speed:changgan_xiajiang|changgan_xingandong",
+      "high_speed:changgan_lianhuadong|changgan_yongxinnan",
+      "high_speed:chenggan_guidong|chenggan_shangyou",
+      "high_speed:hengji_chaling|hengji_jinggangshan",
+      "high_speed:ganguang_lianping|ganguang_quannan",
+      "high_speed:ganshen_dingnannan|ganshen_hepingbei",
+      "conventional:ganshao_dayu|ganshao_nanxiong",
+      "conventional:ruimei_pingyuan|ruimei_xunwu",
+      "conventional:xingquan_ninghua|xingquan_shichengdong",
+      "conventional:ganruilong_changtingnan|ganruilong_ruijin"
+    ]
+  },
+  {
+    id: "fuzhou", name: "福州铁路分局公司",
+    commercialStationIds: ['changfu_fuzhouzhan', 'hangshen_07'],
+    seedStationId: "changfu_fuzhouzhan",
+    boundaryEdgeIds: [
+      "high_speed:hefu_wufushan|hefu_wuyishanbei",
+      "conventional:changfu_jianningbei|changfu_nanfeng",
+      "high_speed:wenfu_cangnan|wenfuhsr_fudingxi",
+      "high_speed:fuping_pingtan|tw_hsr_hsinchu",
+      "conventional:changfu_03|nanlong_sanming",
+      "conventional:changfu_jianningbei|pumei_jianningnan",
+      "high_speed:fuxia_quangang|hangshen_08",
+      "high_speed:fuxia_old_huian|fuxia_old_xianyou"
+    ]
+  },
+  {
+    id: "xiamen", name: "厦门铁路分局公司",
+    commercialStationIds: ['xiamen_station', 'hangshen_10'],
+    seedStationId: "xiamen_station",
+    boundaryEdgeIds: [
+      "high_speed:fuxia_quangang|hangshen_08",
+      "high_speed:fuxia_old_huian|fuxia_old_xianyou",
+      "conventional:longxia_longshanzhen|longxia_nanjing",
+      "conventional:xingquan_datianbei|xingquan_dehua",
+      "high_speed:zhangshan_raopingnan|zhangshan_zhaoannan",
+      "high_speed:tw_hsr_chiayi|xiamen_station"
+    ]
+  },
+  {
+    id: "longyan", name: "龙岩铁路分局公司",
+    seedStationId: "yuxia_10",
+    boundaryEdgeIds: [
+      "conventional:changfu_03|nanlong_sanming",
+      "conventional:changfu_jianningbei|pumei_jianningnan",
+      "conventional:longxia_longshanzhen|longxia_nanjing",
+      "conventional:xingquan_datianbei|xingquan_dehua",
+      "conventional:xingquan_ninghua|xingquan_shichengdong",
+      "conventional:ganruilong_changtingnan|ganruilong_ruijin",
+      "conventional:longlong_jiaoling|longlong_wuping"
+    ]
+  },
+  {
+    id: "taipei", name: "台北铁路分局公司",
+    commercialStationIds: ['tw_hub_taipei', 'tw_hub_banqiao', 'tw_hub_nangang'],
+    seedStationId: "tw_hub_taipei",
+    boundaryEdgeIds: [
+      "high_speed:fuping_pingtan|tw_hsr_hsinchu",
+      "high_speed:tw_hsr_miaoli|tw_hsr_taichung",
+      "conventional:tw_tra_fengyuan|tw_tra_miaoli",
+      "conventional:tw_tra_dajia|tw_tra_tongxiao",
+      "conventional:tw_tra_hualien|tw_tra_ruisui"
+    ]
+  },
+  {
+    id: "kaohsiung", name: "高雄铁路分局公司",
+    commercialStationIds: ['tw_hsr_taichung', 'tw_tra_xinzuoying'],
+    seedStationIds: ["tw_tra_kaohsiung","tw_hsr_zuoying"],
+    boundaryEdgeIds: [
+      "high_speed:tw_hsr_chiayi|xiamen_station",
+      "high_speed:tw_hsr_miaoli|tw_hsr_taichung",
+      "conventional:tw_tra_fengyuan|tw_tra_miaoli",
+      "conventional:tw_tra_dajia|tw_tra_tongxiao",
+      "conventional:tw_tra_hualien|tw_tra_ruisui"
     ]
   }
 ];

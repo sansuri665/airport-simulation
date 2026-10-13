@@ -67,11 +67,14 @@ for(const b of d.boundaries) { assert(d.stationIds.has(b.insideId)); assert(!d.s
 assert(Math.abs(d.boundaries[0].lat-45.525585)<1e-9);
 assert(Math.abs(d.boundaries[0].lon-130.794315)<1e-9);
 assert.equal(m.errors.length,0,`Mudanjiang division: ${m.errors.join('; ')}`);
-assert.equal(m.stationIds.size,18);
-assert.equal(m.edgeIds.size,17);
-assert.equal(m.boundaries.length,3);
-for(const name of ['牡丹江','横道河子东','鸡西西','东京城','绥芬河']) assert(m.stationIds.has(byName(name)),name);
-for(const name of ['亚布力西','七台河西','鹿道','佳木斯','哈尔滨']) assert(!m.stationIds.has(byName(name)),name);
+assert.equal(m.stationIds.size,25);
+assert.equal(m.edgeIds.size,24);
+assert.equal(m.boundaries.length,2);
+for(const name of ['牡丹江','横道河子东','鸡西西','东京城','绥芬河','鹿道','老松岭','春阳','天桥岭','大兴沟','汪清','图们']) assert(m.stationIds.has(byName(name)),name);
+for(const name of ['亚布力西','七台河西','佳木斯','哈尔滨']) assert(!m.stationIds.has(byName(name)),name);
+const mudanjiangInternalLink='conventional:mudanjiang_tumen_dongjingcheng|mudanjiang_tumen_ludao';
+assert(m.edgeIds.has(mudanjiangInternalLink),'东京城—鹿道 remains physically connected and is internal to Mudanjiang');
+assert(!defs[1].boundaryEdgeIds.includes(mudanjiangInternalLink),'The former 东京城—鹿道 division boundary is removed');
 const mudExits=data.connections.filter(e=>m.stationIds.has(e.from)!==m.stationIds.has(e.to));
 assert.deepEqual(new Set(mudExits.map(e=>e.id)),new Set(defs[1].boundaryEdgeIds));
 for(const b of m.boundaries) { assert(m.stationIds.has(b.insideId)); assert(!m.stationIds.has(b.outsideId)); assert(!m.edgeIds.has(b.edgeId)); }
@@ -896,8 +899,8 @@ assert(chongqingDef,'Chongqing division must be configured');
 assert.equal(chongqingDef.seedStationId,byName('重庆北'));
 const [chongqing]=resolve(data,[chongqingDef]);
 assert.equal(chongqing.errors.length,0,`Chongqing division: ${chongqing.errors.join('; ')}`);
-assert.equal(chongqing.stationIds.size,39);
-assert.equal(chongqing.edgeIds.size,41);
+assert.equal(chongqing.stationIds.size,40);
+assert.equal(chongqing.edgeIds.size,42);
 assert.equal(chongqing.boundaries.length,15);
 const expectedChongqingSides=new Map([
   ['high_speed:langyu_04|langyu_wusheng',['武胜','南充北']],
@@ -1346,6 +1349,603 @@ assert.equal(data.stations.find(s=>s.id===haikou.boundaries[0].outsideId).name,'
 for(const other of resolve(data,defs).filter(div=>div.id!=='haikou')) {
   assert.equal([...haikou.stationIds].filter(id=>other.stationIds.has(id)).length,0,`Haikou overlaps ${other.name}`);
 }
+const henanExpectations=[
+  ['zhengzhou','郑州东',22,21,14,'郑州东—新乡东;郑州东—新乡南;黄河景区—武陟;巩义南—洛阳龙门;兰考南—民权北;西华—周口东;漯河西—周口西;驻马店西—上蔡东;郏县—平顶山西;漯河西—舞阳北;驻马店西—泌阳;驻马店西—明港东;兰考南—庄寨;新蔡北—临泉南'],
+  ['jiaozuo','焦作',27,26,9,'新乡东—郑州东;新乡南—郑州东;武陟—黄河景区;济源东—孟津北;焦作西—晋城东;济源—阳城;安阳东—邯郸东;南乐—莘县;长垣—东明县'],
+  ['luoyang','洛阳龙门',7,6,6,'洛阳龙门—巩义南;孟津北—济源东;汝州南—平顶山西;汝阳东—鲁山西;灵宝西—华山北;三门峡南—运城北'],
+  ['shangqiu','商丘',15,15,10,'民权北—兰考南;周口东—西华;周口西—漯河西;上蔡东—驻马店西;商丘—曹县西;商丘—单县;永城北—萧县北;永城北—淮北西;商丘东—芦庙;沈丘北—界首南'],
+  ['nanyang','南阳东',15,14,9,'平顶山西—郏县;舞阳北—漯河西;泌阳—驻马店西;平顶山西—汝州南;鲁山西—汝阳东;西峡东—商南东;邓州东—襄阳东;淅川西—郧阳北;桐柏北—信阳东']
+];
+const allDivisions=resolve(data,defs);
+for(const div of allDivisions) assert.equal(div.errors.length,0,`${div.name}: ${div.errors.join('; ')}`);
+for(const [id,center,stationCount,edgeCount,boundaryCount,pairs] of henanExpectations) {
+  const def=defs.find(div=>div.id===id),div=allDivisions.find(div=>div.id===id);
+  assert(def,`${id} division must be configured`);
+  assert.equal(def.seedStationId,byName(center));
+  assert.equal(def.seedStationIds,undefined,`${id} uses one connected center`);
+  assert.equal(div.stationIds.size,stationCount);
+  assert.equal(div.edgeIds.size,edgeCount);
+  assert.equal(div.boundaries.length,boundaryCount);
+  const expectedBoundaryIds=[];
+  for(const pair of pairs.split(';')) {
+    const [inside,outside]=pair.split('—'),insideId=byName(inside),outsideId=byName(outside);
+    const edge=data.connections.find(e=>e.from===insideId&&e.to===outsideId||e.to===insideId&&e.from===outsideId);
+    assert(edge,`${id} boundary connection exists: ${pair}`);
+    assert.equal(edge.type,['济源—阳城','长垣—东明县'].includes(pair)?'conventional':'high_speed');
+    expectedBoundaryIds.push(edge.id);
+    const boundary=div.boundaries.find(b=>b.edgeId===edge.id);
+    assert(boundary,`${id} boundary closes: ${pair}`);
+    assert.equal(boundary.insideId,insideId);
+    assert.equal(boundary.outsideId,outsideId);
+  }
+  assert.deepEqual(new Set(def.boundaryEdgeIds),new Set(expectedBoundaryIds));
+  const exits=data.connections.filter(e=>div.stationIds.has(e.from)!==div.stationIds.has(e.to));
+  assert.deepEqual(new Set(exits.map(e=>e.id)),new Set(expectedBoundaryIds),`${id} has no unlisted exits`);
+}
+const zhengzhou=allDivisions.find(div=>div.id==='zhengzhou');
+const zhengzhouConnector='high_speed:jingguang_09|shizheng_zhengzhou';
+assert(zhengzhou.stationIds.has(byName('郑州')),'Zhengzhou station belongs to the Zhengzhou East center');
+assert(zhengzhou.edgeIds.has(zhengzhouConnector),'郑州—郑州东 is an internal high-speed connection');
+const hubeiExpectations=[
+  [
+    "xiangyang",
+    [
+      "襄阳东",
+      "襄阳"
+    ],
+    15,
+    13,
+    8,
+    "随州南—安陆西;宜城—荆门西;保康县—神农架;宜城南—荆门;郧西—漫川关;十堰东—白河;襄阳东—邓州东;郧阳北—淅川西"
+  ],
+  [
+    "yichang",
+    [
+      "宜昌北",
+      "荆门"
+    ],
+    31,
+    29,
+    11,
+    "荆门西—宜城;神农架—保康县;荆门—宜城南;钟祥南—京山南;潜江—仙桃西;巴东—巫山;利川—万州;利川—黄水;松滋—澧县;石首—华容;松滋西—澧县北"
+  ],
+  [
+    "wuhan",
+    [
+      "武汉"
+    ],
+    37,
+    37,
+    10,
+    "安陆西—随州南;京山南—钟祥南;仙桃西—潜江;明港东—驻马店西;信阳东—桐柏北;淮滨南—阜南;固始—金寨东;麻城北—南溪;阳新—瑞昌西;赤壁北—岳阳东"
+  ]
+];
+const hubeiConventionalPairs=new Set(['宜城南—荆门','荆门—宜城南','潜江—仙桃西','仙桃西—潜江','利川—万州','松滋西—澧县北']);
+const hubeiStationsById=new Map(data.stations.map(s=>[s.id,s]));
+for(const [id,centers,stationCount,edgeCount,boundaryCount,pairs] of hubeiExpectations) {
+  const def=defs.find(div=>div.id===id),div=allDivisions.find(div=>div.id===id);
+  assert(def,`${id} division must be configured`);
+  assert.deepEqual(new Set(def.seedStationIds||[def.seedStationId]),new Set(centers.map(byName)));
+  assert.equal(div.stationIds.size,stationCount);
+  assert.equal(div.edgeIds.size,edgeCount);
+  assert.equal(div.boundaries.length,boundaryCount);
+  const expectedBoundaryIds=[];
+  for(const pair of pairs.split(';')) {
+    const [inside,outside]=pair.split('—'),type=hubeiConventionalPairs.has(pair)?'conventional':'high_speed';
+    const edges=data.connections.filter(e=>e.type===type&&(
+      hubeiStationsById.get(e.from).name===inside&&hubeiStationsById.get(e.to).name===outside||
+      hubeiStationsById.get(e.to).name===inside&&hubeiStationsById.get(e.from).name===outside
+    ));
+    assert.equal(edges.length,1,`${id} boundary connection exists unambiguously: ${pair}`);
+    const edge=edges[0],boundary=div.boundaries.find(b=>b.edgeId===edge.id);
+    assert(boundary,`${id} boundary closes: ${pair}`);
+    assert.equal(hubeiStationsById.get(boundary.insideId).name,inside);
+    assert.equal(hubeiStationsById.get(boundary.outsideId).name,outside);
+    expectedBoundaryIds.push(edge.id);
+  }
+  assert.deepEqual(new Set(def.boundaryEdgeIds),new Set(expectedBoundaryIds));
+  const exits=data.connections.filter(e=>div.stationIds.has(e.from)!==div.stationIds.has(e.to));
+  assert.deepEqual(new Set(exits.map(e=>e.id)),new Set(expectedBoundaryIds),`${id} has no unlisted exits`);
+}
+const yichang=allDivisions.find(div=>div.id==='yichang');
+for(const name of ['荆门西','荆门','荆州','公安','石首','当阳','松滋','松滋西']) {
+  assert(yichang.stationIds.has(byName(name)),`${name} belongs to Yichang division`);
+}
+for(const id of ['yiwan_lichuan','yifu_lichuan']) assert(yichang.stationIds.has(id),'Both registered Lichuan networks belong to Yichang');
+const hunanExpectations=[
+  [
+    "changsha",
+    "长沙南",
+    22,
+    23,
+    10,
+    "株洲西—衡山西;娄底南—邵阳北;常德—张家界西;桃源—沅陵;醴陵东—萍乡北;浏阳—上栗;平江—修水;岳阳东—赤壁北;澧县—松滋;华容—石首"
+  ],
+  [
+    "hengyang",
+    "衡阳东",
+    27,
+    28,
+    10,
+    "衡山西—株洲西;邵阳北—娄底南;邵阳北—新化南;隆回—洞口;零陵—全州南;江永北—灌阳;郴州西—乐昌东;蓝山—连州;桂东—上犹;茶陵—井冈山"
+  ],
+  [
+    "huaihua",
+    "怀化南",
+    33,
+    32,
+    10,
+    "张家界西—常德;沅陵—桃源;新化南—邵阳北;洞口—隆回;新晃西—铜仁南;咸丰—黔江;铜仁—秀山;新宁—资源;通道—三江县;澧县北—松滋西"
+  ]
+];
+const hunanConventionalPairs=new Set(['隆回—洞口','洞口—隆回','铜仁—秀山','通道—三江县','澧县北—松滋西']);
+for(const [id,center,stationCount,edgeCount,boundaryCount,pairs] of hunanExpectations) {
+  const def=defs.find(div=>div.id===id),div=allDivisions.find(div=>div.id===id);
+  assert(def,`${id} division must be configured`);
+  assert.equal(def.seedStationId,byName(center));
+  assert.equal(def.seedStationIds,undefined,`${id} uses one connected center`);
+  assert.equal(div.stationIds.size,stationCount);
+  assert.equal(div.edgeIds.size,edgeCount);
+  assert.equal(div.boundaries.length,boundaryCount);
+  const expectedBoundaryIds=[];
+  for(const pair of pairs.split(';')) {
+    const [inside,outside]=pair.split('—'),insideId=byName(inside),outsideId=byName(outside);
+    const type=hunanConventionalPairs.has(pair)?'conventional':'high_speed';
+    const edges=data.connections.filter(e=>e.type===type&&(
+      e.from===insideId&&e.to===outsideId||e.to===insideId&&e.from===outsideId
+    ));
+    assert.equal(edges.length,1,`${id} boundary connection exists unambiguously: ${pair}`);
+    const edge=edges[0],boundary=div.boundaries.find(b=>b.edgeId===edge.id);
+    assert(boundary,`${id} boundary closes: ${pair}`);
+    assert.equal(boundary.insideId,insideId);
+    assert.equal(boundary.outsideId,outsideId);
+    expectedBoundaryIds.push(edge.id);
+  }
+  assert.deepEqual(new Set(def.boundaryEdgeIds),new Set(expectedBoundaryIds));
+  const exits=data.connections.filter(e=>div.stationIds.has(e.from)!==div.stationIds.has(e.to));
+  assert.deepEqual(new Set(exits.map(e=>e.id)),new Set(expectedBoundaryIds),`${id} has no unlisted exits`);
+}
+const huaihua=allDivisions.find(div=>div.id==='huaihua');
+assert(huaihua.stationIds.has(byName('怀化')),'Huaihua conventional station belongs to Huaihua South center');
+assert(huaihua.edgeIds.has('conventional:hukun_16|yuhuai_huaihua'),'怀化—怀化南 is an internal conventional connection');
+const hunanAlternateBoundaries=[
+  ['changsha','high_speed:yuxia_03|yuxia_04'],
+  ['changsha','high_speed:changhuai_yuanling|qianzhangchang_taoyuan'],
+  ['hengyang','high_speed:hukun_shaoyangbei|hukun_xinhuanan'],
+  ['hengyang','conventional:huaigui_dongkou|huaishao_longhui']
+];
+for(const [id,omittedEdge] of hunanAlternateBoundaries) {
+  const def=defs.find(div=>div.id===id);
+  const [leaking]=resolve(data,[{...def,boundaryEdgeIds:def.boundaryEdgeIds.filter(edge=>edge!==omittedEdge)}]);
+  assert(leaking.errors.length>0,`${id} must reject omitting an alternative-path boundary: ${omittedEdge}`);
+}
+const eastChinaExpectations=[
+  [
+    "jinan",
+    [
+      "济南",
+      "菏泽"
+    ],
+    57,
+    59,
+    15,
+    2119,
+    58,
+    "德州东—沧州西;惠民—滨州;临清东—清河西;曹县西—商丘;德州东—景州;冠县南—馆陶南;莘县—南乐;庄寨—兰考南;泗水南—蒙山;枣庄—徐州东;淄博北—临淄北;蒙阴—孟良崮;台儿庄—新沂东;单县—商丘;东明县—长垣（普速）"
+  ],
+  [
+    "qingdao",
+    [
+      "青岛北"
+    ],
+    46,
+    47,
+    10,
+    1311,
+    81,
+    "蒙山—泗水南;胶州北—高密北;孟良崮—蒙阴;临沭北—赣榆;莱西—平度;福山—烟台西;五莲北—诸城西;兰陵—郯城西;岚山西—赣榆北;烟台北—旅顺西（普速）"
+  ],
+  [
+    "weifang",
+    [
+      "潍坊北"
+    ],
+    18,
+    17,
+    7,
+    779,
+    0,
+    "无棣—海兴西;滨州—惠民;临淄北—淄博北;高密北—胶州北;平度—莱西;烟台西—福山;诸城西—五莲北"
+  ],
+  [
+    "hefei",
+    [
+      "合肥南",
+      "合肥西"
+    ],
+    27,
+    26,
+    10,
+    1070,
+    0,
+    "金寨东—固始;南溪—麻城北;合肥北城—水家湖;含山南—芜湖北;铜陵北—南陵;安庆西—潜山;泗县东—泗洪北;肥东—全椒;大墅—滁州;安庆—池州"
+  ],
+  [
+    "bengbu",
+    [
+      "蚌埠南"
+    ],
+    9,
+    8,
+    6,
+    392,
+    0,
+    "宿州西—淮北西;寿县—凤台南;水家湖—合肥北城;双堆集—蒙城;蚌埠南—宿州东;定远—滁州"
+  ],
+  [
+    "fuyang",
+    [
+      "阜阳西"
+    ],
+    14,
+    13,
+    6,
+    535,
+    0,
+    "界首南—沈丘北;临泉南—新蔡北;芦庙—商丘东;阜南—淮滨南;凤台南—寿县;蒙城—双堆集"
+  ],
+  [
+    "huangshan",
+    [
+      "黄山北"
+    ],
+    13,
+    12,
+    7,
+    563,
+    0,
+    "南陵—铜陵北;黄山北—婺源;三阳—千岛湖;祁门南—浮梁东;宁国南—宣城;池州—铜陵;池州—安庆"
+  ],
+  [
+    "nanjing",
+    [
+      "南京南"
+    ],
+    41,
+    43,
+    14,
+    1445,
+    0,
+    "滁州—定远;芜湖北—含山南;广德南—安吉;全椒—肥东;滁州—大墅;扬州东—泰州南;宣城—宁国南;铜陵—池州;丹阳北—常州北;金坛—武进;宜兴—长兴;丹阳—常州;天长—金湖;扬州东—高邮"
+  ],
+  [
+    "xuzhou",
+    [
+      "徐州东"
+    ],
+    8,
+    7,
+    7,
+    435,
+    0,
+    "萧县北—永城北;淮北西—永城北;淮北西—宿州西;徐州东—枣庄;宿州东—蚌埠南;邳州东—新沂南;睢宁—宿迁"
+  ],
+  [
+    "suzhou",
+    [
+      "苏州北"
+    ],
+    12,
+    11,
+    8,
+    426,
+    0,
+    "常州北—丹阳北;昆山南—上海虹桥;常州—丹阳;昆山南—安亭北;苏州南—练塘;盛泽—湖州南浔;常熟西—张家港;苏州南—嘉善北"
+  ],
+  [
+    "nantong",
+    [
+      "南通",
+      "南通西"
+    ],
+    14,
+    12,
+    6,
+    484,
+    0,
+    "东台—盐城大丰;泰州南—扬州东;启东西—崇明;武进—金坛;常熟—太仓;张家港—常熟西"
+  ],
+  [
+    "lianyungang",
+    [
+      "连云港"
+    ],
+    11,
+    10,
+    5,
+    407,
+    0,
+    "赣榆—临沭北;赣榆北—岚山西;射阳—盐城;新沂南—邳州东;灌南—涟水"
+  ],
+  [
+    "huaian",
+    [
+      "淮安东"
+    ],
+    18,
+    17,
+    9,
+    809,
+    0,
+    "新沂东—台儿庄;郯城西—兰陵;盐城—射阳;盐城大丰—东台;泗洪北—泗县东;金湖—天长;宿迁—睢宁;涟水—灌南;高邮—扬州东"
+  ],
+  [
+    "shanghai",
+    [
+      "上海虹桥"
+    ],
+    17,
+    16,
+    6,
+    369,
+    0,
+    "崇明—启东西;金山北—嘉善南;上海虹桥—昆山南;太仓—常熟;安亭北—昆山南;练塘—苏州南"
+  ]
+];
+const eastChinaStationsById=new Map(data.stations.map(s=>[s.id,s]));
+const eastChinaAssignedStations=new Set();
+for(const [id,centers,stationCount,edgeCount,boundaryCount,highSpeedKm,conventionalKm,pairs] of eastChinaExpectations) {
+  const def=defs.find(div=>div.id===id),div=allDivisions.find(div=>div.id===id);
+  assert(def,`${id} division must be configured`);
+  assert.deepEqual(new Set(def.seedStationIds||[def.seedStationId]),new Set(centers.map(byName)));
+  assert.equal(div.stationIds.size,stationCount);
+  assert.equal(div.edgeIds.size,edgeCount);
+  assert.equal(div.boundaries.length,boundaryCount);
+  assert.equal(Math.round(div.lengthKm.high_speed),highSpeedKm);
+  assert.equal(Math.round(div.lengthKm.conventional),conventionalKm);
+  const expectedBoundaryIds=[];
+  for(const entry of pairs.split(';')) {
+    const type=entry.endsWith('（普速）')?'conventional':'high_speed';
+    const pair=entry.replace(/（普速）$/,''),[inside,outside]=pair.split('—');
+    const edges=data.connections.filter(e=>e.type===type&&(
+      eastChinaStationsById.get(e.from).name===inside&&eastChinaStationsById.get(e.to).name===outside||
+      eastChinaStationsById.get(e.to).name===inside&&eastChinaStationsById.get(e.from).name===outside
+    ));
+    assert.equal(edges.length,1,`${id} boundary connection exists unambiguously: ${pair}`);
+    const edge=edges[0],boundary=div.boundaries.find(b=>b.edgeId===edge.id);
+    assert(boundary,`${id} boundary closes: ${pair}`);
+    assert.equal(eastChinaStationsById.get(boundary.insideId).name,inside);
+    assert.equal(eastChinaStationsById.get(boundary.outsideId).name,outside);
+    expectedBoundaryIds.push(edge.id);
+  }
+  assert.deepEqual(new Set(def.boundaryEdgeIds),new Set(expectedBoundaryIds));
+  const exits=data.connections.filter(e=>div.stationIds.has(e.from)!==div.stationIds.has(e.to));
+  assert.deepEqual(new Set(exits.map(e=>e.id)),new Set(expectedBoundaryIds),`${id} has no unlisted exits`);
+  for(const stationId of div.stationIds) {
+    assert(!eastChinaAssignedStations.has(stationId),'New East China divisions must not share stations');
+    eastChinaAssignedStations.add(stationId);
+  }
+}
+assert.equal(eastChinaAssignedStations.size,305,'The fourteen divisions plus the Heze branch cover 305 distinct stations');
+const jinan=allDivisions.find(div=>div.id==='jinan');
+for(const name of ['菏泽','东明县']) {
+  assert(jinan.stationIds.has(byName(name)),`${name} belongs to Jinan`);
+  assert(!allDivisions.find(div=>div.id==='jiaozuo').stationIds.has(byName(name)),`${name} is outside Jiaozuo`);
+}
+assert(jinan.edgeIds.has('conventional:xinyan_dongmingxian|xinyan_heze'),'东明县—菏泽 is an internal Jinan conventional connection');
+const southeasternExpectations=[
+  [
+    "hangzhou",
+    [
+      "shanghehang_09"
+    ],
+    28,
+    29,
+    12,
+    942,
+    0,
+    "湖州南浔—盛泽;嘉善北—苏州南;嘉善南—金山北;安吉—广德南;长兴—宜兴;千岛湖—三阳;诸暨—义乌;桐庐东—浦江;大洋—兰溪东;嵊州北—嵊州新昌;绍兴东—余姚北;海盐—慈溪"
+  ],
+  [
+    "ningbo",
+    [
+      "hangshen_03"
+    ],
+    20,
+    21,
+    5,
+    549,
+    0,
+    "余姚北—绍兴东;慈溪—海盐;溪口—新昌北;天台山—嵊州新昌;温岭—雁荡山"
+  ],
+  [
+    "jinhua",
+    [
+      "hukun_04"
+    ],
+    19,
+    18,
+    10,
+    645,
+    42,
+    "义乌—诸暨;浦江—桐庐东;兰溪东—大洋;嵊州新昌—嵊州北;新昌北—溪口;嵊州新昌—天台山;丽水—青田;仙居—楠溪江;江山—玉山南;常山—开化（普速）"
+  ],
+  [
+    "wenzhou",
+    [
+      "hangshen_05"
+    ],
+    10,
+    9,
+    4,
+    311,
+    0,
+    "雁荡山—温岭;青田—丽水;楠溪江—仙居;苍南—福鼎西"
+  ],
+  [
+    "nanchang",
+    [
+      "nanchang_station"
+    ],
+    22,
+    21,
+    9,
+    784,
+    198,
+    "昌北机场—共青城东;永修—共青城;抚州东—鹰潭北;进贤北—余干;新干东—峡江;莲花东—永新南;南丰—建宁县北（普速）;萍乡北—醴陵东;上栗—浏阳"
+  ],
+  [
+    "jiujiang",
+    [
+      "heshen_03"
+    ],
+    19,
+    18,
+    8,
+    610,
+    172,
+    "共青城东—昌北机场;共青城—永修;景德镇北—乐平北;景德镇北—婺源（普速）;浮梁东—祁门南;瑞昌西—阳新;潜山—安庆西;修水—平江"
+  ],
+  [
+    "shangrao",
+    [
+      "hukun_06",
+      "changjinghuang_lepingbei"
+    ],
+    12,
+    10,
+    8,
+    433,
+    99,
+    "鹰潭北—抚州东;余干—进贤北;乐平北—景德镇北;婺源—景德镇北（普速）;婺源—黄山北;玉山南—江山;开化—常山（普速）;五府山—武夷山北"
+  ],
+  [
+    "ganzhou",
+    [
+      "heshen_06",
+      "ganshao_ganzhou"
+    ],
+    35,
+    33,
+    10,
+    921,
+    555,
+    "峡江—新干东;永新南—莲花东;上犹—桂东;井冈山—茶陵;全南—连平;定南南—和平北;大余—南雄（普速）;寻乌—平远（普速）;石城东—宁化（普速）;瑞金—长汀南（普速）"
+  ],
+  [
+    "fuzhou",
+    [
+      "changfu_fuzhouzhan"
+    ],
+    30,
+    32,
+    8,
+    847,
+    448,
+    "武夷山北—五府山;建宁县北—南丰（普速）;福鼎西—苍南;平潭—新竹;三明北—三明（普速）;建宁县北—建宁南（普速）;莆田—泉港;仙游—惠安"
+  ],
+  [
+    "xiamen",
+    [
+      "xiamen_station"
+    ],
+    17,
+    17,
+    6,
+    522,
+    185,
+    "泉港—莆田;惠安—仙游;南靖—龙山镇（普速）;德化—大田北（普速）;诏安南—饶平南;厦门—嘉义"
+  ],
+  [
+    "longyan",
+    [
+      "yuxia_10"
+    ],
+    19,
+    19,
+    7,
+    0,
+    769,
+    "三明—三明北（普速）;建宁南—建宁县北（普速）;龙山镇—南靖（普速）;大田北—德化（普速）;宁化—石城东（普速）;长汀南—瑞金（普速）;武平—蕉岭（普速）"
+  ],
+  [
+    "taipei",
+    [
+      "tw_hub_taipei"
+    ],
+    25,
+    26,
+    5,
+    206,
+    345,
+    "新竹—平潭;苗栗—台中;苗栗—丰原（普速）;通霄—大甲（普速）;花莲—瑞穗（普速）"
+  ],
+  [
+    "kaohsiung",
+    [
+      "tw_tra_kaohsiung",
+      "tw_hsr_zuoying"
+    ],
+    28,
+    26,
+    5,
+    322,
+    508,
+    "嘉义—厦门;台中—苗栗;丰原—苗栗（普速）;大甲—通霄（普速）;瑞穗—花莲（普速）"
+  ]
+];
+const southeasternStationsById=new Map(data.stations.map(s=>[s.id,s]));
+const southeasternAssignedStations=new Set();
+for(const [id,seedIds,stationCount,edgeCount,boundaryCount,highSpeedKm,conventionalKm,pairs] of southeasternExpectations) {
+  const def=defs.find(div=>div.id===id),div=allDivisions.find(div=>div.id===id);
+  assert(def,`${id} division must be configured`);
+  assert.deepEqual(new Set(def.seedStationIds||[def.seedStationId]),new Set(seedIds));
+  assert.equal(div.stationIds.size,stationCount);
+  assert.equal(div.edgeIds.size,edgeCount);
+  assert.equal(div.boundaries.length,boundaryCount);
+  assert.equal(Math.round(div.lengthKm.high_speed),highSpeedKm);
+  assert.equal(Math.round(div.lengthKm.conventional),conventionalKm);
+  const expectedBoundaryIds=[];
+  for(const entry of pairs.split(';')) {
+    const type=entry.endsWith('（普速）')?'conventional':'high_speed';
+    const pair=entry.replace(/（普速）$/,''),[inside,outside]=pair.split('—');
+    const edges=data.connections.filter(e=>e.type===type&&(
+      southeasternStationsById.get(e.from).name===inside&&southeasternStationsById.get(e.to).name===outside||
+      southeasternStationsById.get(e.to).name===inside&&southeasternStationsById.get(e.from).name===outside
+    ));
+    assert.equal(edges.length,1,`${id} boundary connection exists unambiguously: ${pair}`);
+    const edge=edges[0],boundary=div.boundaries.find(b=>b.edgeId===edge.id);
+    assert(boundary,`${id} boundary closes: ${pair}`);
+    assert.equal(southeasternStationsById.get(boundary.insideId).name,inside);
+    assert.equal(southeasternStationsById.get(boundary.outsideId).name,outside);
+    expectedBoundaryIds.push(edge.id);
+  }
+  assert.deepEqual(new Set(def.boundaryEdgeIds),new Set(expectedBoundaryIds));
+  const exits=data.connections.filter(e=>div.stationIds.has(e.from)!==div.stationIds.has(e.to));
+  assert.deepEqual(new Set(exits.map(e=>e.id)),new Set(expectedBoundaryIds),`${id} has no unlisted exits`);
+  for(const stationId of div.stationIds) {
+    assert(!southeasternAssignedStations.has(stationId),'New southeastern divisions must not share stations');
+    southeasternAssignedStations.add(stationId);
+  }
+}
+assert.equal(southeasternAssignedStations.size,284,'The thirteen southeastern divisions cover 284 distinct stations');
+const finalDivisionOwners=new Map();
+for(const div of allDivisions) for(const stationId of div.stationIds) {
+  assert(!finalDivisionOwners.has(stationId),`Station ${stationId} must have exactly one division`);
+  finalDivisionOwners.set(stationId,div.id);
+}
+assert.equal(finalDivisionOwners.size,data.stations.length,'All stations must have a division');
+for(const station of data.stations) assert(finalDivisionOwners.has(station.id),`Unassigned station: ${station.name} (${station.id})`);
+for(const edge of data.connections) {
+  const fromOwner=finalDivisionOwners.get(edge.from),toOwner=finalDivisionOwners.get(edge.to);
+  if(fromOwner!==toOwner) {
+    for(const owner of [fromOwner,toOwner]) {
+      assert(defs.find(def=>def.id===owner).boundaryEdgeIds.includes(edge.id),`Both adjacent divisions must register ${edge.id}`);
+    }
+  }
+}
+for(const id of ['tw_hsr_miaoli','tw_tra_miaoli']) assert.equal(finalDivisionOwners.get(id),'taipei','Taipei includes both separately registered Miaoli stations');
+for(const id of ['tw_hsr_taichung','tw_tra_fengyuan']) assert.equal(finalDivisionOwners.get(id),'kaohsiung','Kaohsiung owns its respective sides of the Taiwan boundaries');
 assert.equal(JSON.stringify(data),before,'ownership must not change physical connections');
 const sample={stations:[{id:'a',lat:0,lon:0},{id:'b',lat:0,lon:1},{id:'c',lat:0,lon:2},{id:'d',lat:0,lon:-1},{id:'e',lat:0,lon:-2}],connections:[
   {id:'ab',from:'a',to:'b',type:'high_speed'},{id:'bc',from:'b',to:'c',type:'high_speed'},
@@ -1359,4 +1959,9 @@ assert(resolve(bypass,defs)[0].errors.length>0,'a bypass must invalidate the bou
 assert(resolve(data,[{...defs[0],boundaryEdgeIds:['missing']}])[0].errors.length>0);
 const overlapping=resolve(data,[...defs,{...defs[0],id:'duplicate'}]);
 assert(overlapping[0].errors.length>0&&overlapping.at(-1).errors.length>0,'overlapping divisions must be reported');
-console.log('PASS: Jiamusi 33/32, Mudanjiang 18/17, Chifeng 27/25, Zhangjiakou 22/20, Beijing 48/45, Tangshan 13/12, Tianjin 23/23, Xiong’an 17/17, Shijiazhuang 29/28, Datong 12/11, Taiyuan 23/22, Changzhi 11/9, Houma 15/14, Jining 12/11, Hohhot 8/7, Baotou 20/19, Yinchuan 12/11, Zhongwei 11/10, Xi’an 48/48, Baoji 12/11, Ankang 12/11, Suide 7/6, Lanzhou 38/37, Pingliang 17/16, Wuwei 9/7, Zhangye 20/18, Xining 12/11, Golmud 20/19, Hami 5/4, Urumqi 10/8, Kuitun 19/18, Korla 17/16, Kashgar 13/12, Lhasa 33/33, Chengdu 86/89, Chongqing 39/41, Guangyuan 17/15, Dazhou 10/8, Wanzhou 10/9, Yibin 24/23, Guiyang 31/31, Liupanshui 18/17, Kunming 30/30, Dali 22/21, Yuxi 24/23, Nanning 36/35, Liuzhou 27/26, Guilin 19/18, Guangzhou 55/58, Shenzhen 29/28, Shantou 26/26, Zhanjiang 16/16, and Haikou 26/26; all boundaries close without overlap.');
+console.log(`PASS: Thirteen southeastern divisions, 284 stations and 97 boundary registrations; all ${defs.length} divisions close with unique ownership of all ${data.stations.length} stations.`);
+console.log('PASS: Fourteen East China divisions including the Jinan Heze branch, 305 stations and 116 boundary registrations; all centers, sides, exits and mileage match, with no overlap.');
+console.log('PASS: Hunan divisions Changsha 22/23, Hengyang 27/28, Huaihua 33/32; all boundaries close, no overlap, and each alternative-path boundary is required.');
+console.log('PASS: Hubei divisions Xiangyang 15/13, Yichang 31/29, Wuhan 37/37; all boundary sides and exits match, with no overlap.');
+console.log('PASS: Henan divisions Zhengzhou 22/21, Jiaozuo 27/26, Luoyang 7/6, Shangqiu 15/15, Nanyang 15/14; all boundary sides and exits match, with no overlap.');
+console.log('PASS: Jiamusi 33/32, Mudanjiang 25/24, Chifeng 27/25, Zhangjiakou 22/20, Beijing 48/45, Tangshan 13/12, Tianjin 23/23, Xiong’an 17/17, Shijiazhuang 29/28, Datong 12/11, Taiyuan 23/22, Changzhi 11/9, Houma 15/14, Jining 12/11, Hohhot 8/7, Baotou 20/19, Yinchuan 12/11, Zhongwei 11/10, Xi’an 48/48, Baoji 12/11, Ankang 12/11, Suide 7/6, Lanzhou 38/37, Pingliang 17/16, Wuwei 9/7, Zhangye 20/18, Xining 12/11, Golmud 20/19, Hami 5/4, Urumqi 10/8, Kuitun 19/18, Korla 17/16, Kashgar 13/12, Lhasa 33/33, Chengdu 86/89, Chongqing 40/42, Guangyuan 17/15, Dazhou 10/8, Wanzhou 10/9, Yibin 24/23, Guiyang 31/31, Liupanshui 18/17, Kunming 30/30, Dali 22/21, Yuxi 24/23, Nanning 36/35, Liuzhou 27/26, Guilin 19/18, Guangzhou 55/58, Shenzhen 29/28, Shantou 26/26, Zhanjiang 16/16, and Haikou 26/26; all boundaries close without overlap.');

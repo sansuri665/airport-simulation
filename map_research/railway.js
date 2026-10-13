@@ -6,7 +6,6 @@
   const byStation = new Map(stations.map(s => [s.id, s]));
   const edgesByStation = new Map(stations.map(s => [s.id, []]));
   const typeName = type => type === 'conventional' ? '普速' : '高速';
-  const formatCoordinate = value => (Math.round(value*1e5+1e-7)/1e5).toFixed(5);
   const divisionMileage = d => `高速约 ${Math.round(d.lengthKm.high_speed).toLocaleString('zh-CN')} 公里 · 普速约 ${Math.round(d.lengthKm.conventional).toLocaleString('zh-CN')} 公里`;
   const edges = connections.map(e => ({ ...e, from: byStation.get(e.from), to: byStation.get(e.to) }));
   const edgeMap = new Map(edges.map(e => [e.id, e]));
@@ -16,9 +15,11 @@
   const byDivision = new Map(divisions.map(d=>[d.id,d]));
   const validDivisions = divisions.filter(d=>!d.errors.length);
   const typesByStation = new Map(stations.map(s => [s.id, new Set(edgesByStation.get(s.id).map(e => e.type))]));
-  const sortedStations = [...stations].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+  const divisionSearch = new Map(divisions.map(d => [d.id,
+    [d.name, ...[...d.stationIds].map(id => byStation.get(id).name)].join('\n').toLowerCase()
+  ]));
   const hubs = new Set(['北京西','上海虹桥','广州南','武汉','成都东','重庆北','郑州东','西安北','昆明南','兰州西','乌鲁木齐','拉萨','哈尔滨','沈阳','长春','满洲里','漠河','海口','福州','南昌西','台北','高雄','香港西九龙','南宁东','杭州东','济南西','太原南','银川','西宁','喀什','抚远','格尔木','齐齐哈尔']);
-  const state = { type: 'all', mode: 'divisions', query: '', selected: null, labels: true, scale: 1, x: 0, y: 0, width: 1000, height: 700 };
+  const state = { type: 'all', query: '', selected: null, labels: true, scale: 1, x: 0, y: 0, width: 1000, height: 700 };
   const divisionNodes = [];
   let shownStations = new Set();
   let shownEdges = new Set();
@@ -43,7 +44,6 @@
   const project = ({ lat, lon }) => ({ x: lon * 20, y: -Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360)) * 180 / Math.PI * 20 });
   const projected = new Map(stations.map(s => [s.id, project(s)]));
   const typeMatches = c => state.type === 'all' || c.type === state.type;
-  const matchesQuery = values => !state.query || values.some(value => String(value || '').toLowerCase().includes(state.query));
 
   function buildMap() {
     for (let lon = 70; lon <= 140; lon += 5) {
@@ -98,7 +98,7 @@
     for (const [id, nodes] of routeNodes) { nodes.path.style.display = nodes.hit.style.display = shownEdges.has(id) ? '' : 'none'; }
     for (const [id, node] of stationNodes) node.group.style.display = shownStations.has(id) ? '' : 'none';
     if(state.selected?.kind!=='division') state.selected = null;
-    updateSelection(); renderList();
+    updateSelection();
     $('mapTitle').textContent = `泛中国${state.type === 'all' ? '铁路' : typeName(state.type)}网络`;
     $('mapSummary').textContent = `${shownEdges.size.toLocaleString('zh-CN')} 条连接 / ${shownStations.size.toLocaleString('zh-CN')} 个站点`;
     if (fit) fitPoints([...shownStations]); else scheduleTransform();
@@ -106,41 +106,19 @@
 
   function renderList() {
     const fragment = document.createDocumentFragment();
-    if(state.mode==='divisions') {
-      const items=divisions.filter(d=>matchesQuery([d.name,...[...d.stationIds].map(id=>byStation.get(id).name)]));
-      $('entryCount').textContent=`${items.length} 家`;
-      $('pageNote').textContent='点击分局内的站点或连接，整体高亮管辖网';
-      for(const d of items) {
-        const row=element('button','entry-row division-row');row.type='button';row.dataset.divisionId=d.id;row.disabled=!!d.errors.length;
-        const main=element('span','entry-main');main.append(element('span','entry-name',d.name));
-        main.append(element('span','entry-description',d.errors.length?'边界待检查：'+d.errors.join('；'):`${d.stationIds.size} 个站点`));
-        if(!d.errors.length) {
-          const mileage=element('span','entry-description',divisionMileage(d));mileage.title='按站点坐标连线估算，跨界连接仅计分局内半段';main.append(mileage);
-        }
-        row.append(main);fragment.append(row);
+    const items=divisions.filter(d=>!state.query || divisionSearch.get(d.id).includes(state.query));
+    $('entryCount').textContent=`${items.length} 家`;
+    $('pageNote').textContent='点击分局内的站点或连接，整体高亮管辖网';
+    for(const d of items) {
+      const row=element('button','entry-row division-row');row.type='button';row.dataset.divisionId=d.id;row.disabled=!!d.errors.length;
+      const main=element('span','entry-main');main.append(element('span','entry-name',d.name));
+      main.append(element('span','entry-description',d.errors.length?'边界待检查：'+d.errors.join('；'):`${d.stationIds.size} 个站点`));
+      if(!d.errors.length) {
+        const mileage=element('span','entry-description',divisionMileage(d));mileage.title='按站点坐标连线估算，跨界连接仅计分局内半段';main.append(mileage);
       }
-      if(!items.length) fragment.append(element('div','empty-list','没有匹配的分局。'));
-      $('entryList').replaceChildren(fragment);updateActiveRows();return;
+      row.append(main);fragment.append(row);
     }
-    const items = state.mode === 'connections'
-      ? edges.filter(e => shownEdges.has(e.id) && matchesQuery([displayName(e),e.from.name,e.from.city,e.to.name,e.to.city]))
-      : sortedStations.filter(s => shownStations.has(s.id) && matchesQuery([s.name,s.city]));
-    $('entryCount').textContent = `${items.length} ${state.mode === 'connections' ? '条' : '站'}`;
-    $('pageNote').textContent = state.query ? '搜索筛选列表，点击结果定位地图' : state.mode === 'connections' ? '选择连接，查看两端站点' : '选择站点，查看直接相连的站点';
-    items.forEach((item, i) => {
-      const isRoute = state.mode === 'connections';
-      const row = element('button','entry-row'); row.type = 'button';
-      row.dataset[isRoute ? 'edgeId' : 'stationId'] = item.id;
-      const order = element('span','entry-index',String(i+1).padStart(2,'0'));
-      const main = element('span','entry-main');
-      main.append(element('span','entry-name',isRoute ? displayName(item) : item.name));
-      const description = isRoute ? `${typeName(item.type)} · 2 个端点` : `${item.city || '铁路站点'} · ${edgesByStation.get(item.id).filter(e=>shownEdges.has(e.id)).length} 条连接`;
-      main.append(element('span','entry-description',description));
-      const types = !isRoute && typesByStation.get(item.id);
-      const kind = isRoute ? item.type : types.size>1 ? 'shared' : types.has('conventional') ? 'conventional' : 'high_speed';
-      row.append(order, main, element('i',`entry-type ${kind}`)); fragment.append(row);
-    });
-    if (!items.length) fragment.append(element('div','empty-list','没有匹配结果。试试其他站名，或切换连接类型。'));
+    if(!items.length) fragment.append(element('div','empty-list','没有匹配的分局。'));
     $('entryList').replaceChildren(fragment); updateActiveRows();
   }
 
@@ -177,18 +155,18 @@
   }
 
   function updateActiveRows() {
+    const divisionId=activeDivision()?.id;
     $('entryList').querySelectorAll('.entry-row').forEach(row => {
-      const active = (row.dataset.divisionId&&row.dataset.divisionId===activeDivision()?.id) || (state.selected?.kind === 'edge' ? row.dataset.edgeId === state.selected.id : state.selected?.kind === 'station' && row.dataset.stationId === state.selected.id);
+      const active = row.dataset.divisionId===divisionId;
       row.classList.toggle('active',!!active); row.setAttribute('aria-pressed',String(!!active));
     });
   }
 
   function focusDivisionInList(id) {
     if(!byDivision.has(id)) return;
-    state.mode='divisions';
-    state.query=''; $('searchInput').value='';
-    document.querySelectorAll('[data-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.mode==='divisions')));
-    renderList();
+    if(state.query) {
+      state.query=''; $('searchInput').value=''; renderList();
+    }
     const row=$('entryList').querySelector(`[data-division-id="${id}"]`);
     row?.scrollIntoView({block:'nearest',behavior:'smooth'});
   }
@@ -217,33 +195,52 @@
     button.append(element('small','',`${typeName(e.type)} · 查看连接`)); return button;
   }
 
+  function renderDivisionOverview(d) {
+    $('divisionTitle').textContent=d.name;
+    const stats=element('div','division-stats');
+    stats.title='完整分局统计；里程按站点连线估算，交界仅计本局半段。';
+    for(const [label,value] of [
+      ['管辖站点',`${d.stationIds.size} 个`],
+      ['高速里程',`约 ${Math.round(d.lengthKm.high_speed).toLocaleString('zh-CN')} 公里`],
+      ['普速里程',`约 ${Math.round(d.lengthKm.conventional).toLocaleString('zh-CN')} 公里`]
+    ]) {
+      const metric=element('div','division-stat');
+      metric.append(element('span','',label),element('strong','',value));stats.append(metric);
+    }
+    $('divisionBody').append(stats);
+    const ids=d.commercialStationIds;
+    if(ids?.length) {
+      const label='可开放车站商业';
+      const section=element('section','station-commerce');
+      section.setAttribute('aria-label',label);
+      const heading=element('div','commerce-heading');
+      heading.append(element('h3','',label),element('span','',`${ids.length} 座 · 第一版`));
+      const list=element('ul','commerce-stations');
+      for(const id of ids) list.append(element('li','commerce-station',byStation.get(id).name));
+      section.append(heading,list);$('divisionBody').append(section);
+    }
+  }
+
   function renderDetail() {
     const selected = state.selected;
-    $('detailPanel').hidden = !selected;
+    const isDivision=selected?.kind==='division';
+    $('divisionPanel').hidden = !isDivision;
+    $('detailPanel').hidden = !selected || isDivision;
+    $('divisionBody').replaceChildren();
     $('detailBody').replaceChildren();
     if (!selected) { $('selectionReadout').textContent='全网视图'; return; }
-    const body = $('detailBody');
-    if(selected.kind==='division') {
+    if(isDivision) {
       const d=byDivision.get(selected.id);
-      $('detailKind').textContent='已划定分局 / DIVISION';$('detailTitle').textContent=d.name;
-      $('detailMeta').textContent=`${d.stationIds.size} 个站点 · ${divisionMileage(d)}（站点连线估算）`;
-      const centers=(d.seedStationIds||[d.seedStationId]).map(id=>byStation.get(id).name).join('、');
-      body.append(element('p','division-note',`以${centers}为中心站，各自沿相连铁路延伸至交界中点和网内末端。交界只区分管辖权，铁路仍然连通。`));
-      if(state.type!=='all') body.append(element('p','division-note',`地图当前仅显示${typeName(state.type)}连接；上方统计为完整分局。`));
-      body.append(element('p','detail-subtitle','管辖交界 · 靠分局一侧归属'));
-      d.boundaries.forEach((b,i)=>{
-        const e=edgeMap.get(b.edgeId),button=element('button','detail-link',`${i+1} · ${displayName(e)}`);
-        button.type='button';button.dataset.boundaryIndex=i;button.dataset.boundaryDivision=d.id;button.disabled=!shownEdges.has(e.id);
-        button.append(element('small','',`${typeName(e.type)} · ${formatCoordinate(b.lat)}, ${formatCoordinate(b.lon)}`),element('small','',`${byStation.get(b.insideId).name} ↔ 交界中点`));body.append(button);
-      });
-      body.append(element('p','detail-subtitle','管辖站点'));
-      for(const id of d.stationIds) {
-        const button=element('button','detail-link',byStation.get(id).name);button.type='button';button.dataset.stationId=id;button.disabled=!shownStations.has(id);body.append(button);
-      }
-    } else if (selected.kind === 'station') {
+      renderDivisionOverview(d);
+      $('selectionReadout').textContent=d.name;
+      return;
+    }
+    const body = $('detailBody');
+    if (selected.kind === 'station') {
       const s = byStation.get(selected.id);
-      $('detailKind').textContent='铁路站点 / STATION'; $('detailTitle').textContent=s.name;
+      $('detailKind').textContent='站点详情 / STATION'; $('detailTitle').textContent=s.name;
       $('detailMeta').textContent=`${s.city || '铁路站点'} · ${s.lat.toFixed(5)}°N, ${s.lon.toFixed(5)}°E`;
+      body.append(element('p','detail-subtitle','所属分局 · 查看概览'));
       for(const d of validDivisions.filter(d=>d.stationIds.has(s.id))) body.append(divisionLink(d));
       body.append(element('p','detail-subtitle','直接相连的站点'));
       const adjacent=edgesByStation.get(s.id).filter(e=>shownEdges.has(e.id));
@@ -251,14 +248,16 @@
       if(!adjacent.length) body.append(element('p','detail-meta','当前筛选下没有连接'));
     } else {
       const e=edgeMap.get(selected.id);
-      $('detailKind').textContent=`${typeName(e.type)} / CONNECTION`;
+      $('detailKind').textContent='连接详情 / CONNECTION';
       $('detailTitle').textContent=displayName(e);
-      $('detailMeta').textContent='2 个端点 · 直接连接';
+      $('detailMeta').textContent=`${typeName(e.type)} · 2 个端点 · 直接连接`;
+      body.append(element('p','detail-subtitle','所属分局 · 查看概览'));
       for(const d of validDivisions) {
         if(d.edgeIds.has(e.id)) body.append(divisionLink(d));
         const b=d.boundaries.find(b=>b.edgeId===e.id);
-        if(b) { body.append(divisionLink(d));body.append(element('p','division-note',`${byStation.get(b.insideId).name}至交界中点归该分局；另一半未划定。`)); }
+        if(b) { body.append(divisionLink(d));body.append(element('p','division-note',`${byStation.get(b.insideId).name}至交界中点归该分局。`)); }
       }
+      body.append(element('p','detail-subtitle','连接端点'));
       for(const s of [e.from,e.to]) {
         const button=element('button','detail-link',s.name); button.type='button'; button.dataset.stationId=s.id;
         button.append(element('small','',`${s.lat.toFixed(5)}°N, ${s.lon.toFixed(5)}°E`)); body.append(button);
@@ -317,10 +316,12 @@
     state.x=x-(x-state.x)/old*state.scale; state.y=y-(y-state.y)/old*state.scale; scheduleTransform();
   }
   function resetView() {
+    const hadQuery=!!state.query;
     state.type='all'; state.query=''; state.selected=null;
     $('searchInput').value='';
     document.querySelectorAll('[data-type]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.type==='all')));
     applyFilters(true);
+    if(hadQuery) renderList();
   }
 
   $('searchInput').addEventListener('input',()=>{state.query=$('searchInput').value.trim().toLowerCase();renderList();});
@@ -328,16 +329,7 @@
     state.type=button.dataset.type;
     document.querySelectorAll('[data-type]').forEach(b=>b.setAttribute('aria-pressed',String(b===button))); applyFilters();
   }));
-  document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
-    state.mode=button.dataset.mode;
-    document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));renderList();
-  }));
   function handleItemClick(event) {
-    const boundary=event.target.closest('[data-boundary-index]');
-    if(boundary) {
-      const d=byDivision.get(boundary.dataset.boundaryDivision),b=d.boundaries[Number(boundary.dataset.boundaryIndex)];
-      select('division',d.id);fitCoordinates([projected.get(b.insideId),projected.get(b.outsideId),project(b)],true);return;
-    }
     const division=event.target.closest('[data-division-id]');
     if(division){select('division',division.dataset.divisionId,true);return;}
     const edge=event.target.closest('[data-edge-id]'),station=event.target.closest('[data-station-id]');
@@ -345,6 +337,7 @@
     else if(station) select('station',station.dataset.stationId,true);
   }
   $('entryList').addEventListener('click',handleItemClick); $('detailBody').addEventListener('click',handleItemClick);
+  $('closeDivision').addEventListener('click',()=>{state.selected=null;updateSelection();});
   $('closeDetail').addEventListener('click',()=>{state.selected=null;updateSelection();});
   $('fitButton').addEventListener('click',()=>activeDivision()?fitDivision(activeDivision()):fitPoints([...shownStations]));
   $('resetButton').addEventListener('click',resetView);
@@ -400,5 +393,5 @@
   }).observe(stage);
   $('totalConnections').textContent=edges.length.toLocaleString('zh-CN');
   $('totalStations').textContent=stations.length.toLocaleString('zh-CN');
-  buildMap(); applyFilters();
+  buildMap(); renderList(); applyFilters();
 })();
