@@ -1,0 +1,1657 @@
+{
+  "schema": "north10-settlement-v0.1",
+  "code_shape": "aligned_with_ne12-prototype-v0.3 bureau_profiles items; NOT drop-in due loader schema and 12-bureau assertions",
+  "repository": "sansuri665/airport-simulation",
+  "branch": "map",
+  "reference_commit": "ca88a16ca2cbce5277316d0c2775c1c931c7e5e2",
+  "macro_model": "railway-real-macro-v0.5.0",
+  "cost_model": "railway-bureau-operations-v0.3",
+  "price_basis": "2025_constant_yuan",
+  "annual_currency": "100_million_CNY",
+  "status": "integrated_research_configuration",
+  "warnings": [
+    "All baseline operational volumes, revenues, costs and unrepresented freight business values are fictional game calibration assumptions, not financial records.",
+    "Game initial year labels price index 2025=100; full conceptual railway network already operates at game start, irrespective of real opening dates.",
+    "Unrepresented freight receipts are net settlement allocations with costs outside the modeled bureau budget; the accounting assumption intentionally grants hidden business profit and should not be presented as real-world zero-cost physical shipping.",
+    "Dynamic hidden income uses each bureau freight_index / 100, with NO hard freight capacity cap and no bonus revenue in station revenue.",
+    "The base operating costs include the ordinary modeled transportation workload only and do not scale upward with off-map equivalent freight.",
+    "No capital expense, subsidy, debt, lobbying points, depreciation or fixed annual free productivity increase."
+  ],
+  "bureau_profiles": [
+    {
+      "bureau_id": "zhangjiakou",
+      "name": "张家口",
+      "region_id": "north",
+      "type": "冀北区域客货型",
+      "map_stats": {
+        "stations": 22,
+        "high_speed_km_proxy": 369,
+        "conventional_km_proxy": 743
+      },
+      "exposure": {
+        "passenger_local_weight": 0.7,
+        "freight_local_weight": 0.52,
+        "passenger_trend_beta": 1.1,
+        "passenger_cycle_beta": 1.15,
+        "freight_trend_beta": 1.1,
+        "freight_cycle_beta": 1.18,
+        "passenger_local_drift_year": -0.0008,
+        "freight_local_drift_year": 0.0004,
+        "passenger_drift_vol": 0.004,
+        "freight_drift_vol": 0.005,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.017,
+        "energy_price_beta": 1.04,
+        "materials_price_beta": 1.1
+      },
+      "transport": {
+        "base_passenger_trips_10k": 760,
+        "base_freight_tons_10k": 1800,
+        "passenger_net_yield_yuan_per_trip": 60,
+        "freight_net_yield_yuan_per_ton": 42
+      },
+      "transport_yield_diagnostic": {
+        "passenger_average_distance_km_game_assumption": 180,
+        "freight_average_distance_km_game_assumption": 390,
+        "passenger_yuan_per_passenger_km_net_revenue": 0.3333333333333333,
+        "freight_yuan_per_ton_km_net_revenue": 0.1076923076923077
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 4.56,
+        "freight_revenue": 7.56,
+        "station_revenue": 1.6,
+        "high_speed_cost": 4.2,
+        "conventional_cost": 6.1,
+        "station_cost": 3.7
+      },
+      "station_revenue_passenger_share": 0.6,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 1.05,
+            "fixed_share": 0.25940403866624223,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 1.302,
+            "fixed_share": 0.8881346096446375,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.798,
+            "fixed_share": 0.6313229969419775,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 1.05,
+            "fixed_share": 0.7995035676985043,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 1.0979999999999999,
+            "fixed_share": 0.3565247674612662,
+            "variable_passenger_share": 0.32,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 1.952,
+            "fixed_share": 0.9040218976139913,
+            "variable_passenger_share": 0.32,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 1.647,
+            "fixed_share": 0.6243685781288086,
+            "variable_passenger_share": 0.32,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 1.403,
+            "fixed_share": 0.8606913848944192,
+            "variable_passenger_share": 0.32,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.37000000000000005,
+            "fixed_share": 0.7471691058506768,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 1.332,
+            "fixed_share": 0.934731881570869,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.555,
+            "fixed_share": 0.6604280123982554,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 1.443,
+            "fixed_share": 0.6402959235632851,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "fixed_share_targets": {
+        "high_speed": 0.66,
+        "conventional": 0.72,
+        "station": 0.76
+      },
+      "warning": "All game network fully operational from initial year. Off-map freight is a hypothetical settlement balance, not an actual measured freight line.",
+      "calibration_status": "full_network_game_start_and_hypothetical_hidden_freight",
+      "hidden_freight": {
+        "base_net_receipts_yi": 1.5,
+        "base_equivalent_tons_10k": 357.14285714285717,
+        "accounting_yield_yuan_per_ton": 42,
+        "volume_driver": "bureau_freight_index",
+        "demand_beta": 1.0,
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "settlement_scale": 0.9
+      },
+      "network_fully_operational_from_base": true,
+      "offmap_business_notes": "Mapped conventional route absence does not mean absent railway freight; core conventional budget remains present. Hidden settlement receipts are an extra net allocation and carry zero additional costs."
+    },
+    {
+      "bureau_id": "beijing",
+      "name": "北京",
+      "region_id": "north",
+      "type": "全国客运枢纽型",
+      "map_stats": {
+        "stations": 48,
+        "high_speed_km_proxy": 830,
+        "conventional_km_proxy": 611
+      },
+      "exposure": {
+        "passenger_local_weight": 0.27,
+        "freight_local_weight": 0.3,
+        "passenger_trend_beta": 0.78,
+        "passenger_cycle_beta": 0.8,
+        "freight_trend_beta": 0.9,
+        "freight_cycle_beta": 0.95,
+        "passenger_local_drift_year": 0.0015,
+        "freight_local_drift_year": -0.0002,
+        "passenger_drift_vol": 0.0035,
+        "freight_drift_vol": 0.0045,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.017,
+        "energy_price_beta": 1.03,
+        "materials_price_beta": 1.0
+      },
+      "transport": {
+        "base_passenger_trips_10k": 9000,
+        "base_freight_tons_10k": 1500,
+        "passenger_net_yield_yuan_per_trip": 78,
+        "freight_net_yield_yuan_per_ton": 50
+      },
+      "transport_yield_diagnostic": {
+        "passenger_average_distance_km_game_assumption": 220,
+        "freight_average_distance_km_game_assumption": 280,
+        "passenger_yuan_per_passenger_km_net_revenue": 0.35454545454545455,
+        "freight_yuan_per_ton_km_net_revenue": 0.17857142857142858
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 70.2,
+        "freight_revenue": 7.5,
+        "station_revenue": 13.0,
+        "high_speed_cost": 43.0,
+        "conventional_cost": 19.0,
+        "station_cost": 22.0
+      },
+      "station_revenue_passenger_share": 0.85,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 12.040000000000001,
+            "fixed_share": 0.12393076218925124,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 15.479999999999999,
+            "fixed_share": 0.7622714646790936,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 6.45,
+            "fixed_share": 0.40884140114329887,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 9.03,
+            "fixed_share": 0.6169307101478149,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 3.42,
+            "fixed_share": 0.20257761885772776,
+            "variable_passenger_share": 0.58,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 6.08,
+            "fixed_share": 0.8119837539051478,
+            "variable_passenger_share": 0.58,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 5.32,
+            "fixed_share": 0.4325022889010143,
+            "variable_passenger_share": 0.58,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 4.18,
+            "fixed_share": 0.7390935748348981,
+            "variable_passenger_share": 0.58,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 2.42,
+            "fixed_share": 0.6113660055381078,
+            "variable_passenger_share": 0.85,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 8.14,
+            "fixed_share": 0.8840385808972521,
+            "variable_passenger_share": 0.85,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 2.6399999999999997,
+            "fixed_share": 0.5086714508335956,
+            "variable_passenger_share": 0.85,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 8.8,
+            "fixed_share": 0.4865372258969833,
+            "variable_passenger_share": 0.85,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "fixed_share_targets": {
+        "high_speed": 0.5,
+        "conventional": 0.58,
+        "station": 0.65
+      },
+      "warning": "All game network fully operational from initial year. Off-map freight is a hypothetical settlement balance, not an actual measured freight line.",
+      "calibration_status": "full_network_game_start_and_hypothetical_hidden_freight",
+      "hidden_freight": {
+        "base_net_receipts_yi": 6.0,
+        "base_equivalent_tons_10k": 1200.0,
+        "accounting_yield_yuan_per_ton": 50,
+        "volume_driver": "bureau_freight_index",
+        "demand_beta": 1.0,
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "settlement_scale": 0.9
+      },
+      "network_fully_operational_from_base": true,
+      "offmap_business_notes": "Mapped conventional route absence does not mean absent railway freight; core conventional budget remains present. Hidden settlement receipts are an extra net allocation and carry zero additional costs."
+    },
+    {
+      "bureau_id": "tangshan",
+      "name": "唐山",
+      "region_id": "north",
+      "type": "港口集疏运型",
+      "map_stats": {
+        "stations": 13,
+        "high_speed_km_proxy": 277,
+        "conventional_km_proxy": 114
+      },
+      "exposure": {
+        "passenger_local_weight": 0.55,
+        "freight_local_weight": 0.23,
+        "passenger_trend_beta": 0.94,
+        "passenger_cycle_beta": 0.96,
+        "freight_trend_beta": 1.05,
+        "freight_cycle_beta": 1.27,
+        "passenger_local_drift_year": 0.0005,
+        "freight_local_drift_year": 0.001,
+        "passenger_drift_vol": 0.004,
+        "freight_drift_vol": 0.005,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.017,
+        "energy_price_beta": 0.95,
+        "materials_price_beta": 1.02
+      },
+      "transport": {
+        "base_passenger_trips_10k": 1450,
+        "base_freight_tons_10k": 5000,
+        "passenger_net_yield_yuan_per_trip": 58,
+        "freight_net_yield_yuan_per_ton": 43
+      },
+      "transport_yield_diagnostic": {
+        "passenger_average_distance_km_game_assumption": 165,
+        "freight_average_distance_km_game_assumption": 360,
+        "passenger_yuan_per_passenger_km_net_revenue": 0.3515151515151515,
+        "freight_yuan_per_ton_km_net_revenue": 0.11944444444444445
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 8.41,
+        "freight_revenue": 21.5,
+        "station_revenue": 3.8,
+        "high_speed_cost": 5.0,
+        "conventional_cost": 19.0,
+        "station_cost": 6.5
+      },
+      "station_revenue_passenger_share": 0.35,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 1.25,
+            "fixed_share": 0.22710826420336214,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 1.6500000000000001,
+            "fixed_share": 0.8694589373517362,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.75,
+            "fixed_share": 0.5895856912992953,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 1.35,
+            "fixed_share": 0.769865299734045,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 3.9899999999999998,
+            "fixed_share": 0.3319470784892391,
+            "variable_passenger_share": 0.15,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 5.32,
+            "fixed_share": 0.8941472509966589,
+            "variable_passenger_share": 0.15,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 5.51,
+            "fixed_share": 0.5985003500920391,
+            "variable_passenger_share": 0.15,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 4.18,
+            "fixed_share": 0.8471126441431998,
+            "variable_passenger_share": 0.15,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.715,
+            "fixed_share": 0.6954466316775498,
+            "variable_passenger_share": 0.35,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 2.21,
+            "fixed_share": 0.9171237061929791,
+            "variable_passenger_share": 0.35,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.975,
+            "fixed_share": 0.6004497515063153,
+            "variable_passenger_share": 0.35,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 2.6,
+            "fixed_share": 0.579028369209773,
+            "variable_passenger_share": 0.35,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "fixed_share_targets": {
+        "high_speed": 0.64,
+        "conventional": 0.68,
+        "station": 0.71
+      },
+      "warning": "All game network fully operational from initial year. Off-map freight is a hypothetical settlement balance, not an actual measured freight line.",
+      "calibration_status": "full_network_game_start_and_hypothetical_hidden_freight",
+      "hidden_freight": {
+        "base_net_receipts_yi": 10.0,
+        "base_equivalent_tons_10k": 2325.5813953488373,
+        "accounting_yield_yuan_per_ton": 43,
+        "volume_driver": "bureau_freight_index",
+        "demand_beta": 1.0,
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "settlement_scale": 0.9
+      },
+      "network_fully_operational_from_base": true,
+      "offmap_business_notes": "Mapped conventional route absence does not mean absent railway freight; core conventional budget remains present. Hidden settlement receipts are an extra net allocation and carry zero additional costs."
+    },
+    {
+      "bureau_id": "tianjin",
+      "name": "天津",
+      "region_id": "north",
+      "type": "港口集疏运型",
+      "map_stats": {
+        "stations": 23,
+        "high_speed_km_proxy": 716,
+        "conventional_km_proxy": 0
+      },
+      "exposure": {
+        "passenger_local_weight": 0.38,
+        "freight_local_weight": 0.2,
+        "passenger_trend_beta": 0.88,
+        "passenger_cycle_beta": 0.84,
+        "freight_trend_beta": 1.02,
+        "freight_cycle_beta": 1.22,
+        "passenger_local_drift_year": 0.001,
+        "freight_local_drift_year": 0.0008,
+        "passenger_drift_vol": 0.0035,
+        "freight_drift_vol": 0.0045,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.017,
+        "energy_price_beta": 1.0,
+        "materials_price_beta": 1.0
+      },
+      "transport": {
+        "base_passenger_trips_10k": 5000,
+        "base_freight_tons_10k": 4000,
+        "passenger_net_yield_yuan_per_trip": 70,
+        "freight_net_yield_yuan_per_ton": 44
+      },
+      "transport_yield_diagnostic": {
+        "passenger_average_distance_km_game_assumption": 180,
+        "freight_average_distance_km_game_assumption": 320,
+        "passenger_yuan_per_passenger_km_net_revenue": 0.3888888888888889,
+        "freight_yuan_per_ton_km_net_revenue": 0.1375
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 35.0,
+        "freight_revenue": 17.6,
+        "station_revenue": 7.2,
+        "high_speed_cost": 27.0,
+        "conventional_cost": 18.0,
+        "station_cost": 12.4
+      },
+      "station_revenue_passenger_share": 0.75,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 6.75,
+            "fixed_share": 0.12961065475600517,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 8.91,
+            "fixed_share": 0.7714452251371161,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 4.05,
+            "fixed_share": 0.42129962320479225,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 7.290000000000001,
+            "fixed_share": 0.628983216796413,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 3.78,
+            "fixed_share": 0.2723131241578647,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 5.040000000000001,
+            "fixed_share": 0.8641617473791459,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 5.22,
+            "fixed_share": 0.5288912922232094,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 3.96,
+            "fixed_share": 0.8066839996179854,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 1.364,
+            "fixed_share": 0.6248241913620799,
+            "variable_passenger_share": 0.75,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 4.216,
+            "fixed_share": 0.889756958276989,
+            "variable_passenger_share": 0.75,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 1.8599999999999999,
+            "fixed_share": 0.5229107113704713,
+            "variable_passenger_share": 0.75,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 4.960000000000001,
+            "fixed_share": 0.5007884160760605,
+            "variable_passenger_share": 0.75,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "fixed_share_targets": {
+        "high_speed": 0.52,
+        "conventional": 0.63,
+        "station": 0.65
+      },
+      "warning": "All game network fully operational from initial year. Off-map freight is a hypothetical settlement balance, not an actual measured freight line.",
+      "calibration_status": "full_network_game_start_and_hypothetical_hidden_freight",
+      "hidden_freight": {
+        "base_net_receipts_yi": 5.0,
+        "base_equivalent_tons_10k": 1136.3636363636363,
+        "accounting_yield_yuan_per_ton": 44,
+        "volume_driver": "bureau_freight_index",
+        "demand_beta": 1.0,
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "settlement_scale": 0.9
+      },
+      "network_fully_operational_from_base": true,
+      "offmap_business_notes": "Mapped conventional route absence does not mean absent railway freight; core conventional budget remains present. Hidden settlement receipts are an extra net allocation and carry zero additional costs."
+    },
+    {
+      "bureau_id": "xiongan",
+      "name": "雄安",
+      "region_id": "north",
+      "type": "全线营业的成长型客运枢纽",
+      "map_stats": {
+        "stations": 17,
+        "high_speed_km_proxy": 851,
+        "conventional_km_proxy": 0
+      },
+      "exposure": {
+        "passenger_local_weight": 0.62,
+        "freight_local_weight": 0.6,
+        "passenger_trend_beta": 1.4,
+        "passenger_cycle_beta": 1.2,
+        "freight_trend_beta": 1.08,
+        "freight_cycle_beta": 1.12,
+        "passenger_local_drift_year": 0.004,
+        "freight_local_drift_year": 0.001,
+        "passenger_drift_vol": 0.004,
+        "freight_drift_vol": 0.005,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.017,
+        "energy_price_beta": 1.02,
+        "materials_price_beta": 1.08
+      },
+      "transport": {
+        "base_passenger_trips_10k": 2000,
+        "base_freight_tons_10k": 300,
+        "passenger_net_yield_yuan_per_trip": 60,
+        "freight_net_yield_yuan_per_ton": 38
+      },
+      "transport_yield_diagnostic": {
+        "passenger_average_distance_km_game_assumption": 160,
+        "freight_average_distance_km_game_assumption": 270,
+        "passenger_yuan_per_passenger_km_net_revenue": 0.375,
+        "freight_yuan_per_ton_km_net_revenue": 0.14074074074074075
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 12.0,
+        "freight_revenue": 1.14,
+        "station_revenue": 3.2,
+        "high_speed_cost": 10.3,
+        "conventional_cost": 2.3,
+        "station_cost": 3.7
+      },
+      "station_revenue_passenger_share": 0.9,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 2.06,
+            "fixed_share": 0.39169536937624183,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 3.8110000000000004,
+            "fixed_share": 0.9358783861186298,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 1.957,
+            "fixed_share": 0.7589211234193225,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 2.472,
+            "fixed_share": 0.8799621242132805,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 0.45999999999999996,
+            "fixed_share": 0.5026793009565471,
+            "variable_passenger_share": 0.25,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 0.69,
+            "fixed_share": 0.9450041011098431,
+            "variable_passenger_share": 0.25,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 0.598,
+            "fixed_share": 0.752004106113982,
+            "variable_passenger_share": 0.25,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 0.5519999999999999,
+            "fixed_share": 0.9185076745254263,
+            "variable_passenger_share": 0.25,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.48100000000000004,
+            "fixed_share": 0.8231542682858269,
+            "variable_passenger_share": 0.9,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 1.332,
+            "fixed_share": 0.9575500077948714,
+            "variable_passenger_share": 0.9,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.5180000000000001,
+            "fixed_share": 0.7538954655620276,
+            "variable_passenger_share": 0.9,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 1.369,
+            "fixed_share": 0.7370988571297427,
+            "variable_passenger_share": 0.9,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "fixed_share_targets": {
+        "high_speed": 0.78,
+        "conventional": 0.8,
+        "station": 0.83
+      },
+      "warning": "All game network fully operational from initial year. Off-map freight is a hypothetical settlement balance, not an actual measured freight line.",
+      "calibration_status": "full_network_game_start_and_hypothetical_hidden_freight",
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.0,
+        "base_equivalent_tons_10k": 0.0,
+        "accounting_yield_yuan_per_ton": 38,
+        "volume_driver": "bureau_freight_index",
+        "demand_beta": 1.0,
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "settlement_scale": 0.9
+      },
+      "network_fully_operational_from_base": true,
+      "offmap_business_notes": "Mapped conventional route absence does not mean absent railway freight; core conventional budget remains present. Hidden settlement receipts are an extra net allocation and carry zero additional costs."
+    },
+    {
+      "bureau_id": "shijiazhuang",
+      "name": "石家庄",
+      "region_id": "north",
+      "type": "全国客运枢纽型",
+      "map_stats": {
+        "stations": 29,
+        "high_speed_km_proxy": 1008,
+        "conventional_km_proxy": 0
+      },
+      "exposure": {
+        "passenger_local_weight": 0.47,
+        "freight_local_weight": 0.38,
+        "passenger_trend_beta": 0.93,
+        "passenger_cycle_beta": 0.9,
+        "freight_trend_beta": 1.03,
+        "freight_cycle_beta": 1.05,
+        "passenger_local_drift_year": 0.0005,
+        "freight_local_drift_year": 0.0004,
+        "passenger_drift_vol": 0.0035,
+        "freight_drift_vol": 0.0045,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.017,
+        "energy_price_beta": 1.0,
+        "materials_price_beta": 1.03
+      },
+      "transport": {
+        "base_passenger_trips_10k": 4500,
+        "base_freight_tons_10k": 2800,
+        "passenger_net_yield_yuan_per_trip": 66,
+        "freight_net_yield_yuan_per_ton": 42
+      },
+      "transport_yield_diagnostic": {
+        "passenger_average_distance_km_game_assumption": 230,
+        "freight_average_distance_km_game_assumption": 300,
+        "passenger_yuan_per_passenger_km_net_revenue": 0.28695652173913044,
+        "freight_yuan_per_ton_km_net_revenue": 0.14
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 29.7,
+        "freight_revenue": 11.76,
+        "station_revenue": 6.1,
+        "high_speed_cost": 23.0,
+        "conventional_cost": 11.0,
+        "station_cost": 10.4
+      },
+      "station_revenue_passenger_share": 0.68,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 6.44,
+            "fixed_share": 0.18191174594709317,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 8.28,
+            "fixed_share": 0.8344427185617932,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 3.4499999999999997,
+            "fixed_share": 0.5208669956727959,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 4.83,
+            "fixed_share": 0.7168346814364231,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 1.98,
+            "fixed_share": 0.26015201712353164,
+            "variable_passenger_share": 0.38,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 3.52,
+            "fixed_share": 0.8566861619461829,
+            "variable_passenger_share": 0.38,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 3.08,
+            "fixed_share": 0.5133552459177146,
+            "variable_passenger_share": 0.38,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 2.42,
+            "fixed_share": 0.7967890738092074,
+            "variable_passenger_share": 0.38,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 1.1440000000000001,
+            "fixed_share": 0.6720969097758355,
+            "variable_passenger_share": 0.68,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 3.848,
+            "fixed_share": 0.9085343996271953,
+            "variable_passenger_share": 0.68,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 1.248,
+            "fixed_share": 0.5742752792752178,
+            "variable_passenger_share": 0.68,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 4.16,
+            "fixed_share": 0.5524964463739239,
+            "variable_passenger_share": 0.68,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "fixed_share_targets": {
+        "high_speed": 0.58,
+        "conventional": 0.64,
+        "station": 0.7
+      },
+      "warning": "All game network fully operational from initial year. Off-map freight is a hypothetical settlement balance, not an actual measured freight line.",
+      "calibration_status": "full_network_game_start_and_hypothetical_hidden_freight",
+      "hidden_freight": {
+        "base_net_receipts_yi": 3.0,
+        "base_equivalent_tons_10k": 714.2857142857143,
+        "accounting_yield_yuan_per_ton": 42,
+        "volume_driver": "bureau_freight_index",
+        "demand_beta": 1.0,
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "settlement_scale": 0.9
+      },
+      "network_fully_operational_from_base": true,
+      "offmap_business_notes": "Mapped conventional route absence does not mean absent railway freight; core conventional budget remains present. Hidden settlement receipts are an extra net allocation and carry zero additional costs."
+    },
+    {
+      "bureau_id": "datong",
+      "name": "大同",
+      "region_id": "north",
+      "type": "山西货运骨干及复合运输枢纽",
+      "map_stats": {
+        "stations": 12,
+        "high_speed_km_proxy": 546,
+        "conventional_km_proxy": 0
+      },
+      "exposure": {
+        "passenger_local_weight": 0.72,
+        "freight_local_weight": 0.32,
+        "passenger_trend_beta": 0.98,
+        "passenger_cycle_beta": 1.09,
+        "freight_trend_beta": 1.08,
+        "freight_cycle_beta": 1.4,
+        "passenger_local_drift_year": -0.0006,
+        "freight_local_drift_year": -0.0012,
+        "passenger_drift_vol": 0.004,
+        "freight_drift_vol": 0.005,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.017,
+        "energy_price_beta": 0.9,
+        "materials_price_beta": 1.09
+      },
+      "transport": {
+        "base_passenger_trips_10k": 950,
+        "base_freight_tons_10k": 6000,
+        "passenger_net_yield_yuan_per_trip": 58,
+        "freight_net_yield_yuan_per_ton": 41
+      },
+      "transport_yield_diagnostic": {
+        "passenger_average_distance_km_game_assumption": 155,
+        "freight_average_distance_km_game_assumption": 450,
+        "passenger_yuan_per_passenger_km_net_revenue": 0.3741935483870968,
+        "freight_yuan_per_ton_km_net_revenue": 0.09111111111111111
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 5.51,
+        "freight_revenue": 24.6,
+        "station_revenue": 2.7,
+        "high_speed_cost": 6.0,
+        "conventional_cost": 17.9,
+        "station_cost": 5.2
+      },
+      "station_revenue_passenger_share": 0.25,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 1.3800000000000001,
+            "fixed_share": 0.23002133779791897,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 1.98,
+            "fixed_share": 0.8713227010170983,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 1.02,
+            "fixed_share": 0.5935774525429812,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 1.62,
+            "fixed_share": 0.7727793853278865,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 3.58,
+            "fixed_share": 0.33770100239669604,
+            "variable_passenger_share": 0.12,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 5.190999999999999,
+            "fixed_share": 0.8965677569463574,
+            "variable_passenger_share": 0.12,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 5.190999999999999,
+            "fixed_share": 0.6046924883052306,
+            "variable_passenger_share": 0.12,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 3.9379999999999997,
+            "fixed_share": 0.8504287654440916,
+            "variable_passenger_share": 0.12,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.52,
+            "fixed_share": 0.7386561111536896,
+            "variable_passenger_share": 0.25,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 1.8199999999999998,
+            "fixed_share": 0.9319591495599594,
+            "variable_passenger_share": 0.25,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.8840000000000001,
+            "fixed_share": 0.6503610988302336,
+            "variable_passenger_share": 0.25,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 1.9760000000000002,
+            "fixed_share": 0.6299665782565934,
+            "variable_passenger_share": 0.25,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "fixed_share_targets": {
+        "high_speed": 0.65,
+        "conventional": 0.69,
+        "station": 0.75
+      },
+      "warning": "All game network fully operational from initial year. Off-map freight is a hypothetical settlement balance, not an actual measured freight line.",
+      "calibration_status": "full_network_game_start_and_hypothetical_hidden_freight",
+      "hidden_freight": {
+        "base_net_receipts_yi": 16.0,
+        "base_equivalent_tons_10k": 3902.439024390244,
+        "accounting_yield_yuan_per_ton": 41,
+        "volume_driver": "bureau_freight_index",
+        "demand_beta": 1.0,
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "settlement_scale": 0.9
+      },
+      "network_fully_operational_from_base": true,
+      "offmap_business_notes": "Mapped conventional route absence does not mean absent railway freight; core conventional budget remains present. Hidden settlement receipts are an extra net allocation and carry zero additional costs."
+    },
+    {
+      "bureau_id": "taiyuan",
+      "name": "太原",
+      "region_id": "north",
+      "type": "山西货运骨干及复合运输枢纽",
+      "map_stats": {
+        "stations": 23,
+        "high_speed_km_proxy": 842,
+        "conventional_km_proxy": 0
+      },
+      "exposure": {
+        "passenger_local_weight": 0.51,
+        "freight_local_weight": 0.38,
+        "passenger_trend_beta": 0.96,
+        "passenger_cycle_beta": 0.95,
+        "freight_trend_beta": 1.06,
+        "freight_cycle_beta": 1.2,
+        "passenger_local_drift_year": 0.0004,
+        "freight_local_drift_year": -0.0003,
+        "passenger_drift_vol": 0.004,
+        "freight_drift_vol": 0.005,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.017,
+        "energy_price_beta": 0.95,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 3500,
+        "base_freight_tons_10k": 4800,
+        "passenger_net_yield_yuan_per_trip": 72,
+        "freight_net_yield_yuan_per_ton": 44
+      },
+      "transport_yield_diagnostic": {
+        "passenger_average_distance_km_game_assumption": 220,
+        "freight_average_distance_km_game_assumption": 400,
+        "passenger_yuan_per_passenger_km_net_revenue": 0.32727272727272727,
+        "freight_yuan_per_ton_km_net_revenue": 0.11
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 25.2,
+        "freight_revenue": 21.12,
+        "station_revenue": 6.4,
+        "high_speed_cost": 22.0,
+        "conventional_cost": 19.0,
+        "station_cost": 10.6
+      },
+      "station_revenue_passenger_share": 0.65,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 5.0600000000000005,
+            "fixed_share": 0.18250232434707384,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 7.260000000000001,
+            "fixed_share": 0.8349895309164195,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 3.74,
+            "fixed_share": 0.5218560401079874,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 5.94,
+            "fixed_share": 0.7176384939977654,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 3.8000000000000003,
+            "fixed_share": 0.31209592964581206,
+            "variable_passenger_share": 0.3,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 5.51,
+            "fixed_share": 0.8852256498414479,
+            "variable_passenger_share": 0.3,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 5.51,
+            "fixed_share": 0.5764637863323544,
+            "variable_passenger_share": 0.3,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 4.18,
+            "fixed_share": 0.8349585344565222,
+            "variable_passenger_share": 0.3,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 1.06,
+            "fixed_share": 0.680616441789114,
+            "variable_passenger_share": 0.65,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 3.7099999999999995,
+            "fixed_share": 0.9117177614109281,
+            "variable_passenger_share": 0.65,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 1.802,
+            "fixed_share": 0.583762363456477,
+            "variable_passenger_share": 0.65,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 4.028,
+            "fixed_share": 0.562098782999112,
+            "variable_passenger_share": 0.65,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "fixed_share_targets": {
+        "high_speed": 0.6,
+        "conventional": 0.67,
+        "station": 0.7
+      },
+      "warning": "All game network fully operational from initial year. Off-map freight is a hypothetical settlement balance, not an actual measured freight line.",
+      "calibration_status": "full_network_game_start_and_hypothetical_hidden_freight",
+      "hidden_freight": {
+        "base_net_receipts_yi": 14.0,
+        "base_equivalent_tons_10k": 3181.818181818182,
+        "accounting_yield_yuan_per_ton": 44,
+        "volume_driver": "bureau_freight_index",
+        "demand_beta": 1.0,
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "settlement_scale": 0.9
+      },
+      "network_fully_operational_from_base": true,
+      "offmap_business_notes": "Mapped conventional route absence does not mean absent railway freight; core conventional budget remains present. Hidden settlement receipts are an extra net allocation and carry zero additional costs."
+    },
+    {
+      "bureau_id": "changzhi",
+      "name": "长治",
+      "region_id": "north",
+      "type": "山西货运骨干及复合运输枢纽",
+      "map_stats": {
+        "stations": 11,
+        "high_speed_km_proxy": 348,
+        "conventional_km_proxy": 79
+      },
+      "exposure": {
+        "passenger_local_weight": 0.76,
+        "freight_local_weight": 0.6,
+        "passenger_trend_beta": 1.08,
+        "passenger_cycle_beta": 1.15,
+        "freight_trend_beta": 1.13,
+        "freight_cycle_beta": 1.33,
+        "passenger_local_drift_year": -0.0006,
+        "freight_local_drift_year": -0.0003,
+        "passenger_drift_vol": 0.004,
+        "freight_drift_vol": 0.005,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.017,
+        "energy_price_beta": 0.98,
+        "materials_price_beta": 1.1
+      },
+      "transport": {
+        "base_passenger_trips_10k": 700,
+        "base_freight_tons_10k": 2600,
+        "passenger_net_yield_yuan_per_trip": 55,
+        "freight_net_yield_yuan_per_ton": 41
+      },
+      "transport_yield_diagnostic": {
+        "passenger_average_distance_km_game_assumption": 170,
+        "freight_average_distance_km_game_assumption": 260,
+        "passenger_yuan_per_passenger_km_net_revenue": 0.3235294117647059,
+        "freight_yuan_per_ton_km_net_revenue": 0.1576923076923077
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 3.85,
+        "freight_revenue": 10.66,
+        "station_revenue": 1.85,
+        "high_speed_cost": 5.2,
+        "conventional_cost": 7.8,
+        "station_cost": 3.5
+      },
+      "station_revenue_passenger_share": 0.43,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 1.1960000000000002,
+            "fixed_share": 0.2899763115369646,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 1.7160000000000002,
+            "fixed_share": 0.9025070398085104,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.8840000000000001,
+            "fixed_share": 0.6662929571064974,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 1.4040000000000001,
+            "fixed_share": 0.8229937870429075,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 1.56,
+            "fixed_share": 0.4096710944075398,
+            "variable_passenger_share": 0.25,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 2.262,
+            "fixed_share": 0.9218597727888792,
+            "variable_passenger_share": 0.25,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 2.262,
+            "fixed_share": 0.6755261823632333,
+            "variable_passenger_share": 0.25,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 1.716,
+            "fixed_share": 0.8855629732926337,
+            "variable_passenger_share": 0.25,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.35000000000000003,
+            "fixed_share": 0.7613942256874083,
+            "variable_passenger_share": 0.43,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 1.2249999999999999,
+            "fixed_share": 0.9392619423910274,
+            "variable_passenger_share": 0.43,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.5950000000000001,
+            "fixed_share": 0.67742649878716,
+            "variable_passenger_share": 0.43,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 1.33,
+            "fixed_share": 0.657779981054164,
+            "variable_passenger_share": 0.43,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "fixed_share_targets": {
+        "high_speed": 0.7,
+        "conventional": 0.74,
+        "station": 0.77
+      },
+      "warning": "All game network fully operational from initial year. Off-map freight is a hypothetical settlement balance, not an actual measured freight line.",
+      "calibration_status": "full_network_game_start_and_hypothetical_hidden_freight",
+      "hidden_freight": {
+        "base_net_receipts_yi": 6.5,
+        "base_equivalent_tons_10k": 1585.3658536585365,
+        "accounting_yield_yuan_per_ton": 41,
+        "volume_driver": "bureau_freight_index",
+        "demand_beta": 1.0,
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "settlement_scale": 0.9
+      },
+      "network_fully_operational_from_base": true,
+      "offmap_business_notes": "Mapped conventional route absence does not mean absent railway freight; core conventional budget remains present. Hidden settlement receipts are an extra net allocation and carry zero additional costs."
+    },
+    {
+      "bureau_id": "houma",
+      "name": "侯马",
+      "region_id": "north",
+      "type": "山西货运骨干及复合运输枢纽",
+      "map_stats": {
+        "stations": 15,
+        "high_speed_km_proxy": 431,
+        "conventional_km_proxy": 63
+      },
+      "exposure": {
+        "passenger_local_weight": 0.72,
+        "freight_local_weight": 0.47,
+        "passenger_trend_beta": 1.04,
+        "passenger_cycle_beta": 1.08,
+        "freight_trend_beta": 1.09,
+        "freight_cycle_beta": 1.18,
+        "passenger_local_drift_year": -0.0005,
+        "freight_local_drift_year": 0.0002,
+        "passenger_drift_vol": 0.004,
+        "freight_drift_vol": 0.005,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.017,
+        "energy_price_beta": 0.97,
+        "materials_price_beta": 1.07
+      },
+      "transport": {
+        "base_passenger_trips_10k": 1100,
+        "base_freight_tons_10k": 3000,
+        "passenger_net_yield_yuan_per_trip": 53,
+        "freight_net_yield_yuan_per_ton": 39
+      },
+      "transport_yield_diagnostic": {
+        "passenger_average_distance_km_game_assumption": 175,
+        "freight_average_distance_km_game_assumption": 350,
+        "passenger_yuan_per_passenger_km_net_revenue": 0.3028571428571429,
+        "freight_yuan_per_ton_km_net_revenue": 0.11142857142857143
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 5.83,
+        "freight_revenue": 11.7,
+        "station_revenue": 1.9,
+        "high_speed_cost": 5.8,
+        "conventional_cost": 10.1,
+        "station_cost": 3.9
+      },
+      "station_revenue_passenger_share": 0.4,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 1.334,
+            "fixed_share": 0.2899763115369646,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 1.914,
+            "fixed_share": 0.9025070398085104,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.986,
+            "fixed_share": 0.6662929571064974,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 1.566,
+            "fixed_share": 0.8229937870429075,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 2.02,
+            "fixed_share": 0.3943263521024536,
+            "variable_passenger_share": 0.32,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 2.929,
+            "fixed_share": 0.9171356844468839,
+            "variable_passenger_share": 0.32,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 2.929,
+            "fixed_share": 0.6613799613118407,
+            "variable_passenger_share": 0.32,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 2.222,
+            "fixed_share": 0.8789326923158141,
+            "variable_passenger_share": 0.32,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.39,
+            "fixed_share": 0.7613942256874083,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "wage": {
+            "base_cost_yi": 1.365,
+            "fixed_share": 0.9392619423910274,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.663,
+            "fixed_share": 0.67742649878716,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.08,
+            "freight_congestion": 0.05
+          },
+          "other": {
+            "base_cost_yi": 1.482,
+            "fixed_share": 0.657779981054164,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "fixed_share_targets": {
+        "high_speed": 0.7,
+        "conventional": 0.73,
+        "station": 0.77
+      },
+      "warning": "All game network fully operational from initial year. Off-map freight is a hypothetical settlement balance, not an actual measured freight line.",
+      "calibration_status": "full_network_game_start_and_hypothetical_hidden_freight",
+      "hidden_freight": {
+        "base_net_receipts_yi": 8.0,
+        "base_equivalent_tons_10k": 2051.2820512820513,
+        "accounting_yield_yuan_per_ton": 39,
+        "volume_driver": "bureau_freight_index",
+        "demand_beta": 1.0,
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "settlement_scale": 0.9
+      },
+      "network_fully_operational_from_base": true,
+      "offmap_business_notes": "Mapped conventional route absence does not mean absent railway freight; core conventional budget remains present. Hidden settlement receipts are an extra net allocation and carry zero additional costs."
+    }
+  ],
+  "network_start_assumption": "all_mapped_and_conceptual_networks_operational_at_game_start",
+  "currency_anchor": "2025 purchasing power only, NOT an assertion of real-world 2025 opening dates or passenger statistics",
+  "hidden_freight_policy": "extra freight settlement income follows each bureau freight_index without additional modeled operating expense; equivalent tons shown separately",
+  "source_archive_sha256": "4985d900d0692f6aaba00b6387682f1dff50488645677ddd6e2f597c4e5a4e79",
+  "settlement_scale": 0.9
+}

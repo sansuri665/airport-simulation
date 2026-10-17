@@ -34,11 +34,11 @@ class BureauAPITests(unittest.TestCase):
     def test_catalog_only_enables_configured_regions(self):
         catalog = self.fetch('/api/bureau-catalog')
         self.assertEqual(len(catalog['regions']), 8)
-        self.assertEqual(len(catalog['bureaus']), 12)
-        self.assertEqual({b['region_id'] for b in catalog['bureaus']}, {'northeast'})
+        self.assertEqual(len(catalog['bureaus']), 22)
+        self.assertEqual({b['region_id'] for b in catalog['bureaus']}, {'northeast','north'})
 
     def test_seed_validation_and_unconfigured_bureau(self):
-        for path in ('?seed=-1', '?seed=', '?seed=9007199254740992', '?seed=1&seed=2', '?bureau=beijing', '?bureau=jiamusi&bureau=harbin'):
+        for path in ('?seed=-1', '?seed=', '?seed=9007199254740992', '?seed=1&seed=2', '?bureau=xian', '?bureau=jiamusi&bureau=harbin'):
             with self.subTest(path=path), self.assertRaises(HTTPError) as error:
                 self.fetch('/api/bureau' + path)
             self.assertEqual(error.exception.code, 400)
@@ -67,6 +67,23 @@ class BureauAPITests(unittest.TestCase):
         self.assertEqual(macro['modelVersion'], data['macroModelVersion'])
         self.assertEqual(macro['configHash'], data['macroConfigHash'])
         self.assertNotIn('regional_development_paths', data)
+
+    def test_north_volume_semantics_and_matching_audit(self):
+        data=self.fetch('/api/bureau?seed=20261014&bureau=datong')
+        self.assertEqual(data['profile']['region_id'],'north')
+        self.assertIsNone(data['laborAudit'])
+        self.assertEqual(data['freightAudit']['seedCount'],96)
+        self.assertEqual(len(data['freightAudit']['bureaus']),10)
+        self.assertEqual(data['freightAudit']['selectedScale'],.9)
+        base=data['rows'][0]
+        self.assertEqual(base['freight_tons_10k'],6000)
+        self.assertEqual(base['ordinary_freight_tons_10k'],6000)
+        self.assertAlmostEqual(base['hidden_freight_income_yi'],14.4)
+        self.assertAlmostEqual(base['operating_surplus_yi'],18.11)
+        for r in data['rows']:
+            self.assertEqual(r['freight_tons_10k'],r['ordinary_freight_tons_10k'])
+            self.assertAlmostEqual(r['freight_income_yi'],r['ordinary_freight_income_yi']+r['hidden_freight_income_yi'])
+            self.assertAlmostEqual(r['hidden_freight_income_yi'],14.4*r['freight_index']/100)
 
 
 if __name__ == '__main__':

@@ -1,9 +1,54 @@
-# 东北十二分局经营模型 V0.3
+# 铁路分局经营模型 V0.3 · 东北十二家与华北十家
 
 由 `northeast12_bureau_prototype_v01.zip` 中已审阅的十二分局配置及暴露计算迁入。
 这里只保存分局经营层，直接调用现有 `economy_model.scenarios.simulate_scenario`；
 不复制 ZIP 中的旧宏观引擎。原压缩包保留。`bureau.html` 提供只读经营试算页面，
 由 `serve.py` 的 `/api/bureau-catalog`、`/api/bureau?seed=...&bureau=...` 提供研究数据。
+
+华北十家由已审阅的 `huabei10_virtual_freight_v02` 压缩包 JSON 迁入，配置为 `north10_profiles.json`。
+不执行或复制其宏观／财务模拟器，直接使用当前仓库 V0.5 宏观和 V0.3 独立成本公式。
+`load_profiles()` 默认保留东北十二家供历史审计；`load_profiles(NORTH_PROFILE_PATH)` 读取华北十家；
+试算页面使用 `load_all_profiles()` 共22家。两地配置和报告哈希分别校验。
+
+## 华北地图外货运净结算
+
+`settlement.apply_hidden_freight` 在普通六项收支计算完成后执行，公式为：
+
+```text
+净结算收入 = 原包基期净额 × settlement_scale × freight_index / 100
+隐藏等效结算量 = 原包等效吨数 × settlement_scale × freight_index / 100
+货运收入 = 普通货运收入 + 净结算收入
+```
+
+现取统一 `settlement_scale=0.9`，只下调原包净结算10%；原包基值、单位结算收益和等效吨数保留。
+该收入已经扣除外部直接费用，因此不再进入运营工作量、不增加四投入／三业务成本，也不增加站务收入。
+基期净额总计70亿元→63亿元。普通票价、货运收益、客货运指数和人工规则均未改变。
+雄安采用原包修订的2000万人次基期、客运收入12亿元、站务收入3.2亿元；基期结余0.04亿元，无隐藏净结算。
+
+`freight_tons_10k` 与 `ordinary_freight_tons_10k` 都只表示普通货运量。
+`hidden_equivalent_freight_tons_10k` 是独立结算口径，不能与普通物理运输吨数相加或回灌成本计算。
+`ordinary_freight_income_yi`、`hidden_freight_income_yi`、`freight_income_yi` 分别保存普通、净结算及货运总收入。
+`core_operating_surplus_yi` 保留无净结算的结余，便于比较；人工 A/B 对照也增加同一笔净结算。
+无隐藏业务的东北分局新增字段为零，已有金额和运量不变。适配器拒绝重复添加。
+
+从 `map_research` 运行：
+
+```powershell
+py -3 -m unittest bureau_model.test_operations bureau_model.test_settlement bureau_model.test_api
+py -3 -m bureau_model.audit_north
+```
+
+可选 `--archive 包路径.zip` 对照已审阅的原包 CSV；只读取 JSON/CSV，不执行包内脚本。
+本轮用实际项目引擎重跑 Seed 0..95，并额外核对两个示范 Seed。
+原包100%权重下4,880条年度数据和96 Seed 汇总复现，最大差约3.64e-12。
+`reports/north_settlement_v01.json`、`north_96seed_summary_v01.csv`、`north_96seed_samples_v01.csv`、
+`north_8seed_annual_v01.csv` 保存原包100%、90%、80%及无结算对照。累计结余不含基期。
+华北2085年区域合计结余中位数：100%为65.59亿元，90%为57.82亿元，80%为50.17亿元。
+当前90%下山西四家同时盈利61／96，十家×96 Seed 的亏损样本占比29.58%。
+这是保留华北经营优势的小幅校准，未按全国百家分局完成最终平衡。
+
+页面按所选经济区展示对应报告。华北年度表、摘要、货运收入曲线和CSV分别展示普通量、等效结算量及净收入；
+96 Seed 区域统计不随当前所选 Seed 改变。配置变化后需重跑相应审计并重启本地服务。
 
 所有运量、单位收入、成本及敏感度均为游戏假设；金额为 2025 年不变购买力下的亿元／年。
 经营结余未扣除折旧、融资成本及新增投资。V0.3 含工资高点驱动的隐含用工调整，不按年份固定提效，也没有运量硬上限。

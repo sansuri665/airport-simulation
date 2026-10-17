@@ -10,11 +10,13 @@ import math
 from pathlib import Path
 
 from .exposure import Exposure, bureau_specific_states, compute_transport_index, national_factors, validate_profile
+from .settlement import apply_hidden_freight, validate_hidden_freight
 
 VERSION = 'railway-bureau-operations-v0.3'
 INPUTS = ('energy', 'wage', 'materials', 'other')
 SEGMENTS = ('high_speed', 'conventional', 'station')
 PROFILE_PATH = Path(__file__).with_name('northeast12_profiles.json')
+NORTH_PROFILE_PATH = Path(__file__).with_name('north10_profiles.json')
 
 
 def number(value, label, *, low=0., high=math.inf, positive=False):
@@ -34,6 +36,7 @@ def validate_profiles(profiles: list[dict]) -> None:
     if not profiles or len({p['bureau_id'] for p in profiles}) != len(profiles):
         raise ValueError('Expected nonempty profiles with unique bureau IDs')
     for p in profiles:
+        validate_hidden_freight(p.get('hidden_freight'))
         number(p['reference_v02_wage_price_beta'], 'reference V0.2 wage elasticity', positive=True, high=4.)
         validate_profile(profile_exposure(p))
         for key, value in p['exposure'].items():
@@ -64,9 +67,15 @@ def validate_profiles(profiles: list[dict]) -> None:
 
 def load_profiles(path: Path = PROFILE_PATH) -> list[dict]:
     obj = json.loads(Path(path).read_text(encoding='utf-8'))
-    if obj['schema'] != 'ne12-prototype-v0.3':
+    if obj['schema'] not in ('ne12-prototype-v0.3', 'north10-settlement-v0.1'):
         raise ValueError('Unsupported bureau cost schema')
     profiles = obj['bureau_profiles']
+    validate_profiles(profiles)
+    return profiles
+
+
+def load_all_profiles() -> list[dict]:
+    profiles = load_profiles() + load_profiles(NORTH_PROFILE_PATH)
     validate_profiles(profiles)
     return profiles
 
@@ -181,11 +190,12 @@ def simulate_bureaus(macro_result: dict, profiles: list[dict] | None = None, *, 
             volumes = compute_transport_index(profile_exposure(p), regions[p['region_id']], national, paths[p['bureau_id']][t])
             accounts = finance(p, regions[p['region_id']], volumes['passenger_index'], volumes['freight_index'],
                                wage_peak_index=wage_peaks[p['region_id']], labor_model=labor_model)
-            result.append({
+            row = {
                 'seed': seed, 'year_index': t, 'year': macro_result['metadata']['base_year'] + t,
                 'bureau_id': p['bureau_id'], 'bureau_name': p['name'],
                 'model_version': 'railway-bureau-operations-v0.2' if labor_model == 'v02' else VERSION,
                 'macro_scenario': macro_result.get('scenario', {}).get('name', ''),
                 **volumes, **accounts,
-            })
+            }
+            result.append(apply_hidden_freight(row, p))
     return result

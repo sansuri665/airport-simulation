@@ -7,7 +7,7 @@
   <title>分局经营试算 · 铁路网络</title>
   <link rel="stylesheet" href="./style.css?v=20261017-economy">
   <link rel="stylesheet" href="./economy.css?v=20261017-forecast">
-  <link rel="stylesheet" href="./bureau.css?v=20261017-labor-v03">
+  <link rel="stylesheet" href="./bureau.css?v=20261017-north-settlement">
 </head>
 <body class="economy-page bureau-page">
   <header class="topbar">
@@ -16,7 +16,7 @@
   </header>
   <main class="economy-workspace">
     <section class="economy-intro">
-      <div><span class="eyebrow">60-YEAR OPERATING SCENARIO</span><h1 id="bureauTitle">分局的六十年经营路径</h1><p id="bureauSubtitle">东北十二家分局 · 运量、收入与独立投入成本</p></div>
+      <div><span class="eyebrow">60-YEAR OPERATING SCENARIO</span><h1 id="bureauTitle">分局的六十年经营路径</h1><p id="bureauSubtitle">东北十二家、华北十家 · 运量、收入与独立投入成本</p></div>
       <span class="scenario-badge">参数校准参考 · 经营模型 V0.3</span>
     </section>
     <form id="bureauForm" class="bureau-controls" aria-label="分局试算设置">
@@ -41,7 +41,7 @@
       <div class="bureau-main-grid">
         <section class="economy-panel bureau-chart-panel" aria-labelledby="bureauChartTitle">
           <div class="panel-heading"><div><span class="eyebrow">LONG-RUN PATH</span><h2 id="bureauChartTitle">经营收支</h2></div><span id="bureauChartUnit">亿元／年 · 2025 年不变价</span></div>
-          <div id="bureauChartTabs" class="bureau-tabs" role="tablist" aria-label="曲线类型"><button type="button" role="tab" id="tabAccounts" aria-controls="bureauChartPanel" aria-selected="true" tabindex="0" data-view="accounts">经营收支</button><button type="button" role="tab" id="tabInputs" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="inputs">成本投入</button><button type="button" role="tab" id="tabVolumes" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="volumes">业务规模</button><button type="button" role="tab" id="tabLabor" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="labor">人工对照</button></div>
+          <div id="bureauChartTabs" class="bureau-tabs" role="tablist" aria-label="曲线类型"><button type="button" role="tab" id="tabAccounts" aria-controls="bureauChartPanel" aria-selected="true" tabindex="0" data-view="accounts">经营收支</button><button type="button" role="tab" id="tabInputs" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="inputs">成本投入</button><button type="button" role="tab" id="tabVolumes" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="volumes">业务规模</button><button type="button" role="tab" id="tabLabor" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="labor">人工对照</button><button type="button" role="tab" id="tabFreight" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="freight">货运收入</button></div>
           <div id="bureauChartPanel" role="tabpanel" aria-labelledby="tabAccounts">
             <div class="chart-wrap"><svg id="bureauChart" viewBox="0 0 960 370" role="group" aria-label="分局六十年经营曲线"></svg><div id="bureauTooltip" class="chart-tooltip" role="tooltip" hidden></div></div>
             <div id="bureauLegend" class="chart-legend"></div>
@@ -53,9 +53,10 @@
           <div id="inputComposition"></div>
           <div class="bureau-cost-key"><i></i>固定部分 <i></i>变动部分</div>
           <p id="fixedReadout" class="economy-note"></p>
-          <div class="bureau-volume-readout"><div><span>客运量</span><strong id="passengerVolume">—</strong></div><div><span>货运量</span><strong id="freightVolume">—</strong></div></div>
+          <div class="bureau-volume-readout"><div><span>客运量</span><strong id="passengerVolume">—</strong></div><div><span>普通货运量</span><strong id="freightVolume">—</strong></div><div id="hiddenVolumeRow" hidden><span>隐藏等效结算量</span><strong id="hiddenFreightVolume">—</strong></div></div>
         </aside>
       </div>
+      <section id="hiddenFreightPanel" class="economy-panel bureau-settlement" aria-labelledby="hiddenFreightTitle" hidden><div class="panel-heading"><div><span class="eyebrow">NET FREIGHT SETTLEMENT</span><h2 id="hiddenFreightTitle">地图外货运净结算</h2></div><span id="settlementScale"></span></div><div class="labor-cards"><div><span>普通货运收入</span><strong id="ordinaryFreightIncome">—</strong><small>常规业务及其运营成本</small></div><div><span>隐藏货运净结算</span><strong id="hiddenFreightIncome">—</strong><small>外部直接费用扣除后的分配收入</small></div><div><span>货运收入合计</span><strong id="totalFreightIncome">—</strong><small>并入既有货运收入科目</small></div></div><p id="settlementReadout" class="economy-note"></p><p class="economy-note">隐藏等效结算量单列，不与普通运输吨数相加，不进入成本工作量，也不新增站务收入或地图线路。净结算随本分局货运指数变化。</p></section>
       <section class="economy-panel bureau-labor" aria-labelledby="laborTitle">
         <div class="panel-heading"><div><span class="eyebrow">WAGE TRANSMISSION</span><h2 id="laborTitle">2085 年人工成本对照</h2></div><span id="wagePeakReadout"></span></div>
         <div class="labor-cards"><div><span>A · 原 V0.2</span><strong id="laborBefore">—</strong><small>原工资弹性，无高点调整</small></div><div><span>B · 工资完全传导</span><strong id="laborFull">—</strong><small>地区工资 × 当年用工工作量</small></div><div><span>C · 当前规则</span><strong id="laborAfter">—</strong><small>工资完全传导 + 历史高点调整</small></div></div>
@@ -67,14 +68,15 @@
       </section>
       <section class="economy-panel snapshot-panel bureau-annual" aria-labelledby="annualTitle">
         <div class="panel-heading"><div><span class="eyebrow">COMPLETE ANNUAL SERIES</span><h2 id="annualTitle">2025—2085 年度账目</h2></div><button id="exportBureau" class="bureau-secondary" type="button">导出年度 CSV ↓</button></div>
-        <p class="economy-note">点击年份查看当年成本明细。运量单位为万人次、万吨；收支单位为亿元。</p>
-        <div class="table-scroll annual-scroll"><table><thead><tr><th scope="col">年份</th><th scope="col">客运量</th><th scope="col">货运量</th><th scope="col">客运收入</th><th scope="col">货运收入</th><th scope="col">站务收入</th><th scope="col">高速成本</th><th scope="col">普速成本</th><th scope="col">站务成本</th><th scope="col">总收入</th><th scope="col">总成本</th><th scope="col">经营结余</th></tr></thead><tbody id="annualRows"></tbody></table></div>
+        <p class="economy-note">点击年份查看当年成本明细。客运量为万人次，普通货运量为万吨；隐藏等效量仅用于结算对账。金额为亿元。</p>
+        <div class="table-scroll annual-scroll"><table><thead><tr><th scope="col">年份</th><th scope="col">客运量</th><th scope="col">普通货运量</th><th scope="col">隐藏等效量</th><th scope="col">客运收入</th><th scope="col">普通货运收入</th><th scope="col">隐藏净结算</th><th scope="col">货运收入合计</th><th scope="col">站务收入</th><th scope="col">高速成本</th><th scope="col">普速成本</th><th scope="col">站务成本</th><th scope="col">总收入</th><th scope="col">总成本</th><th scope="col">经营结余</th></tr></thead><tbody id="annualRows"></tbody></table></div>
       </section>
-      <section class="economy-panel snapshot-panel bureau-audit" aria-labelledby="auditTitle"><div class="panel-heading"><div><span class="eyebrow">PAIRED SEED COMPARISON</span><h2 id="auditTitle">96 个 Seed · 东北十二分局对照</h2></div><span>2085 年</span></div><p id="auditNote" class="economy-note"></p><div class="table-scroll"><table><thead><tr><th>铁路分局</th><th>A 亏损占比</th><th>B 亏损占比</th><th>C 亏损占比</th><th>A 人工成本</th><th>B 人工成本</th><th>C 人工成本</th></tr></thead><tbody id="laborAuditRows"></tbody></table></div><p class="economy-note">A 为原 V0.2，B 为工资完全传导，C 为加入三个 θ。人工成本为 96 个 Seed 的年度金额中位数（亿元），不是六十年累计。各组使用同一宏观及客货运路径。</p></section>
+      <section id="laborAuditPanel" class="economy-panel snapshot-panel bureau-audit" aria-labelledby="auditTitle"><div class="panel-heading"><div><span class="eyebrow">PAIRED SEED COMPARISON</span><h2 id="auditTitle">96 个 Seed · 东北十二分局对照</h2></div><span>2085 年</span></div><p id="auditNote" class="economy-note"></p><div class="table-scroll"><table><thead><tr><th>铁路分局</th><th>A 亏损占比</th><th>B 亏损占比</th><th>C 亏损占比</th><th>A 人工成本</th><th>B 人工成本</th><th>C 人工成本</th></tr></thead><tbody id="laborAuditRows"></tbody></table></div><p class="economy-note">A 为原 V0.2，B 为工资完全传导，C 为加入三个 θ。人工成本为 96 个 Seed 的年度金额中位数（亿元），不是六十年累计。各组使用同一宏观及客货运路径。</p></section>
+      <section id="freightAuditPanel" class="economy-panel snapshot-panel bureau-audit" aria-labelledby="freightAuditTitle" hidden><div class="panel-heading"><div><span class="eyebrow">NORTH CHINA / 96 SEEDS</span><h2 id="freightAuditTitle">96 个 Seed · 华北十家净结算对照</h2></div><span>2085 年 · 亿元</span></div><p id="freightAuditNote" class="economy-note"></p><div class="table-scroll"><table><thead><tr><th>铁路分局</th><th>无净结算结余</th><th>原包结余</th><th>当前结余</th><th>当前亏损占比</th><th>原包基期净额</th><th>当前基期净额</th></tr></thead><tbody id="freightAuditRows"></tbody></table></div><p class="economy-note">结余为逐分局、96 个 Seed 的 2085 年中位数；基期净额为每年结算基值。各组保留同一客货运与成本路径，雄安均使用已修订的全网投运基期。</p></section>
       <details class="economy-panel bureau-config"><summary>查看当前成本配置 <span>基期金额、固定比例、业务量权重与 θ</span></summary><p class="economy-note">能源和材料跟随各自价格指数；人工使用地区原始工资倍数 × 历史工资高点倍数的 −θ 次方。其他投入的实际价格暂时固定。拥挤附加仅作用于能源和材料。</p><div class="table-scroll"><table><thead><tr><th>业务 / 投入</th><th>基期金额（亿元）</th><th>固定比例</th><th>变动比例</th><th>变动部分客运权重</th><th>拥挤系数（客 / 货）</th><th>人工调整 θ</th></tr></thead><tbody id="configRows"></tbody></table></div><p id="configReference" class="economy-note"></p></details>
       <footer class="economy-footer"><span id="bureauVersion"></span><span>合成经营情景；含工资高点驱动的隐含用工调整，未计折旧、融资与新增投资。</span></footer>
     </div>
   </main>
-  <script src="./bureau.js?v=20261017-labor-v03"></script>
+  <script src="./bureau.js?v=20261017-north-settlement"></script>
 </body>
 </html>

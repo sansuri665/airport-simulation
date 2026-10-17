@@ -49,6 +49,8 @@
 .bureau-volume-readout strong { font:12px var(--mono); font-weight:400; }
 .bureau-detail,.bureau-annual,.bureau-config { margin-bottom:20px; }
 .bureau-labor,.bureau-audit { margin-bottom:20px; }
+.bureau-settlement { margin-bottom:20px; }
+.bureau-annual table { min-width:1480px; }
 .labor-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:22px; gap:20px; }
 .labor-cards > div { border-left:2px solid #3a4e56; padding-left:16px; }
 .labor-cards > div:last-child { border-color:var(--accent); }

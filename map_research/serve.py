@@ -15,20 +15,29 @@ from urllib.parse import parse_qs, urlsplit
 
 from economy_model.simulate import REGIONAL_METRICS, load_config, public_market_snapshot
 from economy_model.scenarios import simulate_scenario
-from bureau_model.operations import PROFILE_PATH, VERSION as BUREAU_VERSION, load_profiles, simulate_bureaus
+from bureau_model.operations import PROFILE_PATH, NORTH_PROFILE_PATH, VERSION as BUREAU_VERSION, load_all_profiles, simulate_bureaus
+from bureau_model.settlement import VERSION as SETTLEMENT_VERSION
 
 ROOT = Path(__file__).resolve().parent
 MAX_SEED = 9_007_199_254_740_991
 REGION_IDS = ('northeast', 'north', 'northwest', 'southwest', 'south', 'central', 'east', 'southeast')
 CONFIG = load_config()
-BUREAU_PROFILES = load_profiles()
-BUREAU_CONFIG_HASH = hashlib.sha256(PROFILE_PATH.read_bytes()).hexdigest()
+BUREAU_PROFILES = load_all_profiles()
+PROFILE_HASHES = {'northeast': hashlib.sha256(PROFILE_PATH.read_bytes()).hexdigest(),
+                  'north': hashlib.sha256(NORTH_PROFILE_PATH.read_bytes()).hexdigest()}
 LABOR_AUDIT_PATH = ROOT / 'bureau_model' / 'reports' / 'labor_comparison_v03.json'
 LABOR_AUDIT = None
 if LABOR_AUDIT_PATH.is_file():
     _audit = json.loads(LABOR_AUDIT_PATH.read_text(encoding='utf-8'))
-    if _audit.get('bureauConfigHash') == BUREAU_CONFIG_HASH and _audit.get('modelVersion') == BUREAU_VERSION:
+    if _audit.get('bureauConfigHash') == PROFILE_HASHES['northeast'] and _audit.get('modelVersion') == BUREAU_VERSION:
         LABOR_AUDIT = {key: _audit[key] for key in ('seedCount', 'seedRange', 'endYear', 'operatingYears', 'pooled', 'bureaus')}
+FREIGHT_AUDIT = None
+_north_report = ROOT / 'bureau_model' / 'reports' / 'north_settlement_v01.json'
+if _north_report.is_file():
+    _audit = json.loads(_north_report.read_text(encoding='utf-8'))
+    if (_audit.get('bureauConfigHash') == PROFILE_HASHES['north'] and _audit.get('modelVersion') == BUREAU_VERSION
+            and _audit.get('settlementVersion') == SETTLEMENT_VERSION):
+        FREIGHT_AUDIT = {key: _audit[key] for key in ('seedCount','seedRange','endYear','operatingYears','selectedScale','bureaus','region','currentBaseNetTotalYi','originalBaseNetTotalYi')}
 
 
 @lru_cache(maxsize=4)
@@ -39,7 +48,7 @@ def scenario_result(seed: int) -> dict:
 def bureau_catalog() -> bytes:
     regions = [{'id': r['id'], 'name': r['name'], 'scope': r['scope']} for r in CONFIG['regions']]
     bureaus = [{k: p[k] for k in ('bureau_id', 'name', 'region_id', 'type')} for p in BUREAU_PROFILES]
-    return json.dumps({'regions': regions, 'bureaus': bureaus, 'modelVersion': BUREAU_VERSION},
+    return json.dumps({'regions': regions, 'bureaus': bureaus, 'modelVersion': BUREAU_VERSION, 'settlementVersion':SETTLEMENT_VERSION},
                       ensure_ascii=False, allow_nan=False).encode('utf-8')
 
 
@@ -57,10 +66,12 @@ def bureau_payload(seed: int, bureau_id: str) -> bytes:
         'seed': seed, 'modelVersion': BUREAU_VERSION,
         'macroModelVersion': result['metadata']['model_version'],
         'macroConfigHash': result['metadata']['scenario_config_sha256'],
-        'bureauConfigHash': BUREAU_CONFIG_HASH, 'baseYear': CONFIG['base_year'],
+        'bureauConfigHash': PROFILE_HASHES[profile['region_id']], 'baseYear': CONFIG['base_year'],
+        'settlementVersion': SETTLEMENT_VERSION,
         'priceBasis': 'constant_2025_purchasing_power', 'currencyUnit': '100_million_CNY',
         'scenario': result['scenario'], 'profile': profile,
-        'laborAudit': LABOR_AUDIT,
+        'laborAudit': LABOR_AUDIT if profile['region_id']=='northeast' else None,
+        'freightAudit': FREIGHT_AUDIT if profile['region_id']=='north' else None,
         'rows': [r for r in bureau_rows(seed) if r['bureau_id'] == bureau_id],
         'regionalPrices': [{k: r[k] for k in ('calendar_year', 'energy_real_index', 'wage_real_index', 'materials_real_index')}
                            for r in result['rows'] if r['region_id'] == profile['region_id']],
