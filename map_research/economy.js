@@ -123,7 +123,7 @@
     $('realRate').textContent=`${national.rate.toFixed(2)}%`;$('rateYear').textContent=`${year} 年 · 全国共同基准`;
     $('industryPe').textContent=`${national.pe.toFixed(2)} 倍`;$('valuationIndex').textContent=national.valuation.toFixed(2);
     const scenario=data.scenario;
-    $('scenarioBadge').textContent='研究情景 V0.4 · 合成数据';
+    $('scenarioBadge').textContent='研究情景 V0.5 · 合成数据';
     $('scenarioProfile').textContent=scenario?.name||'基准情景';
     $('scenarioDescription').textContent=scenario?.description||'请重新生成情景以加载情景类型。';
     const phase=data.phases?.[index]?.name||'—';
@@ -167,12 +167,12 @@
       for(const [id] of metrics) {const td=document.createElement('td');td.textContent=current[`${region.id}__${id}`].toFixed(2);tr.append(td);}table.append(tr);
     }
     $('economyTable').replaceChildren(table);
-    $('scenarioReadout').textContent=`独立铁路情景 V0.4 · 种子 ${data.seed} · ${scenario?.name||'基准情景'} · 2025 年不变价口径`;
+    $('scenarioReadout').textContent=`独立铁路情景 V0.5 · 种子 ${data.seed} · ${scenario?.name||'基准情景'} · 2025 年不变价口径`;
     const url=new URL(location.href);url.searchParams.set('region',regionId);url.searchParams.set('year',year);url.searchParams.set('metric',metric);url.searchParams.set('seed',String(data.seed));historyReplace(url);
   }
   async function generateScenario(seed) {
     if(loading) return;
-    if(seed===data.seed && data.scenario && data.modelVersion==='railway-real-macro-v0.4.0') {
+    if(seed===data.seed && data.scenario && data.modelVersion==='railway-real-macro-v0.5.0') {
       $('scenarioSeed').value=String(seed);$('seedStatus').classList.remove('error');$('seedStatus').textContent=`当前种子：${seed} · 与现有情景一致`;return;
     }
     loading=true;
@@ -184,7 +184,7 @@
       const response=await fetch(`./api/economy?seed=${seed}`,{cache:'no-store',signal:controller.signal});
       if(!response.ok) throw new Error('情景生成服务不可用');
       const next=await response.json();
-      if(next.seed!==seed || next.modelVersion!=='railway-real-macro-v0.4.0' || !next.scenario || next.phases?.length!==61 || next.values?.length!==61 || next.national?.length!==61 || !Array.isArray(next.columns) || next.regionalPhases?.length!==61 || !next.regionalPhases.every(phase=>data.regions.every(region=>typeof phase.regions?.[region.id]==='string'))) throw new Error('情景数据不完整');
+      if(next.seed!==seed || next.modelVersion!=='railway-real-macro-v0.5.0' || !next.scenario || next.phases?.length!==61 || next.values?.length!==61 || next.national?.length!==61 || !Array.isArray(next.columns) || next.regionalPhases?.length!==61 || !next.regionalPhases.every(phase=>data.regions.every(region=>typeof phase.regions?.[region.id]==='string'))) throw new Error('情景数据不完整');
       const nextRows=next.values.map(values=>Object.fromEntries(next.columns.map((key,i)=>[key,values[i]])));
       if(nextRows.some(row=>!Number.isFinite(row.northeast__passenger_demand_index))) throw new Error('情景数据格式不正确');
       data={...data,...next};rows=nextRows;forecasts.clear();forecastPanelOpen=false;

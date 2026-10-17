@@ -14,7 +14,7 @@ from pathlib import Path
 from .simulate import config_hash, load_config, simulate, stream, validate_config
 from .regional import PRESETS as REGIONAL_PRESETS, build_regional_paths
 
-VERSION = 'railway-real-macro-v0.4.0'
+VERSION = 'railway-real-macro-v0.5.0'
 PRESETS = json.loads(Path(__file__).with_name('scenario_profiles.json').read_text(encoding='utf-8'))
 
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 from .simulate import stream
@@ -12,6 +13,12 @@ FIELDS = ('passenger', 'freight', 'wage', 'activity', 'energy', 'materials')
 
 def build_regional_paths(seed: int, regions: list[dict], *, growth: float, wage: float) -> dict:
     """Always plan 60 years; separate RNG streams preserve prefix and region order."""
+    demand_scale = PRESETS.get('positive_demand_trend_scale', 1.)
+    repeat_weights = PRESETS.get('repeat_weights', {})
+    if not isinstance(demand_scale, (int, float)) or not math.isfinite(demand_scale) or not 0 < demand_scale <= 1:
+        raise ValueError('Positive demand trend scale must be in (0, 1].')
+    if not set(repeat_weights) <= set(PRESETS['states']) or any(not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0 for value in repeat_weights.values()):
+        raise ValueError('Invalid regional persistence weights.')
     paths = {}
     for region in sorted(regions, key=lambda item: item['id']):
         rid = region['id']
@@ -30,7 +37,7 @@ def build_regional_paths(seed: int, regions: list[dict], *, growth: float, wage:
                 for key in weights:
                     weights[key] *= PRESETS['transitions'].get(previous, {}).get(key, 1.)
                     if key == previous:
-                        weights[key] *= PRESETS['repeat_weight']
+                        weights[key] *= repeat_weights.get(key, PRESETS['repeat_weight'])
                 point = selector.random() * sum(weights.values())
                 for key, weight in weights.items():
                     point -= weight
@@ -39,6 +46,12 @@ def build_regional_paths(seed: int, regions: list[dict], *, growth: float, wage:
                         break
                 state = PRESETS['states'][state_id]
                 target = {key: parameters.uniform(*state[key]) for key in FIELDS[:3]}
+                # Mature-market calibration acts on positive structural stage
+                # draws only. Negative draws, national shocks and wages retain
+                # their original rules; national scenario tilt follows below.
+                for key in ('passenger', 'freight'):
+                    if target[key] > 0:
+                        target[key] *= demand_scale
                 target.update({key: state[key] for key in FIELDS[3:]})
                 # National scenario tilts local trends without fixing their sign.
                 target['passenger'] += .008 * (growth - 1.)

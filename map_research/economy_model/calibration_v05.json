@@ -1,0 +1,234 @@
+{
+  "model_version": "railway-real-macro-v0.5.0",
+  "baseline_commit": "c2b767d",
+  "index_base": 100,
+  "samples": {
+    "calibration_0_127": {
+      "count": 128,
+      "before": {
+        "passenger_mean": {
+          "p05": 109.73,
+          "median": 186.66,
+          "p95": 360.96
+        },
+        "freight_mean": {
+          "p05": 91.33,
+          "median": 169.44,
+          "p95": 304.8
+        },
+        "northeast_passenger": {
+          "p05": 37.68,
+          "median": 84.78,
+          "p95": 222.91
+        },
+        "northeast_freight": {
+          "p05": 74.68,
+          "median": 144.47,
+          "p95": 312.22
+        }
+      },
+      "after": {
+        "passenger_mean": {
+          "p05": 71.17,
+          "median": 125.9,
+          "p95": 216.6
+        },
+        "freight_mean": {
+          "p05": 65.2,
+          "median": 118.94,
+          "p95": 219.2
+        },
+        "northeast_passenger": {
+          "p05": 29.37,
+          "median": 58.72,
+          "p95": 144.28
+        },
+        "northeast_freight": {
+          "p05": 53.76,
+          "median": 110.28,
+          "p95": 229.06
+        }
+      },
+      "northeast_low_spell_at_least_30_years": {
+        "before": 44,
+        "after": 76
+      },
+      "passenger_mean_below_100": {
+        "before": 1,
+        "after": 26
+      }
+    },
+    "holdout_10000_10127": {
+      "count": 128,
+      "before": {
+        "passenger_mean": {
+          "p05": 117.43,
+          "median": 200.37,
+          "p95": 370.54
+        },
+        "freight_mean": {
+          "p05": 99.65,
+          "median": 161.55,
+          "p95": 352.22
+        },
+        "northeast_passenger": {
+          "p05": 43.66,
+          "median": 84.27,
+          "p95": 198.45
+        },
+        "northeast_freight": {
+          "p05": 68.61,
+          "median": 138.49,
+          "p95": 365.28
+        }
+      },
+      "after": {
+        "passenger_mean": {
+          "p05": 74.86,
+          "median": 129.38,
+          "p95": 238.43
+        },
+        "freight_mean": {
+          "p05": 68.24,
+          "median": 109.88,
+          "p95": 244.35
+        },
+        "northeast_passenger": {
+          "p05": 29.83,
+          "median": 55.69,
+          "p95": 125.46
+        },
+        "northeast_freight": {
+          "p05": 60.13,
+          "median": 102.38,
+          "p95": 229.57
+        }
+      },
+      "northeast_low_spell_at_least_30_years": {
+        "before": 43,
+        "after": 80
+      },
+      "passenger_mean_below_100": {
+        "before": 3,
+        "after": 29
+      }
+    }
+  },
+  "20261014": {
+    "before": {
+      "passenger_mean": 273.3006149527964,
+      "freight_mean": 234.84279840248115,
+      "northeast_passenger": 155.9963423169706,
+      "northeast_freight": 342.7869042481975
+    },
+    "after": {
+      "passenger_mean": 163.88439964667006,
+      "freight_mean": 152.38214617263185,
+      "northeast_passenger": 114.16902155545581,
+      "northeast_freight": 153.793249801722
+    },
+    "regions_2085": {
+      "northeast": {
+        "passenger_demand_index": 114.17,
+        "freight_demand_index": 153.79,
+        "wage_real_index": 162.48
+      },
+      "north": {
+        "passenger_demand_index": 156.55,
+        "freight_demand_index": 129.26,
+        "wage_real_index": 156.85
+      },
+      "northwest": {
+        "passenger_demand_index": 162.45,
+        "freight_demand_index": 69.63,
+        "wage_real_index": 155.54
+      },
+      "southwest": {
+        "passenger_demand_index": 152.2,
+        "freight_demand_index": 134.65,
+        "wage_real_index": 205.59
+      },
+      "south": {
+        "passenger_demand_index": 152.81,
+        "freight_demand_index": 229.32,
+        "wage_real_index": 202.15
+      },
+      "central": {
+        "passenger_demand_index": 172.08,
+        "freight_demand_index": 257.0,
+        "wage_real_index": 247.91
+      },
+      "east": {
+        "passenger_demand_index": 143.92,
+        "freight_demand_index": 116.08,
+        "wage_real_index": 189.22
+      },
+      "southeast": {
+        "passenger_demand_index": 256.88,
+        "freight_demand_index": 129.32,
+        "wage_real_index": 234.22
+      }
+    }
+  },
+  "5767783356797806": {
+    "before": {
+      "passenger_mean": 163.51953814114657,
+      "freight_mean": 143.49519223616664,
+      "northeast_passenger": 40.930946787419046,
+      "northeast_freight": 99.3190237700419
+    },
+    "after": {
+      "passenger_mean": 104.67166686154127,
+      "freight_mean": 95.40983703457692,
+      "northeast_passenger": 35.25200061748748,
+      "northeast_freight": 82.42828650902162
+    },
+    "regions_2085": {
+      "northeast": {
+        "passenger_demand_index": 35.25,
+        "freight_demand_index": 82.43,
+        "wage_real_index": 136.09
+      },
+      "north": {
+        "passenger_demand_index": 94.89,
+        "freight_demand_index": 93.73,
+        "wage_real_index": 216.51
+      },
+      "northwest": {
+        "passenger_demand_index": 108.9,
+        "freight_demand_index": 111.3,
+        "wage_real_index": 208.35
+      },
+      "southwest": {
+        "passenger_demand_index": 136.81,
+        "freight_demand_index": 80.77,
+        "wage_real_index": 186.62
+      },
+      "south": {
+        "passenger_demand_index": 92.69,
+        "freight_demand_index": 123.32,
+        "wage_real_index": 256.93
+      },
+      "central": {
+        "passenger_demand_index": 126.96,
+        "freight_demand_index": 135.28,
+        "wage_real_index": 247.06
+      },
+      "east": {
+        "passenger_demand_index": 80.62,
+        "freight_demand_index": 63.24,
+        "wage_real_index": 280.66
+      },
+      "southeast": {
+        "passenger_demand_index": 161.24,
+        "freight_demand_index": 73.21,
+        "wage_real_index": 307.11
+      }
+    }
+  },
+  "checks": {
+    "national_factors_unchanged_seeds": 258,
+    "scenario_profile_unchanged_seeds": 258
+  },
+  "method": "Positive passenger/freight stage draws x0.45 before national tilt and smoothing; weak and mature states may persist; national cycles and crisis process unchanged."
+}
