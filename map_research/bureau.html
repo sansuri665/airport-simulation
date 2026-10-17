@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10191e">
+  <title>分局经营试算 · 铁路网络</title>
+  <link rel="stylesheet" href="./style.css?v=20261017-economy">
+  <link rel="stylesheet" href="./economy.css?v=20261017-forecast">
+  <link rel="stylesheet" href="./bureau.css?v=20261017-bureau-v02">
+</head>
+<body class="economy-page bureau-page">
+  <header class="topbar">
+    <a class="brand" href="./railway.html?restore=1"><span class="economy-brand-icon" aria-hidden="true">⌁</span><span><span class="brand-name">分局经营试算</span><span class="brand-caption">RAIL ATLAS / OPERATIONS LAB</span></span></a>
+    <nav class="bureau-nav" aria-label="研究页面"><a id="macroLink" class="page-link" href="./economy.html">经济环境 ↗</a><a class="page-link" href="./railway.html?restore=1">返回铁路网络</a></nav>
+  </header>
+  <main class="economy-workspace">
+    <section class="economy-intro">
+      <div><span class="eyebrow">60-YEAR OPERATING SCENARIO</span><h1 id="bureauTitle">分局的六十年经营路径</h1><p id="bureauSubtitle">东北十二家分局 · 运量、收入与独立投入成本</p></div>
+      <span class="scenario-badge">参数校准参考 · 经营模型 V0.2</span>
+    </section>
+    <form id="bureauForm" class="bureau-controls" aria-label="分局试算设置">
+      <label>经济区<select id="bureauRegion" aria-label="经济区" disabled></select></label>
+      <label>铁路分局<select id="bureauSelect" aria-label="铁路分局" disabled></select></label>
+      <label class="bureau-seed">情景种子 / SEED<input id="bureauSeed" aria-label="情景种子" type="text" inputmode="numeric" pattern="[0-9]{1,16}" maxlength="16" value="20261014" required disabled></label>
+      <div class="bureau-actions"><button id="runBureau" type="submit" disabled>生成试算</button><button id="randomBureau" type="button" disabled>随机 ↻</button></div>
+      <div class="bureau-status-row"><p id="bureauStatus" role="status" aria-live="polite">正在读取分局配置…</p><span id="bureauScenario"></span></div>
+    </form>
+    <div id="bureauResults" hidden>
+      <div class="bureau-timeline">
+        <label for="bureauYear">查看年份 <strong id="bureauYearLabel">2085</strong></label>
+        <input id="bureauYear" type="range" min="2025" max="2085" value="2085" aria-label="查看年份">
+        <span>2025 基期 + 60 年情景</span>
+      </div>
+      <section class="bureau-kpis" aria-label="经营摘要">
+        <div class="bureau-kpi"><span id="surplusLabel">当年经营结余</span><strong id="yearSurplus">—</strong><small>亿元 · 收入减运营成本</small></div>
+        <div class="bureau-kpi"><span>当年总收入</span><strong id="yearRevenue">—</strong><small id="revenueChange">—</small></div>
+        <div class="bureau-kpi"><span>当年总成本</span><strong id="yearCost">—</strong><small id="costChange">—</small></div>
+        <div class="bureau-kpi"><span>60 年累计经营结余</span><strong id="totalSurplus">—</strong><small id="lossYears">2026—2085 · 不含基期</small></div>
+      </section>
+      <div class="bureau-main-grid">
+        <section class="economy-panel bureau-chart-panel" aria-labelledby="bureauChartTitle">
+          <div class="panel-heading"><div><span class="eyebrow">LONG-RUN PATH</span><h2 id="bureauChartTitle">经营收支</h2></div><span id="bureauChartUnit">亿元／年 · 2025 年不变价</span></div>
+          <div id="bureauChartTabs" class="bureau-tabs" role="tablist" aria-label="曲线类型"><button type="button" role="tab" id="tabAccounts" aria-controls="bureauChartPanel" aria-selected="true" tabindex="0" data-view="accounts">经营收支</button><button type="button" role="tab" id="tabInputs" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="inputs">成本投入</button><button type="button" role="tab" id="tabVolumes" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="volumes">业务规模</button></div>
+          <div id="bureauChartPanel" role="tabpanel" aria-labelledby="tabAccounts">
+            <div class="chart-wrap"><svg id="bureauChart" viewBox="0 0 960 370" role="group" aria-label="分局六十年经营曲线"></svg><div id="bureauTooltip" class="chart-tooltip" role="tooltip" hidden></div></div>
+            <div id="bureauLegend" class="chart-legend"></div>
+            <p class="chart-hint">悬停查看年度数据；点击曲线或拖动年份同步下方明细。图表聚焦后可用左右键选年。</p>
+          </div>
+        </section>
+        <aside class="economy-panel bureau-cost-panel" aria-labelledby="costTitle">
+          <span class="eyebrow">INPUT COMPOSITION</span><h2 id="costTitle">2085 年成本结构</h2>
+          <div id="inputComposition"></div>
+          <div class="bureau-cost-key"><i></i>固定部分 <i></i>变动部分</div>
+          <p id="fixedReadout" class="economy-note"></p>
+          <div class="bureau-volume-readout"><div><span>客运量</span><strong id="passengerVolume">—</strong></div><div><span>货运量</span><strong id="freightVolume">—</strong></div></div>
+        </aside>
+      </div>
+      <section class="economy-panel snapshot-panel bureau-detail" aria-labelledby="detailTitle">
+        <div class="panel-heading"><div><span class="eyebrow">ANNUAL COST DETAIL</span><h2 id="detailTitle">2085 年 · 十二项成本明细</h2></div><span>亿元／年</span></div>
+        <div class="table-scroll"><table><thead><tr><th scope="col">业务 / 投入</th><th scope="col">固定支出</th><th scope="col">变动支出</th><th scope="col">合计</th><th scope="col">本项价格倍数</th><th scope="col">变动工作量倍数</th></tr></thead><tbody id="costDetailRows"></tbody></table></div>
+      </section>
+      <section class="economy-panel snapshot-panel bureau-annual" aria-labelledby="annualTitle">
+        <div class="panel-heading"><div><span class="eyebrow">COMPLETE ANNUAL SERIES</span><h2 id="annualTitle">2025—2085 年度账目</h2></div><button id="exportBureau" class="bureau-secondary" type="button">导出年度 CSV ↓</button></div>
+        <p class="economy-note">点击年份查看当年成本明细。运量单位为万人次、万吨；收支单位为亿元。</p>
+        <div class="table-scroll annual-scroll"><table><thead><tr><th scope="col">年份</th><th scope="col">客运量</th><th scope="col">货运量</th><th scope="col">客运收入</th><th scope="col">货运收入</th><th scope="col">站务收入</th><th scope="col">高速成本</th><th scope="col">普速成本</th><th scope="col">站务成本</th><th scope="col">总收入</th><th scope="col">总成本</th><th scope="col">经营结余</th></tr></thead><tbody id="annualRows"></tbody></table></div>
+      </section>
+      <details class="economy-panel bureau-config"><summary>查看当前成本配置 <span>基期金额、固定比例与业务量权重</span></summary><p class="economy-note">这里只展示当前配置，便于对照调整。价格倍数分别来自能源、工资和材料指数；其他投入的实际价格暂时固定。拥挤附加仅作用于能源和材料。</p><div class="table-scroll"><table><thead><tr><th>业务 / 投入</th><th>基期金额（亿元）</th><th>固定比例</th><th>变动比例</th><th>变动部分客运权重</th><th>拥挤系数（客 / 货）</th></tr></thead><tbody id="configRows"></tbody></table></div><p id="configReference" class="economy-note"></p></details>
+      <footer class="economy-footer"><span id="bureauVersion"></span><span>合成经营情景用于参数校准；未计折旧、融资与新增投资，不含免费年度提效。</span></footer>
+    </div>
+  </main>
+  <script src="./bureau.js?v=20261017-bureau-v02"></script>
+</body>
+</html>

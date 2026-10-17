@@ -106,6 +106,7 @@
   function draw() {
     const year=Number($('economyYear').value),index=year-data.baseYear;
     const metric=$('economyMetric').value,regionId=$('economyRegion').value;
+    $('bureauLink').href=`./bureau.html?region=${regionId==='all'?'northeast':encodeURIComponent(regionId)}&seed=${data.seed}&year=${year}${division?`&bureau=${encodeURIComponent(division.id)}`:''}`;
     $('wageNote').hidden=metric!=='wage_real_index';
     const regions=data.regions.filter(r=>regionId==='all'||r.id===regionId);
     const history=rows.slice(0,index+1),current=rows[index];

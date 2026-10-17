@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#10191e">
   <title>经济环境 · 铁路网络</title>
   <link rel="stylesheet" href="./style.css?v=20261017-economy">
-  <link rel="stylesheet" href="./economy.css?v=20261017-forecast">
+  <link rel="stylesheet" href="./economy.css?v=20261017-bureau-entry">
 </head>
 <body class="economy-page">
   <header class="topbar">
     <a class="brand" href="./railway.html?restore=1"><span class="economy-brand-icon" aria-hidden="true">↗</span><span><span class="brand-name">经济环境</span><span class="brand-caption">RAIL ATLAS / ECONOMY</span></span></a>
-    <a class="page-link" href="./railway.html?restore=1">← 返回铁路网络</a>
+    <nav class="economy-navigation" aria-label="研究页面"><a id="bureauLink" class="page-link" href="./bureau.html" title="已初始化东北十二家分局">分局经营试算 ↗</a><a class="page-link" href="./railway.html?restore=1">← 返回铁路网络</a></nav>
   </header>
   <main class="economy-workspace">
     <section class="economy-intro">
@@ -65,11 +65,11 @@
       <p class="economy-note">各区拥有独立的长期发展路径，状态会随年份转变；客运、货运和工资可呈现不同走势，同时受全国周期影响。</p>
       <div class="table-scroll"><table><thead><tr><th scope="col">经济区</th><th scope="col">地区发展状态</th><th scope="col">电力价格</th><th scope="col">工资</th><th scope="col">材料价格</th><th scope="col">客运需求</th><th scope="col">货运需求</th></tr></thead><tbody id="economyTable"></tbody></table></div>
     </section>
-    <footer class="economy-footer"><span id="scenarioReadout">独立铁路情景 · 种子 20261014 · 2025 年不变价口径</span><span>分局收入、成本与利润待初始化</span></footer>
+    <footer class="economy-footer"><span id="scenarioReadout">独立铁路情景 · 种子 20261014 · 2025 年不变价口径</span><span>东北十二家分局已开放经营试算</span></footer>
   </main>
   <script src="./railway-economy-data.js?v=20261017-mature-v05"></script>
   <script src="./railway-divisions.js?v=20261017-economy"></script>
   <script src="./economy-forecast.js?v=20261017-forecast-scale-v2"></script>
-  <script src="./economy.js?v=20261017-mature-v05"></script>
+  <script src="./economy.js?v=20261017-bureau-entry"></script>
 </body>
 </html>

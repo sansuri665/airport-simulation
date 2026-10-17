@@ -6,6 +6,7 @@ Only binds to localhost. No Airport services or production models are changed.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from functools import lru_cache
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -14,16 +15,57 @@ from urllib.parse import parse_qs, urlsplit
 
 from economy_model.simulate import REGIONAL_METRICS, load_config, public_market_snapshot
 from economy_model.scenarios import simulate_scenario
+from bureau_model.operations import PROFILE_PATH, VERSION as BUREAU_VERSION, load_profiles, simulate_bureaus
 
 ROOT = Path(__file__).resolve().parent
 MAX_SEED = 9_007_199_254_740_991
 REGION_IDS = ('northeast', 'north', 'northwest', 'southwest', 'south', 'central', 'east', 'southeast')
 CONFIG = load_config()
+BUREAU_PROFILES = load_profiles()
+BUREAU_CONFIG_HASH = hashlib.sha256(PROFILE_PATH.read_bytes()).hexdigest()
+
+
+@lru_cache(maxsize=4)
+def scenario_result(seed: int) -> dict:
+    return simulate_scenario(config=CONFIG, years=60, seed=seed)
+
+
+def bureau_catalog() -> bytes:
+    regions = [{'id': r['id'], 'name': r['name'], 'scope': r['scope']} for r in CONFIG['regions']]
+    bureaus = [{k: p[k] for k in ('bureau_id', 'name', 'region_id', 'type')} for p in BUREAU_PROFILES]
+    return json.dumps({'regions': regions, 'bureaus': bureaus, 'modelVersion': BUREAU_VERSION},
+                      ensure_ascii=False, allow_nan=False).encode('utf-8')
+
+
+@lru_cache(maxsize=4)
+def bureau_rows(seed: int) -> list[dict]:
+    return simulate_bureaus(scenario_result(seed), BUREAU_PROFILES)
+
+
+def bureau_payload(seed: int, bureau_id: str) -> bytes:
+    profile = next((p for p in BUREAU_PROFILES if p['bureau_id'] == bureau_id), None)
+    if profile is None:
+        raise KeyError(bureau_id)
+    result = scenario_result(seed)
+    payload = {
+        'seed': seed, 'modelVersion': BUREAU_VERSION,
+        'macroModelVersion': result['metadata']['model_version'],
+        'macroConfigHash': result['metadata']['scenario_config_sha256'],
+        'bureauConfigHash': BUREAU_CONFIG_HASH, 'baseYear': CONFIG['base_year'],
+        'priceBasis': 'constant_2025_purchasing_power', 'currencyUnit': '100_million_CNY',
+        'scenario': result['scenario'], 'profile': profile,
+        'rows': [r for r in bureau_rows(seed) if r['bureau_id'] == bureau_id],
+        'regionalPrices': [{k: r[k] for k in ('calendar_year', 'energy_real_index', 'wage_real_index', 'materials_real_index')}
+                           for r in result['rows'] if r['region_id'] == profile['region_id']],
+    }
+    # Full future results are intentionally available only for this localhost
+    # research viewer. Do not reuse as an in-game prediction/decision endpoint.
+    return json.dumps(payload, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode('utf-8')
 
 
 @lru_cache(maxsize=16)
 def scenario_payload(seed: int) -> bytes:
-    result = simulate_scenario(config=CONFIG, years=60, seed=seed)
+    result = scenario_result(seed)
     public = public_market_snapshot(result, 60)
     lookup = {(row['year_index'], row['region_id']): row for row in public['regional_rows']}
     columns = ['year_index', 'calendar_year']
@@ -60,7 +102,9 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
         url = urlsplit(self.path)
-        if url.path != '/api/economy':
+        if url.path == '/api/bureau-catalog':
+            return self.json_response(200, bureau_catalog())
+        if url.path not in ('/api/economy', '/api/bureau'):
             return super().do_GET()
         query = parse_qs(url.query, keep_blank_values=True)
         seeds = query.get('seed', ['20261014'])
@@ -70,6 +114,16 @@ class Handler(SimpleHTTPRequestHandler):
         seed = int(raw)
         if not 0 <= seed <= MAX_SEED:
             return self.json_response(400, b'{"error":"seed is outside the supported range"}')
+        if url.path == '/api/bureau':
+            bureaus = query.get('bureau', ['jiamusi'])
+            if len(bureaus) != 1 or bureaus[0] not in {p['bureau_id'] for p in BUREAU_PROFILES}:
+                return self.json_response(400, b'{"error":"bureau is not configured"}')
+            try:
+                payload = bureau_payload(seed, bureaus[0])
+            except Exception:
+                self.log_error('Bureau scenario generation failed for seed %s', seed)
+                return self.json_response(500, b'{"error":"bureau scenario generation failed"}')
+            return self.json_response(200, payload)
         try:
             payload = scenario_payload(seed)
         except Exception:

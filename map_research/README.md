@@ -287,12 +287,21 @@ V0.5 校准成熟市场的长期趋势：阶段抽取的正客货运目标增速
 
 检查：`node map_research/test-forecast.cjs`。
 
+## 东北分局经营模型
+
+`bureau_model/` 将东北十二分局原型中的成本拆为高速／普速／站务三类业务下的能源、人工、材料、其他十二项，每项独立配置基期金额、固定比例、业务量权重和拥挤系数。调用现有 V0.5 宏观模型。配置、运行及对照结果说明见 [bureau_model/README.md](bureau_model/README.md)。
+
+经济环境页面右上角的“分局经营试算”进入 `bureau.html`，保留当前 Seed、年份及可用分局。当前仅东北十二家分局具备经营参数，其余经济区标为待初始化。页面完整显示 2025 基期及 2026—2085 六十年经营情景，可切换经营收支、投入成本、业务规模曲线；悬停查看年份，点击曲线、年份滑条或年度表同步单年十二项成本明细。累计结余不含基期。可查看当前配置并导出包含十二项成本明细的年度 CSV，配置只读。
+
+本地研究接口 `GET /api/bureau-catalog` 返回已配置分局；`GET /api/bureau?seed=...&bureau=jiamusi` 返回所选分局 61 个年度点及配置。金额为 2025 年不变购买力的亿元，运量为万人次、万吨；未计折旧、融资和新增投资，不含自动效率增长。完整未来样本用于校准，不是实际预测或正式游戏 AI 数据接口。宏观和分局运行各最多保留四个 Seed 的内存缓存。
+
 ## 文件
 
 | 文件 | 职责 |
 | --- | --- |
 | `railway.html` | 铁路地图页面 |
 | `economy.html`、`economy.js`、`economy.css` | 经济环境子页面、曲线及年度指标 |
+| `bureau.html`、`bureau.js`、`bureau.css`、`bureau_model/` | 东北十二分局经营试算、独立成本配置及对照审计 |
 | `economy-forecast.js`、`test-forecast.cjs` | 预测中位线生成、评分及回归检查 |
 | `railway-economy-data.js` | 公开研究情景和分局经济区映射 |
 | `serve.py`、`economy_model/` | 独立本地服务、按 seed 生成经济情景 |
