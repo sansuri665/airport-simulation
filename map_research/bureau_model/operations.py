@@ -11,7 +11,7 @@ from pathlib import Path
 
 from .exposure import Exposure, bureau_specific_states, compute_transport_index, national_factors, validate_profile
 
-VERSION = 'railway-bureau-operations-v0.2'
+VERSION = 'railway-bureau-operations-v0.3'
 INPUTS = ('energy', 'wage', 'materials', 'other')
 SEGMENTS = ('high_speed', 'conventional', 'station')
 PROFILE_PATH = Path(__file__).with_name('northeast12_profiles.json')
@@ -34,6 +34,7 @@ def validate_profiles(profiles: list[dict]) -> None:
     if not profiles or len({p['bureau_id'] for p in profiles}) != len(profiles):
         raise ValueError('Expected nonempty profiles with unique bureau IDs')
     for p in profiles:
+        number(p['reference_v02_wage_price_beta'], 'reference V0.2 wage elasticity', positive=True, high=4.)
         validate_profile(profile_exposure(p))
         for key, value in p['exposure'].items():
             number(value, key, low=-math.inf)
@@ -54,6 +55,8 @@ def validate_profiles(profiles: list[dict]) -> None:
                     number(c[key], key, high=1.)
                 for key in ('passenger_congestion', 'freight_congestion'):
                     number(c[key], key)
+                if kind == 'wage':
+                    number(c['labor_adjustment_theta'], 'labor adjustment theta', high=1.)
             if not math.isclose(sum(c['base_cost_yi'] for c in inputs.values()),
                                 p['finance_base_yi'][segment + '_cost'], rel_tol=1e-10, abs_tol=1e-10):
                 raise ValueError(f'{p["bureau_id"]}/{segment} input budgets do not sum to segment budget')
@@ -61,26 +64,38 @@ def validate_profiles(profiles: list[dict]) -> None:
 
 def load_profiles(path: Path = PROFILE_PATH) -> list[dict]:
     obj = json.loads(Path(path).read_text(encoding='utf-8'))
-    if obj['schema'] != 'ne12-prototype-v0.2':
+    if obj['schema'] != 'ne12-prototype-v0.3':
         raise ValueError('Unsupported bureau cost schema')
     profiles = obj['bureau_profiles']
     validate_profiles(profiles)
     return profiles
 
 
-def finance(profile: dict, macro: dict, p_index: float, f_index: float) -> dict:
+def finance(profile: dict, macro: dict, p_index: float, f_index: float, *,
+            wage_peak_index: float, labor_model: str = 'peak') -> dict:
     """Compute one year's accounts without state, future information or caps.
 
     Volumes are already realized business volumes. 'Fixed' means independent
     of current volume, not immune to prices. Congestion affects variable cost
-    only and is configured separately for each input.
+    only and is configured separately for each input. The caller must supply
+    the RAW regional wage high observed so far, never a future maximum.
+    'v02' is reserved for replaying the original cost-splitting audit.
     """
     qp = number(p_index, 'passenger volume') / 100
     qf = number(f_index, 'freight volume') / 100
     prices = {'other': 1.}
-    for kind in INPUTS[:-1]:
+    if labor_model not in ('peak', 'full_wage', 'v02'):
+        raise ValueError('Unsupported labor model')
+    wage_peak_index = number(wage_peak_index, 'historical wage peak', low=100.)
+    wage_index = number(macro['wage_real_index'], 'wage price', positive=True)
+    if labor_model == 'peak' and wage_peak_index < wage_index:
+        raise ValueError('Historical wage peak cannot be below current wage')
+    for kind in ('energy', 'materials'):
         index = number(macro[kind + '_real_index'], kind + ' price', positive=True)
         prices[kind] = (index / 100) ** profile['exposure'][kind + '_price_beta']
+    wage_raw = wage_index / 100
+    wage_legacy = wage_raw ** profile['reference_v02_wage_price_beta']
+    prices['wage'] = wage_legacy if labor_model == 'v02' else wage_raw
 
     base = profile['finance_base_yi']
     share = profile['station_revenue_passenger_share']
@@ -92,6 +107,7 @@ def finance(profile: dict, macro: dict, p_index: float, f_index: float) -> dict:
         'station_income_yi': base['station_revenue'] * (share * qp + (1 - share) * qf),
     }
     detail = {}
+    wage_units = 0.
     for segment in SEGMENTS:
         detail[segment] = {}
         for kind in INPUTS:
@@ -99,13 +115,21 @@ def finance(profile: dict, macro: dict, p_index: float, f_index: float) -> dict:
             passenger_load = qp * (1 + c['passenger_congestion'] * max(0., qp - 1) ** 2)
             freight_load = qf * (1 + c['freight_congestion'] * max(0., qf - 1) ** 2)
             workload = c['variable_passenger_share'] * passenger_load + (1 - c['variable_passenger_share']) * freight_load
-            fixed = c['base_cost_yi'] * c['fixed_share'] * prices[kind]
-            variable = c['base_cost_yi'] * (1 - c['fixed_share']) * workload * prices[kind]
+            adjustment = (wage_peak_index / 100) ** -c['labor_adjustment_theta'] if kind == 'wage' and labor_model == 'peak' else 1.
+            unit_cost_factor = prices[kind] * adjustment
+            fixed = c['base_cost_yi'] * c['fixed_share'] * unit_cost_factor
+            variable = c['base_cost_yi'] * (1 - c['fixed_share']) * workload * unit_cost_factor
             detail[segment][kind] = {
                 'fixed_cost_yi': fixed, 'variable_cost_yi': variable,
                 'cost_yi': fixed + variable, 'price_factor': prices[kind],
                 'workload_factor': workload,
+                'cost_adjustment_factor': adjustment, 'unit_cost_factor': unit_cost_factor,
             }
+            if kind == 'wage':
+                workload_units = c['fixed_share'] + (1 - c['fixed_share']) * workload
+                wage_units += c['base_cost_yi'] * workload_units
+                detail[segment][kind]['labor_retention_index'] = 100 * adjustment
+                detail[segment][kind]['equivalent_staff_index'] = 100 * workload_units * adjustment
         result[segment + '_cost_yi'] = sum(c['cost_yi'] for c in detail[segment].values())
     for kind in INPUTS:
         result[kind + '_cost_yi'] = sum(detail[s][kind]['cost_yi'] for s in SEGMENTS)
@@ -115,8 +139,15 @@ def finance(profile: dict, macro: dict, p_index: float, f_index: float) -> dict:
     result['cost_yi'] = sum(result[s + '_cost_yi'] for s in SEGMENTS)
     result['operating_surplus_yi'] = result['revenue_yi'] - result['cost_yi']
     result['electricity_price_yuan_kwh'] = .75 * prices['energy']
-    result['wage_reference_yuan_per_year'] = 120000 * prices['wage']
+    result['wage_reference_yuan_per_year'] = 120000 * wage_raw
     result['materials_basket_real_index'] = 100 * prices['materials']
+    result['regional_wage_index'] = wage_index
+    result['historical_wage_peak_index'] = wage_peak_index
+    result['v02_wage_cost_yi'] = wage_units * wage_legacy
+    result['full_wage_cost_yi'] = wage_units * wage_raw
+    for name in ('v02', 'full'):
+        result[name + '_cost_yi'] = result['cost_yi'] - result['wage_cost_yi'] + result[name + '_wage_cost_yi']
+        result[name + '_operating_surplus_yi'] = result['revenue_yi'] - result[name + '_cost_yi']
     for key, value in result.items():
         if not math.isfinite(value):
             raise ValueError(f'Nonfinite calculated account: {key}')
@@ -124,7 +155,7 @@ def finance(profile: dict, macro: dict, p_index: float, f_index: float) -> dict:
     return result
 
 
-def simulate_bureaus(macro_result: dict, profiles: list[dict] | None = None) -> list[dict]:
+def simulate_bureaus(macro_result: dict, profiles: list[dict] | None = None, *, labor_model: str = 'peak') -> list[dict]:
     """Run against the existing macro engine's INTERNAL trend/cycle rows.
 
     This is a research backend, not a game-facing future-data API.
@@ -140,15 +171,20 @@ def simulate_bureaus(macro_result: dict, profiles: list[dict] | None = None) -> 
     seed = macro_result['metadata']['seed']
     paths = {p['bureau_id']: bureau_specific_states(profile_exposure(p), seed, last) for p in profiles}
     result = []
+    wage_peaks = {}
     for t in range(last + 1):
         regions = source[t]
+        for rid, regional in regions.items():
+            wage_peaks[rid] = max(wage_peaks.get(rid, 100.), number(regional['wage_real_index'], 'wage price', positive=True))
         national = national_factors(regions)
         for p in profiles:
             volumes = compute_transport_index(profile_exposure(p), regions[p['region_id']], national, paths[p['bureau_id']][t])
-            accounts = finance(p, regions[p['region_id']], volumes['passenger_index'], volumes['freight_index'])
+            accounts = finance(p, regions[p['region_id']], volumes['passenger_index'], volumes['freight_index'],
+                               wage_peak_index=wage_peaks[p['region_id']], labor_model=labor_model)
             result.append({
                 'seed': seed, 'year_index': t, 'year': macro_result['metadata']['base_year'] + t,
-                'bureau_id': p['bureau_id'], 'bureau_name': p['name'], 'model_version': VERSION,
+                'bureau_id': p['bureau_id'], 'bureau_name': p['name'],
+                'model_version': 'railway-bureau-operations-v0.2' if labor_model == 'v02' else VERSION,
                 'macro_scenario': macro_result.get('scenario', {}).get('name', ''),
                 **volumes, **accounts,
             })

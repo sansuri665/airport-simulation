@@ -24,6 +24,7 @@
 .bureau-page .positive { color:#93d2c6; }
 .bureau-main-grid { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:20px; margin-bottom:20px; }
 .bureau-tabs { display:flex; gap:5px; padding:4px; width:max-content; max-width:100%; border:1px solid var(--border); border-radius:6px; margin-top:21px; background:#0c171b; }
+.bureau-tabs { flex-wrap:wrap; }
 .bureau-tabs button { padding:8px 15px; background:transparent; border-radius:4px; color:#91a7ad; font-size:11px; }
 .bureau-tabs button[aria-selected="true"] { color:#c8e7df; background:#263b3d; }
 #bureauChart { display:block; width:100%; height:auto; overflow:visible; }
@@ -47,6 +48,16 @@
 .bureau-volume-readout span { color:var(--muted); font-size:11px; }
 .bureau-volume-readout strong { font:12px var(--mono); font-weight:400; }
 .bureau-detail,.bureau-annual,.bureau-config { margin-bottom:20px; }
+.bureau-labor,.bureau-audit { margin-bottom:20px; }
+.labor-cards { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:22px; gap:20px; }
+.labor-cards > div { border-left:2px solid #3a4e56; padding-left:16px; }
+.labor-cards > div:last-child { border-color:var(--accent); }
+.labor-cards span { display:block; color:#a6b9be; font-size:11px; }
+.labor-cards strong { display:block; margin:12px 0 8px; color:#dbe5e5; font:25px var(--mono); }
+.labor-cards small { color:#81989e; font-size:10px; line-height:1.7; }
+.bureau-audit table { min-width:830px; }
+.bureau-audit tr.current-bureau { background:#1b3234; }
+@media(max-width:760px) { .labor-cards { gap:15px; grid-template-columns:1fr; } .labor-cards strong { font-size:23px; } .bureau-labor .panel-heading { flex-wrap:wrap; } }
 .bureau-detail .table-scroll { margin-top:12px; }
 .bureau-detail th,.bureau-detail td { padding-top:11px; padding-bottom:11px; }
 .bureau-detail .segment-start th,.bureau-detail .segment-start td { border-top:1px solid #405158; }

@@ -23,6 +23,12 @@ REGION_IDS = ('northeast', 'north', 'northwest', 'southwest', 'south', 'central'
 CONFIG = load_config()
 BUREAU_PROFILES = load_profiles()
 BUREAU_CONFIG_HASH = hashlib.sha256(PROFILE_PATH.read_bytes()).hexdigest()
+LABOR_AUDIT_PATH = ROOT / 'bureau_model' / 'reports' / 'labor_comparison_v03.json'
+LABOR_AUDIT = None
+if LABOR_AUDIT_PATH.is_file():
+    _audit = json.loads(LABOR_AUDIT_PATH.read_text(encoding='utf-8'))
+    if _audit.get('bureauConfigHash') == BUREAU_CONFIG_HASH and _audit.get('modelVersion') == BUREAU_VERSION:
+        LABOR_AUDIT = {key: _audit[key] for key in ('seedCount', 'seedRange', 'endYear', 'operatingYears', 'pooled', 'bureaus')}
 
 
 @lru_cache(maxsize=4)
@@ -54,6 +60,7 @@ def bureau_payload(seed: int, bureau_id: str) -> bytes:
         'bureauConfigHash': BUREAU_CONFIG_HASH, 'baseYear': CONFIG['base_year'],
         'priceBasis': 'constant_2025_purchasing_power', 'currencyUnit': '100_million_CNY',
         'scenario': result['scenario'], 'profile': profile,
+        'laborAudit': LABOR_AUDIT,
         'rows': [r for r in bureau_rows(seed) if r['bureau_id'] == bureau_id],
         'regionalPrices': [{k: r[k] for k in ('calendar_year', 'energy_real_index', 'wage_real_index', 'materials_real_index')}
                            for r in result['rows'] if r['region_id'] == profile['region_id']],

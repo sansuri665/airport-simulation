@@ -1,5 +1,5 @@
 {
-  "schema": "ne12-prototype-v0.2",
+  "schema": "ne12-prototype-v0.3",
   "source_repository": "sansuri665/airport-simulation",
   "branch": "map",
   "reference_commit": "9a1f8f4ec7f739a4b95a0da6b0bdb07757ec0e06",
@@ -32,7 +32,6 @@
         "passenger_cycle_vol": 0.012,
         "freight_cycle_vol": 0.017,
         "energy_price_beta": 1,
-        "wage_price_beta": 0.92,
         "materials_price_beta": 1.05
       },
       "transport": {
@@ -65,7 +64,8 @@
             "fixed_share": 0.8500080361552751,
             "variable_passenger_share": 1.0,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
           },
           "materials": {
             "base_cost_yi": 0.4590000000000001,
@@ -95,7 +95,8 @@
             "fixed_share": 0.85002289457459,
             "variable_passenger_share": 0.2,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
           },
           "materials": {
             "base_cost_yi": 1.0875,
@@ -125,7 +126,8 @@
             "fixed_share": 0.9000310637319076,
             "variable_passenger_share": 0.4,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
           },
           "materials": {
             "base_cost_yi": 0.396,
@@ -142,7 +144,8 @@
             "freight_congestion": 0.0
           }
         }
-      }
+      },
+      "reference_v02_wage_price_beta": 0.92
     },
     {
       "bureau_id": "mudanjiang",
@@ -168,7 +171,6 @@
         "passenger_cycle_vol": 0.012,
         "freight_cycle_vol": 0.017,
         "energy_price_beta": 1,
-        "wage_price_beta": 0.98,
         "materials_price_beta": 1.08
       },
       "transport": {
@@ -201,7 +203,8 @@
             "fixed_share": 0.8612922709208592,
             "variable_passenger_share": 1.0,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
           },
           "materials": {
             "base_cost_yi": 0.312,
@@ -231,7 +234,8 @@
             "fixed_share": 0.8745996786375636,
             "variable_passenger_share": 0.2,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
           },
           "materials": {
             "base_cost_yi": 1.0935,
@@ -261,7 +265,8 @@
             "fixed_share": 0.9224756053640524,
             "variable_passenger_share": 0.38,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
           },
           "materials": {
             "base_cost_yi": 0.44799999999999995,
@@ -278,7 +283,8 @@
             "freight_congestion": 0.0
           }
         }
-      }
+      },
+      "reference_v02_wage_price_beta": 0.98
     },
     {
       "bureau_id": "qiqihar",
@@ -304,7 +310,6 @@
         "passenger_cycle_vol": 0.012,
         "freight_cycle_vol": 0.017,
         "energy_price_beta": 0.95,
-        "wage_price_beta": 1.02,
         "materials_price_beta": 1.15
       },
       "transport": {
@@ -337,7 +342,8 @@
             "fixed_share": 0.8802011994578408,
             "variable_passenger_share": 1.0,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
           },
           "materials": {
             "base_cost_yi": 0.31000000000000005,
@@ -367,7 +373,8 @@
             "fixed_share": 0.919255352900729,
             "variable_passenger_share": 0.2,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
           },
           "materials": {
             "base_cost_yi": 3.074,
@@ -397,7 +404,8 @@
             "fixed_share": 0.9410914816836068,
             "variable_passenger_share": 0.3,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
           },
           "materials": {
             "base_cost_yi": 0.7225,
@@ -414,7 +422,8 @@
             "freight_congestion": 0.0
           }
         }
-      }
+      },
+      "reference_v02_wage_price_beta": 1.02
     },
     {
       "bureau_id": "harbin",
@@ -440,7 +449,6 @@
         "passenger_cycle_vol": 0.012,
         "freight_cycle_vol": 0.017,
         "energy_price_beta": 1,
-        "wage_price_beta": 0.95,
         "materials_price_beta": 0.98
       },
       "transport": {
@@ -473,7 +481,8 @@
             "fixed_share": 0.825789544347832,
             "variable_passenger_share": 1.0,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
           },
           "materials": {
             "base_cost_yi": 1.53,
@@ -503,7 +512,8 @@
             "fixed_share": 0.8589792430322227,
             "variable_passenger_share": 0.3,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
           },
           "materials": {
             "base_cost_yi": 2.4,
@@ -533,7 +543,8 @@
             "fixed_share": 0.9057777137388142,
             "variable_passenger_share": 0.62,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
           },
           "materials": {
             "base_cost_yi": 0.756,
@@ -550,7 +561,8 @@
             "freight_congestion": 0.0
           }
         }
-      }
+      },
+      "reference_v02_wage_price_beta": 0.95
     },
     {
       "bureau_id": "meihekou",
@@ -576,7 +588,6 @@
         "passenger_cycle_vol": 0.012,
         "freight_cycle_vol": 0.017,
         "energy_price_beta": 1.01,
-        "wage_price_beta": 1,
         "materials_price_beta": 1.06
       },
       "transport": {
@@ -609,7 +620,8 @@
             "fixed_share": 0.906833657981453,
             "variable_passenger_share": 1.0,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
           },
           "materials": {
             "base_cost_yi": 0.22000000000000003,
@@ -639,7 +651,8 @@
             "fixed_share": 0.9045809100391785,
             "variable_passenger_share": 0.2,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
           },
           "materials": {
             "base_cost_yi": 0.49499999999999994,
@@ -669,7 +682,8 @@
             "fixed_share": 0.9378029731353965,
             "variable_passenger_share": 0.45,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
           },
           "materials": {
             "base_cost_yi": 0.16,
@@ -686,7 +700,8 @@
             "freight_congestion": 0.0
           }
         }
-      }
+      },
+      "reference_v02_wage_price_beta": 1
     },
     {
       "bureau_id": "changchun",
@@ -712,7 +727,6 @@
         "passenger_cycle_vol": 0.012,
         "freight_cycle_vol": 0.017,
         "energy_price_beta": 1,
-        "wage_price_beta": 0.98,
         "materials_price_beta": 1
       },
       "transport": {
@@ -745,7 +759,8 @@
             "fixed_share": 0.8337392687405246,
             "variable_passenger_share": 1.0,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
           },
           "materials": {
             "base_cost_yi": 1.9380000000000002,
@@ -775,7 +790,8 @@
             "fixed_share": 0.8447418704728407,
             "variable_passenger_share": 0.3,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
           },
           "materials": {
             "base_cost_yi": 2.556,
@@ -805,7 +821,8 @@
             "fixed_share": 0.9057777137388142,
             "variable_passenger_share": 0.6,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
           },
           "materials": {
             "base_cost_yi": 0.798,
@@ -822,7 +839,8 @@
             "freight_congestion": 0.0
           }
         }
-      }
+      },
+      "reference_v02_wage_price_beta": 0.98
     },
     {
       "bureau_id": "siping",
@@ -848,7 +866,6 @@
         "passenger_cycle_vol": 0.012,
         "freight_cycle_vol": 0.017,
         "energy_price_beta": 1,
-        "wage_price_beta": 1,
         "materials_price_beta": 1
       },
       "transport": {
@@ -881,7 +898,8 @@
             "fixed_share": 0.9443453014076961,
             "variable_passenger_share": 1.0,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
           },
           "materials": {
             "base_cost_yi": 0.11000000000000001,
@@ -911,7 +929,8 @@
             "fixed_share": 0.8932450135298542,
             "variable_passenger_share": 0.2,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
           },
           "materials": {
             "base_cost_yi": 0.33,
@@ -941,7 +960,8 @@
             "fixed_share": 0.9451544803228068,
             "variable_passenger_share": 0.48,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
           },
           "materials": {
             "base_cost_yi": 0.14400000000000002,
@@ -958,7 +978,8 @@
             "freight_congestion": 0.0
           }
         }
-      }
+      },
+      "reference_v02_wage_price_beta": 1
     },
     {
       "bureau_id": "tongliao",
@@ -984,7 +1005,6 @@
         "passenger_cycle_vol": 0.012,
         "freight_cycle_vol": 0.017,
         "energy_price_beta": 0.97,
-        "wage_price_beta": 0.98,
         "materials_price_beta": 1.07
       },
       "transport": {
@@ -1017,7 +1037,8 @@
             "fixed_share": 0.9195333788848826,
             "variable_passenger_share": 1.0,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
           },
           "materials": {
             "base_cost_yi": 0.18000000000000002,
@@ -1047,7 +1068,8 @@
             "fixed_share": 0.9041286383320675,
             "variable_passenger_share": 0.2,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
           },
           "materials": {
             "base_cost_yi": 2.407,
@@ -1077,7 +1099,8 @@
             "fixed_share": 0.9299630243695265,
             "variable_passenger_share": 0.24,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
           },
           "materials": {
             "base_cost_yi": 0.4505,
@@ -1094,7 +1117,8 @@
             "freight_congestion": 0.0
           }
         }
-      }
+      },
+      "reference_v02_wage_price_beta": 0.98
     },
     {
       "bureau_id": "shenyang",
@@ -1120,7 +1144,6 @@
         "passenger_cycle_vol": 0.012,
         "freight_cycle_vol": 0.017,
         "energy_price_beta": 1,
-        "wage_price_beta": 1.01,
         "materials_price_beta": 1.02
       },
       "transport": {
@@ -1153,7 +1176,8 @@
             "fixed_share": 0.8092135454517806,
             "variable_passenger_share": 1.0,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
           },
           "materials": {
             "base_cost_yi": 2.108,
@@ -1183,7 +1207,8 @@
             "fixed_share": 0.8589792430322227,
             "variable_passenger_share": 0.3,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
           },
           "materials": {
             "base_cost_yi": 2.5679999999999996,
@@ -1213,7 +1238,8 @@
             "fixed_share": 0.9010338955444186,
             "variable_passenger_share": 0.65,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
           },
           "materials": {
             "base_cost_yi": 0.7919999999999999,
@@ -1230,7 +1256,8 @@
             "freight_congestion": 0.0
           }
         }
-      }
+      },
+      "reference_v02_wage_price_beta": 1.01
     },
     {
       "bureau_id": "dalian",
@@ -1256,7 +1283,6 @@
         "passenger_cycle_vol": 0.012,
         "freight_cycle_vol": 0.017,
         "energy_price_beta": 1.03,
-        "wage_price_beta": 1.02,
         "materials_price_beta": 1
       },
       "transport": {
@@ -1289,7 +1315,8 @@
             "fixed_share": 0.7794406074670156,
             "variable_passenger_share": 1.0,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
           },
           "materials": {
             "base_cost_yi": 1.104,
@@ -1319,7 +1346,8 @@
             "fixed_share": 0.8614783709911333,
             "variable_passenger_share": 0.2,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
           },
           "materials": {
             "base_cost_yi": 1.377,
@@ -1349,7 +1377,8 @@
             "fixed_share": 0.9005668750343933,
             "variable_passenger_share": 0.4,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
           },
           "materials": {
             "base_cost_yi": 1.12,
@@ -1366,7 +1395,8 @@
             "freight_congestion": 0.0
           }
         }
-      }
+      },
+      "reference_v02_wage_price_beta": 1.02
     },
     {
       "bureau_id": "jinzhou",
@@ -1392,7 +1422,6 @@
         "passenger_cycle_vol": 0.012,
         "freight_cycle_vol": 0.017,
         "energy_price_beta": 1,
-        "wage_price_beta": 1.02,
         "materials_price_beta": 1.08
       },
       "transport": {
@@ -1425,7 +1454,8 @@
             "fixed_share": 0.8878061055811384,
             "variable_passenger_share": 1.0,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
           },
           "materials": {
             "base_cost_yi": 1.1520000000000001,
@@ -1455,7 +1485,8 @@
             "fixed_share": 0.8745996786375636,
             "variable_passenger_share": 0.2,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
           },
           "materials": {
             "base_cost_yi": 1.431,
@@ -1485,7 +1516,8 @@
             "fixed_share": 0.9224756053640524,
             "variable_passenger_share": 0.32,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
           },
           "materials": {
             "base_cost_yi": 0.5920000000000001,
@@ -1502,7 +1534,8 @@
             "freight_congestion": 0.0
           }
         }
-      }
+      },
+      "reference_v02_wage_price_beta": 1.02
     },
     {
       "bureau_id": "chifeng",
@@ -1528,7 +1561,6 @@
         "passenger_cycle_vol": 0.012,
         "freight_cycle_vol": 0.017,
         "energy_price_beta": 0.96,
-        "wage_price_beta": 1.01,
         "materials_price_beta": 1.1
       },
       "transport": {
@@ -1561,7 +1593,8 @@
             "fixed_share": 0.9335499927484731,
             "variable_passenger_share": 1.0,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
           },
           "materials": {
             "base_cost_yi": 0.22000000000000003,
@@ -1591,7 +1624,8 @@
             "fixed_share": 0.919255352900729,
             "variable_passenger_share": 0.2,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
           },
           "materials": {
             "base_cost_yi": 1.9429999999999998,
@@ -1621,7 +1655,8 @@
             "fixed_share": 0.933779819715799,
             "variable_passenger_share": 0.27,
             "passenger_congestion": 0.0,
-            "freight_congestion": 0.0
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
           },
           "materials": {
             "base_cost_yi": 0.4675,
@@ -1638,10 +1673,20 @@
             "freight_congestion": 0.0
           }
         }
-      }
+      },
+      "reference_v02_wage_price_beta": 1.01
     }
   ],
-  "cost_model": "independent-input-fixed-variable-v0.2",
+  "cost_model": "independent-input-peak-wage-adjustment-v0.3",
   "fixed_share_calibration": "common_log_odds_shift_preserving_each_segment_fixed_budget",
-  "source_archive_sha256": "e6b4e617ccbc1eb87309550e1687bd9c9565a4cf9293036f85c9c2b1f88e5c4d"
+  "source_archive_sha256": "e6b4e617ccbc1eb87309550e1687bd9c9565a4cf9293036f85c9c2b1f88e5c4d",
+  "labor_adjustment": {
+    "peak": "running_max_raw_regional_wage_at_least_100",
+    "theta_by_segment": {
+      "high_speed": 0.35,
+      "conventional": 0.22,
+      "station": 0.18
+    },
+    "reference_beta": "reference_v02_wage_price_beta is used for audit only"
+  }
 }

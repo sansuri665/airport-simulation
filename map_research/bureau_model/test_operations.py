@@ -4,9 +4,16 @@ import math
 import unittest
 
 from economy_model.scenarios import simulate_scenario
-from .operations import INPUTS, SEGMENTS, finance, load_profiles, simulate_bureaus, validate_profiles
+from .operations import INPUTS, SEGMENTS, finance as annual_finance, load_profiles, simulate_bureaus, validate_profiles
 
 PRICES = {'energy_real_index': 100., 'wage_real_index': 100., 'materials_real_index': 100.}
+
+
+def finance(profile, macro, p_index, f_index, **kwargs):
+    # Single-year stress cases have no prior history; the higher of base/current
+    # is their observed peak. Production runs always pass the true running peak.
+    kwargs.setdefault('wage_peak_index', max(100., macro['wage_real_index']))
+    return annual_finance(profile, macro, p_index, f_index, **kwargs)
 
 
 class CostTests(unittest.TestCase):
@@ -33,8 +40,11 @@ class CostTests(unittest.TestCase):
         a = finance(p, PRICES, 80, 80)
         for kind in INPUTS[:-1]:
             b = finance(p, {**PRICES, kind + '_real_index': 150}, 80, 80)
-            factor = 1.5 ** p['exposure'][kind + '_price_beta']
-            self.assertAlmostEqual(b[kind + '_cost_yi'], a[kind + '_cost_yi'] * factor)
+            if kind == 'wage':
+                expected = sum(a['cost_breakdown'][s]['wage']['cost_yi'] * 1.5 ** (1 - p['cost_inputs'][s]['wage']['labor_adjustment_theta']) for s in SEGMENTS)
+            else:
+                expected = a[kind + '_cost_yi'] * 1.5 ** p['exposure'][kind + '_price_beta']
+            self.assertAlmostEqual(b[kind + '_cost_yi'], expected)
             for other in set(INPUTS) - {kind}:
                 self.assertEqual(b[other + '_cost_yi'], a[other + '_cost_yi'])
             self.assertGreater(b[kind + '_cost_yi'] / b['cost_yi'], a[kind + '_cost_yi'] / a['cost_yi'])
@@ -104,6 +114,50 @@ class CostTests(unittest.TestCase):
         short = simulate_bureaus(simulate_scenario(seed=20261014, years=3), self.profiles)
         self.assertEqual(short, [r for r in rows if r['year_index'] <= 3])
         self.assertEqual(original, self.profiles)
+
+    def test_peak_wage_formula_and_no_double_beta(self):
+        p = copy.deepcopy(self.profiles[0])
+        for s in SEGMENTS:
+            p['cost_inputs'][s]['wage']['labor_adjustment_theta'] = .35
+        r = finance(p, {**PRICES, 'wage_real_index':160}, 100, 100, wage_peak_index=160)
+        self.assertAlmostEqual(r['wage_cost_yi'], 3.39 * 1.6 ** .65)
+        self.assertEqual(r['wage_reference_yuan_per_year'], 192000)
+        p['reference_v02_wage_price_beta'] = 1.8
+        changed = finance(p, {**PRICES, 'wage_real_index':160}, 100, 100, wage_peak_index=160)
+        self.assertEqual(r['wage_cost_yi'], changed['wage_cost_yi'])
+        self.assertNotEqual(r['v02_wage_cost_yi'], changed['v02_wage_cost_yi'])
+
+    def test_peak_adjustment_stays_after_wage_decline(self):
+        p = self.profiles[0]
+        high = finance(p, {**PRICES,'wage_real_index':160}, 100, 100, wage_peak_index=160)
+        low = finance(p, {**PRICES,'wage_real_index':140}, 100, 100, wage_peak_index=160)
+        for s in SEGMENTS:
+            a, b = high['cost_breakdown'][s]['wage'], low['cost_breakdown'][s]['wage']
+            self.assertEqual(a['labor_retention_index'], b['labor_retention_index'])
+            self.assertEqual(a['equivalent_staff_index'], b['equivalent_staff_index'])
+            self.assertAlmostEqual(b['cost_yi'] / a['cost_yi'], 140/160)
+        below_base = finance(p, {**PRICES,'wage_real_index':80}, 100, 100, wage_peak_index=100)
+        self.assertAlmostEqual(below_base['wage_cost_yi'], 3.39 * .8)
+        with self.assertRaises(ValueError):
+            finance(p, {**PRICES,'wage_real_index':160}, 100, 100, wage_peak_index=140)
+        for value in (-.1, 1.1, math.nan, True):
+            bad = copy.deepcopy(self.profiles)
+            bad[0]['cost_inputs']['station']['wage']['labor_adjustment_theta'] = value
+            with self.assertRaises(ValueError): validate_profiles(bad)
+
+    def test_running_peak_is_regional_and_never_uses_future(self):
+        macro = simulate_scenario(seed=20261014, years=10)
+        normal = simulate_bureaus(macro, self.profiles)
+        peak = 100.
+        by_year = {r['year_index']:r for r in macro['rows'] if r['region_id']=='northeast'}
+        for t in range(11):
+            peak = max(peak, by_year[t]['wage_real_index'])
+            self.assertTrue(all(r['historical_wage_peak_index']==peak for r in normal if r['year_index']==t))
+        future = copy.deepcopy(macro)
+        for r in future['rows']:
+            if r['year_index']==10 and r['region_id']=='northeast': r['wage_real_index']=1000
+        altered = simulate_bureaus(future, self.profiles)
+        self.assertEqual([r for r in normal if r['year_index']<10], [r for r in altered if r['year_index']<10])
 
 
 if __name__ == '__main__':

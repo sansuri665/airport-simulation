@@ -7,7 +7,8 @@
   const views = {
     accounts: {title: '经营收支', unit: '亿元／年 · 2025 年不变价', series: [['revenue_yi', '总收入', '#83c6dc'], ['cost_yi', '总成本', '#dca872'], ['operating_surplus_yi', '经营结余', '#93d2c6']]},
     inputs: {title: '四项投入成本', unit: '亿元／年 · 2025 年不变价', series: inputs.map(([k, n, c]) => [k + '_cost_yi', n, c])},
-    volumes: {title: '客货运业务规模', unit: '本分局 2025 年 = 100', series: [['passenger_index', '客运量指数', '#83c6dc'], ['freight_index', '货运量指数', '#dca872']]}
+    volumes: {title: '客货运业务规模', unit: '本分局 2025 年 = 100', series: [['passenger_index', '客运量指数', '#83c6dc'], ['freight_index', '货运量指数', '#dca872']]},
+    labor: {title: '人工成本 · 三组对照', unit: '亿元／年 · 同一业务量', series: [['v02_wage_cost_yi', 'A 原 V0.2', '#dca872', '5 4'], ['full_wage_cost_yi', 'B 工资完全传导', '#b8a0d1', '3 4'], ['wage_cost_yi', 'C 当前规则', '#93d2c6']]}
   };
   const annualColumns = [['year', '年份'], ['passenger_trips_10k', '客运量（万人次）'], ['freight_tons_10k', '货运量（万吨）'], ['passenger_income_yi', '客运收入'], ['freight_income_yi', '货运收入'], ['station_income_yi', '站务收入'], ['high_speed_cost_yi', '高速成本'], ['conventional_cost_yi', '普速成本'], ['station_cost_yi', '站务成本'], ['revenue_yi', '总收入'], ['cost_yi', '总成本'], ['operating_surplus_yi', '经营结余']];
   let catalog = null, data = null, busy = false, chartCursor = null, chartX = null;
@@ -68,13 +69,21 @@
     $('fixedReadout').textContent = `固定支出 ${fixed(row.fixed_operating_cost_yi)} 亿元，占 ${fixed(row.fixed_operating_cost_yi / row.cost_yi * 100, 1)}%；其余为随业务量变化的支出。`;
     $('passengerVolume').textContent = `${fixed(row.passenger_trips_10k)} 万人次`;
     $('freightVolume').textContent = `${fixed(row.freight_tons_10k)} 万吨`;
+    $('laborTitle').textContent = `${year} 年人工成本对照`;
+    $('wagePeakReadout').textContent = `地区工资 ${fixed(row.regional_wage_index, 1)} · 历史高点 ${fixed(row.historical_wage_peak_index, 1)}（2025 = 100）`;
+    $('laborBefore').textContent = `${fixed(row.v02_wage_cost_yi)} 亿元`;
+    $('laborFull').textContent = `${fixed(row.full_wage_cost_yi)} 亿元`;
+    $('laborAfter').textContent = `${fixed(row.wage_cost_yi)} 亿元`;
+    const laborChange = row.wage_cost_yi - row.v02_wage_cost_yi;
+    $('laborEffect').textContent = `高点调整使人工支出相对 B 减少 ${fixed(row.full_wage_cost_yi-row.wage_cost_yi)} 亿元；相对 A 的净变化为 ${laborChange>=0?'+':''}${fixed(laborChange)} 亿元。三组运量、收入和非人工支出相同。`;
+    $('laborTheta').textContent = `θ：${segments.map(([s,n])=>`${n} ${fixed(data.profile.cost_inputs[s].wage.labor_adjustment_theta)}`).join(' · ')}。工资回落时保留已积累的调整，仅在工资创历史新高时进一步调整。`;
     $('detailTitle').textContent = `${year} 年 · 十二项成本明细`;
     const details = document.createDocumentFragment();
     for (const [s, name] of segments) inputs.forEach(([kind, label], i) => {
       const c = row.cost_breakdown[s][kind], tr = node('tr');
       if (i === 0) tr.className = 'segment-start';
       const th = node('th', `${name} / ${label}`); th.scope = 'row'; tr.append(th);
-      for (const key of ['fixed_cost_yi', 'variable_cost_yi', 'cost_yi', 'price_factor', 'workload_factor']) tr.append(node('td', fixed(c[key], 3)));
+      for (const key of ['fixed_cost_yi', 'variable_cost_yi', 'cost_yi', 'price_factor', 'unit_cost_factor', 'workload_factor']) tr.append(node('td', fixed(c[key], 3)));
       details.append(tr);
     });
     $('costDetailRows').replaceChildren(details);
@@ -111,8 +120,8 @@
     }
     drawing.append(svgNode('line', {x1:left, x2:right, y1:y(0), y2:y(0), stroke:'#587076', 'stroke-width':1}));
     for (let value = 2025; value <= 2085; value += width < 500 ? 20 : 10) drawing.append(svgNode('text', {x:x(value), y:height - 12, fill:'#82999f', 'font-size':10, 'text-anchor':'middle'}, value));
-    for (const [key, label, color] of spec.series) {
-      drawing.append(svgNode('polyline', {points:data.rows.map(r => `${x(r.year)},${y(r[key])}`).join(' '), fill:'none', stroke:color, 'stroke-width':2.1, 'stroke-linejoin':'round'}));
+    for (const [key, label, color, dash] of spec.series) {
+      drawing.append(svgNode('polyline', {points:data.rows.map(r => `${x(r.year)},${y(r[key])}`).join(' '), fill:'none', stroke:color, 'stroke-width':2.1, 'stroke-linejoin':'round', 'stroke-dasharray':dash||'none'}));
       for (const row of data.rows) drawing.append(svgNode('circle', {cx:x(row.year), cy:y(row[key]), r:1.6, fill:color, opacity:.65, 'aria-hidden':'true'}));
     }
     chartCursor = svgNode('line', {x1:x(year), x2:x(year), y1:top, y2:bottom, stroke:'#aac2c4', 'stroke-dasharray':'3 4', opacity:.65, 'pointer-events':'none'});
@@ -176,12 +185,24 @@
     const config = document.createDocumentFragment();
     for (const [s, name] of segments) for (const [kind, label] of inputs) {
       const c = p.cost_inputs[s][kind], tr = node('tr');
-      for (const value of [`${name} / ${label}`, fixed(c.base_cost_yi, 3), `${fixed(c.fixed_share*100, 1)}%`, `${fixed((1-c.fixed_share)*100, 1)}%`, `${fixed(c.variable_passenger_share*100, 1)}%`, `${fixed(c.passenger_congestion)} / ${fixed(c.freight_congestion)}`]) tr.append(node('td', value));
+      for (const value of [`${name} / ${label}`, fixed(c.base_cost_yi, 3), `${fixed(c.fixed_share*100, 1)}%`, `${fixed((1-c.fixed_share)*100, 1)}%`, `${fixed(c.variable_passenger_share*100, 1)}%`, `${fixed(c.passenger_congestion)} / ${fixed(c.freight_congestion)}`, kind==='wage'?fixed(c.labor_adjustment_theta):'—']) tr.append(node('td', value));
       config.append(tr);
     }
     $('configRows').replaceChildren(config);
     $('configReference').textContent = `客运基准 ${fixed(p.transport.base_passenger_trips_10k)} 万人次；货运基准 ${fixed(p.transport.base_freight_tons_10k)} 万吨。单位净收入：客运 ${fixed(p.finance_base_yi.passenger_revenue*10000/p.transport.base_passenger_trips_10k)} 元／人次、货运 ${fixed(p.finance_base_yi.freight_revenue*10000/p.transport.base_freight_tons_10k)} 元／吨。站务收入的客运关联权重 ${fixed(p.station_revenue_passenger_share*100, 0)}%。`;
     $('bureauVersion').textContent = `${data.modelVersion} · 宏观 V0.5 · 配置 ${data.bureauConfigHash.slice(0, 10)} · Seed ${data.seed}`;
+    const audit = data.laborAudit, auditRows = document.createDocumentFragment();
+    if (audit) {
+      $('auditNote').textContent = `Seed ${audit.seedRange[0]}—${audit.seedRange[1]}，共 ${audit.seedCount} 个；亏损占比是该分局在 2085 年出现经营亏损的 Seed 比例，和上方所选 Seed 无关。`;
+      for (const bureau of audit.bureaus) {
+        const tr = node('tr'); if (bureau.bureau_id===p.bureau_id) tr.className='current-bureau';
+        const name = node('th',bureau.name); name.scope='row'; tr.append(name);
+        for (const g of ['v02','full','adjusted']) tr.append(node('td',`${fixed(bureau.groups[g].end_loss_fraction*100,1)}%`));
+        for (const g of ['v02','full','adjusted']) tr.append(node('td',fixed(bureau.groups[g].end_wage_cost_yi_median)));
+        auditRows.append(tr);
+      }
+    } else $('auditNote').textContent = '当前配置尚无匹配的 96 Seed 对照报告，请重跑人工成本审计并重启服务。';
+    $('laborAuditRows').replaceChildren(auditRows);
     drawChart(); renderYear();
   }
   async function getJSON(url) {
@@ -215,7 +236,7 @@
   $('bureauChartTabs').addEventListener('keydown', event => {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault(); const buttons = [...$('bureauChartTabs').children], i = buttons.findIndex(b => b.dataset.view === view);
-    const next = event.key === 'Home' ? 0 : event.key === 'End' ? 2 : (i + (event.key === 'ArrowLeft' ? -1 : 1) + 3) % 3;
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length-1 : (i + (event.key === 'ArrowLeft' ? -1 : 1) + buttons.length) % buttons.length;
     buttons[next].click(); buttons[next].focus();
   });
   $('randomBureau').addEventListener('click', () => {
@@ -227,8 +248,9 @@
   $('exportBureau').addEventListener('click', () => {
     if (!data) return;
     const columns = [['seed', 'Seed'], ['bureau_name', '铁路分局'], ['model_version', '经营模型版本'], ['bureau_config_hash', '经营配置哈希'], ...annualColumns,
-      ['passenger_index', '客运量指数'], ['freight_index', '货运量指数'], ...inputs.map(([k, n]) => [k+'_cost_yi', n+'成本']), ['fixed_operating_cost_yi', '固定成本合计'], ['volume_operating_cost_yi', '变动成本合计']];
-    for (const [s, name] of segments) for (const [k, label] of inputs) for (const [field, title] of [['fixed_cost_yi', '固定支出'], ['variable_cost_yi', '变动支出'], ['cost_yi', '合计'], ['price_factor', '价格倍数'], ['workload_factor', '工作量倍数']]) columns.push([`${s}.${k}.${field}`, `${name}/${label}/${title}`]);
+      ['passenger_index', '客运量指数'], ['freight_index', '货运量指数'], ...inputs.map(([k, n]) => [k+'_cost_yi', n+'成本']), ['fixed_operating_cost_yi', '固定成本合计'], ['volume_operating_cost_yi', '变动成本合计'],
+      ['regional_wage_index','地区实际工资指数'],['historical_wage_peak_index','历史工资高点指数'],['v02_wage_cost_yi','A原V0.2人工成本'],['full_wage_cost_yi','B工资完全传导人工成本'],['v02_operating_surplus_yi','A原V0.2经营结余'],['full_operating_surplus_yi','B工资完全传导经营结余']];
+    for (const [s, name] of segments) for (const [k, label] of inputs) for (const [field, title] of [['fixed_cost_yi', '固定支出'], ['variable_cost_yi', '变动支出'], ['cost_yi', '合计'], ['price_factor', '价格倍数'], ['unit_cost_factor','综合投入系数'], ['workload_factor', '工作量倍数']]) columns.push([`${s}.${k}.${field}`, `${name}/${label}/${title}`]);
     const quote = value => `"${String(value).replaceAll('"', '""')}"`;
     const lines = [columns.map(([, title]) => quote(title)).join(',')];
     for (const row of data.rows) lines.push(columns.map(([key]) => {

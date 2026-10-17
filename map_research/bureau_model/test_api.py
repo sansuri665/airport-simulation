@@ -51,9 +51,17 @@ class BureauAPITests(unittest.TestCase):
         self.assertEqual(len(data['regionalPrices']), 61)
         self.assertEqual(len(data['bureauConfigHash']), 64)
         self.assertAlmostEqual(data['rows'][0]['cost_yi'], 10.65)
+        self.assertEqual(data['modelVersion'], 'railway-bureau-operations-v0.3')
+        self.assertIsNotNone(data['laborAudit'])
+        self.assertEqual(data['laborAudit']['seedCount'],96)
+        self.assertEqual(len(data['laborAudit']['bureaus']),12)
+        peak=100.
         for row in data['rows']:
             self.assertEqual(row['bureau_id'], 'jiamusi')
             self.assertAlmostEqual(row['cost_yi'], sum(row[k + '_cost_yi'] for k in ('energy', 'wage', 'materials', 'other')))
+            peak=max(peak,row['regional_wage_index'])
+            self.assertEqual(row['historical_wage_peak_index'],peak)
+            self.assertAlmostEqual(row['operating_surplus_yi']-row['v02_operating_surplus_yi'],row['v02_wage_cost_yi']-row['wage_cost_yi'])
         # The existing macro endpoint must still carry the same seed/version.
         macro = self.fetch('/api/economy?seed=20261014')
         self.assertEqual(macro['modelVersion'], data['macroModelVersion'])

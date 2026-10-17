@@ -16,7 +16,18 @@ import zipfile
 
 from economy_model.scenarios import simulate_scenario
 from .import_prototype import read_prototype
-from .operations import INPUTS, SEGMENTS, VERSION, finance, load_profiles, simulate_bureaus
+from .operations import INPUTS, SEGMENTS, finance as current_finance, load_profiles, simulate_bureaus as current_simulate
+
+VERSION = 'railway-bureau-operations-v0.2'
+
+
+def finance(profile, macro, p_index, f_index):
+    return current_finance(profile, macro, p_index, f_index,
+                           wage_peak_index=max(100., macro['wage_real_index']), labor_model='v02')
+
+
+def simulate_bureaus(macro, profiles):
+    return current_simulate(macro, profiles, labor_model='v02')
 
 ROOT = Path(__file__).resolve().parents[1]
 ARCHIVE = ROOT / 'northeast12_bureau_prototype_v01.zip'

@@ -14,6 +14,7 @@ from pathlib import Path
 import zipfile
 
 INPUTS = ('energy', 'wage', 'materials', 'other')
+LABOR_THETA = {'high_speed': .35, 'conventional': .22, 'station': .18}
 PREFERRED_FIXED = {
     'high_speed': (.20, .85, .55, .74),
     'conventional': (.25, .85, .50, .788),
@@ -50,10 +51,14 @@ def read_prototype(path: Path) -> dict:
 
 def migrate(original: dict) -> dict:
     data = copy.deepcopy(original)
-    data['schema'] = 'ne12-prototype-v0.2'
-    data['cost_model'] = 'independent-input-fixed-variable-v0.2'
+    data['schema'] = 'ne12-prototype-v0.3'
+    data['cost_model'] = 'independent-input-peak-wage-adjustment-v0.3'
+    data['labor_adjustment'] = {'peak': 'running_max_raw_regional_wage_at_least_100',
+                                'theta_by_segment': LABOR_THETA,
+                                'reference_beta': 'reference_v02_wage_price_beta is used for audit only'}
     data['fixed_share_calibration'] = 'common_log_odds_shift_preserving_each_segment_fixed_budget'
     for profile in data['bureau_profiles']:
+        profile['reference_v02_wage_price_beta'] = profile['exposure'].pop('wage_price_beta')
         profile['cost_inputs'] = {}
         for segment, preferred in PREFERRED_FIXED.items():
             weights = profile['cost_mix_by_segment'][segment]
@@ -69,6 +74,7 @@ def migrate(original: dict) -> dict:
                 }
                 for kind in INPUTS
             }
+            profile['cost_inputs'][segment]['wage']['labor_adjustment_theta'] = LABOR_THETA[segment]
         for key in ('cost_fixed_share', 'cost_mix_by_segment', 'variable_passenger_share', 'congestion_surcharge'):
             del profile[key]
     return data
