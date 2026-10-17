@@ -1,0 +1,349 @@
+{
+  "schema_version": "railway-real-macro-v0.2.0",
+  "description": "Synthetic railway economy scenario with 8x5 real regional drivers plus one shared national rate and PE. Not empirical forecasts.",
+  "base_year": 2025,
+  "default_years": 60,
+  "default_seed": 20261014,
+  "price_basis": "constant_2025_purchasing_power",
+  "index_base": 100.0,
+  "reference_commit": "5a96d65652146c98c3c1741cd65db3126a63d2b7",
+  "regions": [
+    {
+      "id": "northeast",
+      "name": "东北",
+      "scope": "辽、吉、黑、蒙东",
+      "passenger_initial_trend": 0.009,
+      "freight_initial_trend": 0.01,
+      "wage_initial_trend": 0.018,
+      "energy_pass_through": 0.88,
+      "materials_beta": 1.02,
+      "passenger_cycle_beta": 0.9,
+      "freight_cycle_beta": 1.15,
+      "tourism_exposure": 0.45,
+      "trade_exposure": 0.35,
+      "neighbors": [
+        "north",
+        "east"
+      ]
+    },
+    {
+      "id": "north",
+      "name": "华北",
+      "scope": "京、津、冀、晋",
+      "passenger_initial_trend": 0.014,
+      "freight_initial_trend": 0.014,
+      "wage_initial_trend": 0.022,
+      "energy_pass_through": 0.96,
+      "materials_beta": 1.04,
+      "passenger_cycle_beta": 1.0,
+      "freight_cycle_beta": 1.05,
+      "tourism_exposure": 0.45,
+      "trade_exposure": 0.35,
+      "neighbors": [
+        "northeast",
+        "northwest",
+        "central",
+        "east"
+      ]
+    },
+    {
+      "id": "northwest",
+      "name": "西北",
+      "scope": "蒙西、陕、甘、宁、青、新",
+      "passenger_initial_trend": 0.016,
+      "freight_initial_trend": 0.017,
+      "wage_initial_trend": 0.019,
+      "energy_pass_through": 0.78,
+      "materials_beta": 1.12,
+      "passenger_cycle_beta": 0.9,
+      "freight_cycle_beta": 1.18,
+      "tourism_exposure": 0.55,
+      "trade_exposure": 0.3,
+      "neighbors": [
+        "north",
+        "southwest",
+        "central"
+      ]
+    },
+    {
+      "id": "southwest",
+      "name": "西南",
+      "scope": "藏、川、渝、云、贵",
+      "passenger_initial_trend": 0.022,
+      "freight_initial_trend": 0.018,
+      "wage_initial_trend": 0.02,
+      "energy_pass_through": 0.86,
+      "materials_beta": 1.06,
+      "passenger_cycle_beta": 1.08,
+      "freight_cycle_beta": 1.0,
+      "tourism_exposure": 0.95,
+      "trade_exposure": 0.4,
+      "neighbors": [
+        "northwest",
+        "central",
+        "south"
+      ]
+    },
+    {
+      "id": "south",
+      "name": "华南",
+      "scope": "粤、桂、琼、港、澳",
+      "passenger_initial_trend": 0.018,
+      "freight_initial_trend": 0.017,
+      "wage_initial_trend": 0.024,
+      "energy_pass_through": 1.08,
+      "materials_beta": 0.96,
+      "passenger_cycle_beta": 1.08,
+      "freight_cycle_beta": 1.12,
+      "tourism_exposure": 0.8,
+      "trade_exposure": 1.0,
+      "neighbors": [
+        "southwest",
+        "central",
+        "southeast"
+      ]
+    },
+    {
+      "id": "central",
+      "name": "华中",
+      "scope": "豫、鄂、湘",
+      "passenger_initial_trend": 0.017,
+      "freight_initial_trend": 0.018,
+      "wage_initial_trend": 0.021,
+      "energy_pass_through": 0.98,
+      "materials_beta": 1.03,
+      "passenger_cycle_beta": 1.02,
+      "freight_cycle_beta": 1.06,
+      "tourism_exposure": 0.5,
+      "trade_exposure": 0.5,
+      "neighbors": [
+        "north",
+        "northwest",
+        "southwest",
+        "south",
+        "east",
+        "southeast"
+      ]
+    },
+    {
+      "id": "east",
+      "name": "华东",
+      "scope": "鲁、皖、苏、沪",
+      "passenger_initial_trend": 0.014,
+      "freight_initial_trend": 0.014,
+      "wage_initial_trend": 0.024,
+      "energy_pass_through": 1.05,
+      "materials_beta": 1.0,
+      "passenger_cycle_beta": 1.1,
+      "freight_cycle_beta": 1.12,
+      "tourism_exposure": 0.6,
+      "trade_exposure": 0.95,
+      "neighbors": [
+        "northeast",
+        "north",
+        "central",
+        "southeast"
+      ]
+    },
+    {
+      "id": "southeast",
+      "name": "东南",
+      "scope": "赣、浙、闽、台",
+      "passenger_initial_trend": 0.017,
+      "freight_initial_trend": 0.016,
+      "wage_initial_trend": 0.024,
+      "energy_pass_through": 1.06,
+      "materials_beta": 0.98,
+      "passenger_cycle_beta": 1.08,
+      "freight_cycle_beta": 1.1,
+      "tourism_exposure": 0.8,
+      "trade_exposure": 1.0,
+      "neighbors": [
+        "south",
+        "central",
+        "east"
+      ]
+    }
+  ],
+  "regimes": [
+    "normal",
+    "expansion",
+    "slowdown",
+    "credit_stress",
+    "recovery"
+  ],
+  "regime_names_zh": [
+    "常态",
+    "扩张",
+    "放缓",
+    "信用压力",
+    "修复"
+  ],
+  "transition_matrix": [
+    [
+      0.62,
+      0.2,
+      0.13,
+      0.03,
+      0.02
+    ],
+    [
+      0.25,
+      0.58,
+      0.12,
+      0.04,
+      0.01
+    ],
+    [
+      0.23,
+      0.04,
+      0.5,
+      0.12,
+      0.11
+    ],
+    [
+      0.12,
+      0.01,
+      0.15,
+      0.48,
+      0.24
+    ],
+    [
+      0.4,
+      0.18,
+      0.12,
+      0.02,
+      0.28
+    ]
+  ],
+  "regime_business_impulse": [
+    0.0,
+    0.35,
+    -0.5,
+    -0.82,
+    0.28
+  ],
+  "regime_credit_target": [
+    0.0,
+    -0.25,
+    0.25,
+    1.3,
+    -0.1
+  ],
+  "parameters": {
+    "cycle_radius": 0.76,
+    "cycle_period_years": 8.5,
+    "cycle_noise": 0.5,
+    "cycle_soft_scale": 4.0,
+    "credit_memory": 0.68,
+    "credit_noise": 0.35,
+    "industrial_memory": 0.6,
+    "industrial_cycle_beta": 0.24,
+    "industrial_noise": 0.48,
+    "trade_memory": 0.66,
+    "trade_cycle_beta": 0.15,
+    "trade_noise": 0.52,
+    "sentiment_memory": 0.58,
+    "sentiment_cycle_beta": 0.22,
+    "sentiment_credit_beta": -0.28,
+    "sentiment_noise": 0.65,
+    "productivity_memory": 0.96,
+    "productivity_noise": 0.0014,
+    "energy_memory": 0.66,
+    "energy_cycle_beta": 0.022,
+    "energy_noise": 0.067,
+    "energy_event_probability": 0.085,
+    "energy_event_size_min": 0.16,
+    "energy_event_size_max": 0.32,
+    "energy_event_positive_probability": 0.64,
+    "energy_secular_noise": 0.002,
+    "materials_memory": 0.57,
+    "materials_industry_beta": 0.05,
+    "materials_cycle_beta": 0.018,
+    "materials_supply_beta": 0.28,
+    "materials_noise": 0.042,
+    "materials_secular_noise": 0.0015,
+    "national_real_rate_base_pct": 2.0,
+    "national_rate_memory": 0.62,
+    "national_rate_cycle_pp": 0.4,
+    "national_rate_credit_pp": 0.3,
+    "national_rate_productivity_pp": 25.0,
+    "national_rate_noise_pp": 0.25,
+    "regional_cycle_memory": 0.55,
+    "regional_cycle_spillover": 0.13,
+    "regional_cycle_common": 0.33,
+    "regional_cycle_noise": 0.35,
+    "regional_industry_memory": 0.6,
+    "regional_industry_common": 0.25,
+    "regional_industry_cycle": 0.22,
+    "regional_industry_noise": 0.35,
+    "structure_memory": 0.94,
+    "structure_spillover": 0.02,
+    "passenger_structure_noise": 0.0026,
+    "freight_structure_noise": 0.003,
+    "structure_innovation_common_share": 0.4,
+    "maturation_years": 45.0,
+    "wage_maturation_years": 55.0,
+    "passenger_terminal_trend": 0.005,
+    "freight_terminal_trend": 0.004,
+    "wage_terminal_trend": 0.008,
+    "passenger_structure_beta": 0.8,
+    "freight_structure_beta": 0.9,
+    "passenger_productivity_beta": 0.45,
+    "freight_productivity_beta": 0.6,
+    "wage_structure_beta": 0.18,
+    "wage_productivity_beta": 0.35,
+    "wage_cycle_beta": 0.003,
+    "wage_growth_memory": 0.65,
+    "passenger_common_cycle_log": 0.03,
+    "passenger_regional_cycle_log": 0.04,
+    "passenger_tourism_log": 0.025,
+    "passenger_noise_log": 0.008,
+    "freight_common_cycle_log": 0.035,
+    "freight_regional_cycle_log": 0.05,
+    "freight_industry_log": 0.035,
+    "freight_trade_log": 0.035,
+    "freight_noise_log": 0.009,
+    "regional_energy_memory": 0.65,
+    "regional_energy_cycle_log": 0.012,
+    "regional_energy_noise_log": 0.018,
+    "regional_materials_memory": 0.6,
+    "regional_materials_industry_log": 0.02,
+    "regional_materials_noise_log": 0.022,
+    "rate_floor_pct": -3.0,
+    "rate_cap_pct": 10.0,
+    "pe_memory": 0.52,
+    "pe_rate_sensitivity_per_pp": -0.14,
+    "pe_growth_sensitivity_per_pp": 0.13,
+    "pe_credit_sensitivity": -0.1,
+    "pe_sentiment_sensitivity": 0.12,
+    "pe_regional_cycle_sensitivity": 0.035,
+    "pe_floor": 4.0,
+    "pe_cap": 50.0,
+    "national_pe_base": 14.0,
+    "pe_growth_driver_pp": 0.85
+  },
+  "sources": [
+    {
+      "type": "project_contract",
+      "url": "https://github.com/sansuri665/airport-simulation/blob/5a96d65652146c98c3c1741cd65db3126a63d2b7/docs/models/Global_Macro.md",
+      "use": "Seed, base-row, prefix-stability and common-shock architecture; original engine not executed."
+    },
+    {
+      "type": "project_contract",
+      "url": "https://github.com/sansuri665/airport-simulation/blob/5a96d65652146c98c3c1741cd65db3126a63d2b7/docs/plans/Inflation_System_Memo.md",
+      "use": "Keep price families and real/nominal bases explicit; avoid multiplying all costs by CPI."
+    },
+    {
+      "type": "concept_only",
+      "url": "https://www.ecb.europa.eu/ecb-and-you/explainers/tell-me/html/nominal_and_real_interest_rates.en.html",
+      "use": "Purchasing-power interpretation of real rates, including possible negative real rates."
+    },
+    {
+      "type": "concept_only",
+      "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/invfables/peratio.htm",
+      "use": "PE response to expected growth and required return; no historical ratios imported."
+    }
+  ],
+  "unique_series": 42
+}

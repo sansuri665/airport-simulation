@@ -20,6 +20,35 @@
   ]));
   const hubs = new Set(['北京西','上海虹桥','广州南','武汉','成都东','重庆北','郑州东','西安北','昆明南','兰州西','乌鲁木齐','拉萨','哈尔滨','沈阳','长春','满洲里','漠河','海口','福州','南昌西','台北','高雄','香港西九龙','南宁东','杭州东','济南西','太原南','银川','西宁','喀什','抚远','格尔木','齐齐哈尔']);
   const state = { type: 'all', query: '', selected: null, labels: true, scale: 1, x: 0, y: 0, width: 1000, height: 700 };
+  const returnView=readReturnView();
+  if(returnView) {
+    state.type=['all','high_speed','conventional'].includes(returnView.type)?returnView.type:'all';
+    state.query=typeof returnView.query==='string'?returnView.query:'';
+    state.labels=returnView.labels!==false;
+  }
+
+  function readReturnView() {
+    if(new URLSearchParams(location.search).get('restore')!=='1') return null;
+    try {
+      const saved=JSON.parse(sessionStorage.getItem('railwayMapReturnView'));
+      sessionStorage.removeItem('railwayMapReturnView');
+      if(!saved || !Number.isFinite(saved.scale) || !Number.isFinite(saved.centerX) || !Number.isFinite(saved.centerY)) return null;
+      return saved;
+    } catch { return null; }
+  }
+
+  document.addEventListener('click',event=>{
+    const link=event.target.closest('a.economy-link');
+    if(!link) return;
+    if(link.id==='economyLink') link.href=activeDivision()?`./economy.html?division=${encodeURIComponent(activeDivision().id)}`:'./economy.html';
+    try {
+      sessionStorage.setItem('railwayMapReturnView',JSON.stringify({
+        type:state.type,query:state.query,labels:state.labels,selected:state.selected,
+        scale:state.scale,centerX:(state.width/2-state.x)/state.scale,centerY:(state.height/2-state.y)/state.scale,
+        listScrollTop:document.getElementById('entryList').scrollTop
+      }));
+    } catch { /* 存储不可用时仍可正常打开经济页面。 */ }
+  });
   const divisionNodes = [];
   let shownStations = new Set();
   let shownEdges = new Set();
@@ -208,6 +237,9 @@
       metric.append(element('span','',label),element('strong','',value));stats.append(metric);
     }
     $('divisionBody').append(stats);
+    const economyLink=element('a','page-link economy-link division-economy-link','查看经济环境 ↗');
+    economyLink.href=`./economy.html?division=${encodeURIComponent(d.id)}`;
+    $('divisionBody').append(economyLink);
     const ids=d.commercialStationIds;
     if(ids?.length) {
       const label='可开放车站商业';
@@ -218,6 +250,17 @@
       const list=element('ul','commerce-stations');
       for(const id of ids) list.append(element('li','commerce-station',byStation.get(id).name));
       section.append(heading,list);$('divisionBody').append(section);
+    }
+    const investmentIds=d.stationCityInvestmentIds;
+    if(investmentIds?.length) {
+      const section=element('section','station-commerce station-city-investment');
+      section.setAttribute('aria-label','可开放站城资产投资');
+      const heading=element('div','commerce-heading');
+      heading.append(element('h3','','可开放站城资产投资'),element('span','',`${investmentIds.length} 座`));
+      const list=element('ul','commerce-stations investment-stations');
+      for(const id of investmentIds) list.append(element('li','commerce-station',byStation.get(id).name));
+      section.append(heading,list);
+      $('divisionBody').append(section);
     }
   }
 
@@ -388,10 +431,24 @@
     const rect=stage.getBoundingClientRect(); if(!rect.width||!rect.height)return;
     const previousWidth=state.width,previousHeight=state.height;
     state.width=rect.width;state.height=rect.height;svg.setAttribute('viewBox',`0 0 ${state.width} ${state.height}`);
-    if(!initialized){initialized=true;fitPoints([...shownStations]);}
+    if(!initialized){
+      initialized=true;
+      if(returnView) {
+        state.scale=Math.max(.15,Math.min(40,returnView.scale));
+        state.x=state.width/2-returnView.centerX*state.scale;state.y=state.height/2-returnView.centerY*state.scale;scheduleTransform();
+      } else fitPoints([...shownStations]);
+    }
     else {state.x+=(state.width-previousWidth)/2;state.y+=(state.height-previousHeight)/2;scheduleTransform();}
   }).observe(stage);
   $('totalConnections').textContent=edges.length.toLocaleString('zh-CN');
   $('totalStations').textContent=stations.length.toLocaleString('zh-CN');
+  $('searchInput').value=state.query;
+  document.querySelectorAll('[data-type]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.type===state.type)));
+  $('labelButton').setAttribute('aria-pressed',String(state.labels));
   buildMap(); renderList(); applyFilters();
+  const savedSelection=returnView?.selected;
+  if(savedSelection && (savedSelection.kind==='division'?byDivision.has(savedSelection.id):savedSelection.kind==='station'?byStation.has(savedSelection.id):savedSelection.kind==='edge'&&edgeMap.has(savedSelection.id))) {
+    state.selected=savedSelection;updateSelection();
+  }
+  if(returnView) $('entryList').scrollTop=Number(returnView.listScrollTop)||0;
 })();

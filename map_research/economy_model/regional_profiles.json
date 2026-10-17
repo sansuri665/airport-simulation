@@ -1,0 +1,40 @@
+{
+  "version": "railway-regional-paths-v0.4.0",
+  "duration_years": [10, 22],
+  "adjustment": 0.25,
+  "repeat_weight": 0.22,
+  "states": {
+    "population_decline": {"name": "人口收缩", "passenger": [-0.026, -0.013], "freight": [-0.004, 0.009], "wage": [0.001, 0.009], "activity": -0.25, "energy": -0.015, "materials": -0.015},
+    "stagnation": {"name": "长期调整", "passenger": [-0.012, 0.001], "freight": [-0.013, 0.003], "wage": [-0.004, 0.006], "activity": -0.45, "energy": -0.025, "materials": -0.025},
+    "mature": {"name": "成熟发展", "passenger": [0.002, 0.011], "freight": [-0.002, 0.010], "wage": [0.009, 0.018], "activity": 0.05, "energy": 0.0, "materials": 0.0},
+    "hub_growth": {"name": "枢纽集聚", "passenger": [0.020, 0.035], "freight": [0.004, 0.018], "wage": [0.014, 0.025], "activity": 0.35, "energy": 0.015, "materials": 0.020},
+    "industrial_revival": {"name": "产业复苏", "passenger": [0.007, 0.021], "freight": [0.020, 0.035], "wage": [0.012, 0.024], "activity": 0.40, "energy": 0.025, "materials": 0.030},
+    "industrial_upgrade": {"name": "产业升级", "passenger": [0.007, 0.021], "freight": [-0.009, 0.004], "wage": [0.019, 0.030], "activity": 0.20, "energy": -0.010, "materials": -0.015},
+    "resource_boom": {"name": "资源繁荣", "passenger": [-0.003, 0.012], "freight": [0.027, 0.045], "wage": [0.013, 0.027], "activity": 0.35, "energy": 0.035, "materials": 0.035},
+    "resource_downturn": {"name": "资源低谷", "passenger": [-0.014, 0.001], "freight": [-0.033, -0.015], "wage": [-0.009, 0.004], "activity": -0.50, "energy": -0.045, "materials": -0.040},
+    "trade_boom": {"name": "贸易扩张", "passenger": [0.012, 0.027], "freight": [0.022, 0.040], "wage": [0.016, 0.028], "activity": 0.40, "energy": 0.020, "materials": 0.020},
+    "trade_downturn": {"name": "贸易承压", "passenger": [-0.010, 0.004], "freight": [-0.028, -0.011], "wage": [-0.005, 0.008], "activity": -0.40, "energy": -0.020, "materials": -0.030},
+    "tourism_boom": {"name": "旅游兴起", "passenger": [0.026, 0.045], "freight": [-0.004, 0.009], "wage": [0.010, 0.021], "activity": 0.25, "energy": 0.010, "materials": 0.005},
+    "tourism_downturn": {"name": "旅游低谷", "passenger": [-0.028, -0.010], "freight": [-0.004, 0.008], "wage": [-0.005, 0.006], "activity": -0.30, "energy": -0.010, "materials": -0.010}
+  },
+  "regions": {
+    "northeast": {"population_decline": 52, "stagnation": 16, "mature": 10, "industrial_revival": 16, "hub_growth": 2, "tourism_boom": 4},
+    "north": {"population_decline": 12, "stagnation": 14, "mature": 24, "hub_growth": 24, "industrial_revival": 10, "industrial_upgrade": 16},
+    "northwest": {"stagnation": 10, "mature": 12, "hub_growth": 8, "industrial_revival": 10, "resource_boom": 34, "resource_downturn": 20, "tourism_boom": 6},
+    "southwest": {"population_decline": 5, "stagnation": 12, "mature": 12, "hub_growth": 26, "industrial_revival": 10, "tourism_boom": 26, "tourism_downturn": 9},
+    "south": {"stagnation": 8, "mature": 15, "hub_growth": 16, "industrial_upgrade": 18, "trade_boom": 27, "trade_downturn": 16},
+    "central": {"population_decline": 10, "stagnation": 14, "mature": 20, "hub_growth": 28, "industrial_revival": 20, "industrial_upgrade": 8},
+    "east": {"stagnation": 7, "mature": 24, "hub_growth": 9, "industrial_revival": 8, "industrial_upgrade": 28, "trade_boom": 14, "trade_downturn": 10},
+    "southeast": {"stagnation": 8, "mature": 15, "hub_growth": 10, "industrial_upgrade": 18, "trade_boom": 25, "trade_downturn": 15, "tourism_boom": 9}
+  },
+  "transitions": {
+    "population_decline": {"industrial_revival": 2.0, "hub_growth": 1.4, "tourism_boom": 1.4},
+    "stagnation": {"industrial_revival": 1.8, "hub_growth": 1.5},
+    "resource_boom": {"resource_downturn": 1.8},
+    "resource_downturn": {"resource_boom": 1.8, "industrial_revival": 1.5},
+    "trade_boom": {"trade_downturn": 1.7},
+    "trade_downturn": {"trade_boom": 1.6, "industrial_upgrade": 1.5},
+    "tourism_boom": {"tourism_downturn": 1.7},
+    "tourism_downturn": {"tourism_boom": 1.7, "hub_growth": 1.3}
+  }
+}

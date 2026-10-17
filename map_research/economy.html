@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10191e">
+  <title>经济环境 · 铁路网络</title>
+  <link rel="stylesheet" href="./style.css?v=20261017-economy">
+  <link rel="stylesheet" href="./economy.css?v=20261017-forecast">
+</head>
+<body class="economy-page">
+  <header class="topbar">
+    <a class="brand" href="./railway.html?restore=1"><span class="economy-brand-icon" aria-hidden="true">↗</span><span><span class="brand-name">经济环境</span><span class="brand-caption">RAIL ATLAS / ECONOMY</span></span></a>
+    <a class="page-link" href="./railway.html?restore=1">← 返回铁路网络</a>
+  </header>
+  <main class="economy-workspace">
+    <section class="economy-intro">
+      <div><span class="eyebrow">ECONOMIC ENVIRONMENT</span><h1>铁路经营的经济环境</h1><p id="divisionContext">八个经济区 · 年度价格与运输需求</p></div>
+      <span id="scenarioBadge" class="scenario-badge">研究情景 V0.4 · 合成数据</span>
+    </section>
+    <form id="seedForm" class="seed-panel" aria-label="情景种子设置">
+      <label for="scenarioSeed">情景种子 / SEED</label>
+      <div class="seed-actions"><input id="scenarioSeed" type="text" inputmode="numeric" pattern="[0-9]{1,16}" maxlength="16" value="20261014" autocomplete="off" required aria-describedby="seedHelp"><button id="generateSeed" type="submit">生成情景</button><button id="randomSeed" type="button">随机生成 ↻</button></div>
+      <p id="seedHelp">范围 0—9,007,199,254,740,991。同一种子重现同一走势；不同种子从相同基期生成不同情景。</p>
+      <p id="seedStatus" class="seed-status" role="status" aria-live="polite">当前种子：20261014</p>
+      <div class="scenario-summary" aria-label="当前情景类型">
+        <div class="scenario-profile-heading"><span>情景倾向</span><strong id="scenarioProfile">—</strong><span id="scenarioPhase" class="scenario-phase"></span></div>
+        <p id="scenarioDescription"></p>
+        <details class="scenario-details"><summary>参数与示例 seed</summary><dl><div><dt>周期倾向</dt><dd id="scenarioPeriod">—</dd></div><div><dt>趋势强度</dt><dd id="scenarioGrowth">—</dd></div><div><dt>周期惯性</dt><dd id="scenarioPersistence">—</dd></div></dl><p>这些参数提供情景倾向，实际扩张、放缓与修复仍会随路径变化。</p><div id="scenarioExamples" class="scenario-examples" role="group" aria-label="示例情景种子"><button type="button" data-scenario-seed="2">平稳 · 2</button><button type="button" data-scenario-seed="9">繁荣 · 9</button><button type="button" data-scenario-seed="0">高波动 · 0</button><button type="button" data-scenario-seed="1">大危机 · 1</button><button type="button" data-scenario-seed="7">低迷 · 7</button><button type="button" data-scenario-seed="13">复苏 · 13</button></div></details>
+      </div>
+    </form>
+    <section class="economy-controls" aria-label="经济环境筛选">
+      <label>经济区<select id="economyRegion"><option value="all">全部经济区</option></select></label>
+      <label class="metric-control">查看指标<select id="economyMetric"><option value="passenger_demand_index">客运需求指数</option><option value="freight_demand_index">货运需求指数</option><option value="energy_real_index">电力实际价格指数</option><option value="wage_real_index">实际工资指数</option><option value="materials_real_index">材料实际价格指数</option></select></label>
+      <div class="year-control"><label for="economyYear">样本年份 <strong id="yearLabel">2035</strong></label><div><button id="previousYear" type="button" aria-label="上一年">−</button><input id="economyYear" type="range" min="2025" max="2085" value="2035" aria-label="样本年份"><button id="nextYear" type="button" aria-label="下一年">＋</button></div><span>2025—2085 · 显示截至所选年份</span></div>
+    </section>
+    <div class="economy-layout">
+      <section class="economy-panel chart-panel" aria-labelledby="chartTitle">
+        <div class="panel-heading"><div><span class="eyebrow">REGIONAL INDICES</span><h2 id="chartTitle">客运需求指数</h2></div><span id="chartPeriod">2025—2035</span></div>
+        <div class="forecast-toolbar"><button id="openForecast" type="button" aria-expanded="false" aria-controls="forecastForm" hidden>开始预测</button><span id="forecastSummary"></span><button id="clearForecast" type="button" hidden>移除预测</button></div>
+        <form id="forecastForm" class="forecast-form" hidden>
+          <p id="forecastContext"></p>
+          <div class="forecast-fields"><label>预测起始年份<input id="forecastStart" type="number" min="2025" max="2080" step="1" value="2035" required></label><label>预测年限<select id="forecastHorizon"><option value="2">2 年</option><option value="5" selected>5 年</option><option value="10">10 年</option></select></label><label>期望准确得分<input id="forecastScore" type="number" min="0" max="100" step="1" value="80" required></label></div>
+          <p id="forecastErrorHint" class="economy-note"></p>
+          <p class="economy-note">100 分完全准确；其余分数每次生成新的预测中位线，实际得分在期望附近浮动。切换显示保留结果，样本推进至预测结束后可回看实际得分。</p>
+          <div class="forecast-actions"><button id="generateForecast" type="submit">生成预测</button><button id="closeForecast" type="button">收起设置</button></div>
+          <p id="forecastStatus" class="economy-note" role="status"></p>
+        </form>
+        <p id="forecastReview" class="economy-note" hidden></p>
+        <div class="chart-wrap"><svg id="economyChart" viewBox="0 0 960 420" role="group" aria-label="经济区指标年度曲线"></svg><div id="chartTooltip" class="chart-tooltip" role="tooltip" hidden></div></div>
+        <p class="chart-hint">悬停曲线查看每年数值，也可聚焦图表后用左右键逐年查看。</p>
+        <div id="chartLegend" class="chart-legend" aria-label="曲线图例"></div>
+        <p class="economy-note">各区 2025 年自身指数 = 100。曲线表示相对变化，不代表地区绝对经济规模。</p>
+        <p id="wageNote" class="economy-note" hidden>持续低迷或危机会逐步压低实际工资；工资调整存在滞后，需求改善后再逐步恢复。</p>
+      </section>
+      <aside class="economy-panel finance-panel" aria-label="全国金融参考">
+        <span class="eyebrow">NATIONAL REFERENCE</span><h2>全国金融参考</h2>
+        <div class="finance-number"><span>实际基准利率</span><strong id="realRate">—</strong><small id="rateYear">2035 年 · 全国共同基准</small></div>
+        <p class="economy-note">实际利率为模型中的融资环境参考；具体贷款合同和企业信用利差尚未接入。</p>
+        <details id="valuationDetails"><summary>行业 PE 参考 <span>可选</span></summary><dl><div><dt>行业 PE</dt><dd id="industryPe">—</dd></div><div><dt>行业 PE 参考指数</dt><dd id="valuationIndex">—</dd></div></dl><p class="economy-note">参考指数 = 当年 PE ÷ 基期 PE × 100。PE 不参与当前铁路收入、成本或经营盈余的计算。</p></details>
+      </aside>
+    </div>
+    <section class="economy-panel snapshot-panel" aria-labelledby="snapshotTitle">
+      <div class="panel-heading"><div><span class="eyebrow">ANNUAL SNAPSHOT</span><h2 id="snapshotTitle">2035 年经济区指标</h2></div><span>基期 = 100</span></div>
+      <p class="economy-note">各区拥有独立的长期发展路径，状态会随年份转变；客运、货运和工资可呈现不同走势，同时受全国周期影响。</p>
+      <div class="table-scroll"><table><thead><tr><th scope="col">经济区</th><th scope="col">地区发展状态</th><th scope="col">电力价格</th><th scope="col">工资</th><th scope="col">材料价格</th><th scope="col">客运需求</th><th scope="col">货运需求</th></tr></thead><tbody id="economyTable"></tbody></table></div>
+    </section>
+    <footer class="economy-footer"><span id="scenarioReadout">独立铁路情景 · 种子 20261014 · 2025 年不变价口径</span><span>分局收入、成本与利润待初始化</span></footer>
+  </main>
+  <script src="./railway-economy-data.js?v=20261017-regional-v04"></script>
+  <script src="./railway-divisions.js?v=20261017-economy"></script>
+  <script src="./economy-forecast.js?v=20261017-forecast-scale-v2"></script>
+  <script src="./economy.js?v=20261017-forecast-scale-v2"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{
+  "version": "railway-scenario-presets-v0.3.1",
+  "wage_dynamics": {
+    "wage_labor_market_enabled": true,
+    "wage_slack_memory": 0.65,
+    "wage_demand_loss_memory": 0.94,
+    "wage_demand_loss_beta": 0.04,
+    "wage_weak_trend_reference": 0.012,
+    "wage_weak_trend_beta": 0.7,
+    "wage_activity_pressure_beta": 0.003,
+    "wage_contraction_pressure_beta": 0.12,
+    "wage_slowdown_pressure": 0.003,
+    "wage_credit_pressure": 0.012,
+    "wage_duration_pressure": 0.001,
+    "wage_duration_limit": 6,
+    "wage_pressure_level_years": 5.5,
+    "wage_level_correction": 0.35,
+    "wage_increase_adjustment": 0.25,
+    "wage_decrease_adjustment": 0.55
+  },
+  "profiles": [
+    {
+      "id": "steady", "name": "平稳增长", "weight": 24,
+      "description": "增长温和，波动较小，衰退通常较短。",
+      "ranges": {"trend_multiplier": [0.85, 1.1], "wage_multiplier": [0.85, 1.05], "cycle_period_years": [8, 12], "cycle_radius": [0.64, 0.74], "cycle_noise": [0.22, 0.36], "regional_cycle_noise": [0.18, 0.27], "energy_event_probability": [0.02, 0.045]},
+      "multipliers": {"impulse": 0.55, "credit_noise": 0.7, "industrial_noise": 0.65, "trade_noise": 0.65, "sentiment_noise": 0.65, "energy_noise": 0.6, "materials_noise": 0.65, "productivity_noise": 0.7, "passenger_structure_noise": 0.7, "freight_structure_noise": 0.7, "passenger_noise_log": 0.7, "freight_noise_log": 0.7},
+      "transition_matrix": [[0.79,0.13,0.05,0.005,0.025],[0.18,0.72,0.07,0.005,0.025],[0.28,0.04,0.54,0.02,0.12],[0.13,0.01,0.13,0.48,0.25],[0.30,0.20,0.07,0.005,0.425]]
+    },
+    {
+      "id": "boom", "name": "繁荣扩张", "weight": 20,
+      "description": "增长底色较强，上升阶段较长，也可能经历中途调整。",
+      "ranges": {"trend_multiplier": [1.6, 2.2], "wage_multiplier": [1.15, 1.4], "cycle_period_years": [10, 15], "cycle_radius": [0.78, 0.86], "cycle_noise": [0.32, 0.48], "regional_cycle_noise": [0.28, 0.4], "energy_event_probability": [0.05, 0.09]},
+      "multipliers": {"impulse": 0.85, "productivity_noise": 0.8, "passenger_structure_noise": 0.8, "freight_structure_noise": 0.8},
+      "transition_matrix": [[0.55,0.35,0.06,0.01,0.03],[0.06,0.87,0.05,0.015,0.005],[0.22,0.12,0.45,0.06,0.15],[0.12,0.02,0.14,0.48,0.24],[0.18,0.40,0.06,0.01,0.35]]
+    },
+    {
+      "id": "volatile", "name": "高波动", "weight": 18,
+      "description": "扩张和收缩更猛烈，价格冲击与经营机会交替出现。",
+      "ranges": {"trend_multiplier": [0.85, 1.3], "wage_multiplier": [0.85, 1.2], "cycle_period_years": [5.5, 9], "cycle_radius": [0.78, 0.9], "cycle_noise": [0.75, 1.0], "regional_cycle_noise": [0.4, 0.6], "energy_event_probability": [0.14, 0.2]},
+      "multipliers": {"impulse": 1.35, "credit_noise": 1.5, "industrial_noise": 1.4, "trade_noise": 1.5, "sentiment_noise": 1.4, "energy_noise": 1.4, "materials_noise": 1.45, "energy_event_size_min": 1.25, "energy_event_size_max": 1.25, "passenger_noise_log": 1.3, "freight_noise_log": 1.3},
+      "transition_matrix": [[0.4,0.25,0.20,0.10,0.05],[0.1,0.6,0.18,0.10,0.02],[0.12,0.08,0.48,0.2,0.12],[0.08,0.02,0.16,0.54,0.2],[0.22,0.3,0.15,0.05,0.28]]
+    },
+    {
+      "id": "crisis", "name": "大危机", "weight": 16,
+      "description": "包含一次持续的需求与信用冲击，修复偏慢，并可能留下长期损失。",
+      "ranges": {"trend_multiplier": [0.8, 1.1], "wage_multiplier": [0.85, 1.05], "cycle_period_years": [8, 13], "cycle_radius": [0.78, 0.86], "cycle_noise": [0.38, 0.55], "regional_cycle_noise": [0.28, 0.4], "energy_event_probability": [0.045, 0.08]},
+      "multipliers": {"impulse": 0.8},
+      "transition_matrix": [[0.65,0.16,0.12,0.03,0.04],[0.14,0.70,0.12,0.03,0.01],[0.16,0.03,0.62,0.10,0.09],[0.08,0.01,0.18,0.63,0.10],[0.22,0.12,0.18,0.03,0.45]],
+      "episode": {"start": [7,22], "duration": [3,5], "passenger_loss": [0.28,0.44], "freight_loss": [0.34,0.5], "recovery_delay": [1,3], "recovery_duration": [7,11], "recovery_fraction": [0.3,0.6]}
+    },
+    {
+      "id": "stagnation", "name": "长期低迷", "weight": 12,
+      "description": "趋势增长偏弱，放缓阶段更持久，短暂反弹后仍可能承压。",
+      "ranges": {"trend_multiplier": [0.08, 0.3], "wage_multiplier": [0.25, 0.5], "cycle_period_years": [10, 16], "cycle_radius": [0.78, 0.88], "cycle_noise": [0.28, 0.42], "regional_cycle_noise": [0.2, 0.32], "energy_event_probability": [0.03, 0.065]},
+      "multipliers": {"impulse": 0.6, "productivity_noise": 0.45, "passenger_structure_noise": 0.5, "freight_structure_noise": 0.5, "energy_noise": 0.8, "materials_noise": 0.8},
+      "transition_matrix": [[0.58,0.04,0.30,0.04,0.04],[0.28,0.35,0.28,0.05,0.04],[0.10,0.01,0.80,0.04,0.05],[0.05,0.01,0.19,0.65,0.1],[0.13,0.06,0.25,0.01,0.55]]
+    },
+    {
+      "id": "recovery", "name": "危机后复苏", "weight": 10,
+      "description": "前期遭遇明显冲击，随后逐年修复，需求有机会补回此前损失。",
+      "ranges": {"trend_multiplier": [1.05, 1.35], "wage_multiplier": [0.95, 1.15], "cycle_period_years": [9, 13], "cycle_radius": [0.74, 0.84], "cycle_noise": [0.3, 0.46], "regional_cycle_noise": [0.25, 0.38], "energy_event_probability": [0.035, 0.075]},
+      "multipliers": {"impulse": 0.7, "productivity_noise": 0.8},
+      "transition_matrix": [[0.64,0.22,0.08,0.02,0.04],[0.12,0.77,0.07,0.02,0.02],[0.18,0.07,0.5,0.07,0.18],[0.06,0.01,0.1,0.48,0.35],[0.18,0.22,0.08,0.01,0.51]],
+      "episode": {"start": [4,10], "duration": [2,4], "passenger_loss": [0.22,0.34], "freight_loss": [0.27,0.4], "recovery_delay": [0,1], "recovery_duration": [5,8], "recovery_fraction": [1.0,1.18]}
+    }
+  ]
+}

@@ -13,6 +13,11 @@ button:disabled { opacity:.4; cursor:default; }
 .brand-icon { width:39px; height:39px; padding:6px; border:1px solid #385452; border-radius:10px; color:var(--accent); fill:none; stroke:currentColor; stroke-width:1.6; }
 .brand-name { display:block; font-size:20px; font-weight:600; letter-spacing:.1em; }
 .brand-caption { display:block; margin-top:5px; font-size:9px; letter-spacing:.16em; color:var(--muted); }
+.topbar-actions { display:flex; align-items:center; gap:24px; }
+.page-link { display:inline-flex; align-items:center; justify-content:center; padding:10px 14px; border:1px solid #38504f; border-radius:6px; color:var(--accent); font-size:12px; text-decoration:none; white-space:nowrap; }
+.page-link:hover { background:#203537; }
+.division-economy-link { margin-top:18px; }
+@media(max-width:700px) { .topbar-actions .network-stats { display:none; } .topbar-actions { gap:10px; } }
 .network-stats { display:flex; align-items:center; gap:32px; color:var(--muted); font-size:11px; }
 .network-stats strong { margin-right:5px; font-family:var(--mono); font-size:21px; font-weight:400; color:var(--text); }
 .data-status { border-left:1px solid var(--border); padding-left:28px; }
@@ -121,6 +126,7 @@ input::placeholder { color:#6f858c; }
 .commerce-heading span { color:#81989e; font-size:10px; }
 .commerce-stations { display:flex; flex-wrap:wrap; gap:8px; list-style:none; margin:12px 0 0; padding:0; }
 .commerce-station { padding:7px 10px; border:1px solid #45605d; border-radius:5px; background:#203537; color:var(--accent); font-size:12px; }
+.investment-stations .commerce-station { border-color:#425e70; background:#1d2e3a; color:#b1c9da; }
 @media(min-width:1600px) { .workspace { grid-template-columns:360px minmax(0,1fr); } .explorer-header,.list-toolbar { padding-left:28px; padding-right:28px; } .entry-row { padding-left:28px; padding-right:28px; } }
 @media(max-width:1000px) { .workspace { grid-template-columns:290px minmax(0,1fr); } .topbar { padding:0 20px; } .network-stats { gap:20px; } .data-status { display:none; } .detail-panel { right:16px; width:270px; } .map-hint { display:none; } .map-heading { left:20px; } .map-footer { padding:0 15px; } }
 @media(max-width:700px) { .topbar { height:69px; padding:0 16px; } .brand-name { font-size:17px; } .brand-caption { font-size:8px; } .brand-icon { width:34px; height:34px; } .network-stats { gap:12px; font-size:9px; } .network-stats strong { font-size:16px; } .workspace { height:auto; min-height:0; display:flex; flex-direction:column-reverse; } .map-card { height:58dvh; min-height:340px; } .map-heading { top:16px; left:16px; } .map-heading h2 { font-size:15px; margin-top:6px; } .north-marker { top:17px; right:16px; } .explorer { height:550px; border-top:1px solid var(--border); border-right:0; } .explorer-header { padding:18px 20px 12px; } h1 { margin:9px 0 16px; font-size:16px; } .list-toolbar { padding:0 20px; } .map-legend { bottom:20px; left:16px; gap:12px; } .legend-interchange { display:none!important; } .map-controls { right:12px; bottom:47px; } .map-controls button { min-width:28px; padding:0 5px; } .map-footer { gap:8px; font-size:9px; } .map-footer > span:first-child { display:none; } #selectionReadout { margin-left:0; max-width:70%; margin-right:auto; } .detail-panel { top:12px; bottom:46px; right:12px; max-height:none; width:min(290px,calc(100% - 24px)); } .entry-row { padding:14px 20px; } }
