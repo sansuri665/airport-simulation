@@ -70,6 +70,51 @@ class BureauAPITests(unittest.TestCase):
         self.assertEqual(macro['configHash'], data['macroConfigHash'])
         self.assertNotIn('regional_development_paths', data)
 
+    def test_cash_layer_separate_matching_and_reconciled(self):
+        data = self.fetch('/api/bureau?seed=7&bureau=lhasa')
+        cash = data['cash']
+        self.assertEqual(cash['modelVersion'], 'railway-bureau-annual-cash-dividends-v0.3')
+        self.assertEqual(cash['policy']['annual_window'], 'previous_year_end_for_budget_year')
+        self.assertFalse(cash['policy']['emergency_funding'])
+        self.assertTrue(cash['policy']['allow_negative_cash'])
+        self.assertEqual(len(cash['rows']), 61)
+        self.assertEqual(cash['rows'][0]['cash_closing_yi'], 9.59)
+        self.assertEqual(cash['rows'][0]['cash_operating_proxy_yi'], 0)
+        self.assertEqual(cash['calibrationAudit']['seedCount'], 96)
+        self.assertEqual(cash['calibrationAudit']['configHash'], cash['configHash'])
+        self.assertEqual(cash['calibrationAudit']['bureau']['bureau_id'], 'lhasa')
+        for operating, row in zip(data['rows'], cash['rows']):
+            self.assertEqual(row['seed'], data['seed'])
+            self.assertEqual(row['year'], operating['year'])
+            self.assertAlmostEqual(row['cash_opening_yi'], row['cash_carryover_yi'] + row['cash_state_equity_yi'])
+            self.assertAlmostEqual(row['cash_closing_yi'], row['cash_opening_yi'] + row['cash_operating_proxy_yi'] - row['cash_dividend_yi'])
+            if row['year'] > 2025:
+                self.assertEqual(row['cash_funding_year'], row['year'] - 1)
+                self.assertEqual(row['cash_estimate_basis_year'], row['year'] - 1)
+            self.assertAlmostEqual(operating['revenue_yi'] - operating['cost_yi'], operating['operating_surplus_yi'])
+            self.assertNotIn('cash_closing_yi', operating)
+        self.assertAlmostEqual(sum(e['amount_yi'] for e in cash['capitalEvents'] if e['event_type']=='annual_state_equity'), cash['rows'][-1]['cash_cumulative_equity_yi'])
+        self.assertAlmostEqual(sum(e['amount_yi'] for e in cash['capitalEvents'] if e['event_type']=='annual_shareholder_dividend'), cash['rows'][-1]['cash_cumulative_dividend_yi'])
+        self.assertEqual(len({e['event_id'] for e in cash['capitalEvents']}), len(cash['capitalEvents']))
+
+    def test_dividends_and_cash_accumulation_reference(self):
+        data = self.fetch('/api/bureau?seed=5767783356797806&bureau=shanghai')
+        cash = data['cash']
+        self.assertTrue(cash['policy']['dividends'])
+        self.assertEqual(cash['policy']['dividend_policy']['state_ownership_share'], 1)
+        self.assertEqual(cash['rows'][0]['cash_dividend_yi'], 0)
+        end = cash['rows'][-1]
+        self.assertGreater(end['cash_cumulative_dividend_yi'], 0)
+        self.assertLess(end['cash_closing_yi'], end['cash_without_dividends_closing_yi'])
+        self.assertAlmostEqual(end['cash_cumulative_state_net_investment_yi'], end['cash_cumulative_equity_yi'] - end['cash_cumulative_state_dividend_yi'])
+        self.assertAlmostEqual(end['cash_closing_yi'], end['cash_initial_yi'] + end['cash_cumulative_operating_proxy_yi'] + end['cash_cumulative_equity_yi'] - end['cash_cumulative_dividend_yi'])
+        for r in cash['rows']:
+            if r['cash_dividend_yi'] > 0:
+                self.assertEqual(r['cash_state_equity_yi'], 0)
+                self.assertGreater(r['cash_operating_proxy_yi'], 0)
+                self.assertGreaterEqual(r['cash_closing_yi'], r['cash_dividend_minimum_yi'])
+        self.assertIn('withoutDividends', cash['calibrationAudit']['bureau'])
+
     def test_north_volume_semantics_and_matching_audit(self):
         data=self.fetch('/api/bureau?seed=20261014&bureau=datong')
         self.assertEqual(data['profile']['region_id'],'north')

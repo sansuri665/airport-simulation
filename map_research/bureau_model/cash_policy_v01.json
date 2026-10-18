@@ -1,0 +1,19 @@
+{
+  "version": "annual-window-cash-policy-v0.1",
+  "price_basis": "constant_2025_purchasing_power",
+  "currency_unit": "100_million_CNY",
+  "opening_year": 2025,
+  "rounding_yi": 0.01,
+  "opening_variation": false,
+  "national_control_default": true,
+  "annual_window": "after_current_year_operations",
+  "trigger_reserve_months": 2,
+  "target_reserve_months": 3,
+  "minimum_reserve_yi": 0.5,
+  "expected_loss_basis": "current_year_operating_loss",
+  "expected_loss_years": 1,
+  "emergency_funding": false,
+  "allow_negative_cash": true,
+  "dividends": false,
+  "ownership_changes": false
+}

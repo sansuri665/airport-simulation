@@ -1,0 +1,617 @@
+{
+  "schema": "railway-bureau-policy-votes-fixed-v0.1",
+  "status": "ACTIVE_FIXED_V01",
+  "repository": "sansuri665/airport-simulation",
+  "branch": "map",
+  "price_basis": "game 2025 operating base; votes NOT based on profitability",
+  "total_votes": 1000,
+  "base_votes_each": 3,
+  "variable_pools": {
+    "passenger_trips_10k": 210,
+    "ordinary_freight_tons_10k": 140,
+    "mapped_km_hs_plus_conventional": 140,
+    "stations": 105,
+    "cross_bureau_boundary_connections": 105
+  },
+  "input_totals": {
+    "passenger_trips_10k": 290250,
+    "ordinary_freight_tons_10k": 217240,
+    "mapped_km_hs_plus_conventional": 101963,
+    "stations": 2290,
+    "cross_bureau_boundary_connections": 736
+  },
+  "formula": "raw_v_i = 3 + sum(pool_k * input_ik / total_input_k); assign integer votes by largest remainder, ties broken by bureau_id asc",
+  "region_totals": {
+    "northeast": 104,
+    "north": 103,
+    "northwest": 157,
+    "southwest": 133,
+    "south": 100,
+    "central": 113,
+    "east": 158,
+    "southeast": 132
+  },
+  "regions": [
+    {
+      "region_id": "northeast",
+      "region_name": "东北",
+      "count": 12,
+      "policy_votes": 104,
+      "bureaus": [
+        {
+          "bureau_id": "jiamusi",
+          "name": "佳木斯",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "mudanjiang",
+          "name": "牡丹江",
+          "policy_votes": 7
+        },
+        {
+          "bureau_id": "qiqihar",
+          "name": "齐齐哈尔",
+          "policy_votes": 10
+        },
+        {
+          "bureau_id": "harbin",
+          "name": "哈尔滨",
+          "policy_votes": 11
+        },
+        {
+          "bureau_id": "meihekou",
+          "name": "梅河口",
+          "policy_votes": 6
+        },
+        {
+          "bureau_id": "changchun",
+          "name": "长春",
+          "policy_votes": 12
+        },
+        {
+          "bureau_id": "siping",
+          "name": "四平",
+          "policy_votes": 5
+        },
+        {
+          "bureau_id": "tongliao",
+          "name": "通辽",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "shenyang",
+          "name": "沈阳",
+          "policy_votes": 11
+        },
+        {
+          "bureau_id": "dalian",
+          "name": "大连",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "jinzhou",
+          "name": "锦州",
+          "policy_votes": 10
+        },
+        {
+          "bureau_id": "chifeng",
+          "name": "赤峰",
+          "policy_votes": 8
+        }
+      ]
+    },
+    {
+      "region_id": "north",
+      "region_name": "华北",
+      "count": 10,
+      "policy_votes": 103,
+      "bureaus": [
+        {
+          "bureau_id": "zhangjiakou",
+          "name": "张家口",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "beijing",
+          "name": "北京",
+          "policy_votes": 17
+        },
+        {
+          "bureau_id": "tangshan",
+          "name": "唐山",
+          "policy_votes": 9
+        },
+        {
+          "bureau_id": "tianjin",
+          "name": "天津",
+          "policy_votes": 12
+        },
+        {
+          "bureau_id": "xiongan",
+          "name": "雄安",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "shijiazhuang",
+          "name": "石家庄",
+          "policy_votes": 12
+        },
+        {
+          "bureau_id": "datong",
+          "name": "大同",
+          "policy_votes": 10
+        },
+        {
+          "bureau_id": "taiyuan",
+          "name": "太原",
+          "policy_votes": 12
+        },
+        {
+          "bureau_id": "changzhi",
+          "name": "长治",
+          "policy_votes": 7
+        },
+        {
+          "bureau_id": "houma",
+          "name": "侯马",
+          "policy_votes": 8
+        }
+      ]
+    },
+    {
+      "region_id": "northwest",
+      "region_name": "西北",
+      "count": 20,
+      "policy_votes": 157,
+      "bureaus": [
+        {
+          "bureau_id": "jining",
+          "name": "集宁",
+          "policy_votes": 6
+        },
+        {
+          "bureau_id": "hohhot",
+          "name": "呼和浩特",
+          "policy_votes": 6
+        },
+        {
+          "bureau_id": "baotou",
+          "name": "包头",
+          "policy_votes": 11
+        },
+        {
+          "bureau_id": "yinchuan",
+          "name": "银川",
+          "policy_votes": 7
+        },
+        {
+          "bureau_id": "zhongwei",
+          "name": "中卫",
+          "policy_votes": 6
+        },
+        {
+          "bureau_id": "xian",
+          "name": "西安",
+          "policy_votes": 14
+        },
+        {
+          "bureau_id": "baoji",
+          "name": "宝鸡",
+          "policy_votes": 6
+        },
+        {
+          "bureau_id": "ankang",
+          "name": "安康",
+          "policy_votes": 6
+        },
+        {
+          "bureau_id": "suidexi",
+          "name": "绥德",
+          "policy_votes": 6
+        },
+        {
+          "bureau_id": "lanzhou",
+          "name": "兰州",
+          "policy_votes": 12
+        },
+        {
+          "bureau_id": "pingliang",
+          "name": "平凉",
+          "policy_votes": 7
+        },
+        {
+          "bureau_id": "wuwei",
+          "name": "武威",
+          "policy_votes": 5
+        },
+        {
+          "bureau_id": "zhangye",
+          "name": "张掖",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "xining",
+          "name": "西宁",
+          "policy_votes": 6
+        },
+        {
+          "bureau_id": "golmud",
+          "name": "格尔木",
+          "policy_votes": 9
+        },
+        {
+          "bureau_id": "hami",
+          "name": "哈密",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "urumqi",
+          "name": "乌鲁木齐",
+          "policy_votes": 9
+        },
+        {
+          "bureau_id": "kuitun",
+          "name": "奎屯",
+          "policy_votes": 9
+        },
+        {
+          "bureau_id": "korla",
+          "name": "库尔勒",
+          "policy_votes": 9
+        },
+        {
+          "bureau_id": "kashgar",
+          "name": "喀什",
+          "policy_votes": 7
+        }
+      ]
+    },
+    {
+      "region_id": "southwest",
+      "region_name": "西南",
+      "count": 12,
+      "policy_votes": 133,
+      "bureaus": [
+        {
+          "bureau_id": "lhasa",
+          "name": "拉萨",
+          "policy_votes": 9
+        },
+        {
+          "bureau_id": "chengdu",
+          "name": "成都",
+          "policy_votes": 22
+        },
+        {
+          "bureau_id": "chongqing",
+          "name": "重庆",
+          "policy_votes": 18
+        },
+        {
+          "bureau_id": "guangyuan",
+          "name": "广元",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "dazhou",
+          "name": "达州",
+          "policy_votes": 7
+        },
+        {
+          "bureau_id": "wanzhou",
+          "name": "万州",
+          "policy_votes": 7
+        },
+        {
+          "bureau_id": "yibin",
+          "name": "宜宾",
+          "policy_votes": 9
+        },
+        {
+          "bureau_id": "guiyang",
+          "name": "贵阳",
+          "policy_votes": 12
+        },
+        {
+          "bureau_id": "liupanshui",
+          "name": "六盘水",
+          "policy_votes": 10
+        },
+        {
+          "bureau_id": "kunming",
+          "name": "昆明",
+          "policy_votes": 14
+        },
+        {
+          "bureau_id": "dali",
+          "name": "大理",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "yuxi",
+          "name": "玉溪",
+          "policy_votes": 9
+        }
+      ]
+    },
+    {
+      "region_id": "south",
+      "region_name": "华南",
+      "count": 8,
+      "policy_votes": 100,
+      "bureaus": [
+        {
+          "bureau_id": "nanning",
+          "name": "南宁",
+          "policy_votes": 14
+        },
+        {
+          "bureau_id": "liuzhou",
+          "name": "柳州",
+          "policy_votes": 11
+        },
+        {
+          "bureau_id": "guilin",
+          "name": "桂林",
+          "policy_votes": 10
+        },
+        {
+          "bureau_id": "guangzhou",
+          "name": "广州",
+          "policy_votes": 24
+        },
+        {
+          "bureau_id": "shenzhen",
+          "name": "深圳",
+          "policy_votes": 16
+        },
+        {
+          "bureau_id": "shantou",
+          "name": "汕头",
+          "policy_votes": 9
+        },
+        {
+          "bureau_id": "zhanjiang",
+          "name": "湛江",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "haikou",
+          "name": "海口",
+          "policy_votes": 8
+        }
+      ]
+    },
+    {
+      "region_id": "central",
+      "region_name": "华中",
+      "count": 11,
+      "policy_votes": 113,
+      "bureaus": [
+        {
+          "bureau_id": "zhengzhou",
+          "name": "郑州",
+          "policy_votes": 14
+        },
+        {
+          "bureau_id": "jiaozuo",
+          "name": "焦作",
+          "policy_votes": 9
+        },
+        {
+          "bureau_id": "luoyang",
+          "name": "洛阳",
+          "policy_votes": 6
+        },
+        {
+          "bureau_id": "shangqiu",
+          "name": "商丘",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "nanyang",
+          "name": "南阳",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "xiangyang",
+          "name": "襄阳",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "yichang",
+          "name": "宜昌",
+          "policy_votes": 10
+        },
+        {
+          "bureau_id": "wuhan",
+          "name": "武汉",
+          "policy_votes": 16
+        },
+        {
+          "bureau_id": "changsha",
+          "name": "长沙",
+          "policy_votes": 13
+        },
+        {
+          "bureau_id": "hengyang",
+          "name": "衡阳",
+          "policy_votes": 11
+        },
+        {
+          "bureau_id": "huaihua",
+          "name": "怀化",
+          "policy_votes": 10
+        }
+      ]
+    },
+    {
+      "region_id": "east",
+      "region_name": "华东",
+      "count": 14,
+      "policy_votes": 158,
+      "bureaus": [
+        {
+          "bureau_id": "jinan",
+          "name": "济南",
+          "policy_votes": 18
+        },
+        {
+          "bureau_id": "qingdao",
+          "name": "青岛",
+          "policy_votes": 16
+        },
+        {
+          "bureau_id": "weifang",
+          "name": "潍坊",
+          "policy_votes": 9
+        },
+        {
+          "bureau_id": "hefei",
+          "name": "合肥",
+          "policy_votes": 13
+        },
+        {
+          "bureau_id": "bengbu",
+          "name": "蚌埠",
+          "policy_votes": 7
+        },
+        {
+          "bureau_id": "fuyang",
+          "name": "阜阳",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "huangshan",
+          "name": "黄山",
+          "policy_votes": 6
+        },
+        {
+          "bureau_id": "nanjing",
+          "name": "南京",
+          "policy_votes": 16
+        },
+        {
+          "bureau_id": "xuzhou",
+          "name": "徐州",
+          "policy_votes": 7
+        },
+        {
+          "bureau_id": "suzhou",
+          "name": "苏州",
+          "policy_votes": 13
+        },
+        {
+          "bureau_id": "nantong",
+          "name": "南通",
+          "policy_votes": 9
+        },
+        {
+          "bureau_id": "lianyungang",
+          "name": "连云港",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "huaian",
+          "name": "淮安",
+          "policy_votes": 9
+        },
+        {
+          "bureau_id": "shanghai",
+          "name": "上海",
+          "policy_votes": 19
+        }
+      ]
+    },
+    {
+      "region_id": "southeast",
+      "region_name": "东南",
+      "count": 13,
+      "policy_votes": 132,
+      "bureaus": [
+        {
+          "bureau_id": "hangzhou",
+          "name": "杭州",
+          "policy_votes": 13
+        },
+        {
+          "bureau_id": "ningbo",
+          "name": "宁波",
+          "policy_votes": 11
+        },
+        {
+          "bureau_id": "jinhua",
+          "name": "金华",
+          "policy_votes": 10
+        },
+        {
+          "bureau_id": "wenzhou",
+          "name": "温州",
+          "policy_votes": 7
+        },
+        {
+          "bureau_id": "nanchang",
+          "name": "南昌",
+          "policy_votes": 11
+        },
+        {
+          "bureau_id": "jiujiang",
+          "name": "九江",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "shangrao",
+          "name": "上饶",
+          "policy_votes": 7
+        },
+        {
+          "bureau_id": "ganzhou",
+          "name": "赣州",
+          "policy_votes": 11
+        },
+        {
+          "bureau_id": "fuzhou",
+          "name": "福州",
+          "policy_votes": 12
+        },
+        {
+          "bureau_id": "xiamen",
+          "name": "厦门",
+          "policy_votes": 10
+        },
+        {
+          "bureau_id": "longyan",
+          "name": "龙岩",
+          "policy_votes": 8
+        },
+        {
+          "bureau_id": "taipei",
+          "name": "台北",
+          "policy_votes": 12
+        },
+        {
+          "bureau_id": "kaohsiung",
+          "name": "高雄",
+          "policy_votes": 12
+        }
+      ]
+    }
+  ],
+  "governance": {
+    "equity_units_per_company": 400,
+    "equity_percent_per_unit": 0.25,
+    "ordinary_yes_units_min": 201,
+    "special_yes_units_min": 267,
+    "votes_cast_as_single_block": true,
+    "if_no_valid_resolution": "ABSTAIN"
+  },
+  "notes": [
+    "Initial allocation is fixed: national total 1000 votes across 100 companies. Runtime reads the explicit policyVotes values in railway-divisions.js; this JSON records the matching initial allocation.",
+    "Variable pools, input totals and formula document the initial allocation only. No recalculation by year, seed, demand, profit, financing, hidden settlement, ownership concentration or map changes in V0.1.",
+    "Candidate weights rely on fictional baseline volumes and geodesic map km, not observed operating accounts or full OD transport.",
+    "Company voting weights are non-consumable policy voting rights, not financial revenue, expense or a spendable point balance.",
+    "Governance records the proposal for company voting. National policy passage rules and actual voting actions are not implemented by this configuration."
+  ],
+  "allocation_mode": "fixed",
+  "reapportionment": "NONE_IN_V01"
+}

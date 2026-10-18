@@ -230,10 +230,12 @@
     stats.title='完整分局统计；里程按站点连线估算，交界仅计本局半段。';
     for(const [label,value] of [
       ['管辖站点',`${d.stationIds.size} 个`],
+      ['政策票',`${d.policyVotes} 票`],
       ['高速里程',`约 ${Math.round(d.lengthKm.high_speed).toLocaleString('zh-CN')} 公里`],
       ['普速里程',`约 ${Math.round(d.lengthKm.conventional).toLocaleString('zh-CN')} 公里`]
     ]) {
       const metric=element('div','division-stat');
+      if(label==='政策票') metric.title='初版固定票权 · 全国共 1000 票';
       metric.append(element('span','',label),element('strong','',value));stats.append(metric);
     }
     $('divisionBody').append(stats);

@@ -7,7 +7,7 @@
   <title>分局经营试算 · 铁路网络</title>
   <link rel="stylesheet" href="./style.css?v=20261017-economy">
   <link rel="stylesheet" href="./economy.css?v=20261017-forecast">
-  <link rel="stylesheet" href="./bureau.css?v=20261018-national">
+  <link rel="stylesheet" href="./bureau.css?v=20261018-cash-dividends-v03">
 </head>
 <body class="economy-page bureau-page">
   <header class="topbar">
@@ -32,41 +32,75 @@
         <input id="bureauYear" type="range" min="2025" max="2085" value="2085" aria-label="查看年份">
         <span>2025 基期 + 60 年情景</span>
       </div>
-      <section class="bureau-kpis" aria-label="经营摘要">
+      <section id="operatingSummary" class="bureau-kpis" aria-label="经营摘要">
         <div class="bureau-kpi"><span id="surplusLabel">当年经营结余</span><strong id="yearSurplus">—</strong><small>亿元 · 收入减运营成本</small></div>
         <div class="bureau-kpi"><span>当年总收入</span><strong id="yearRevenue">—</strong><small id="revenueChange">—</small></div>
         <div class="bureau-kpi"><span>当年总成本</span><strong id="yearCost">—</strong><small id="costChange">—</small></div>
         <div class="bureau-kpi"><span>60 年累计经营结余</span><strong id="totalSurplus">—</strong><small id="lossYears">2026—2085 · 不含基期</small></div>
       </section>
+      <section id="cashSummary" class="bureau-kpis" aria-label="现金摘要" hidden>
+        <div class="bureau-kpi"><span>2025 年初始现金</span><strong id="cashInitial">—</strong><small>亿元 · 开局余额</small></div>
+        <div class="bureau-kpi"><span id="cashClosingLabel">当年期末现金</span><strong id="cashClosing">—</strong><small id="cashRisk">—</small></div>
+        <div class="bureau-kpi"><span id="cashEquityLabel">本年度国铁增资</span><strong id="cashEquity">—</strong><small id="cashEquityTiming">上年末到账 · 亿元</small></div>
+        <div class="bureau-kpi"><span>累计国铁增资</span><strong id="cashCumulative">—</strong><small id="cashFundedYears">—</small></div>
+        <div class="bureau-kpi"><span>当年分红</span><strong id="cashYearDividend">—</strong><small>亿元 · 年末支付给股东</small></div>
+        <div class="bureau-kpi"><span>累计分红</span><strong id="cashCumulativeDividend">—</strong><small>亿元 · 当前国铁获得100%</small></div>
+        <div class="bureau-kpi"><span>累计国铁净投入</span><strong id="cashNetInvestment">—</strong><small>增资减国铁分红 · 负数表示净回流</small></div>
+        <div class="bureau-kpi"><span>不分红参考期末现金</span><strong id="cashWithoutDividend">—</strong><small>亿元 · 相同经营路径</small></div>
+      </section>
       <div class="bureau-main-grid">
         <section class="economy-panel bureau-chart-panel" aria-labelledby="bureauChartTitle">
           <div class="panel-heading"><div><span class="eyebrow">LONG-RUN PATH</span><h2 id="bureauChartTitle">经营收支</h2></div><span id="bureauChartUnit">亿元／年 · 2025 年不变价</span></div>
-          <div id="bureauChartTabs" class="bureau-tabs" role="tablist" aria-label="曲线类型"><button type="button" role="tab" id="tabAccounts" aria-controls="bureauChartPanel" aria-selected="true" tabindex="0" data-view="accounts">经营收支</button><button type="button" role="tab" id="tabInputs" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="inputs">成本投入</button><button type="button" role="tab" id="tabVolumes" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="volumes">业务规模</button><button type="button" role="tab" id="tabLabor" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="labor">人工对照</button><button type="button" role="tab" id="tabFreight" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="freight">货运收入</button></div>
+          <div id="bureauChartTabs" class="bureau-tabs" role="tablist" aria-label="曲线类型"><button type="button" role="tab" id="tabAccounts" aria-controls="bureauChartPanel" aria-selected="true" tabindex="0" data-view="accounts">经营收支</button><button type="button" role="tab" id="tabInputs" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="inputs">成本投入</button><button type="button" role="tab" id="tabVolumes" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="volumes">业务规模</button><button type="button" role="tab" id="tabLabor" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="labor">人工对照</button><button type="button" role="tab" id="tabFreight" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="freight">货运收入</button><button type="button" role="tab" id="tabCash" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="cash">现金与分红</button><button type="button" role="tab" id="tabCashCompare" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="cash_compare">现金积累对照</button></div>
           <div id="bureauChartPanel" role="tabpanel" aria-labelledby="tabAccounts">
             <div class="chart-wrap"><svg id="bureauChart" viewBox="0 0 960 370" role="group" aria-label="分局六十年经营曲线"></svg><div id="bureauTooltip" class="chart-tooltip" role="tooltip" hidden></div></div>
             <div id="bureauLegend" class="chart-legend"></div>
             <p class="chart-hint">悬停查看年度数据；点击曲线或拖动年份同步下方明细。图表聚焦后可用左右键选年。</p>
           </div>
         </section>
-        <aside class="economy-panel bureau-cost-panel" aria-labelledby="costTitle">
+        <aside id="bureauCostPanel" class="economy-panel bureau-cost-panel" aria-labelledby="costTitle">
           <span class="eyebrow">INPUT COMPOSITION</span><h2 id="costTitle">2085 年成本结构</h2>
           <div id="inputComposition"></div>
           <div class="bureau-cost-key"><i></i>固定部分 <i></i>变动部分</div>
           <p id="fixedReadout" class="economy-note"></p>
           <div class="bureau-volume-readout"><div><span>客运量</span><strong id="passengerVolume">—</strong></div><div><span>普通货运量</span><strong id="freightVolume">—</strong></div><div id="hiddenVolumeRow" hidden><span>隐藏等效结算量</span><strong id="hiddenFreightVolume">—</strong></div></div>
         </aside>
+        <aside id="cashNotesPanel" class="economy-panel bureau-cost-panel" hidden>
+          <span class="eyebrow">ANNUAL CAPITAL WINDOW</span><h2>年度现金安排</h2>
+          <div class="bureau-volume-readout"><div><span>上年结转现金</span><strong id="cashBefore">—</strong></div><div><span>预计年末现金（补资前）</span><strong id="cashProjected">—</strong></div><div><span>预计年末储备线</span><strong id="cashTrigger">—</strong></div><div><span>本年度期初现金目标</span><strong id="cashTarget">—</strong></div><div><span>本年度预计亏损</span><strong id="cashExpectedLoss">—</strong></div></div>
+          <p id="cashTiming" class="economy-note"></p>
+          <p class="economy-note">上一年末安排本年度增资。用上年盈亏估计本年度结余；预计年末现金低于两个月成本储备时，补足期初现金至三个月成本储备加一年预计亏损。成本也使用上年已知值，最低储备0.5亿元。</p>
+          <p class="economy-note">当前均按国铁控股、年度足额补资试算。允许负现金，无计划外垫款或自动代管。增资独立记账，不进入收入和利润。</p>
+        </aside>
       </div>
+      <section id="cashDividendPanel" class="economy-panel bureau-labor" aria-labelledby="dividendTitle" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">SHAREHOLDER DISTRIBUTION</span><h2 id="dividendTitle">年末分红</h2></div><span>50%利润 + 50%超额现金</span></div>
+        <div class="labor-cards"><div><span>利润分红</span><strong id="dividendProfit">—</strong><small>正经营结余的50%，受现金储备约束</small></div><div><span>超额现金分红</span><strong id="dividendExcess">—</strong><small>利润分红后，超过充裕现金线部分的50%</small></div><div><span>分红后最低保留现金</span><strong id="dividendReserve">—</strong><small>六个月成本 + 一年预计亏损，至少0.5亿元</small></div></div>
+        <p id="dividendReadout" class="economy-note"></p><p class="economy-note">充裕现金线为一年运营成本加一年预计亏损，依据本年已知数据计算。本年度亏损或接受过国铁增资则不分红。当前均为国铁100%持股；分红只减少现金，不减少经营结余。</p>
+      </section>
+      <section id="cashLedgerPanel" class="economy-panel snapshot-panel bureau-annual" aria-labelledby="cashLedgerTitle" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">CASH LEDGER / 2025—2085</span><h2 id="cashLedgerTitle">年度现金流水</h2></div><button id="exportCash" class="bureau-secondary" type="button">导出现金 CSV ↓</button></div>
+        <p class="economy-note">期初可用现金＝上年结转＋本年度增资（上年末到账）；年末现金＝期初可用现金＋当年经营结余现金近似−年末分红。2025行只展示开局快照，首笔2025年末增资列入2026行，不重复记账。金额按0.01亿元结算。</p>
+        <div class="table-scroll annual-scroll"><table><thead><tr><th>经营年度</th><th>到账年份（年末）</th><th>上年结转</th><th>本年度增资</th><th>期初可用现金</th><th>当年经营结余现金近似</th><th>年末分红</th><th>年末现金</th><th>累计国铁增资</th><th>累计分红</th><th>累计国铁净投入</th></tr></thead><tbody id="cashLedgerRows"></tbody></table></div>
+      </section>
+      <section id="cashAuditPanel" class="economy-panel snapshot-panel bureau-audit" aria-labelledby="cashAuditTitle" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">CASH PRESSURE / 96 SEEDS</span><h2 id="cashAuditTitle">96 个 Seed · 现金与补资</h2></div><span>2026—2085</span></div>
+        <p id="cashAuditNote" class="economy-note"></p>
+        <div class="labor-cards"><div><span>累计分红中位数</span><strong id="cashAuditDividend">—</strong><small>亿元 · 本局60年累计</small></div><div><span>分红后期末现金中位数</span><strong id="cashAuditCash">—</strong><small>亿元 · 2085年</small></div><div><span>不分红期末现金中位数</span><strong id="cashAuditWithoutCash">—</strong><small>亿元 · 相同96条经营路径</small></div><div><span>累计增资中位数</span><strong id="cashAuditEquity">—</strong><small>亿元 · 本局60年累计</small></div><div><span>国铁净投入中位数</span><strong id="cashAuditNet">—</strong><small>亿元 · 增资减国铁获得的分红</small></div><div><span>本局曾有年末负现金</span><strong id="cashAuditNegative">—</strong><small>按实际年末余额统计</small></div></div>
+        <div class="table-scroll"><table><thead><tr><th>铁路分局</th><th>累计分红中位数</th><th>期末现金</th><th>不分红参考现金</th><th>累计增资中位数</th><th>国铁净投入中位数</th><th>补资年份数中位数</th><th>曾有年末负现金</th></tr></thead><tbody id="cashAuditRows"></tbody></table></div>
+        <p class="economy-note">统计固定使用Seed 0—95，与上方所选Seed无关。现金和金额列均为中位数；分别计算后不必相加减相等。分红与不分红使用相同经营路径，增资会随各自余额重新计算。本版尚无新增投资、现金利息或公共补资总预算约束。</p>
+      </section>
       <section id="hiddenFreightPanel" class="economy-panel bureau-settlement" aria-labelledby="hiddenFreightTitle" hidden><div class="panel-heading"><div><span class="eyebrow">NET FREIGHT SETTLEMENT</span><h2 id="hiddenFreightTitle">地图外货运净结算</h2></div><span id="settlementScale"></span></div><div class="labor-cards"><div><span>普通货运收入</span><strong id="ordinaryFreightIncome">—</strong><small>常规业务及其运营成本</small></div><div><span>隐藏货运净结算</span><strong id="hiddenFreightIncome">—</strong><small>外部直接费用扣除后的净收入</small></div><div><span>货运收入合计</span><strong id="totalFreightIncome">—</strong><small>并入既有货运收入科目</small></div></div><p id="settlementReadout" class="economy-note"></p><p class="economy-note">隐藏等效结算量单列，不与普通运输吨数相加，不进入成本工作量，也不新增站务收入或地图线路。净结算随本分局货运指数及单位收益变化；各家独立核算。</p></section>
-      <section class="economy-panel bureau-labor" aria-labelledby="laborTitle">
+      <section id="laborPanel" class="economy-panel bureau-labor" aria-labelledby="laborTitle">
         <div class="panel-heading"><div><span class="eyebrow">WAGE TRANSMISSION</span><h2 id="laborTitle">2085 年人工成本对照</h2></div><span id="wagePeakReadout"></span></div>
         <div class="labor-cards"><div><span>A · 原 V0.2</span><strong id="laborBefore">—</strong><small>原工资弹性，无高点调整</small></div><div><span>B · 工资完全传导</span><strong id="laborFull">—</strong><small>地区工资 × 当年用工工作量</small></div><div><span>C · 当前规则</span><strong id="laborAfter">—</strong><small>工资完全传导 + 历史高点调整</small></div></div>
         <p id="laborEffect" class="economy-note"></p><p id="laborTheta" class="economy-note"></p>
       </section>
-      <section class="economy-panel snapshot-panel bureau-detail" aria-labelledby="detailTitle">
+      <section id="costDetailPanel" class="economy-panel snapshot-panel bureau-detail" aria-labelledby="detailTitle">
         <div class="panel-heading"><div><span class="eyebrow">ANNUAL COST DETAIL</span><h2 id="detailTitle">2085 年 · 十二项成本明细</h2></div><span>亿元／年</span></div>
         <div class="table-scroll"><table><thead><tr><th scope="col">业务 / 投入</th><th scope="col">固定支出</th><th scope="col">变动支出</th><th scope="col">合计</th><th scope="col">价格倍数</th><th scope="col">综合投入系数</th><th scope="col">变动工作量倍数</th></tr></thead><tbody id="costDetailRows"></tbody></table></div>
       </section>
-      <section class="economy-panel snapshot-panel bureau-annual" aria-labelledby="annualTitle">
+      <section id="operatingAnnualPanel" class="economy-panel snapshot-panel bureau-annual" aria-labelledby="annualTitle">
         <div class="panel-heading"><div><span class="eyebrow">COMPLETE ANNUAL SERIES</span><h2 id="annualTitle">2025—2085 年度账目</h2></div><button id="exportBureau" class="bureau-secondary" type="button">导出年度 CSV ↓</button></div>
         <p class="economy-note">点击年份查看当年成本明细。客运量为万人次，普通货运量为万吨；隐藏等效量仅用于结算对账。金额为亿元。</p>
         <div class="table-scroll annual-scroll"><table><thead><tr><th scope="col">年份</th><th scope="col">客运量</th><th scope="col">普通货运量</th><th scope="col">隐藏等效量</th><th scope="col">客运收入</th><th scope="col">普通货运收入</th><th scope="col">隐藏净结算</th><th scope="col">货运收入合计</th><th scope="col">站务收入</th><th scope="col">高速成本</th><th scope="col">普速成本</th><th scope="col">站务成本</th><th scope="col">总收入</th><th scope="col">总成本</th><th scope="col">经营结余</th></tr></thead><tbody id="annualRows"></tbody></table></div>
@@ -80,10 +114,10 @@
         <div class="table-scroll"><table><thead><tr><th>铁路分局</th><th id="referenceLossHead">原亏损占比</th><th>当前亏损占比</th><th id="referenceSurplusHead">原结余中位数</th><th>当前结余中位数</th><th>基期净结算</th></tr></thead><tbody id="calibrationRows"></tbody></table></div>
         <p id="calibrationScopeNote" class="economy-note">同一组 Seed 0—95、客货运和成本路径。地区金额先逐 Seed 加总再取中位数；亏损样本占比按“分局×Seed”统计。累计为2026—2085年。东北独立新增收入，华北保持90%原基值，不设跨区域资金池。</p>
       </section>
-      <details class="economy-panel bureau-config"><summary>查看当前成本配置 <span>基期金额、固定比例、业务量权重与 θ</span></summary><p class="economy-note">能源和材料跟随各自价格指数；人工使用地区原始工资倍数 × 历史工资高点倍数的 −θ 次方。其他投入的实际价格暂时固定。拥挤附加仅作用于能源和材料。</p><div class="table-scroll"><table><thead><tr><th>业务 / 投入</th><th>基期金额（亿元）</th><th>固定比例</th><th>变动比例</th><th>变动部分客运权重</th><th>拥挤系数（客 / 货）</th><th>人工调整 θ</th></tr></thead><tbody id="configRows"></tbody></table></div><p id="configReference" class="economy-note"></p></details>
+      <details id="operatingConfig" class="economy-panel bureau-config"><summary>查看当前成本配置 <span>基期金额、固定比例、业务量权重与 θ</span></summary><p class="economy-note">能源和材料跟随各自价格指数；人工使用地区原始工资倍数 × 历史工资高点倍数的 −θ 次方。其他投入的实际价格暂时固定。拥挤附加仅作用于能源和材料。</p><div class="table-scroll"><table><thead><tr><th>业务 / 投入</th><th>基期金额（亿元）</th><th>固定比例</th><th>变动比例</th><th>变动部分客运权重</th><th>拥挤系数（客 / 货）</th><th>人工调整 θ</th></tr></thead><tbody id="configRows"></tbody></table></div><p id="configReference" class="economy-note"></p></details>
       <footer class="economy-footer"><span id="bureauVersion"></span><span>合成经营情景；含工资高点驱动的隐含用工调整，未计折旧、融资与新增投资。</span></footer>
     </div>
   </main>
-  <script src="./bureau.js?v=20261018-national"></script>
+  <script src="./bureau.js?v=20261018-cash-dividends-v03"></script>
 </body>
 </html>

@@ -5,6 +5,26 @@ const assert=require('node:assert/strict');
 const context={window:{}};
 for(const file of ['railway-data.js','railway-divisions.js']) vm.runInNewContext(fs.readFileSync(path.join(__dirname,file),'utf8'),context);
 const {RAILWAY_DATA:data,RAILWAY_DIVISIONS:defs,resolveRailwayDivisions:resolve}=context.window;
+const policy=JSON.parse(fs.readFileSync(path.join(__dirname,'railway_bureau_policy_votes_100_v01.json'),'utf8'));
+assert.equal(policy.status,'ACTIVE_FIXED_V01');
+assert.equal(policy.allocation_mode,'fixed');
+assert.equal(policy.reapportionment,'NONE_IN_V01');
+const policyBureaus=policy.regions.flatMap(r=>r.bureaus);
+assert.equal(policyBureaus.length,100);
+assert.equal(new Set(policyBureaus.map(b=>b.bureau_id)).size,100);
+assert.deepEqual(new Set(policyBureaus.map(b=>b.bureau_id)),new Set(defs.map(d=>d.id)));
+assert.equal(defs.reduce((n,d)=>n+d.policyVotes,0),1000);
+assert.equal(policy.total_votes,1000);
+for(const region of policy.regions) {
+  assert.equal(region.bureaus.length,region.count);
+  assert.equal(region.bureaus.reduce((n,b)=>n+b.policy_votes,0),region.policy_votes);
+  assert.equal(region.policy_votes,policy.region_totals[region.region_id]);
+  for(const b of region.bureaus) {
+    const def=defs.find(d=>d.id===b.bureau_id);
+    assert(Number.isInteger(def.policyVotes)&&def.policyVotes>0);
+    assert.equal(def.policyVotes,b.policy_votes,`Fixed policy votes: ${b.bureau_id}`);
+  }
+}
 const before=JSON.stringify(data);
 const connectionIds=new Set(data.connections.map(e=>e.id));
 assert(connectionIds.has('high_speed:jingguang_05|liaohanchang_handannan'),'邯郸东—邯郸南 high-speed connection exists');

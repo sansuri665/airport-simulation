@@ -1,0 +1,865 @@
+{
+  "schema": "railway-bureau-light-cash-opening-v0.1",
+  "status": "ACTIVE_RESEARCH_V01",
+  "reference": "sansuri665/airport-simulation@map",
+  "reference_operating_model": "railway-bureau-operations-v0.4",
+  "opening_year": 2025,
+  "units": "100 million constant 2025 CNY",
+  "cash_policy": {
+    "opening_cash_yi_formula": "max(0.50, 0.20 * operating_cost_2025_yi + 0.50 * max(0, -operating_surplus_2025_yi))",
+    "meaning": "Approx 2.4 months of annual operating costs plus 0.5 year loss coverage for deficit bureaus",
+    "rounding": "round to 0.01 yi; inputs in live profiles have greater precision than displayed audit columns",
+    "minimum_cash_yi": 0.5,
+    "opening_cash_variation_suggested_pct": [
+      -5,
+      5
+    ],
+    "initial_cash_variation_enabled": false,
+    "seed_compatibility_note": "Keep existing 2025 baseline stable across macro seeds; if campaign-only variation is enabled later, draw once from an independent RNG stream, persist it, and do not inject variability into old 2025 macro/operating reports.",
+    "annual_update_future": "cash_next = cash_current + cash_collected - cash_operating_paid - dividends + equity_injection + net_financing; initially can approximate net operating cashflow using existing V0.4 surplus",
+    "if_cash_insufficient": "Negative cash is allowed; annual scheduled capital only. No emergency advance, forced custody or automatic ownership change.",
+    "perpetual_rights": "Operating franchise perpetual, excluded from book assets and depreciation in prototype; corporate franchise enterprise value may exceed cash",
+    "opening_debt_yi": 0,
+    "new_depreciation_yi": 0,
+    "network_heavy_maintenance_borne_by_operator": false,
+    "policy_points": "INDEPENDENT_FIXED_POLICY_VOTES"
+  },
+  "regions": {
+    "northeast": {
+      "bureau_count": 12,
+      "baseline_cash_yi": 36.85
+    },
+    "north": {
+      "bureau_count": 10,
+      "baseline_cash_yi": 72.72
+    },
+    "northwest": {
+      "bureau_count": 20,
+      "baseline_cash_yi": 88.12
+    },
+    "southwest": {
+      "bureau_count": 12,
+      "baseline_cash_yi": 95.05
+    },
+    "south": {
+      "bureau_count": 8,
+      "baseline_cash_yi": 77.65
+    },
+    "central": {
+      "bureau_count": 11,
+      "baseline_cash_yi": 78.51
+    },
+    "east": {
+      "bureau_count": 14,
+      "baseline_cash_yi": 121.34
+    },
+    "southeast": {
+      "bureau_count": 13,
+      "baseline_cash_yi": 93.67
+    }
+  },
+  "total_initial_cash_yi": 663.91,
+  "bureaus": [
+    {
+      "bureau_id": "jiamusi",
+      "name": "佳木斯",
+      "region_id": "northeast",
+      "baseline_cash_yi": 2.13,
+      "audit_2025_operating_cost_yi": 10.65,
+      "audit_2025_operating_surplus_yi": 0.65
+    },
+    {
+      "bureau_id": "mudanjiang",
+      "name": "牡丹江",
+      "region_id": "northeast",
+      "baseline_cash_yi": 1.76,
+      "audit_2025_operating_cost_yi": 8.8,
+      "audit_2025_operating_surplus_yi": 0.2
+    },
+    {
+      "bureau_id": "qiqihar",
+      "name": "齐齐哈尔",
+      "region_id": "northeast",
+      "baseline_cash_yi": 3.28,
+      "audit_2025_operating_cost_yi": 16.4,
+      "audit_2025_operating_surplus_yi": 1.05
+    },
+    {
+      "bureau_id": "harbin",
+      "name": "哈尔滨",
+      "region_id": "northeast",
+      "baseline_cash_yi": 5.06,
+      "audit_2025_operating_cost_yi": 25.3,
+      "audit_2025_operating_surplus_yi": 1.6
+    },
+    {
+      "bureau_id": "meihekou",
+      "name": "梅河口",
+      "region_id": "northeast",
+      "baseline_cash_yi": 0.88,
+      "audit_2025_operating_cost_yi": 3.75,
+      "audit_2025_operating_surplus_yi": -0.25
+    },
+    {
+      "bureau_id": "changchun",
+      "name": "长春",
+      "region_id": "northeast",
+      "baseline_cash_yi": 5.74,
+      "audit_2025_operating_cost_yi": 28.7,
+      "audit_2025_operating_surplus_yi": 1.0
+    },
+    {
+      "bureau_id": "siping",
+      "name": "四平",
+      "region_id": "northeast",
+      "baseline_cash_yi": 0.54,
+      "audit_2025_operating_cost_yi": 2.55,
+      "audit_2025_operating_surplus_yi": -0.05
+    },
+    {
+      "bureau_id": "tongliao",
+      "name": "通辽",
+      "region_id": "northeast",
+      "baseline_cash_yi": 2.37,
+      "audit_2025_operating_cost_yi": 11.85,
+      "audit_2025_operating_surplus_yi": 2.1
+    },
+    {
+      "bureau_id": "shenyang",
+      "name": "沈阳",
+      "region_id": "northeast",
+      "baseline_cash_yi": 5.94,
+      "audit_2025_operating_cost_yi": 29.7,
+      "audit_2025_operating_surplus_yi": 1.0
+    },
+    {
+      "bureau_id": "dalian",
+      "name": "大连",
+      "region_id": "northeast",
+      "baseline_cash_yi": 3.8,
+      "audit_2025_operating_cost_yi": 19.0,
+      "audit_2025_operating_surplus_yi": 1.9
+    },
+    {
+      "bureau_id": "jinzhou",
+      "name": "锦州",
+      "region_id": "northeast",
+      "baseline_cash_yi": 3.24,
+      "audit_2025_operating_cost_yi": 16.2,
+      "audit_2025_operating_surplus_yi": 0.2
+    },
+    {
+      "bureau_id": "chifeng",
+      "name": "赤峰",
+      "region_id": "northeast",
+      "baseline_cash_yi": 2.11,
+      "audit_2025_operating_cost_yi": 10.55,
+      "audit_2025_operating_surplus_yi": 1.1
+    },
+    {
+      "bureau_id": "zhangjiakou",
+      "name": "张家口",
+      "region_id": "north",
+      "baseline_cash_yi": 2.8,
+      "audit_2025_operating_cost_yi": 14.0,
+      "audit_2025_operating_surplus_yi": 1.07
+    },
+    {
+      "bureau_id": "beijing",
+      "name": "北京",
+      "region_id": "north",
+      "baseline_cash_yi": 16.8,
+      "audit_2025_operating_cost_yi": 84.0,
+      "audit_2025_operating_surplus_yi": 12.1
+    },
+    {
+      "bureau_id": "tangshan",
+      "name": "唐山",
+      "region_id": "north",
+      "baseline_cash_yi": 6.1,
+      "audit_2025_operating_cost_yi": 30.5,
+      "audit_2025_operating_surplus_yi": 12.21
+    },
+    {
+      "bureau_id": "tianjin",
+      "name": "天津",
+      "region_id": "north",
+      "baseline_cash_yi": 11.48,
+      "audit_2025_operating_cost_yi": 57.4,
+      "audit_2025_operating_surplus_yi": 6.9
+    },
+    {
+      "bureau_id": "xiongan",
+      "name": "雄安",
+      "region_id": "north",
+      "baseline_cash_yi": 3.26,
+      "audit_2025_operating_cost_yi": 16.3,
+      "audit_2025_operating_surplus_yi": 0.04
+    },
+    {
+      "bureau_id": "shijiazhuang",
+      "name": "石家庄",
+      "region_id": "north",
+      "baseline_cash_yi": 8.88,
+      "audit_2025_operating_cost_yi": 44.4,
+      "audit_2025_operating_surplus_yi": 5.86
+    },
+    {
+      "bureau_id": "datong",
+      "name": "大同",
+      "region_id": "north",
+      "baseline_cash_yi": 5.82,
+      "audit_2025_operating_cost_yi": 29.1,
+      "audit_2025_operating_surplus_yi": 18.11
+    },
+    {
+      "bureau_id": "taiyuan",
+      "name": "太原",
+      "region_id": "north",
+      "baseline_cash_yi": 10.32,
+      "audit_2025_operating_cost_yi": 51.6,
+      "audit_2025_operating_surplus_yi": 13.72
+    },
+    {
+      "bureau_id": "changzhi",
+      "name": "长治",
+      "region_id": "north",
+      "baseline_cash_yi": 3.3,
+      "audit_2025_operating_cost_yi": 16.5,
+      "audit_2025_operating_surplus_yi": 5.71
+    },
+    {
+      "bureau_id": "houma",
+      "name": "侯马",
+      "region_id": "north",
+      "baseline_cash_yi": 3.96,
+      "audit_2025_operating_cost_yi": 19.8,
+      "audit_2025_operating_surplus_yi": 6.83
+    },
+    {
+      "bureau_id": "jining",
+      "name": "集宁",
+      "region_id": "northwest",
+      "baseline_cash_yi": 2.11,
+      "audit_2025_operating_cost_yi": 10.54,
+      "audit_2025_operating_surplus_yi": 0.21
+    },
+    {
+      "bureau_id": "hohhot",
+      "name": "呼和浩特",
+      "region_id": "northwest",
+      "baseline_cash_yi": 2.59,
+      "audit_2025_operating_cost_yi": 12.96,
+      "audit_2025_operating_surplus_yi": 4.25
+    },
+    {
+      "bureau_id": "baotou",
+      "name": "包头",
+      "region_id": "northwest",
+      "baseline_cash_yi": 6.25,
+      "audit_2025_operating_cost_yi": 31.25,
+      "audit_2025_operating_surplus_yi": 8.91
+    },
+    {
+      "bureau_id": "yinchuan",
+      "name": "银川",
+      "region_id": "northwest",
+      "baseline_cash_yi": 2.84,
+      "audit_2025_operating_cost_yi": 14.22,
+      "audit_2025_operating_surplus_yi": 3.03
+    },
+    {
+      "bureau_id": "zhongwei",
+      "name": "中卫",
+      "region_id": "northwest",
+      "baseline_cash_yi": 2.31,
+      "audit_2025_operating_cost_yi": 9.8,
+      "audit_2025_operating_surplus_yi": -0.71
+    },
+    {
+      "bureau_id": "xian",
+      "name": "西安",
+      "region_id": "northwest",
+      "baseline_cash_yi": 8.19,
+      "audit_2025_operating_cost_yi": 40.96,
+      "audit_2025_operating_surplus_yi": 10.59
+    },
+    {
+      "bureau_id": "baoji",
+      "name": "宝鸡",
+      "region_id": "northwest",
+      "baseline_cash_yi": 2.12,
+      "audit_2025_operating_cost_yi": 10.04,
+      "audit_2025_operating_surplus_yi": -0.23
+    },
+    {
+      "bureau_id": "ankang",
+      "name": "安康",
+      "region_id": "northwest",
+      "baseline_cash_yi": 5.77,
+      "audit_2025_operating_cost_yi": 12.98,
+      "audit_2025_operating_surplus_yi": -6.36
+    },
+    {
+      "bureau_id": "suidexi",
+      "name": "绥德",
+      "region_id": "northwest",
+      "baseline_cash_yi": 2.8,
+      "audit_2025_operating_cost_yi": 14.01,
+      "audit_2025_operating_surplus_yi": 4.19
+    },
+    {
+      "bureau_id": "lanzhou",
+      "name": "兰州",
+      "region_id": "northwest",
+      "baseline_cash_yi": 6.6,
+      "audit_2025_operating_cost_yi": 33.02,
+      "audit_2025_operating_surplus_yi": 0.68
+    },
+    {
+      "bureau_id": "pingliang",
+      "name": "平凉",
+      "region_id": "northwest",
+      "baseline_cash_yi": 3.14,
+      "audit_2025_operating_cost_yi": 12.52,
+      "audit_2025_operating_surplus_yi": -1.28
+    },
+    {
+      "bureau_id": "wuwei",
+      "name": "武威",
+      "region_id": "northwest",
+      "baseline_cash_yi": 1.7,
+      "audit_2025_operating_cost_yi": 8.4,
+      "audit_2025_operating_surplus_yi": -0.03
+    },
+    {
+      "bureau_id": "zhangye",
+      "name": "张掖",
+      "region_id": "northwest",
+      "baseline_cash_yi": 7.48,
+      "audit_2025_operating_cost_yi": 18.14,
+      "audit_2025_operating_surplus_yi": -7.7
+    },
+    {
+      "bureau_id": "xining",
+      "name": "西宁",
+      "region_id": "northwest",
+      "baseline_cash_yi": 2.93,
+      "audit_2025_operating_cost_yi": 13.95,
+      "audit_2025_operating_surplus_yi": -0.28
+    },
+    {
+      "bureau_id": "golmud",
+      "name": "格尔木",
+      "region_id": "northwest",
+      "baseline_cash_yi": 7.3,
+      "audit_2025_operating_cost_yi": 21.18,
+      "audit_2025_operating_surplus_yi": -6.13
+    },
+    {
+      "bureau_id": "hami",
+      "name": "哈密",
+      "region_id": "northwest",
+      "baseline_cash_yi": 4.64,
+      "audit_2025_operating_cost_yi": 23.22,
+      "audit_2025_operating_surplus_yi": 7.78
+    },
+    {
+      "bureau_id": "urumqi",
+      "name": "乌鲁木齐",
+      "region_id": "northwest",
+      "baseline_cash_yi": 5.13,
+      "audit_2025_operating_cost_yi": 25.66,
+      "audit_2025_operating_surplus_yi": 14.57
+    },
+    {
+      "bureau_id": "kuitun",
+      "name": "奎屯",
+      "region_id": "northwest",
+      "baseline_cash_yi": 4.93,
+      "audit_2025_operating_cost_yi": 24.67,
+      "audit_2025_operating_surplus_yi": 6.33
+    },
+    {
+      "bureau_id": "korla",
+      "name": "库尔勒",
+      "region_id": "northwest",
+      "baseline_cash_yi": 5.03,
+      "audit_2025_operating_cost_yi": 22.01,
+      "audit_2025_operating_surplus_yi": -1.27
+    },
+    {
+      "bureau_id": "kashgar",
+      "name": "喀什",
+      "region_id": "northwest",
+      "baseline_cash_yi": 4.26,
+      "audit_2025_operating_cost_yi": 13.88,
+      "audit_2025_operating_surplus_yi": -2.96
+    },
+    {
+      "bureau_id": "lhasa",
+      "name": "拉萨",
+      "region_id": "southwest",
+      "baseline_cash_yi": 9.59,
+      "audit_2025_operating_cost_yi": 21.55,
+      "audit_2025_operating_surplus_yi": -10.56
+    },
+    {
+      "bureau_id": "chengdu",
+      "name": "成都",
+      "region_id": "southwest",
+      "baseline_cash_yi": 16.51,
+      "audit_2025_operating_cost_yi": 82.56,
+      "audit_2025_operating_surplus_yi": 19.75
+    },
+    {
+      "bureau_id": "chongqing",
+      "name": "重庆",
+      "region_id": "southwest",
+      "baseline_cash_yi": 14.59,
+      "audit_2025_operating_cost_yi": 72.96,
+      "audit_2025_operating_surplus_yi": 19.2
+    },
+    {
+      "bureau_id": "guangyuan",
+      "name": "广元",
+      "region_id": "southwest",
+      "baseline_cash_yi": 6.37,
+      "audit_2025_operating_cost_yi": 20.12,
+      "audit_2025_operating_surplus_yi": -4.68
+    },
+    {
+      "bureau_id": "dazhou",
+      "name": "达州",
+      "region_id": "southwest",
+      "baseline_cash_yi": 4.42,
+      "audit_2025_operating_cost_yi": 19.21,
+      "audit_2025_operating_surplus_yi": -1.15
+    },
+    {
+      "bureau_id": "wanzhou",
+      "name": "万州",
+      "region_id": "southwest",
+      "baseline_cash_yi": 3.89,
+      "audit_2025_operating_cost_yi": 17.57,
+      "audit_2025_operating_surplus_yi": -0.76
+    },
+    {
+      "bureau_id": "yibin",
+      "name": "宜宾",
+      "region_id": "southwest",
+      "baseline_cash_yi": 5.19,
+      "audit_2025_operating_cost_yi": 25.97,
+      "audit_2025_operating_surplus_yi": 0.99
+    },
+    {
+      "bureau_id": "guiyang",
+      "name": "贵阳",
+      "region_id": "southwest",
+      "baseline_cash_yi": 9.42,
+      "audit_2025_operating_cost_yi": 41.72,
+      "audit_2025_operating_surplus_yi": -2.16
+    },
+    {
+      "bureau_id": "liupanshui",
+      "name": "六盘水",
+      "region_id": "southwest",
+      "baseline_cash_yi": 6.47,
+      "audit_2025_operating_cost_yi": 32.33,
+      "audit_2025_operating_surplus_yi": 1.0
+    },
+    {
+      "bureau_id": "kunming",
+      "name": "昆明",
+      "region_id": "southwest",
+      "baseline_cash_yi": 9.59,
+      "audit_2025_operating_cost_yi": 47.95,
+      "audit_2025_operating_surplus_yi": 8.55
+    },
+    {
+      "bureau_id": "dali",
+      "name": "大理",
+      "region_id": "southwest",
+      "baseline_cash_yi": 3.87,
+      "audit_2025_operating_cost_yi": 19.37,
+      "audit_2025_operating_surplus_yi": 0.22
+    },
+    {
+      "bureau_id": "yuxi",
+      "name": "玉溪",
+      "region_id": "southwest",
+      "baseline_cash_yi": 5.14,
+      "audit_2025_operating_cost_yi": 25.69,
+      "audit_2025_operating_surplus_yi": 6.36
+    },
+    {
+      "bureau_id": "nanning",
+      "name": "南宁",
+      "region_id": "south",
+      "baseline_cash_yi": 10.4,
+      "audit_2025_operating_cost_yi": 52.0,
+      "audit_2025_operating_surplus_yi": 11.56
+    },
+    {
+      "bureau_id": "liuzhou",
+      "name": "柳州",
+      "region_id": "south",
+      "baseline_cash_yi": 6.18,
+      "audit_2025_operating_cost_yi": 30.89,
+      "audit_2025_operating_surplus_yi": 3.25
+    },
+    {
+      "bureau_id": "guilin",
+      "name": "桂林",
+      "region_id": "south",
+      "baseline_cash_yi": 6.07,
+      "audit_2025_operating_cost_yi": 26.45,
+      "audit_2025_operating_surplus_yi": -1.56
+    },
+    {
+      "bureau_id": "guangzhou",
+      "name": "广州",
+      "region_id": "south",
+      "baseline_cash_yi": 23.91,
+      "audit_2025_operating_cost_yi": 119.53,
+      "audit_2025_operating_surplus_yi": 25.13
+    },
+    {
+      "bureau_id": "shenzhen",
+      "name": "深圳",
+      "region_id": "south",
+      "baseline_cash_yi": 16.1,
+      "audit_2025_operating_cost_yi": 80.51,
+      "audit_2025_operating_surplus_yi": 22.94
+    },
+    {
+      "bureau_id": "shantou",
+      "name": "汕头",
+      "region_id": "south",
+      "baseline_cash_yi": 5.18,
+      "audit_2025_operating_cost_yi": 25.9,
+      "audit_2025_operating_surplus_yi": 3.28
+    },
+    {
+      "bureau_id": "zhanjiang",
+      "name": "湛江",
+      "region_id": "south",
+      "baseline_cash_yi": 4.99,
+      "audit_2025_operating_cost_yi": 24.96,
+      "audit_2025_operating_surplus_yi": 5.76
+    },
+    {
+      "bureau_id": "haikou",
+      "name": "海口",
+      "region_id": "south",
+      "baseline_cash_yi": 4.82,
+      "audit_2025_operating_cost_yi": 24.12,
+      "audit_2025_operating_surplus_yi": 0.14
+    },
+    {
+      "bureau_id": "zhengzhou",
+      "name": "郑州",
+      "region_id": "central",
+      "baseline_cash_yi": 9.54,
+      "audit_2025_operating_cost_yi": 47.68,
+      "audit_2025_operating_surplus_yi": 22.56
+    },
+    {
+      "bureau_id": "jiaozuo",
+      "name": "焦作",
+      "region_id": "central",
+      "baseline_cash_yi": 4.49,
+      "audit_2025_operating_cost_yi": 22.43,
+      "audit_2025_operating_surplus_yi": 2.4
+    },
+    {
+      "bureau_id": "luoyang",
+      "name": "洛阳",
+      "region_id": "central",
+      "baseline_cash_yi": 2.67,
+      "audit_2025_operating_cost_yi": 13.35,
+      "audit_2025_operating_surplus_yi": 2.09
+    },
+    {
+      "bureau_id": "shangqiu",
+      "name": "商丘",
+      "region_id": "central",
+      "baseline_cash_yi": 4.11,
+      "audit_2025_operating_cost_yi": 20.57,
+      "audit_2025_operating_surplus_yi": 2.35
+    },
+    {
+      "bureau_id": "nanyang",
+      "name": "南阳",
+      "region_id": "central",
+      "baseline_cash_yi": 4.95,
+      "audit_2025_operating_cost_yi": 19.21,
+      "audit_2025_operating_surplus_yi": -2.21
+    },
+    {
+      "bureau_id": "xiangyang",
+      "name": "襄阳",
+      "region_id": "central",
+      "baseline_cash_yi": 4.66,
+      "audit_2025_operating_cost_yi": 23.05,
+      "audit_2025_operating_surplus_yi": -0.09
+    },
+    {
+      "bureau_id": "yichang",
+      "name": "宜昌",
+      "region_id": "central",
+      "baseline_cash_yi": 8.04,
+      "audit_2025_operating_cost_yi": 28.55,
+      "audit_2025_operating_surplus_yi": -4.67
+    },
+    {
+      "bureau_id": "wuhan",
+      "name": "武汉",
+      "region_id": "central",
+      "baseline_cash_yi": 13.67,
+      "audit_2025_operating_cost_yi": 68.36,
+      "audit_2025_operating_surplus_yi": 18.55
+    },
+    {
+      "bureau_id": "changsha",
+      "name": "长沙",
+      "region_id": "central",
+      "baseline_cash_yi": 10.33,
+      "audit_2025_operating_cost_yi": 51.64,
+      "audit_2025_operating_surplus_yi": 13.1
+    },
+    {
+      "bureau_id": "hengyang",
+      "name": "衡阳",
+      "region_id": "central",
+      "baseline_cash_yi": 6.17,
+      "audit_2025_operating_cost_yi": 30.85,
+      "audit_2025_operating_surplus_yi": 0.47
+    },
+    {
+      "bureau_id": "huaihua",
+      "name": "怀化",
+      "region_id": "central",
+      "baseline_cash_yi": 9.88,
+      "audit_2025_operating_cost_yi": 27.61,
+      "audit_2025_operating_surplus_yi": -8.71
+    },
+    {
+      "bureau_id": "jinan",
+      "name": "济南",
+      "region_id": "east",
+      "baseline_cash_yi": 13.57,
+      "audit_2025_operating_cost_yi": 67.87,
+      "audit_2025_operating_surplus_yi": 16.82
+    },
+    {
+      "bureau_id": "qingdao",
+      "name": "青岛",
+      "region_id": "east",
+      "baseline_cash_yi": 12.57,
+      "audit_2025_operating_cost_yi": 62.83,
+      "audit_2025_operating_surplus_yi": 21.33
+    },
+    {
+      "bureau_id": "weifang",
+      "name": "潍坊",
+      "region_id": "east",
+      "baseline_cash_yi": 4.94,
+      "audit_2025_operating_cost_yi": 24.71,
+      "audit_2025_operating_surplus_yi": 5.62
+    },
+    {
+      "bureau_id": "hefei",
+      "name": "合肥",
+      "region_id": "east",
+      "baseline_cash_yi": 9.18,
+      "audit_2025_operating_cost_yi": 45.88,
+      "audit_2025_operating_surplus_yi": 14.59
+    },
+    {
+      "bureau_id": "bengbu",
+      "name": "蚌埠",
+      "region_id": "east",
+      "baseline_cash_yi": 3.27,
+      "audit_2025_operating_cost_yi": 16.36,
+      "audit_2025_operating_surplus_yi": 3.41
+    },
+    {
+      "bureau_id": "fuyang",
+      "name": "阜阳",
+      "region_id": "east",
+      "baseline_cash_yi": 3.86,
+      "audit_2025_operating_cost_yi": 19.31,
+      "audit_2025_operating_surplus_yi": 2.63
+    },
+    {
+      "bureau_id": "huangshan",
+      "name": "黄山",
+      "region_id": "east",
+      "baseline_cash_yi": 3.63,
+      "audit_2025_operating_cost_yi": 12.04,
+      "audit_2025_operating_surplus_yi": -2.44
+    },
+    {
+      "bureau_id": "nanjing",
+      "name": "南京",
+      "region_id": "east",
+      "baseline_cash_yi": 13.65,
+      "audit_2025_operating_cost_yi": 68.23,
+      "audit_2025_operating_surplus_yi": 22.43
+    },
+    {
+      "bureau_id": "xuzhou",
+      "name": "徐州",
+      "region_id": "east",
+      "baseline_cash_yi": 3.81,
+      "audit_2025_operating_cost_yi": 19.03,
+      "audit_2025_operating_surplus_yi": 6.75
+    },
+    {
+      "bureau_id": "suzhou",
+      "name": "苏州",
+      "region_id": "east",
+      "baseline_cash_yi": 13.35,
+      "audit_2025_operating_cost_yi": 66.75,
+      "audit_2025_operating_surplus_yi": 30.45
+    },
+    {
+      "bureau_id": "nantong",
+      "name": "南通",
+      "region_id": "east",
+      "baseline_cash_yi": 5.52,
+      "audit_2025_operating_cost_yi": 27.59,
+      "audit_2025_operating_surplus_yi": 12.17
+    },
+    {
+      "bureau_id": "lianyungang",
+      "name": "连云港",
+      "region_id": "east",
+      "baseline_cash_yi": 4.71,
+      "audit_2025_operating_cost_yi": 23.55,
+      "audit_2025_operating_surplus_yi": 8.65
+    },
+    {
+      "bureau_id": "huaian",
+      "name": "淮安",
+      "region_id": "east",
+      "baseline_cash_yi": 5.6,
+      "audit_2025_operating_cost_yi": 28.02,
+      "audit_2025_operating_surplus_yi": 5.23
+    },
+    {
+      "bureau_id": "shanghai",
+      "name": "上海",
+      "region_id": "east",
+      "baseline_cash_yi": 23.68,
+      "audit_2025_operating_cost_yi": 118.41,
+      "audit_2025_operating_surplus_yi": 55.59
+    },
+    {
+      "bureau_id": "hangzhou",
+      "name": "杭州",
+      "region_id": "southeast",
+      "baseline_cash_yi": 10.85,
+      "audit_2025_operating_cost_yi": 54.27,
+      "audit_2025_operating_surplus_yi": 20.61
+    },
+    {
+      "bureau_id": "ningbo",
+      "name": "宁波",
+      "region_id": "southeast",
+      "baseline_cash_yi": 8.44,
+      "audit_2025_operating_cost_yi": 42.21,
+      "audit_2025_operating_surplus_yi": 20.17
+    },
+    {
+      "bureau_id": "jinhua",
+      "name": "金华",
+      "region_id": "southeast",
+      "baseline_cash_yi": 6.2,
+      "audit_2025_operating_cost_yi": 31.01,
+      "audit_2025_operating_surplus_yi": 12.11
+    },
+    {
+      "bureau_id": "wenzhou",
+      "name": "温州",
+      "region_id": "southeast",
+      "baseline_cash_yi": 4.91,
+      "audit_2025_operating_cost_yi": 24.57,
+      "audit_2025_operating_surplus_yi": 9.62
+    },
+    {
+      "bureau_id": "nanchang",
+      "name": "南昌",
+      "region_id": "southeast",
+      "baseline_cash_yi": 7.76,
+      "audit_2025_operating_cost_yi": 38.78,
+      "audit_2025_operating_surplus_yi": 11.51
+    },
+    {
+      "bureau_id": "jiujiang",
+      "name": "九江",
+      "region_id": "southeast",
+      "baseline_cash_yi": 4.29,
+      "audit_2025_operating_cost_yi": 21.47,
+      "audit_2025_operating_surplus_yi": 1.58
+    },
+    {
+      "bureau_id": "shangrao",
+      "name": "上饶",
+      "region_id": "southeast",
+      "baseline_cash_yi": 3.05,
+      "audit_2025_operating_cost_yi": 15.24,
+      "audit_2025_operating_surplus_yi": 0.45
+    },
+    {
+      "bureau_id": "ganzhou",
+      "name": "赣州",
+      "region_id": "southeast",
+      "baseline_cash_yi": 7.46,
+      "audit_2025_operating_cost_yi": 31.57,
+      "audit_2025_operating_surplus_yi": -2.28
+    },
+    {
+      "bureau_id": "fuzhou",
+      "name": "福州",
+      "region_id": "southeast",
+      "baseline_cash_yi": 8.24,
+      "audit_2025_operating_cost_yi": 41.22,
+      "audit_2025_operating_surplus_yi": 7.54
+    },
+    {
+      "bureau_id": "xiamen",
+      "name": "厦门",
+      "region_id": "southeast",
+      "baseline_cash_yi": 7.55,
+      "audit_2025_operating_cost_yi": 37.74,
+      "audit_2025_operating_surplus_yi": 15.94
+    },
+    {
+      "bureau_id": "longyan",
+      "name": "龙岩",
+      "region_id": "southeast",
+      "baseline_cash_yi": 3.07,
+      "audit_2025_operating_cost_yi": 15.37,
+      "audit_2025_operating_surplus_yi": 1.04
+    },
+    {
+      "bureau_id": "taipei",
+      "name": "台北",
+      "region_id": "southeast",
+      "baseline_cash_yi": 10.99,
+      "audit_2025_operating_cost_yi": 54.95,
+      "audit_2025_operating_surplus_yi": 25.05
+    },
+    {
+      "bureau_id": "kaohsiung",
+      "name": "高雄",
+      "region_id": "southeast",
+      "baseline_cash_yi": 10.86,
+      "audit_2025_operating_cost_yi": 54.28,
+      "audit_2025_operating_surplus_yi": 21.84
+    }
+  ],
+  "source_sha256": "7760d7b79fbe461dc9dafa510f27d10aca376d563d8d5b814ea1f072814700da"
+}

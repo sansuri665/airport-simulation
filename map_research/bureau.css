@@ -77,3 +77,6 @@
 .bureau-config th:first-child,.bureau-config td:first-child { text-align:left; font-family:inherit; }
 @media(max-width:1050px) { .bureau-controls { grid-template-columns:1fr 1fr; } .bureau-actions { justify-content:flex-end; } .bureau-main-grid { grid-template-columns:minmax(0,1fr) 260px; gap:16px; } .bureau-kpi { padding:18px 16px; } .bureau-kpi strong { font-size:27px; } }
 @media(max-width:760px) { .bureau-page .topbar { height:auto; min-height:82px; padding:18px 16px; flex-wrap:wrap; gap:16px; } .bureau-nav { margin-left:auto; } .bureau-page .brand-name { font-size:17px; } .bureau-controls { padding:18px 16px 14px; gap:16px 12px; } .bureau-seed { grid-column:1/-1; } .bureau-actions { grid-column:1/-1; justify-content:flex-start; } .bureau-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; } .bureau-main-grid { grid-template-columns:1fr; } .bureau-timeline { gap:12px; flex-wrap:wrap; } .bureau-timeline > span { width:100%; text-align:right; } .bureau-status-row { align-items:flex-start; flex-wrap:wrap; } .bureau-config summary span { display:block; margin:10px 0 0 16px; } .bureau-tabs button { padding:8px 12px; } .bureau-chart-panel .panel-heading { align-items:flex-start; flex-wrap:wrap; } }
+
+#cashAuditPanel .labor-cards { margin-bottom:24px; }
+#cashLedgerPanel table { min-width:1250px; }

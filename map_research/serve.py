@@ -18,6 +18,7 @@ from economy_model.scenarios import simulate_scenario
 from bureau_model.operations import PROFILE_PATH, NORTH_PROFILE_PATH, NORTHWEST_PROFILE_PATH, SOUTH_PROFILE_PATH, REMAINING_PROFILE_PATH, VERSION as BUREAU_VERSION, load_all_profiles, simulate_bureaus
 from bureau_model.settlement import VERSION as SETTLEMENT_VERSION
 from bureau_model.revenue import CURRENT_POLICY, config_hash
+from bureau_model.cash import VERSION as CASH_VERSION, load_config as load_cash_config, cash_ledger, config_hash as cash_config_hash
 
 ROOT = Path(__file__).resolve().parent
 MAX_SEED = 9_007_199_254_740_991
@@ -31,6 +32,16 @@ PROFILE_HASHES = {'northeast': hashlib.sha256(PROFILE_PATH.read_bytes()).hexdige
                   'south': hashlib.sha256(SOUTH_PROFILE_PATH.read_bytes()).hexdigest(),
                   **{rid:hashlib.sha256(REMAINING_PROFILE_PATH.read_bytes()).hexdigest() for rid in ('central','east','southeast')}}
 CONFIG_HASH = config_hash()
+CASH_OPENING, CASH_POLICY = load_cash_config()
+CASH_CONFIG_HASH = cash_config_hash()
+CASH_AUDIT = None
+_cash_report = ROOT / 'bureau_model' / 'reports' / 'cash_capital_summary_v03.json'
+if _cash_report.is_file():
+    _cash_audit = json.loads(_cash_report.read_text(encoding='utf-8'))
+    if (_cash_audit.get('configHash') == CASH_CONFIG_HASH
+            and _cash_audit.get('operatingConfigHash') == CONFIG_HASH
+            and _cash_audit.get('modelVersion') == CASH_VERSION):
+        CASH_AUDIT = _cash_audit
 CALIBRATION_AUDIT = None
 _report = ROOT / 'bureau_model' / 'reports' / 'national_revenue_comparison_v04.json'
 if _report.is_file():
@@ -57,11 +68,29 @@ def bureau_rows(seed: int) -> list[dict]:
     return simulate_bureaus(scenario_result(seed), BUREAU_PROFILES)
 
 
+@lru_cache(maxsize=4)
+def bureau_cash(seed: int):
+    rows, events = cash_ledger(bureau_rows(seed), CASH_OPENING, CASH_POLICY)
+    reference, _ = cash_ledger(bureau_rows(seed), CASH_OPENING, {**CASH_POLICY, 'dividends': False})
+    lookup = {(r['year'], r['bureau_id']): r for r in reference}
+    return [{**r, 'cash_without_dividends_closing_yi': lookup[r['year'],r['bureau_id']]['cash_closing_yi'],
+             'cash_without_dividends_cumulative_equity_yi': lookup[r['year'],r['bureau_id']]['cash_cumulative_equity_yi']}
+            for r in rows], events
+
+
 def bureau_payload(seed: int, bureau_id: str) -> bytes:
     profile = next((p for p in BUREAU_PROFILES if p['bureau_id'] == bureau_id), None)
     if profile is None:
         raise KeyError(bureau_id)
     result = scenario_result(seed)
+    cash_rows, cash_events = bureau_cash(seed)
+    cash_audit = None
+    if CASH_AUDIT:
+        rid = profile['region_id']
+        cash_audit = {k: CASH_AUDIT[k] for k in ('seedCount', 'seedRange', 'endYear', 'configHash')}
+        cash_audit.update(region=CASH_AUDIT['regions'][rid],
+                          bureau=next(b for b in CASH_AUDIT['bureaus'] if b['bureau_id'] == bureau_id),
+                          bureaus=[b for b in CASH_AUDIT['bureaus'] if b['region_id'] == rid])
     payload = {
         'seed': seed, 'modelVersion': BUREAU_VERSION,
         'macroModelVersion': result['metadata']['model_version'],
@@ -71,6 +100,10 @@ def bureau_payload(seed: int, bureau_id: str) -> bytes:
         'settlementVersion': SETTLEMENT_VERSION,
         'priceBasis': 'constant_2025_purchasing_power', 'currencyUnit': '100_million_CNY',
         'scenario': result['scenario'], 'profile': profile,
+        'cash': {'modelVersion': CASH_VERSION, 'configHash': CASH_CONFIG_HASH,
+                 'policy': CASH_POLICY, 'calibrationAudit': cash_audit,
+                 'rows': [r for r in cash_rows if r['bureau_id'] == bureau_id],
+                 'capitalEvents': [e for e in cash_events if e['bureau_id'] == bureau_id]},
         'calibrationAudit': ({**{k: CALIBRATION_AUDIT[k] for k in ('seedCount','seedRange','endYear','configHash')},
                               'modes': CALIBRATION_AUDIT.get('regionModeLabels', {}).get(profile['region_id'], CALIBRATION_AUDIT['modes']),
                               'region': CALIBRATION_AUDIT['regions'][profile['region_id']],
