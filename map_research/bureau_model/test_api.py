@@ -34,11 +34,11 @@ class BureauAPITests(unittest.TestCase):
     def test_catalog_only_enables_configured_regions(self):
         catalog = self.fetch('/api/bureau-catalog')
         self.assertEqual(len(catalog['regions']), 8)
-        self.assertEqual(len(catalog['bureaus']), 42)
-        self.assertEqual({b['region_id'] for b in catalog['bureaus']}, {'northeast','north','northwest'})
+        self.assertEqual(len(catalog['bureaus']), 62)
+        self.assertEqual({b['region_id'] for b in catalog['bureaus']}, {'northeast','north','northwest','southwest','south'})
 
     def test_seed_validation_and_unconfigured_bureau(self):
-        for path in ('?seed=-1', '?seed=', '?seed=9007199254740992', '?seed=1&seed=2', '?bureau=chengdu', '?bureau=jiamusi&bureau=harbin'):
+        for path in ('?seed=-1', '?seed=', '?seed=9007199254740992', '?seed=1&seed=2', '?bureau=wuhan', '?bureau=jiamusi&bureau=harbin'):
             with self.subTest(path=path), self.assertRaises(HTTPError) as error:
                 self.fetch('/api/bureau' + path)
             self.assertEqual(error.exception.code, 400)
@@ -95,6 +95,23 @@ class BureauAPITests(unittest.TestCase):
         self.assertEqual(data['calibrationAudit']['configHash'],data['bureauConfigHash'])
         self.assertAlmostEqual(data['rows'][0]['operating_surplus_yi'],10.594988)
         self.assertEqual(data,self.fetch('/api/bureau?seed=20261014&bureau=xian'))
+
+    def test_southwest_and_south_profiles_and_matching_reports(self):
+        for bureau,rid,count,net in [('chengdu','southwest',12,.8),('guangzhou','south',8,1.)]:
+            with self.subTest(bureau=bureau):
+                data=self.fetch(f'/api/bureau?seed=20261014&bureau={bureau}')
+                self.assertEqual(data['profile']['region_id'],rid)
+                self.assertEqual(len(data['rows']),61)
+                audit=data['calibrationAudit']
+                self.assertEqual(audit['seedCount'],96)
+                self.assertEqual(len(audit['bureaus']),count)
+                self.assertEqual(set(audit['modes']),{'legacy_v03','combined_v04'})
+                self.assertEqual(audit['configHash'],data['bureauConfigHash'])
+                self.assertAlmostEqual(data['rows'][0]['hidden_freight_income_yi'],net)
+                for r in data['rows']:
+                    self.assertEqual(r['freight_tons_10k'],r['ordinary_freight_tons_10k'])
+                    self.assertAlmostEqual(r['freight_income_yi'],r['ordinary_freight_income_yi']+r['hidden_freight_income_yi'])
+                    self.assertAlmostEqual(r['revenue_yi']-r['cost_yi'],r['operating_surplus_yi'])
 
 
 if __name__ == '__main__':

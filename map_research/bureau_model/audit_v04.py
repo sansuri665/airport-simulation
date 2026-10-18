@@ -48,12 +48,15 @@ def write_csv(name, rows):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--three-north', action='store_true', help='Include Northwest twenty; write separate three_north reports')
+    scope = parser.add_mutually_exclusive_group()
+    scope.add_argument('--three-north', action='store_true', help='Replay original 42 bureaus; write separate three_north reports')
+    scope.add_argument('--all-configured', action='store_true', help='Replay all active bureaus; write separate five_region reports')
     args = parser.parse_args()
-    profiles = [p for p in load_all_profiles() if args.three_north or p['region_id'] != 'northwest']
+    included = {'northeast', 'north', 'northwest'} if args.three_north else {'northeast','north'}
+    profiles = [p for p in load_all_profiles() if args.all_configured or p['region_id'] in included]
     count = len(profiles)
     region_ids = tuple(dict.fromkeys(p['region_id'] for p in profiles)) + ('all',)
-    prefix = 'three_north_revenue' if args.three_north else 'revenue'
+    prefix = 'five_region_revenue' if args.all_configured else ('three_north_revenue' if args.three_north else 'revenue')
     old_profiles = copy.deepcopy(profiles)
     for p in old_profiles:
         if p['region_id'] == 'northeast': p.pop('hidden_freight', None)
@@ -142,26 +145,32 @@ def main():
             stats = summary(totals)
             stats['pooled_end_loss_fraction'] = sum(r['end_surplus_yi']<0 for r in rs)/len(rs)
             regions[rid][mode] = stats
-    # Existing 22 bureaux must retain their complete 96-seed current outcomes.
+    # Existing regions must retain all four 96-seed comparison outcomes.
     preserved_error = 0.
-    if args.three_north:
-        with (OUT/'revenue_samples_96seeds_v04.csv').open(encoding='utf-8-sig', newline='') as f:
+    preserved_count = 0
+    if args.three_north or args.all_configured:
+        previous = 'three_north_revenue_samples_96seeds_v04.csv' if args.all_configured else 'revenue_samples_96seeds_v04.csv'
+        with (OUT/previous).open(encoding='utf-8-sig', newline='') as f:
             old = {(int(r['seed']),r['mode'],r['bureau_id']):r for r in csv.DictReader(f)}
+        preserved_ids = {key[2] for key in old}
+        preserved_count = len(preserved_ids)
         for r in samples:
-            if r['region_id']=='northwest': continue
+            if r['bureau_id'] not in preserved_ids: continue
             before = old[(r['seed'],r['mode'],r['bureau_id'])]
             for key in ('end_surplus_yi','end_wage_cost_yi','end_net_receipts_yi','cumulative_surplus_yi','loss_years'):
                 preserved_error = max(preserved_error, abs(r[key]-float(before[key])))
-        if preserved_error > 1e-8: raise AssertionError('Existing 22-bureau outcomes changed')
+        if preserved_error > 1e-8: raise AssertionError('Existing bureau outcomes changed')
     report = {'modelVersion':VERSION, 'settlementVersion':SETTLEMENT_VERSION, 'configHash':config_hash(),
               'seedCount':96,'seedRange':[0,95], 'endYear':2085,'operatingYears':[2026,2085],
               'policy':CURRENT_POLICY,'modes':MODES,'baselineSurplusYi':base,'bureaus':bureaus,'regions':regions,
-              'regionModeLabels': {'northwest': {'legacy_v03':'西北基值 · 线性收益参考',
-                                                'combined_v04':'当前V0.4 · 收益弹性'}},
+              'regionModeLabels': {rid: {'legacy_v03':'候选基值 · 线性收益参考',
+                                       'combined_v04':'当前V0.4 · 收益弹性'}
+                                   for rid in region_ids if rid not in ('northeast','north','all')},
               'verification':{'annualRecords':annual_count,'maxAccountingErrorYi':max_balance,
-                              'maxVolumeOrCostDifference':max_unchanged,'maxExisting22SampleDifference':preserved_error,
+                              'maxVolumeOrCostDifference':max_unchanged,'existingBureauCount':preserved_count,
+                              'maxExistingSampleDifference':preserved_error,
                               'settlementBasis':'independent_bureau_business'},
-              'note':'Independent bureau receipts. Northwest reference uses the same candidate bases and costs with linear yields; it is not a historical Northwest model. North retains 90% original base. No pool.'}
+              'note':'Independent bureau receipts. New-region references use the same candidate bases and costs with linear yields, not historical models. North retains 90% original base. No pool.'}
     OUT.mkdir(exist_ok=True)
     (OUT/(prefix+'_comparison_v04.json')).write_text(json.dumps(report,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
     write_csv(prefix+'_samples_96seeds_v04.csv', samples)

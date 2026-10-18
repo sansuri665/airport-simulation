@@ -22,7 +22,7 @@ class RevenueTests(unittest.TestCase):
                   for rid in ('northeast','north')}
         self.assertAlmostEqual(totals['northeast'],8.)
         self.assertAlmostEqual(totals['north'],63.)
-        old_ids = {p['bureau_id'] for p in self.profiles if p['region_id'] != 'northwest'}
+        old_ids = {p['bureau_id'] for p in self.profiles if p['region_id'] in ('northeast','north')}
         self.assertAlmostEqual(sum(r['operating_surplus_yi'] for r in current if r['bureau_id'] in old_ids),93.05)
         for r,p in zip(current,self.profiles):
             no_net = finance(p,PRICES,100,100,wage_peak_index=100,revenue_policy=LINEAR_POLICY)

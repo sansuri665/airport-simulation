@@ -15,7 +15,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from economy_model.simulate import REGIONAL_METRICS, load_config, public_market_snapshot
 from economy_model.scenarios import simulate_scenario
-from bureau_model.operations import PROFILE_PATH, NORTH_PROFILE_PATH, NORTHWEST_PROFILE_PATH, VERSION as BUREAU_VERSION, load_all_profiles, simulate_bureaus
+from bureau_model.operations import PROFILE_PATH, NORTH_PROFILE_PATH, NORTHWEST_PROFILE_PATH, SOUTH_PROFILE_PATH, VERSION as BUREAU_VERSION, load_all_profiles, simulate_bureaus
 from bureau_model.settlement import VERSION as SETTLEMENT_VERSION
 from bureau_model.revenue import CURRENT_POLICY, config_hash
 
@@ -26,10 +26,12 @@ CONFIG = load_config()
 BUREAU_PROFILES = load_all_profiles()
 PROFILE_HASHES = {'northeast': hashlib.sha256(PROFILE_PATH.read_bytes()).hexdigest(),
                   'north': hashlib.sha256(NORTH_PROFILE_PATH.read_bytes()).hexdigest(),
-                  'northwest': hashlib.sha256(NORTHWEST_PROFILE_PATH.read_bytes()).hexdigest()}
+                  'northwest': hashlib.sha256(NORTHWEST_PROFILE_PATH.read_bytes()).hexdigest(),
+                  'southwest': hashlib.sha256(SOUTH_PROFILE_PATH.read_bytes()).hexdigest(),
+                  'south': hashlib.sha256(SOUTH_PROFILE_PATH.read_bytes()).hexdigest()}
 CONFIG_HASH = config_hash()
 CALIBRATION_AUDIT = None
-_report = ROOT / 'bureau_model' / 'reports' / 'three_north_revenue_comparison_v04.json'
+_report = ROOT / 'bureau_model' / 'reports' / 'five_region_revenue_comparison_v04.json'
 if _report.is_file():
     _audit = json.loads(_report.read_text(encoding='utf-8'))
     if (_audit.get('configHash') == CONFIG_HASH and _audit.get('modelVersion') == BUREAU_VERSION
