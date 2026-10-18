@@ -39,10 +39,10 @@ def unit_yield(q, kind, policy):
 
 
 def config_hash():
-    """Whole experiment identity, including macro and both regional profiles."""
+    """Whole experiment identity, including macro and three regional profiles."""
     root = POLICY_PATH.parent.parent
     paths = [POLICY_PATH, POLICY_PATH.with_name('northeast12_profiles.json'),
-             POLICY_PATH.with_name('north10_profiles.json')]
+             POLICY_PATH.with_name('north10_profiles.json'), POLICY_PATH.with_name('northwest20_profiles.json')]
     paths += sorted((root/'economy_model').glob('*.json'))
     paths += [POLICY_PATH.with_name(n) for n in ('operations.py', 'settlement.py', 'revenue.py', 'exposure.py')]
     paths += sorted((root/'economy_model').glob('*.py'))

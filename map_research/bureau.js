@@ -205,6 +205,11 @@
     $('configReference').textContent = `客运基准 ${fixed(p.transport.base_passenger_trips_10k)} 万人次；货运基准 ${fixed(p.transport.base_freight_tons_10k)} 万吨。基期单位净收入：客运 ${fixed(p.finance_base_yi.passenger_revenue*10000/p.transport.base_passenger_trips_10k)} 元／人次、货运 ${fixed(p.finance_base_yi.freight_revenue*10000/p.transport.base_freight_tons_10k)} 元／吨。站务收入的客运关联权重 ${fixed(p.station_revenue_passenger_share*100, 0)}%。普通货运单位收益系数为货运量倍数的0.15次方（0.85—1.15），站务两项各为对应运量倍数的0.10次方（0.90—1.10）。客运票务收益不变。`;
     $('bureauVersion').textContent = `${data.modelVersion} · 宏观 V0.5 · 配置 ${data.bureauConfigHash.slice(0, 10)} · Seed ${data.seed}`;
     const audit = data.calibrationAudit;
+    const northwest = p.region_id === 'northwest';
+    $('calibrationTitle').textContent = `${region.name} · 96 个 Seed 经营对照`;
+    $('referenceLossHead').textContent = northwest ? '线性参考亏损占比' : '原亏损占比';
+    $('referenceSurplusHead').textContent = northwest ? '线性参考结余' : '原结余中位数';
+    $('calibrationScopeNote').textContent = `同一组 Seed 0—95、客货运和成本路径。地区金额先逐 Seed 加总再取中位数；亏损样本占比按“分局×Seed”统计。累计为2026—2085年。${northwest ? '线性参考使用相同西北基期参数，仅关闭收益弹性，并非历史旧模型。西北净结算各家独立，基期合计11.14亿元。' : '东北独立新增收入，华北保持90%原基值。'}不设跨区域资金池。`;
     const modeRows = document.createDocumentFragment(), bureauRows = document.createDocumentFragment();
     if (audit) {
       $('calibrationNote').textContent = `Seed ${audit.seedRange[0]}—${audit.seedRange[1]}，共 ${audit.seedCount} 个。地区统计与上方所选 Seed 无关。当前收益弹性：普通货运0.15、站务0.10；净结算使用货运收益系数。`;
@@ -242,7 +247,7 @@
       data = next; cache.set(key, next); if (cache.size > 4) cache.delete(cache.keys().next().value);
       $('bureauRegion').value = data.profile.region_id; populateBureaus(bureau); $('bureauSeed').value = String(seed);
       renderAll();
-      status(`当前 Seed ${seed} · 已生成 61 个年度数据点。已接入东北、华北共 ${catalog.bureaus.length} 家分局。`);
+      status(`当前 Seed ${seed} · 已生成 61 个年度数据点。已接入东北、华北、西北共 ${catalog.bureaus.length} 家分局。`);
     } catch (error) {
       status(`试算加载失败。请确认本地 serve.py 服务已更新并重试。${data ? '当前保留上一份结果。' : ''} ${error.name === 'AbortError' ? '请求超时。' : error.message}`, true);
       if (data) {$('bureauRegion').value = data.profile.region_id; populateBureaus(data.profile.bureau_id); $('bureauSeed').value = String(data.seed);}

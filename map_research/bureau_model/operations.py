@@ -18,6 +18,7 @@ INPUTS = ('energy', 'wage', 'materials', 'other')
 SEGMENTS = ('high_speed', 'conventional', 'station')
 PROFILE_PATH = Path(__file__).with_name('northeast12_profiles.json')
 NORTH_PROFILE_PATH = Path(__file__).with_name('north10_profiles.json')
+NORTHWEST_PROFILE_PATH = Path(__file__).with_name('northwest20_profiles.json')
 
 
 def number(value, label, *, low=0., high=math.inf, positive=False):
@@ -68,7 +69,7 @@ def validate_profiles(profiles: list[dict]) -> None:
 
 def load_profiles(path: Path = PROFILE_PATH) -> list[dict]:
     obj = json.loads(Path(path).read_text(encoding='utf-8'))
-    if obj['schema'] not in ('ne12-prototype-v0.3', 'north10-settlement-v0.1'):
+    if obj['schema'] not in ('ne12-prototype-v0.3', 'north10-settlement-v0.1', 'nw20-prototype-v0.1'):
         raise ValueError('Unsupported bureau cost schema')
     profiles = obj['bureau_profiles']
     validate_profiles(profiles)
@@ -76,7 +77,7 @@ def load_profiles(path: Path = PROFILE_PATH) -> list[dict]:
 
 
 def load_all_profiles() -> list[dict]:
-    profiles = load_profiles() + load_profiles(NORTH_PROFILE_PATH)
+    profiles = load_profiles() + load_profiles(NORTH_PROFILE_PATH) + load_profiles(NORTHWEST_PROFILE_PATH)
     validate_profiles(profiles)
     return profiles
 

@@ -15,7 +15,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from economy_model.simulate import REGIONAL_METRICS, load_config, public_market_snapshot
 from economy_model.scenarios import simulate_scenario
-from bureau_model.operations import PROFILE_PATH, NORTH_PROFILE_PATH, VERSION as BUREAU_VERSION, load_all_profiles, simulate_bureaus
+from bureau_model.operations import PROFILE_PATH, NORTH_PROFILE_PATH, NORTHWEST_PROFILE_PATH, VERSION as BUREAU_VERSION, load_all_profiles, simulate_bureaus
 from bureau_model.settlement import VERSION as SETTLEMENT_VERSION
 from bureau_model.revenue import CURRENT_POLICY, config_hash
 
@@ -25,10 +25,11 @@ REGION_IDS = ('northeast', 'north', 'northwest', 'southwest', 'south', 'central'
 CONFIG = load_config()
 BUREAU_PROFILES = load_all_profiles()
 PROFILE_HASHES = {'northeast': hashlib.sha256(PROFILE_PATH.read_bytes()).hexdigest(),
-                  'north': hashlib.sha256(NORTH_PROFILE_PATH.read_bytes()).hexdigest()}
+                  'north': hashlib.sha256(NORTH_PROFILE_PATH.read_bytes()).hexdigest(),
+                  'northwest': hashlib.sha256(NORTHWEST_PROFILE_PATH.read_bytes()).hexdigest()}
 CONFIG_HASH = config_hash()
 CALIBRATION_AUDIT = None
-_report = ROOT / 'bureau_model' / 'reports' / 'revenue_comparison_v04.json'
+_report = ROOT / 'bureau_model' / 'reports' / 'three_north_revenue_comparison_v04.json'
 if _report.is_file():
     _audit = json.loads(_report.read_text(encoding='utf-8'))
     if (_audit.get('configHash') == CONFIG_HASH and _audit.get('modelVersion') == BUREAU_VERSION
@@ -67,7 +68,8 @@ def bureau_payload(seed: int, bureau_id: str) -> bytes:
         'settlementVersion': SETTLEMENT_VERSION,
         'priceBasis': 'constant_2025_purchasing_power', 'currencyUnit': '100_million_CNY',
         'scenario': result['scenario'], 'profile': profile,
-        'calibrationAudit': ({**{k: CALIBRATION_AUDIT[k] for k in ('seedCount','seedRange','endYear','modes','configHash')},
+        'calibrationAudit': ({**{k: CALIBRATION_AUDIT[k] for k in ('seedCount','seedRange','endYear','configHash')},
+                              'modes': CALIBRATION_AUDIT.get('regionModeLabels', {}).get(profile['region_id'], CALIBRATION_AUDIT['modes']),
                               'region': CALIBRATION_AUDIT['regions'][profile['region_id']],
                               'bureaus': [b for b in CALIBRATION_AUDIT['bureaus'] if b['region_id']==profile['region_id']]}
                              if CALIBRATION_AUDIT else None),

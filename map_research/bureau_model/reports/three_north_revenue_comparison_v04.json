@@ -1,0 +1,2276 @@
+{
+  "modelVersion": "railway-bureau-operations-v0.4",
+  "settlementVersion": "railway-freight-settlement-v0.2-independent",
+  "configHash": "824c804d3f55fe773ccfd6e2807b53e45669212d5e4804db6bbc1c5bccd7007d",
+  "seedCount": 96,
+  "seedRange": [
+    0,
+    95
+  ],
+  "endYear": 2085,
+  "operatingYears": [
+    2026,
+    2085
+  ],
+  "policy": {
+    "version": "independent-revenue-v0.4",
+    "freight_exponent": 0.15,
+    "freight_floor": 0.85,
+    "freight_ceiling": 1.15,
+    "station_exponent": 0.1,
+    "station_floor": 0.9,
+    "station_ceiling": 1.1,
+    "settlement_uses_freight_yield": true,
+    "settlement_basis": "independent_bureau_business"
+  },
+  "modes": {
+    "legacy_v03": "调整前",
+    "independent_only": "只增加东北结算",
+    "elasticity_only": "只加入收益弹性",
+    "combined_v04": "当前合并方案"
+  },
+  "baselineSurplusYi": {
+    "legacy_v03": {
+      "northeast": 2.499999999999993,
+      "north": 82.55000000000001,
+      "northwest": 33.61136999999999,
+      "all": 118.66136999999999
+    },
+    "independent_only": {
+      "northeast": 10.499999999999993,
+      "north": 82.55000000000001,
+      "northwest": 33.61136999999999,
+      "all": 126.66136999999999
+    },
+    "elasticity_only": {
+      "northeast": 2.499999999999993,
+      "north": 82.55000000000001,
+      "northwest": 33.61136999999999,
+      "all": 118.66136999999999
+    },
+    "combined_v04": {
+      "northeast": 10.499999999999993,
+      "north": 82.55000000000001,
+      "northwest": 33.61136999999999,
+      "all": 126.66136999999999
+    }
+  },
+  "bureaus": [
+    {
+      "bureau_id": "jiamusi",
+      "name": "佳木斯",
+      "region_id": "northeast",
+      "base_net_yi": 0.8,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -0.9300853196947791,
+          "end_surplus_p10_yi": -2.4376321832405723,
+          "end_surplus_p90_yi": 0.9146026814047303,
+          "end_loss_fraction": 0.7291666666666666,
+          "end_wage_cost_yi_median": 4.238360330492688,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -26.53601457114472,
+          "loss_years_median": 47.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 0.12841176638012664,
+          "end_surplus_p10_yi": -1.7691517131942274,
+          "end_surplus_p90_yi": 2.239340451573204,
+          "end_loss_fraction": 0.4375,
+          "end_wage_cost_yi_median": 4.238360330492688,
+          "end_net_receipts_median_yi": 1.008332200177568,
+          "cumulative_surplus_median_yi": 28.33709831515418,
+          "loss_years_median": 11.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -0.591289041676963,
+          "end_surplus_p10_yi": -2.5928422400569264,
+          "end_surplus_p90_yi": 1.7163851516275566,
+          "end_loss_fraction": 0.65625,
+          "end_wage_cost_yi_median": 4.238360330492688,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -19.349900255498923,
+          "loss_years_median": 41.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 0.5184357695256863,
+          "end_surplus_p10_yi": -1.8948260966098602,
+          "end_surplus_p90_yi": 3.191932567800681,
+          "end_loss_fraction": 0.3958333333333333,
+          "end_wage_cost_yi_median": 4.238360330492688,
+          "end_net_receipts_median_yi": 1.0439523707631362,
+          "cumulative_surplus_median_yi": 37.23138592408067,
+          "loss_years_median": 9.5
+        }
+      }
+    },
+    {
+      "bureau_id": "mudanjiang",
+      "name": "牡丹江",
+      "region_id": "northeast",
+      "base_net_yi": 0.4,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -1.0652377932300574,
+          "end_surplus_p10_yi": -2.868043997776706,
+          "end_surplus_p90_yi": 1.2131469032241533,
+          "end_loss_fraction": 0.7604166666666666,
+          "end_wage_cost_yi_median": 3.584711376645768,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -38.85437015033132,
+          "loss_years_median": 49.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -0.6142927108668038,
+          "end_surplus_p10_yi": -2.5073826106851085,
+          "end_surplus_p90_yi": 1.8793262878425152,
+          "end_loss_fraction": 0.6458333333333334,
+          "end_wage_cost_yi_median": 3.584711376645768,
+          "end_net_receipts_median_yi": 0.46337396821199023,
+          "cumulative_surplus_median_yi": -11.127953520493312,
+          "loss_years_median": 36.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -0.9552773386235289,
+          "end_surplus_p10_yi": -2.9175202934554867,
+          "end_surplus_p90_yi": 1.9871261413078667,
+          "end_loss_fraction": 0.71875,
+          "end_wage_cost_yi_median": 3.584711376645768,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -30.395521655285044,
+          "loss_years_median": 46.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -0.43840345892876564,
+          "end_surplus_p10_yi": -2.622124730270571,
+          "end_surplus_p90_yi": 2.7515313181149903,
+          "end_loss_fraction": 0.6145833333333334,
+          "end_wage_cost_yi_median": 3.584711376645768,
+          "end_net_receipts_median_yi": 0.47371002209467017,
+          "cumulative_surplus_median_yi": -2.2733780855792287,
+          "loss_years_median": 32.5
+        }
+      }
+    },
+    {
+      "bureau_id": "qiqihar",
+      "name": "齐齐哈尔",
+      "region_id": "northeast",
+      "base_net_yi": 1.5,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -3.3903368387192234,
+          "end_surplus_p10_yi": -7.174203074305231,
+          "end_surplus_p90_yi": 1.9276386428180228,
+          "end_loss_fraction": 0.8020833333333334,
+          "end_wage_cost_yi_median": 6.657235331596208,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -115.38093633090793,
+          "loss_years_median": 53.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -1.6870514430984676,
+          "end_surplus_p10_yi": -6.272446089739807,
+          "end_surplus_p90_yi": 4.634058350607743,
+          "end_loss_fraction": 0.6979166666666666,
+          "end_wage_cost_yi_median": 6.657235331596208,
+          "end_net_receipts_median_yi": 1.6149429964113269,
+          "cumulative_surplus_median_yi": -11.551253725354046,
+          "loss_years_median": 33.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -3.181665068105765,
+          "end_surplus_p10_yi": -7.594602305652755,
+          "end_surplus_p90_yi": 3.691110650439315,
+          "end_loss_fraction": 0.7604166666666666,
+          "end_wage_cost_yi_median": 6.657235331596208,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -101.48519298431722,
+          "loss_years_median": 50.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -1.599815713484166,
+          "end_surplus_p10_yi": -6.823582336283598,
+          "end_surplus_p90_yi": 7.524594854245841,
+          "end_loss_fraction": 0.6666666666666666,
+          "end_wage_cost_yi_median": 6.657235331596208,
+          "end_net_receipts_median_yi": 1.6329282052077843,
+          "cumulative_surplus_median_yi": -8.406895781598717,
+          "loss_years_median": 30.5
+        }
+      }
+    },
+    {
+      "bureau_id": "harbin",
+      "name": "哈尔滨",
+      "region_id": "northeast",
+      "base_net_yi": 0.3,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -0.36803215770451736,
+          "end_surplus_p10_yi": -4.197269030711725,
+          "end_surplus_p90_yi": 5.636003240156107,
+          "end_loss_fraction": 0.5520833333333334,
+          "end_wage_cost_yi_median": 10.48239599285289,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 43.2405072851328,
+          "loss_years_median": 19.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -0.0322165756694372,
+          "end_surplus_p10_yi": -3.9750119063689966,
+          "end_surplus_p90_yi": 6.1774284925507885,
+          "end_loss_fraction": 0.5104166666666666,
+          "end_wage_cost_yi_median": 10.48239599285289,
+          "end_net_receipts_median_yi": 0.33414985789334606,
+          "cumulative_surplus_median_yi": 62.89840753089787,
+          "loss_years_median": 14.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -0.05970110778175908,
+          "end_surplus_p10_yi": -4.512147410683054,
+          "end_surplus_p90_yi": 7.316135059912234,
+          "end_loss_fraction": 0.5,
+          "end_wage_cost_yi_median": 10.48239599285289,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 52.204887894334874,
+          "loss_years_median": 19.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 0.3127342080929333,
+          "end_surplus_p10_yi": -4.290105856719261,
+          "end_surplus_p90_yi": 7.881143108160795,
+          "end_loss_fraction": 0.4895833333333333,
+          "end_wage_cost_yi_median": 10.48239599285289,
+          "end_net_receipts_median_yi": 0.33959738287508995,
+          "cumulative_surplus_median_yi": 71.79707628672321,
+          "loss_years_median": 13.0
+        }
+      }
+    },
+    {
+      "bureau_id": "meihekou",
+      "name": "梅河口",
+      "region_id": "northeast",
+      "base_net_yi": 0.0,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -0.9737034509028497,
+          "end_surplus_p10_yi": -1.5303477325116566,
+          "end_surplus_p90_yi": 0.09356459422105146,
+          "end_loss_fraction": 0.8645833333333334,
+          "end_wage_cost_yi_median": 1.5921043760140168,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -35.540531991260565,
+          "loss_years_median": 59.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -0.9737034509028497,
+          "end_surplus_p10_yi": -1.5303477325116566,
+          "end_surplus_p90_yi": 0.09356459422105146,
+          "end_loss_fraction": 0.8645833333333334,
+          "end_wage_cost_yi_median": 1.5921043760140168,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -35.540531991260565,
+          "loss_years_median": 59.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -0.9521459640474943,
+          "end_surplus_p10_yi": -1.587776927268871,
+          "end_surplus_p90_yi": 0.31885653675421866,
+          "end_loss_fraction": 0.7916666666666666,
+          "end_wage_cost_yi_median": 1.5921043760140168,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -33.99323074504281,
+          "loss_years_median": 58.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -0.9521459640474943,
+          "end_surplus_p10_yi": -1.587776927268871,
+          "end_surplus_p90_yi": 0.31885653675421866,
+          "end_loss_fraction": 0.7916666666666666,
+          "end_wage_cost_yi_median": 1.5921043760140168,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -33.99323074504281,
+          "loss_years_median": 58.0
+        }
+      }
+    },
+    {
+      "bureau_id": "changchun",
+      "name": "长春",
+      "region_id": "northeast",
+      "base_net_yi": 0.2,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -0.1967202288278589,
+          "end_surplus_p10_yi": -5.143313149902539,
+          "end_surplus_p90_yi": 6.635605975994945,
+          "end_loss_fraction": 0.5104166666666666,
+          "end_wage_cost_yi_median": 11.869362783905014,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 26.956467512911594,
+          "loss_years_median": 21.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 0.0355662720145509,
+          "end_surplus_p10_yi": -5.011600397492668,
+          "end_surplus_p90_yi": 6.976189469807685,
+          "end_loss_fraction": 0.4895833333333333,
+          "end_wage_cost_yi_median": 11.869362783905014,
+          "end_net_receipts_median_yi": 0.24610407425756556,
+          "cumulative_surplus_median_yi": 40.16205495960121,
+          "loss_years_median": 19.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 0.08782721278701366,
+          "end_surplus_p10_yi": -5.671178244777977,
+          "end_surplus_p90_yi": 8.68998866205979,
+          "end_loss_fraction": 0.5,
+          "end_wage_cost_yi_median": 11.869362783905014,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 43.45875641269113,
+          "loss_years_median": 19.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 0.2843340195381793,
+          "end_surplus_p10_yi": -5.547341313619963,
+          "end_surplus_p90_yi": 9.09361393159429,
+          "end_loss_fraction": 0.4895833333333333,
+          "end_wage_cost_yi_median": 11.869362783905014,
+          "end_net_receipts_median_yi": 0.253882125103324,
+          "cumulative_surplus_median_yi": 57.91019771132753,
+          "loss_years_median": 17.5
+        }
+      }
+    },
+    {
+      "bureau_id": "siping",
+      "name": "四平",
+      "region_id": "northeast",
+      "base_net_yi": 0.1,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -0.45729494316044406,
+          "end_surplus_p10_yi": -0.8901236055067401,
+          "end_surplus_p90_yi": 0.2974176333410423,
+          "end_loss_fraction": 0.7708333333333334,
+          "end_wage_cost_yi_median": 1.1261606871560876,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -15.637439755281273,
+          "loss_years_median": 57.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -0.34926410758028614,
+          "end_surplus_p10_yi": -0.8111924891418493,
+          "end_surplus_p90_yi": 0.470838661857426,
+          "end_loss_fraction": 0.6875,
+          "end_wage_cost_yi_median": 1.1261606871560876,
+          "end_net_receipts_median_yi": 0.1177360321823777,
+          "cumulative_surplus_median_yi": -9.115783589782625,
+          "loss_years_median": 49.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -0.4339336539615277,
+          "end_surplus_p10_yi": -0.9146273140125935,
+          "end_surplus_p90_yi": 0.5826802438757881,
+          "end_loss_fraction": 0.7083333333333334,
+          "end_wage_cost_yi_median": 1.1261606871560876,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -14.364129372020033,
+          "loss_years_median": 55.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -0.311436545592835,
+          "end_surplus_p10_yi": -0.8474539493825191,
+          "end_surplus_p90_yi": 0.8254108011274208,
+          "end_loss_fraction": 0.625,
+          "end_wage_cost_yi_median": 1.1261606871560876,
+          "end_net_receipts_median_yi": 0.12065515999700908,
+          "cumulative_surplus_median_yi": -7.365170077762684,
+          "loss_years_median": 46.0
+        }
+      }
+    },
+    {
+      "bureau_id": "tongliao",
+      "name": "通辽",
+      "region_id": "northeast",
+      "base_net_yi": 1.5,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -0.09422994523583128,
+          "end_surplus_p10_yi": -3.33743791603067,
+          "end_surplus_p90_yi": 4.512707506321051,
+          "end_loss_fraction": 0.53125,
+          "end_wage_cost_yi_median": 4.787224230261634,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 24.48301356951898,
+          "loss_years_median": 22.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 1.6958050242801184,
+          "end_surplus_p10_yi": -2.406120148858342,
+          "end_surplus_p90_yi": 7.615652916704978,
+          "end_loss_fraction": 0.3229166666666667,
+          "end_wage_cost_yi_median": 4.787224230261634,
+          "end_net_receipts_median_yi": 1.7512356866258643,
+          "cumulative_surplus_median_yi": 119.24595666980375,
+          "loss_years_median": 5.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 0.20215254698720297,
+          "end_surplus_p10_yi": -3.747750336220936,
+          "end_surplus_p90_yi": 6.724771062888813,
+          "end_loss_fraction": 0.4791666666666667,
+          "end_wage_cost_yi_median": 4.787224230261634,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 30.976883605123305,
+          "loss_years_median": 20.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 2.137625193739465,
+          "end_surplus_p10_yi": -2.8069447819121027,
+          "end_surplus_p90_yi": 10.401957203881189,
+          "end_loss_fraction": 0.3229166666666667,
+          "end_wage_cost_yi_median": 4.787224230261634,
+          "end_net_receipts_median_yi": 1.7923905948342598,
+          "cumulative_surplus_median_yi": 132.12403882359789,
+          "loss_years_median": 7.0
+        }
+      }
+    },
+    {
+      "bureau_id": "shenyang",
+      "name": "沈阳",
+      "region_id": "northeast",
+      "base_net_yi": 0.2,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 0.1540950857401775,
+          "end_surplus_p10_yi": -4.696072560787895,
+          "end_surplus_p90_yi": 7.086268238151284,
+          "end_loss_fraction": 0.4583333333333333,
+          "end_wage_cost_yi_median": 12.37215451909718,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 37.53362563083036,
+          "loss_years_median": 16.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 0.4430578443174794,
+          "end_surplus_p10_yi": -4.4741781036470165,
+          "end_surplus_p90_yi": 7.560415191738883,
+          "end_loss_fraction": 0.4583333333333333,
+          "end_wage_cost_yi_median": 12.37215451909718,
+          "end_net_receipts_median_yi": 0.23046503972379292,
+          "cumulative_surplus_median_yi": 51.469531312503015,
+          "loss_years_median": 13.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 0.6866084041500748,
+          "end_surplus_p10_yi": -4.753453455654983,
+          "end_surplus_p90_yi": 9.072387375854781,
+          "end_loss_fraction": 0.4479166666666667,
+          "end_wage_cost_yi_median": 12.37215451909718,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 55.955093139702385,
+          "loss_years_median": 14.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 0.9168758704171913,
+          "end_surplus_p10_yi": -4.570681976948163,
+          "end_surplus_p90_yi": 9.504687898343061,
+          "end_loss_fraction": 0.4375,
+          "end_wage_cost_yi_median": 12.37215451909718,
+          "end_net_receipts_median_yi": 0.2354199925834466,
+          "cumulative_surplus_median_yi": 70.42333084333339,
+          "loss_years_median": 12.5
+        }
+      }
+    },
+    {
+      "bureau_id": "dalian",
+      "name": "大连",
+      "region_id": "northeast",
+      "base_net_yi": 0.7,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 0.04288545130453869,
+          "end_surplus_p10_yi": -3.161433976321174,
+          "end_surplus_p90_yi": 5.442491339942507,
+          "end_loss_fraction": 0.5,
+          "end_wage_cost_yi_median": 7.873725294363542,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 39.077724780057956,
+          "loss_years_median": 15.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 0.7755048928561026,
+          "end_surplus_p10_yi": -2.6834778036490734,
+          "end_surplus_p90_yi": 6.663087821737017,
+          "end_loss_fraction": 0.3958333333333333,
+          "end_wage_cost_yi_median": 7.873725294363542,
+          "end_net_receipts_median_yi": 0.8435528585458549,
+          "cumulative_surplus_median_yi": 82.15246803260328,
+          "loss_years_median": 5.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 0.18120778332961152,
+          "end_surplus_p10_yi": -3.47876409623541,
+          "end_surplus_p90_yi": 6.746253746872306,
+          "end_loss_fraction": 0.4895833333333333,
+          "end_wage_cost_yi_median": 7.873725294363542,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 46.37432706357038,
+          "loss_years_median": 13.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 1.1878502094492287,
+          "end_surplus_p10_yi": -2.9621981782645834,
+          "end_surplus_p90_yi": 8.337176039506062,
+          "end_loss_fraction": 0.34375,
+          "end_wage_cost_yi_median": 7.873725294363542,
+          "end_net_receipts_median_yi": 0.8674899323815777,
+          "cumulative_surplus_median_yi": 96.3495445960433,
+          "loss_years_median": 5.5
+        }
+      }
+    },
+    {
+      "bureau_id": "jinzhou",
+      "name": "锦州",
+      "region_id": "northeast",
+      "base_net_yi": 1.5,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -2.3315953116052883,
+          "end_surplus_p10_yi": -5.382305609079667,
+          "end_surplus_p90_yi": 2.2078339902458683,
+          "end_loss_fraction": 0.7708333333333334,
+          "end_wage_cost_yi_median": 6.510091363834,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -109.18820928597765,
+          "loss_years_median": 56.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -0.46215391116956805,
+          "end_surplus_p10_yi": -4.548090993814448,
+          "end_surplus_p90_yi": 4.731833824233424,
+          "end_loss_fraction": 0.6041666666666666,
+          "end_wage_cost_yi_median": 6.510091363834,
+          "end_net_receipts_median_yi": 1.753258954945958,
+          "cumulative_surplus_median_yi": -8.736779698652088,
+          "loss_years_median": 32.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -1.9784470583284204,
+          "end_surplus_p10_yi": -5.781406109353731,
+          "end_surplus_p90_yi": 3.3783758373682,
+          "end_loss_fraction": 0.75,
+          "end_wage_cost_yi_median": 6.510091363834,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -98.46472954868614,
+          "loss_years_median": 53.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -0.137039161479225,
+          "end_surplus_p10_yi": -5.016287866426852,
+          "end_surplus_p90_yi": 6.1680743375106495,
+          "end_loss_fraction": 0.5416666666666666,
+          "end_wage_cost_yi_median": 6.510091363834,
+          "end_net_receipts_median_yi": 1.7947722587001635,
+          "cumulative_surplus_median_yi": 8.936985406485032,
+          "loss_years_median": 28.0
+        }
+      }
+    },
+    {
+      "bureau_id": "chifeng",
+      "name": "赤峰",
+      "region_id": "northeast",
+      "base_net_yi": 0.8,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -1.104478846588008,
+          "end_surplus_p10_yi": -3.6673970295874634,
+          "end_surplus_p90_yi": 3.61968396781538,
+          "end_loss_fraction": 0.65625,
+          "end_wage_cost_yi_median": 4.299604877041703,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -15.27320417944198,
+          "loss_years_median": 35.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -0.23127048956988533,
+          "end_surplus_p10_yi": -3.1574235040765983,
+          "end_surplus_p90_yi": 5.101997390005214,
+          "end_loss_fraction": 0.53125,
+          "end_wage_cost_yi_median": 4.299604877041703,
+          "end_net_receipts_median_yi": 0.8727604077356774,
+          "cumulative_surplus_median_yi": 39.33311867785628,
+          "loss_years_median": 16.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -1.0091093233547523,
+          "end_surplus_p10_yi": -3.9974866179072546,
+          "end_surplus_p90_yi": 5.470317645400827,
+          "end_loss_fraction": 0.6041666666666666,
+          "end_wage_cost_yi_median": 4.299604877041703,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": -6.563790562917008,
+          "loss_years_median": 31.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -0.12034605465047121,
+          "end_surplus_p10_yi": -3.4602792591167613,
+          "end_surplus_p90_yi": 7.157024944175202,
+          "end_loss_fraction": 0.5208333333333334,
+          "end_wage_cost_yi_median": 4.299604877041703,
+          "end_net_receipts_median_yi": 0.8842467753386207,
+          "cumulative_surplus_median_yi": 48.20256793178473,
+          "loss_years_median": 15.5
+        }
+      }
+    },
+    {
+      "bureau_id": "zhangjiakou",
+      "name": "张家口",
+      "region_id": "north",
+      "base_net_yi": 1.35,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 0.063357199658297,
+          "end_surplus_p10_yi": -4.59880643753835,
+          "end_surplus_p90_yi": 6.633087994382143,
+          "end_loss_fraction": 0.5,
+          "end_wage_cost_yi_median": 8.26048863334172,
+          "end_net_receipts_median_yi": 1.7845300918861158,
+          "cumulative_surplus_median_yi": 34.292381186188905,
+          "loss_years_median": 16.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 0.063357199658297,
+          "end_surplus_p10_yi": -4.59880643753835,
+          "end_surplus_p90_yi": 6.633087994382143,
+          "end_loss_fraction": 0.5,
+          "end_wage_cost_yi_median": 8.26048863334172,
+          "end_net_receipts_median_yi": 1.7845300918861158,
+          "cumulative_surplus_median_yi": 34.292381186188905,
+          "loss_years_median": 16.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 0.2908629414966074,
+          "end_surplus_p10_yi": -4.791079397558072,
+          "end_surplus_p90_yi": 9.360855962899452,
+          "end_loss_fraction": 0.5,
+          "end_wage_cost_yi_median": 8.26048863334172,
+          "end_net_receipts_median_yi": 1.8608117123438102,
+          "cumulative_surplus_median_yi": 47.39165477055865,
+          "loss_years_median": 14.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 0.2908629414966074,
+          "end_surplus_p10_yi": -4.791079397558072,
+          "end_surplus_p90_yi": 9.360855962899452,
+          "end_loss_fraction": 0.5,
+          "end_wage_cost_yi_median": 8.26048863334172,
+          "end_net_receipts_median_yi": 1.8608117123438102,
+          "cumulative_surplus_median_yi": 47.39165477055865,
+          "loss_years_median": 14.0
+        }
+      }
+    },
+    {
+      "bureau_id": "beijing",
+      "name": "北京",
+      "region_id": "north",
+      "base_net_yi": 5.4,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 3.415911775479628,
+          "end_surplus_p10_yi": -11.095422763262892,
+          "end_surplus_p90_yi": 26.314264148629622,
+          "end_loss_fraction": 0.3645833333333333,
+          "end_wage_cost_yi_median": 53.25586558282236,
+          "end_net_receipts_median_yi": 6.298931734721475,
+          "cumulative_surplus_median_yi": 572.4200208295965,
+          "loss_years_median": 2.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 3.415911775479628,
+          "end_surplus_p10_yi": -11.095422763262892,
+          "end_surplus_p90_yi": 26.314264148629622,
+          "end_loss_fraction": 0.3645833333333333,
+          "end_wage_cost_yi_median": 53.25586558282236,
+          "end_net_receipts_median_yi": 6.298931734721475,
+          "cumulative_surplus_median_yi": 572.4200208295965,
+          "loss_years_median": 2.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 4.246459426308553,
+          "end_surplus_p10_yi": -10.755332882329725,
+          "end_surplus_p90_yi": 28.33341914969762,
+          "end_loss_fraction": 0.34375,
+          "end_wage_cost_yi_median": 53.25586558282236,
+          "end_net_receipts_median_yi": 6.446112409638527,
+          "cumulative_surplus_median_yi": 608.5981217590678,
+          "loss_years_median": 3.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 4.246459426308553,
+          "end_surplus_p10_yi": -10.755332882329725,
+          "end_surplus_p90_yi": 28.33341914969762,
+          "end_loss_fraction": 0.34375,
+          "end_wage_cost_yi_median": 53.25586558282236,
+          "end_net_receipts_median_yi": 6.446112409638527,
+          "cumulative_surplus_median_yi": 608.5981217590678,
+          "loss_years_median": 3.0
+        }
+      }
+    },
+    {
+      "bureau_id": "tangshan",
+      "name": "唐山",
+      "region_id": "north",
+      "base_net_yi": 9.0,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 13.49125422049455,
+          "end_surplus_p10_yi": -0.04292573765072527,
+          "end_surplus_p90_yi": 33.77515280158181,
+          "end_loss_fraction": 0.10416666666666667,
+          "end_wage_cost_yi_median": 16.77885758884704,
+          "end_net_receipts_median_yi": 11.417712978384737,
+          "cumulative_surplus_median_yi": 768.1075198997125,
+          "loss_years_median": 0.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 13.49125422049455,
+          "end_surplus_p10_yi": -0.04292573765072527,
+          "end_surplus_p90_yi": 33.77515280158181,
+          "end_loss_fraction": 0.10416666666666667,
+          "end_wage_cost_yi_median": 16.77885758884704,
+          "end_net_receipts_median_yi": 11.417712978384737,
+          "cumulative_surplus_median_yi": 768.1075198997125,
+          "loss_years_median": 0.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 15.281565342258492,
+          "end_surplus_p10_yi": -1.5315066132767563,
+          "end_surplus_p90_yi": 41.663490697259334,
+          "end_loss_fraction": 0.125,
+          "end_wage_cost_yi_median": 16.77885758884704,
+          "end_net_receipts_median_yi": 11.832584920147921,
+          "cumulative_surplus_median_yi": 799.2159157898664,
+          "loss_years_median": 0.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 15.281565342258492,
+          "end_surplus_p10_yi": -1.5315066132767563,
+          "end_surplus_p90_yi": 41.663490697259334,
+          "end_loss_fraction": 0.125,
+          "end_wage_cost_yi_median": 16.77885758884704,
+          "end_net_receipts_median_yi": 11.832584920147921,
+          "cumulative_surplus_median_yi": 799.2159157898664,
+          "loss_years_median": 0.0
+        }
+      }
+    },
+    {
+      "bureau_id": "tianjin",
+      "name": "天津",
+      "region_id": "north",
+      "base_net_yi": 4.5,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 3.21107643556483,
+          "end_surplus_p10_yi": -8.653804383755197,
+          "end_surplus_p90_yi": 22.23752657073709,
+          "end_loss_fraction": 0.3645833333333333,
+          "end_wage_cost_yi_median": 32.96416742424717,
+          "end_net_receipts_median_yi": 5.553237085478702,
+          "cumulative_surplus_median_yi": 351.8741844484855,
+          "loss_years_median": 3.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 3.21107643556483,
+          "end_surplus_p10_yi": -8.653804383755197,
+          "end_surplus_p90_yi": 22.23752657073709,
+          "end_loss_fraction": 0.3645833333333333,
+          "end_wage_cost_yi_median": 32.96416742424717,
+          "end_net_receipts_median_yi": 5.553237085478702,
+          "cumulative_surplus_median_yi": 351.8741844484855,
+          "loss_years_median": 3.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 4.335503192426604,
+          "end_surplus_p10_yi": -8.689255792661324,
+          "end_surplus_p90_yi": 27.445099888507855,
+          "end_loss_fraction": 0.34375,
+          "end_wage_cost_yi_median": 32.96416742424717,
+          "end_net_receipts_median_yi": 5.731233972705084,
+          "cumulative_surplus_median_yi": 386.90085059534164,
+          "loss_years_median": 4.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 4.335503192426604,
+          "end_surplus_p10_yi": -8.689255792661324,
+          "end_surplus_p90_yi": 27.445099888507855,
+          "end_loss_fraction": 0.34375,
+          "end_wage_cost_yi_median": 32.96416742424717,
+          "end_net_receipts_median_yi": 5.731233972705084,
+          "cumulative_surplus_median_yi": 386.90085059534164,
+          "loss_years_median": 4.0
+        }
+      }
+    },
+    {
+      "bureau_id": "xiongan",
+      "name": "雄安",
+      "region_id": "north",
+      "base_net_yi": 0.0,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 4.182985287314304,
+          "end_surplus_p10_yi": -4.796714426711612,
+          "end_surplus_p90_yi": 14.596191710067952,
+          "end_loss_fraction": 0.3229166666666667,
+          "end_wage_cost_yi_median": 10.230597464125754,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 106.80962347672207,
+          "loss_years_median": 11.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 4.182985287314304,
+          "end_surplus_p10_yi": -4.796714426711612,
+          "end_surplus_p90_yi": 14.596191710067952,
+          "end_loss_fraction": 0.3229166666666667,
+          "end_wage_cost_yi_median": 10.230597464125754,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 106.80962347672207,
+          "loss_years_median": 11.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 4.366008569541316,
+          "end_surplus_p10_yi": -4.895773526369991,
+          "end_surplus_p90_yi": 15.659935520689963,
+          "end_loss_fraction": 0.3020833333333333,
+          "end_wage_cost_yi_median": 10.230597464125754,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 120.93906076659871,
+          "loss_years_median": 10.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 4.366008569541316,
+          "end_surplus_p10_yi": -4.895773526369991,
+          "end_surplus_p90_yi": 15.659935520689963,
+          "end_loss_fraction": 0.3020833333333333,
+          "end_wage_cost_yi_median": 10.230597464125754,
+          "end_net_receipts_median_yi": 0.0,
+          "cumulative_surplus_median_yi": 120.93906076659871,
+          "loss_years_median": 10.5
+        }
+      }
+    },
+    {
+      "bureau_id": "shijiazhuang",
+      "name": "石家庄",
+      "region_id": "north",
+      "base_net_yi": 2.7,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 1.9106533091272828,
+          "end_surplus_p10_yi": -8.285272783177302,
+          "end_surplus_p90_yi": 18.80522156031796,
+          "end_loss_fraction": 0.4791666666666667,
+          "end_wage_cost_yi_median": 27.95941167473258,
+          "end_net_receipts_median_yi": 3.2196597377195246,
+          "cumulative_surplus_median_yi": 276.50932786768965,
+          "loss_years_median": 4.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 1.9106533091272828,
+          "end_surplus_p10_yi": -8.285272783177302,
+          "end_surplus_p90_yi": 18.80522156031796,
+          "end_loss_fraction": 0.4791666666666667,
+          "end_wage_cost_yi_median": 27.95941167473258,
+          "end_net_receipts_median_yi": 3.2196597377195246,
+          "cumulative_surplus_median_yi": 276.50932786768965,
+          "loss_years_median": 4.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 1.8490223022412966,
+          "end_surplus_p10_yi": -8.695269163205774,
+          "end_surplus_p90_yi": 22.62757105235916,
+          "end_loss_fraction": 0.4583333333333333,
+          "end_wage_cost_yi_median": 27.95941167473258,
+          "end_net_receipts_median_yi": 3.3058117822641875,
+          "cumulative_surplus_median_yi": 291.52881996993,
+          "loss_years_median": 4.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 1.8490223022412966,
+          "end_surplus_p10_yi": -8.695269163205774,
+          "end_surplus_p90_yi": 22.62757105235916,
+          "end_loss_fraction": 0.4583333333333333,
+          "end_wage_cost_yi_median": 27.95941167473258,
+          "end_net_receipts_median_yi": 3.3058117822641875,
+          "cumulative_surplus_median_yi": 291.52881996993,
+          "loss_years_median": 4.0
+        }
+      }
+    },
+    {
+      "bureau_id": "datong",
+      "name": "大同",
+      "region_id": "north",
+      "base_net_yi": 14.4,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 15.196591159028827,
+          "end_surplus_p10_yi": 0.2725484239355307,
+          "end_surplus_p90_yi": 43.75916921251391,
+          "end_loss_fraction": 0.09375,
+          "end_wage_cost_yi_median": 15.980185244573974,
+          "end_net_receipts_median_yi": 15.94956914529481,
+          "cumulative_surplus_median_yi": 1019.8905140284362,
+          "loss_years_median": 0.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 15.196591159028827,
+          "end_surplus_p10_yi": 0.2725484239355307,
+          "end_surplus_p90_yi": 43.75916921251391,
+          "end_loss_fraction": 0.09375,
+          "end_wage_cost_yi_median": 15.980185244573974,
+          "end_net_receipts_median_yi": 15.94956914529481,
+          "cumulative_surplus_median_yi": 1019.8905140284362,
+          "loss_years_median": 0.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 16.267732331070412,
+          "end_surplus_p10_yi": -1.4933103196096944,
+          "end_surplus_p90_yi": 51.167839007824625,
+          "end_loss_fraction": 0.14583333333333334,
+          "end_wage_cost_yi_median": 15.980185244573974,
+          "end_net_receipts_median_yi": 16.19597173050941,
+          "cumulative_surplus_median_yi": 1077.0385409503954,
+          "loss_years_median": 0.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 16.267732331070412,
+          "end_surplus_p10_yi": -1.4933103196096944,
+          "end_surplus_p90_yi": 51.167839007824625,
+          "end_loss_fraction": 0.14583333333333334,
+          "end_wage_cost_yi_median": 15.980185244573974,
+          "end_net_receipts_median_yi": 16.19597173050941,
+          "cumulative_surplus_median_yi": 1077.0385409503954,
+          "loss_years_median": 0.0
+        }
+      }
+    },
+    {
+      "bureau_id": "taiyuan",
+      "name": "太原",
+      "region_id": "north",
+      "base_net_yi": 12.6,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 8.408047387240885,
+          "end_surplus_p10_yi": -5.358614482921599,
+          "end_surplus_p90_yi": 37.911131493177805,
+          "end_loss_fraction": 0.2604166666666667,
+          "end_wage_cost_yi_median": 29.39461144396911,
+          "end_net_receipts_median_yi": 15.0316891061329,
+          "cumulative_surplus_median_yi": 758.71319795203,
+          "loss_years_median": 1.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 8.408047387240885,
+          "end_surplus_p10_yi": -5.358614482921599,
+          "end_surplus_p90_yi": 37.911131493177805,
+          "end_loss_fraction": 0.2604166666666667,
+          "end_wage_cost_yi_median": 29.39461144396911,
+          "end_net_receipts_median_yi": 15.0316891061329,
+          "cumulative_surplus_median_yi": 758.71319795203,
+          "loss_years_median": 1.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 9.949704692072189,
+          "end_surplus_p10_yi": -6.71722630599011,
+          "end_surplus_p90_yi": 46.54353180829895,
+          "end_loss_fraction": 0.28125,
+          "end_wage_cost_yi_median": 29.39461144396911,
+          "end_net_receipts_median_yi": 15.434904991179621,
+          "cumulative_surplus_median_yi": 799.9995164843625,
+          "loss_years_median": 2.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 9.949704692072189,
+          "end_surplus_p10_yi": -6.71722630599011,
+          "end_surplus_p90_yi": 46.54353180829895,
+          "end_loss_fraction": 0.28125,
+          "end_wage_cost_yi_median": 29.39461144396911,
+          "end_net_receipts_median_yi": 15.434904991179621,
+          "cumulative_surplus_median_yi": 799.9995164843625,
+          "loss_years_median": 2.0
+        }
+      }
+    },
+    {
+      "bureau_id": "changzhi",
+      "name": "长治",
+      "region_id": "north",
+      "base_net_yi": 5.8500000000000005,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 4.523530180816781,
+          "end_surplus_p10_yi": -3.110937761232565,
+          "end_surplus_p90_yi": 18.350629261611555,
+          "end_loss_fraction": 0.2604166666666667,
+          "end_wage_cost_yi_median": 9.309648184494662,
+          "end_net_receipts_median_yi": 6.658101642317634,
+          "cumulative_surplus_median_yi": 306.65261762266925,
+          "loss_years_median": 2.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 4.523530180816781,
+          "end_surplus_p10_yi": -3.110937761232565,
+          "end_surplus_p90_yi": 18.350629261611555,
+          "end_loss_fraction": 0.2604166666666667,
+          "end_wage_cost_yi_median": 9.309648184494662,
+          "end_net_receipts_median_yi": 6.658101642317634,
+          "cumulative_surplus_median_yi": 306.65261762266925,
+          "loss_years_median": 2.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 5.321639553655926,
+          "end_surplus_p10_yi": -3.869737921495689,
+          "end_surplus_p90_yi": 22.494055015923585,
+          "end_loss_fraction": 0.28125,
+          "end_wage_cost_yi_median": 9.309648184494662,
+          "end_net_receipts_median_yi": 6.788590460398142,
+          "cumulative_surplus_median_yi": 330.4384154093888,
+          "loss_years_median": 3.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 5.321639553655926,
+          "end_surplus_p10_yi": -3.869737921495689,
+          "end_surplus_p90_yi": 22.494055015923585,
+          "end_loss_fraction": 0.28125,
+          "end_wage_cost_yi_median": 9.309648184494662,
+          "end_net_receipts_median_yi": 6.788590460398142,
+          "cumulative_surplus_median_yi": 330.4384154093888,
+          "loss_years_median": 3.0
+        }
+      }
+    },
+    {
+      "bureau_id": "houma",
+      "name": "侯马",
+      "region_id": "north",
+      "base_net_yi": 7.2,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 5.631563248730583,
+          "end_surplus_p10_yi": -2.511721961153786,
+          "end_surplus_p90_yi": 20.53566650101975,
+          "end_loss_fraction": 0.20833333333333334,
+          "end_wage_cost_yi_median": 11.006685546931578,
+          "end_net_receipts_median_yi": 8.747643002235467,
+          "cumulative_surplus_median_yi": 379.2437237513825,
+          "loss_years_median": 1.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 5.631563248730583,
+          "end_surplus_p10_yi": -2.511721961153786,
+          "end_surplus_p90_yi": 20.53566650101975,
+          "end_loss_fraction": 0.20833333333333334,
+          "end_wage_cost_yi_median": 11.006685546931578,
+          "end_net_receipts_median_yi": 8.747643002235467,
+          "cumulative_surplus_median_yi": 379.2437237513825,
+          "loss_years_median": 1.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 6.370835513484331,
+          "end_surplus_p10_yi": -3.295134044066216,
+          "end_surplus_p90_yi": 24.7147717739661,
+          "end_loss_fraction": 0.20833333333333334,
+          "end_wage_cost_yi_median": 11.006685546931578,
+          "end_net_receipts_median_yi": 9.006920889481517,
+          "cumulative_surplus_median_yi": 401.09921744782594,
+          "loss_years_median": 1.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 6.370835513484331,
+          "end_surplus_p10_yi": -3.295134044066216,
+          "end_surplus_p90_yi": 24.7147717739661,
+          "end_loss_fraction": 0.20833333333333334,
+          "end_wage_cost_yi_median": 11.006685546931578,
+          "end_net_receipts_median_yi": 9.006920889481517,
+          "cumulative_surplus_median_yi": 401.09921744782594,
+          "loss_years_median": 1.5
+        }
+      }
+    },
+    {
+      "bureau_id": "jining",
+      "name": "集宁",
+      "region_id": "northwest",
+      "base_net_yi": 0.2,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -0.5230117130278445,
+          "end_surplus_p10_yi": -2.9415302493826356,
+          "end_surplus_p90_yi": 2.06381572581709,
+          "end_loss_fraction": 0.59375,
+          "end_wage_cost_yi_median": 5.4544268049368885,
+          "end_net_receipts_median_yi": 0.2298893167370101,
+          "cumulative_surplus_median_yi": 4.0792437260359575,
+          "loss_years_median": 24.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -0.5230117130278445,
+          "end_surplus_p10_yi": -2.9415302493826356,
+          "end_surplus_p90_yi": 2.06381572581709,
+          "end_loss_fraction": 0.59375,
+          "end_wage_cost_yi_median": 5.4544268049368885,
+          "end_net_receipts_median_yi": 0.2298893167370101,
+          "cumulative_surplus_median_yi": 4.0792437260359575,
+          "loss_years_median": 24.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -0.2694984813777795,
+          "end_surplus_p10_yi": -3.1399586521030565,
+          "end_surplus_p90_yi": 3.0293221288585244,
+          "end_loss_fraction": 0.5520833333333334,
+          "end_wage_cost_yi_median": 5.4544268049368885,
+          "end_net_receipts_median_yi": 0.23474278566919707,
+          "cumulative_surplus_median_yi": 15.688186091830367,
+          "loss_years_median": 21.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -0.2694984813777795,
+          "end_surplus_p10_yi": -3.1399586521030565,
+          "end_surplus_p90_yi": 3.0293221288585244,
+          "end_loss_fraction": 0.5520833333333334,
+          "end_wage_cost_yi_median": 5.4544268049368885,
+          "end_net_receipts_median_yi": 0.23474278566919707,
+          "cumulative_surplus_median_yi": 15.688186091830367,
+          "loss_years_median": 21.0
+        }
+      }
+    },
+    {
+      "bureau_id": "hohhot",
+      "name": "呼和浩特",
+      "region_id": "northwest",
+      "base_net_yi": 0.05,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 5.110747336580738,
+          "end_surplus_p10_yi": -0.38775438394120965,
+          "end_surplus_p90_yi": 11.595962894166878,
+          "end_loss_fraction": 0.125,
+          "end_wage_cost_yi_median": 6.572203482920681,
+          "end_net_receipts_median_yi": 0.05593199476059933,
+          "cumulative_surplus_median_yi": 287.4867556319605,
+          "loss_years_median": 0.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 5.110747336580738,
+          "end_surplus_p10_yi": -0.38775438394120965,
+          "end_surplus_p90_yi": 11.595962894166878,
+          "end_loss_fraction": 0.125,
+          "end_wage_cost_yi_median": 6.572203482920681,
+          "end_net_receipts_median_yi": 0.05593199476059933,
+          "cumulative_surplus_median_yi": 287.4867556319605,
+          "loss_years_median": 0.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 5.269923500537012,
+          "end_surplus_p10_yi": -0.6758482288385068,
+          "end_surplus_p90_yi": 12.616960667247906,
+          "end_loss_fraction": 0.125,
+          "end_wage_cost_yi_median": 6.572203482920681,
+          "end_net_receipts_median_yi": 0.05688060736588944,
+          "cumulative_surplus_median_yi": 295.8536322751829,
+          "loss_years_median": 0.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 5.269923500537012,
+          "end_surplus_p10_yi": -0.6758482288385068,
+          "end_surplus_p90_yi": 12.616960667247906,
+          "end_loss_fraction": 0.125,
+          "end_wage_cost_yi_median": 6.572203482920681,
+          "end_net_receipts_median_yi": 0.05688060736588944,
+          "cumulative_surplus_median_yi": 295.8536322751829,
+          "loss_years_median": 0.0
+        }
+      }
+    },
+    {
+      "bureau_id": "baotou",
+      "name": "包头",
+      "region_id": "northwest",
+      "base_net_yi": 2.1,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 10.437214155459841,
+          "end_surplus_p10_yi": -4.15138024646203,
+          "end_surplus_p90_yi": 31.470271191558542,
+          "end_loss_fraction": 0.21875,
+          "end_wage_cost_yi_median": 16.15291333278236,
+          "end_net_receipts_median_yi": 2.486528627059135,
+          "cumulative_surplus_median_yi": 596.7632053619652,
+          "loss_years_median": 0.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 10.437214155459841,
+          "end_surplus_p10_yi": -4.15138024646203,
+          "end_surplus_p90_yi": 31.470271191558542,
+          "end_loss_fraction": 0.21875,
+          "end_wage_cost_yi_median": 16.15291333278236,
+          "end_net_receipts_median_yi": 2.486528627059135,
+          "cumulative_surplus_median_yi": 596.7632053619652,
+          "loss_years_median": 0.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 11.41998881547785,
+          "end_surplus_p10_yi": -5.260765417004414,
+          "end_surplus_p90_yi": 40.98128579630168,
+          "end_loss_fraction": 0.23958333333333334,
+          "end_wage_cost_yi_median": 16.15291333278236,
+          "end_net_receipts_median_yi": 2.5503488481535563,
+          "cumulative_surplus_median_yi": 642.9957895682728,
+          "loss_years_median": 0.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 11.41998881547785,
+          "end_surplus_p10_yi": -5.260765417004414,
+          "end_surplus_p90_yi": 40.98128579630168,
+          "end_loss_fraction": 0.23958333333333334,
+          "end_wage_cost_yi_median": 16.15291333278236,
+          "end_net_receipts_median_yi": 2.5503488481535563,
+          "cumulative_surplus_median_yi": 642.9957895682728,
+          "loss_years_median": 0.0
+        }
+      }
+    },
+    {
+      "bureau_id": "yinchuan",
+      "name": "银川",
+      "region_id": "northwest",
+      "base_net_yi": 0.35,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 3.1758398935187317,
+          "end_surplus_p10_yi": -0.9580903854656919,
+          "end_surplus_p90_yi": 8.838600493113862,
+          "end_loss_fraction": 0.23958333333333334,
+          "end_wage_cost_yi_median": 7.209266724981043,
+          "end_net_receipts_median_yi": 0.41335888339744187,
+          "cumulative_surplus_median_yi": 183.34127563337384,
+          "loss_years_median": 0.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 3.1758398935187317,
+          "end_surplus_p10_yi": -0.9580903854656919,
+          "end_surplus_p90_yi": 8.838600493113862,
+          "end_loss_fraction": 0.23958333333333334,
+          "end_wage_cost_yi_median": 7.209266724981043,
+          "end_net_receipts_median_yi": 0.41335888339744187,
+          "cumulative_surplus_median_yi": 183.34127563337384,
+          "loss_years_median": 0.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 3.387290112355898,
+          "end_surplus_p10_yi": -1.0828772502403834,
+          "end_surplus_p90_yi": 11.462540849888807,
+          "end_loss_fraction": 0.23958333333333334,
+          "end_wage_cost_yi_median": 7.209266724981043,
+          "end_net_receipts_median_yi": 0.42380589248196743,
+          "cumulative_surplus_median_yi": 196.45252195954654,
+          "loss_years_median": 0.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 3.387290112355898,
+          "end_surplus_p10_yi": -1.0828772502403834,
+          "end_surplus_p90_yi": 11.462540849888807,
+          "end_loss_fraction": 0.23958333333333334,
+          "end_wage_cost_yi_median": 7.209266724981043,
+          "end_net_receipts_median_yi": 0.42380589248196743,
+          "cumulative_surplus_median_yi": 196.45252195954654,
+          "loss_years_median": 0.5
+        }
+      }
+    },
+    {
+      "bureau_id": "zhongwei",
+      "name": "中卫",
+      "region_id": "northwest",
+      "base_net_yi": 0.12,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -1.7557451910621729,
+          "end_surplus_p10_yi": -3.619777446800013,
+          "end_surplus_p90_yi": 0.27590307221355126,
+          "end_loss_fraction": 0.8541666666666666,
+          "end_wage_cost_yi_median": 5.115799091218079,
+          "end_net_receipts_median_yi": 0.1356778262528701,
+          "cumulative_surplus_median_yi": -61.918005968503934,
+          "loss_years_median": 57.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -1.7557451910621729,
+          "end_surplus_p10_yi": -3.619777446800013,
+          "end_surplus_p90_yi": 0.27590307221355126,
+          "end_loss_fraction": 0.8541666666666666,
+          "end_wage_cost_yi_median": 5.115799091218079,
+          "end_net_receipts_median_yi": 0.1356778262528701,
+          "cumulative_surplus_median_yi": -61.918005968503934,
+          "loss_years_median": 57.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -1.5557445161473098,
+          "end_surplus_p10_yi": -3.8227256583659432,
+          "end_surplus_p90_yi": 1.5892153965101512,
+          "end_loss_fraction": 0.7604166666666666,
+          "end_wage_cost_yi_median": 5.115799091218079,
+          "end_net_receipts_median_yi": 0.13820010096241608,
+          "cumulative_surplus_median_yi": -54.457655493248,
+          "loss_years_median": 54.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -1.5557445161473098,
+          "end_surplus_p10_yi": -3.8227256583659432,
+          "end_surplus_p90_yi": 1.5892153965101512,
+          "end_loss_fraction": 0.7604166666666666,
+          "end_wage_cost_yi_median": 5.115799091218079,
+          "end_net_receipts_median_yi": 0.13820010096241608,
+          "cumulative_surplus_median_yi": -54.457655493248,
+          "loss_years_median": 54.5
+        }
+      }
+    },
+    {
+      "bureau_id": "xian",
+      "name": "西安",
+      "region_id": "northwest",
+      "base_net_yi": 0.25,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 11.678530956825641,
+          "end_surplus_p10_yi": 0.6735426582019943,
+          "end_surplus_p90_yi": 34.244455210251445,
+          "end_loss_fraction": 0.09375,
+          "end_wage_cost_yi_median": 20.902674623289933,
+          "end_net_receipts_median_yi": 0.3017539015390239,
+          "cumulative_surplus_median_yi": 777.996242794939,
+          "loss_years_median": 0.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 11.678530956825641,
+          "end_surplus_p10_yi": 0.6735426582019943,
+          "end_surplus_p90_yi": 34.244455210251445,
+          "end_loss_fraction": 0.09375,
+          "end_wage_cost_yi_median": 20.902674623289933,
+          "end_net_receipts_median_yi": 0.3017539015390239,
+          "cumulative_surplus_median_yi": 777.996242794939,
+          "loss_years_median": 0.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 12.37727785340692,
+          "end_surplus_p10_yi": 0.9289586825659649,
+          "end_surplus_p90_yi": 35.726643028604094,
+          "end_loss_fraction": 0.09375,
+          "end_wage_cost_yi_median": 20.902674623289933,
+          "end_net_receipts_median_yi": 0.3103921688026481,
+          "cumulative_surplus_median_yi": 780.0345602299866,
+          "loss_years_median": 0.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 12.37727785340692,
+          "end_surplus_p10_yi": 0.9289586825659649,
+          "end_surplus_p90_yi": 35.726643028604094,
+          "end_loss_fraction": 0.09375,
+          "end_wage_cost_yi_median": 20.902674623289933,
+          "end_net_receipts_median_yi": 0.3103921688026481,
+          "cumulative_surplus_median_yi": 780.0345602299866,
+          "loss_years_median": 0.0
+        }
+      }
+    },
+    {
+      "bureau_id": "baoji",
+      "name": "宝鸡",
+      "region_id": "northwest",
+      "base_net_yi": 0.1,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -1.0214916742384959,
+          "end_surplus_p10_yi": -3.137739988308696,
+          "end_surplus_p90_yi": 1.664516474467237,
+          "end_loss_fraction": 0.71875,
+          "end_wage_cost_yi_median": 5.162382838411374,
+          "end_net_receipts_median_yi": 0.10954014085635967,
+          "cumulative_surplus_median_yi": -30.092490419166978,
+          "loss_years_median": 47.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -1.0214916742384959,
+          "end_surplus_p10_yi": -3.137739988308696,
+          "end_surplus_p90_yi": 1.664516474467237,
+          "end_loss_fraction": 0.71875,
+          "end_wage_cost_yi_median": 5.162382838411374,
+          "end_net_receipts_median_yi": 0.10954014085635967,
+          "cumulative_surplus_median_yi": -30.092490419166978,
+          "loss_years_median": 47.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -0.9346358559483321,
+          "end_surplus_p10_yi": -3.126254809133414,
+          "end_surplus_p90_yi": 2.5566807731871415,
+          "end_loss_fraction": 0.6354166666666666,
+          "end_wage_cost_yi_median": 5.162382838411374,
+          "end_net_receipts_median_yi": 0.11104771651109044,
+          "cumulative_surplus_median_yi": -26.652968943014727,
+          "loss_years_median": 40.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -0.9346358559483321,
+          "end_surplus_p10_yi": -3.126254809133414,
+          "end_surplus_p90_yi": 2.5566807731871415,
+          "end_loss_fraction": 0.6354166666666666,
+          "end_wage_cost_yi_median": 5.162382838411374,
+          "end_net_receipts_median_yi": 0.11104771651109044,
+          "cumulative_surplus_median_yi": -26.652968943014727,
+          "loss_years_median": 40.5
+        }
+      }
+    },
+    {
+      "bureau_id": "ankang",
+      "name": "安康",
+      "region_id": "northwest",
+      "base_net_yi": 0.05,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -8.33564027740185,
+          "end_surplus_p10_yi": -10.855051085425881,
+          "end_surplus_p90_yi": -6.813494504698145,
+          "end_loss_fraction": 1.0,
+          "end_wage_cost_yi_median": 6.428944212610219,
+          "end_net_receipts_median_yi": 0.05411571661799803,
+          "cumulative_surplus_median_yi": -436.1212140944839,
+          "loss_years_median": 60.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -8.33564027740185,
+          "end_surplus_p10_yi": -10.855051085425881,
+          "end_surplus_p90_yi": -6.813494504698145,
+          "end_loss_fraction": 1.0,
+          "end_wage_cost_yi_median": 6.428944212610219,
+          "end_net_receipts_median_yi": 0.05411571661799803,
+          "cumulative_surplus_median_yi": -436.1212140944839,
+          "loss_years_median": 60.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -8.286379690838658,
+          "end_surplus_p10_yi": -10.449533603668247,
+          "end_surplus_p90_yi": -6.850966211756681,
+          "end_loss_fraction": 1.0,
+          "end_wage_cost_yi_median": 6.428944212610219,
+          "end_net_receipts_median_yi": 0.05476164272726897,
+          "cumulative_surplus_median_yi": -434.76383848167063,
+          "loss_years_median": 60.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -8.286379690838658,
+          "end_surplus_p10_yi": -10.449533603668247,
+          "end_surplus_p90_yi": -6.850966211756681,
+          "end_loss_fraction": 1.0,
+          "end_wage_cost_yi_median": 6.428944212610219,
+          "end_net_receipts_median_yi": 0.05476164272726897,
+          "cumulative_surplus_median_yi": -434.76383848167063,
+          "loss_years_median": 60.0
+        }
+      }
+    },
+    {
+      "bureau_id": "suidexi",
+      "name": "绥德",
+      "region_id": "northwest",
+      "base_net_yi": 1.2,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 4.9128894020882745,
+          "end_surplus_p10_yi": -1.8134526714002863,
+          "end_surplus_p90_yi": 15.638760018759163,
+          "end_loss_fraction": 0.22916666666666666,
+          "end_wage_cost_yi_median": 7.241860511459505,
+          "end_net_receipts_median_yi": 1.5389235456809842,
+          "cumulative_surplus_median_yi": 332.4774203696817,
+          "loss_years_median": 0.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 4.9128894020882745,
+          "end_surplus_p10_yi": -1.8134526714002863,
+          "end_surplus_p90_yi": 15.638760018759163,
+          "end_loss_fraction": 0.22916666666666666,
+          "end_wage_cost_yi_median": 7.241860511459505,
+          "end_net_receipts_median_yi": 1.5389235456809842,
+          "cumulative_surplus_median_yi": 332.4774203696817,
+          "loss_years_median": 0.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 5.528897369217639,
+          "end_surplus_p10_yi": -2.347052282202145,
+          "end_surplus_p90_yi": 21.01007169578282,
+          "end_loss_fraction": 0.23958333333333334,
+          "end_wage_cost_yi_median": 7.241860511459505,
+          "end_net_receipts_median_yi": 1.597434217688524,
+          "cumulative_surplus_median_yi": 362.9743490604958,
+          "loss_years_median": 1.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 5.528897369217639,
+          "end_surplus_p10_yi": -2.347052282202145,
+          "end_surplus_p90_yi": 21.01007169578282,
+          "end_loss_fraction": 0.23958333333333334,
+          "end_wage_cost_yi_median": 7.241860511459505,
+          "end_net_receipts_median_yi": 1.597434217688524,
+          "cumulative_surplus_median_yi": 362.9743490604958,
+          "loss_years_median": 1.5
+        }
+      }
+    },
+    {
+      "bureau_id": "lanzhou",
+      "name": "兰州",
+      "region_id": "northwest",
+      "base_net_yi": 0.4,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -0.5756057557575134,
+          "end_surplus_p10_yi": -7.822049559137877,
+          "end_surplus_p90_yi": 8.956085219795986,
+          "end_loss_fraction": 0.5416666666666666,
+          "end_wage_cost_yi_median": 16.704274748841076,
+          "end_net_receipts_median_yi": 0.4685229235147733,
+          "cumulative_surplus_median_yi": 31.600400046045245,
+          "loss_years_median": 20.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -0.5756057557575134,
+          "end_surplus_p10_yi": -7.822049559137877,
+          "end_surplus_p90_yi": 8.956085219795986,
+          "end_loss_fraction": 0.5416666666666666,
+          "end_wage_cost_yi_median": 16.704274748841076,
+          "end_net_receipts_median_yi": 0.4685229235147733,
+          "cumulative_surplus_median_yi": 31.600400046045245,
+          "loss_years_median": 20.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -0.27918156866850447,
+          "end_surplus_p10_yi": -7.430529864340995,
+          "end_surplus_p90_yi": 12.651011684978391,
+          "end_loss_fraction": 0.5208333333333334,
+          "end_wage_cost_yi_median": 16.704274748841076,
+          "end_net_receipts_median_yi": 0.4797695445400903,
+          "cumulative_surplus_median_yi": 45.7471129679146,
+          "loss_years_median": 20.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -0.27918156866850447,
+          "end_surplus_p10_yi": -7.430529864340995,
+          "end_surplus_p90_yi": 12.651011684978391,
+          "end_loss_fraction": 0.5208333333333334,
+          "end_wage_cost_yi_median": 16.704274748841076,
+          "end_net_receipts_median_yi": 0.4797695445400903,
+          "cumulative_surplus_median_yi": 45.7471129679146,
+          "loss_years_median": 20.5
+        }
+      }
+    },
+    {
+      "bureau_id": "pingliang",
+      "name": "平凉",
+      "region_id": "northwest",
+      "base_net_yi": 0.45,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -2.4339320620233287,
+          "end_surplus_p10_yi": -5.083391743861869,
+          "end_surplus_p90_yi": 1.5348329804694425,
+          "end_loss_fraction": 0.78125,
+          "end_wage_cost_yi_median": 6.518944549749456,
+          "end_net_receipts_median_yi": 0.5346483076597919,
+          "cumulative_surplus_median_yi": -88.75249137121102,
+          "loss_years_median": 57.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -2.4339320620233287,
+          "end_surplus_p10_yi": -5.083391743861869,
+          "end_surplus_p90_yi": 1.5348329804694425,
+          "end_loss_fraction": 0.78125,
+          "end_wage_cost_yi_median": 6.518944549749456,
+          "end_net_receipts_median_yi": 0.5346483076597919,
+          "cumulative_surplus_median_yi": -88.75249137121102,
+          "loss_years_median": 57.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -2.175452242581742,
+          "end_surplus_p10_yi": -5.37975162456457,
+          "end_surplus_p90_yi": 4.617091802631376,
+          "end_loss_fraction": 0.6666666666666666,
+          "end_wage_cost_yi_median": 6.518944549749456,
+          "end_net_receipts_median_yi": 0.5486637293793131,
+          "cumulative_surplus_median_yi": -68.82906935456059,
+          "loss_years_median": 52.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -2.175452242581742,
+          "end_surplus_p10_yi": -5.37975162456457,
+          "end_surplus_p90_yi": 4.617091802631376,
+          "end_loss_fraction": 0.6666666666666666,
+          "end_wage_cost_yi_median": 6.518944549749456,
+          "end_net_receipts_median_yi": 0.5486637293793131,
+          "cumulative_surplus_median_yi": -68.82906935456059,
+          "loss_years_median": 52.0
+        }
+      }
+    },
+    {
+      "bureau_id": "wuwei",
+      "name": "武威",
+      "region_id": "northwest",
+      "base_net_yi": 0.15,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -0.895535508696647,
+          "end_surplus_p10_yi": -2.7854471100909346,
+          "end_surplus_p90_yi": 1.231521849781406,
+          "end_loss_fraction": 0.7604166666666666,
+          "end_wage_cost_yi_median": 4.220042957375892,
+          "end_net_receipts_median_yi": 0.16220561692434374,
+          "cumulative_surplus_median_yi": -22.55901114588231,
+          "loss_years_median": 44.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -0.895535508696647,
+          "end_surplus_p10_yi": -2.7854471100909346,
+          "end_surplus_p90_yi": 1.231521849781406,
+          "end_loss_fraction": 0.7604166666666666,
+          "end_wage_cost_yi_median": 4.220042957375892,
+          "end_net_receipts_median_yi": 0.16220561692434374,
+          "cumulative_surplus_median_yi": -22.55901114588231,
+          "loss_years_median": 44.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -0.603046729532132,
+          "end_surplus_p10_yi": -2.995707229923859,
+          "end_surplus_p90_yi": 2.5510116774515037,
+          "end_loss_fraction": 0.7083333333333334,
+          "end_wage_cost_yi_median": 4.220042957375892,
+          "end_net_receipts_median_yi": 0.164123743312994,
+          "cumulative_surplus_median_yi": -13.472905871829632,
+          "loss_years_median": 39.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -0.603046729532132,
+          "end_surplus_p10_yi": -2.995707229923859,
+          "end_surplus_p90_yi": 2.5510116774515037,
+          "end_loss_fraction": 0.7083333333333334,
+          "end_wage_cost_yi_median": 4.220042957375892,
+          "end_net_receipts_median_yi": 0.164123743312994,
+          "cumulative_surplus_median_yi": -13.472905871829632,
+          "loss_years_median": 39.5
+        }
+      }
+    },
+    {
+      "bureau_id": "zhangye",
+      "name": "张掖",
+      "region_id": "northwest",
+      "base_net_yi": 0.22,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -10.530259536996386,
+          "end_surplus_p10_yi": -13.624124141283298,
+          "end_surplus_p90_yi": -8.293581069837069,
+          "end_loss_fraction": 1.0,
+          "end_wage_cost_yi_median": 9.076697869390323,
+          "end_net_receipts_median_yi": 0.23813364206584275,
+          "cumulative_surplus_median_yi": -537.6954189343894,
+          "loss_years_median": 60.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -10.530259536996386,
+          "end_surplus_p10_yi": -13.624124141283298,
+          "end_surplus_p90_yi": -8.293581069837069,
+          "end_loss_fraction": 1.0,
+          "end_wage_cost_yi_median": 9.076697869390323,
+          "end_net_receipts_median_yi": 0.23813364206584275,
+          "cumulative_surplus_median_yi": -537.6954189343894,
+          "loss_years_median": 60.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -10.441132447686927,
+          "end_surplus_p10_yi": -13.349650548150166,
+          "end_surplus_p90_yi": -7.962671014400135,
+          "end_loss_fraction": 1.0,
+          "end_wage_cost_yi_median": 9.076697869390323,
+          "end_net_receipts_median_yi": 0.2409840416843504,
+          "cumulative_surplus_median_yi": -529.3192897272197,
+          "loss_years_median": 60.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -10.441132447686927,
+          "end_surplus_p10_yi": -13.349650548150166,
+          "end_surplus_p90_yi": -7.962671014400135,
+          "end_loss_fraction": 1.0,
+          "end_wage_cost_yi_median": 9.076697869390323,
+          "end_net_receipts_median_yi": 0.2409840416843504,
+          "cumulative_surplus_median_yi": -529.3192897272197,
+          "loss_years_median": 60.0
+        }
+      }
+    },
+    {
+      "bureau_id": "xining",
+      "name": "西宁",
+      "region_id": "northwest",
+      "base_net_yi": 0.12,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -1.359241204030056,
+          "end_surplus_p10_yi": -4.010617451739982,
+          "end_surplus_p90_yi": 2.9289812258769263,
+          "end_loss_fraction": 0.6666666666666666,
+          "end_wage_cost_yi_median": 7.143107469985852,
+          "end_net_receipts_median_yi": 0.12845413848263937,
+          "cumulative_surplus_median_yi": -45.681542004010595,
+          "loss_years_median": 45.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -1.359241204030056,
+          "end_surplus_p10_yi": -4.010617451739982,
+          "end_surplus_p90_yi": 2.9289812258769263,
+          "end_loss_fraction": 0.6666666666666666,
+          "end_wage_cost_yi_median": 7.143107469985852,
+          "end_net_receipts_median_yi": 0.12845413848263937,
+          "cumulative_surplus_median_yi": -45.681542004010595,
+          "loss_years_median": 45.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -1.269467143269058,
+          "end_surplus_p10_yi": -3.8652460370943333,
+          "end_surplus_p90_yi": 3.770365790277261,
+          "end_loss_fraction": 0.65625,
+          "end_wage_cost_yi_median": 7.143107469985852,
+          "end_net_receipts_median_yi": 0.12977263771969866,
+          "cumulative_surplus_median_yi": -38.76813388883909,
+          "loss_years_median": 42.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -1.269467143269058,
+          "end_surplus_p10_yi": -3.8652460370943333,
+          "end_surplus_p90_yi": 3.770365790277261,
+          "end_loss_fraction": 0.65625,
+          "end_wage_cost_yi_median": 7.143107469985852,
+          "end_net_receipts_median_yi": 0.12977263771969866,
+          "cumulative_surplus_median_yi": -38.76813388883909,
+          "loss_years_median": 42.5
+        }
+      }
+    },
+    {
+      "bureau_id": "golmud",
+      "name": "格尔木",
+      "region_id": "northwest",
+      "base_net_yi": 0.35,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -8.949243322575803,
+          "end_surplus_p10_yi": -12.476146635819962,
+          "end_surplus_p90_yi": -5.619284682399258,
+          "end_loss_fraction": 1.0,
+          "end_wage_cost_yi_median": 11.270762802194223,
+          "end_net_receipts_median_yi": 0.4199462507592857,
+          "cumulative_surplus_median_yi": -442.5169471526614,
+          "loss_years_median": 60.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -8.949243322575803,
+          "end_surplus_p10_yi": -12.476146635819962,
+          "end_surplus_p90_yi": -5.619284682399258,
+          "end_loss_fraction": 1.0,
+          "end_wage_cost_yi_median": 11.270762802194223,
+          "end_net_receipts_median_yi": 0.4199462507592857,
+          "cumulative_surplus_median_yi": -442.5169471526614,
+          "loss_years_median": 60.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -8.73906929381666,
+          "end_surplus_p10_yi": -11.625408394078221,
+          "end_surplus_p90_yi": -2.7690471451729284,
+          "end_loss_fraction": 0.96875,
+          "end_wage_cost_yi_median": 11.270762802194223,
+          "end_net_receipts_median_yi": 0.4315977402997936,
+          "cumulative_surplus_median_yi": -423.5083014956783,
+          "loss_years_median": 60.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -8.73906929381666,
+          "end_surplus_p10_yi": -11.625408394078221,
+          "end_surplus_p90_yi": -2.7690471451729284,
+          "end_loss_fraction": 0.96875,
+          "end_wage_cost_yi_median": 11.270762802194223,
+          "end_net_receipts_median_yi": 0.4315977402997936,
+          "cumulative_surplus_median_yi": -423.5083014956783,
+          "loss_years_median": 60.0
+        }
+      }
+    },
+    {
+      "bureau_id": "hami",
+      "name": "哈密",
+      "region_id": "northwest",
+      "base_net_yi": 1.8,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 8.701766201892546,
+          "end_surplus_p10_yi": -2.9824015975693707,
+          "end_surplus_p90_yi": 28.582218717109775,
+          "end_loss_fraction": 0.20833333333333334,
+          "end_wage_cost_yi_median": 12.245680764690345,
+          "end_net_receipts_median_yi": 2.396869951482267,
+          "cumulative_surplus_median_yi": 553.8717292094572,
+          "loss_years_median": 0.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 8.701766201892546,
+          "end_surplus_p10_yi": -2.9824015975693707,
+          "end_surplus_p90_yi": 28.582218717109775,
+          "end_loss_fraction": 0.20833333333333334,
+          "end_wage_cost_yi_median": 12.245680764690345,
+          "end_net_receipts_median_yi": 2.396869951482267,
+          "cumulative_surplus_median_yi": 553.8717292094572,
+          "loss_years_median": 0.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 10.174718670987083,
+          "end_surplus_p10_yi": -3.8738240043844305,
+          "end_surplus_p90_yi": 38.311695313402204,
+          "end_loss_fraction": 0.22916666666666666,
+          "end_wage_cost_yi_median": 12.245680764690345,
+          "end_net_receipts_median_yi": 2.5020975784925956,
+          "cumulative_surplus_median_yi": 622.6635034565458,
+          "loss_years_median": 0.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 10.174718670987083,
+          "end_surplus_p10_yi": -3.8738240043844305,
+          "end_surplus_p90_yi": 38.311695313402204,
+          "end_loss_fraction": 0.22916666666666666,
+          "end_wage_cost_yi_median": 12.245680764690345,
+          "end_net_receipts_median_yi": 2.5020975784925956,
+          "cumulative_surplus_median_yi": 622.6635034565458,
+          "loss_years_median": 0.0
+        }
+      }
+    },
+    {
+      "bureau_id": "urumqi",
+      "name": "乌鲁木齐",
+      "region_id": "northwest",
+      "base_net_yi": 1.05,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 18.139012199856438,
+          "end_surplus_p10_yi": 5.013555778083019,
+          "end_surplus_p90_yi": 34.43351974867407,
+          "end_loss_fraction": 0.010416666666666666,
+          "end_wage_cost_yi_median": 13.560293935149177,
+          "end_net_receipts_median_yi": 1.330146917840513,
+          "cumulative_surplus_median_yi": 1024.3125308741023,
+          "loss_years_median": 0.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 18.139012199856438,
+          "end_surplus_p10_yi": 5.013555778083019,
+          "end_surplus_p90_yi": 34.43351974867407,
+          "end_loss_fraction": 0.010416666666666666,
+          "end_wage_cost_yi_median": 13.560293935149177,
+          "end_net_receipts_median_yi": 1.330146917840513,
+          "cumulative_surplus_median_yi": 1024.3125308741023,
+          "loss_years_median": 0.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 19.63898604701624,
+          "end_surplus_p10_yi": 4.084106903997279,
+          "end_surplus_p90_yi": 38.664300071528345,
+          "end_loss_fraction": 0.020833333333333332,
+          "end_wage_cost_yi_median": 13.560293935149177,
+          "end_net_receipts_median_yi": 1.378184863658525,
+          "cumulative_surplus_median_yi": 1053.5794722769385,
+          "loss_years_median": 0.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 19.63898604701624,
+          "end_surplus_p10_yi": 4.084106903997279,
+          "end_surplus_p90_yi": 38.664300071528345,
+          "end_loss_fraction": 0.020833333333333332,
+          "end_wage_cost_yi_median": 13.560293935149177,
+          "end_net_receipts_median_yi": 1.378184863658525,
+          "cumulative_surplus_median_yi": 1053.5794722769385,
+          "loss_years_median": 0.0
+        }
+      }
+    },
+    {
+      "bureau_id": "kuitun",
+      "name": "奎屯",
+      "region_id": "northwest",
+      "base_net_yi": 1.15,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": 6.315924882922696,
+          "end_surplus_p10_yi": -4.456622080468945,
+          "end_surplus_p90_yi": 23.466410165793214,
+          "end_loss_fraction": 0.23958333333333334,
+          "end_wage_cost_yi_median": 12.998347534412222,
+          "end_net_receipts_median_yi": 1.361446131143468,
+          "cumulative_surplus_median_yi": 460.5169066896182,
+          "loss_years_median": 0.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": 6.315924882922696,
+          "end_surplus_p10_yi": -4.456622080468945,
+          "end_surplus_p90_yi": 23.466410165793214,
+          "end_loss_fraction": 0.23958333333333334,
+          "end_wage_cost_yi_median": 12.998347534412222,
+          "end_net_receipts_median_yi": 1.361446131143468,
+          "cumulative_surplus_median_yi": 460.5169066896182,
+          "loss_years_median": 0.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": 7.498695840866658,
+          "end_surplus_p10_yi": -5.527586119984935,
+          "end_surplus_p90_yi": 33.54796405503821,
+          "end_loss_fraction": 0.2604166666666667,
+          "end_wage_cost_yi_median": 12.998347534412222,
+          "end_net_receipts_median_yi": 1.3963553950334355,
+          "cumulative_surplus_median_yi": 522.4626917806997,
+          "loss_years_median": 1.5
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": 7.498695840866658,
+          "end_surplus_p10_yi": -5.527586119984935,
+          "end_surplus_p90_yi": 33.54796405503821,
+          "end_loss_fraction": 0.2604166666666667,
+          "end_wage_cost_yi_median": 12.998347534412222,
+          "end_net_receipts_median_yi": 1.3963553950334355,
+          "cumulative_surplus_median_yi": 522.4626917806997,
+          "loss_years_median": 1.5
+        }
+      }
+    },
+    {
+      "bureau_id": "korla",
+      "name": "库尔勒",
+      "region_id": "northwest",
+      "base_net_yi": 0.75,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -3.068266365979053,
+          "end_surplus_p10_yi": -8.310218509243569,
+          "end_surplus_p90_yi": 2.9580363973027666,
+          "end_loss_fraction": 0.75,
+          "end_wage_cost_yi_median": 11.555109389971086,
+          "end_net_receipts_median_yi": 0.8622870822005877,
+          "cumulative_surplus_median_yi": -87.64325754421466,
+          "loss_years_median": 50.5
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -3.068266365979053,
+          "end_surplus_p10_yi": -8.310218509243569,
+          "end_surplus_p90_yi": 2.9580363973027666,
+          "end_loss_fraction": 0.75,
+          "end_wage_cost_yi_median": 11.555109389971086,
+          "end_net_receipts_median_yi": 0.8622870822005877,
+          "cumulative_surplus_median_yi": -87.64325754421466,
+          "loss_years_median": 50.5
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -2.223726952518258,
+          "end_surplus_p10_yi": -8.81136028053451,
+          "end_surplus_p90_yi": 6.730322338649792,
+          "end_loss_fraction": 0.59375,
+          "end_wage_cost_yi_median": 11.555109389971086,
+          "end_net_receipts_median_yi": 0.880525443548489,
+          "cumulative_surplus_median_yi": -57.71167918001103,
+          "loss_years_median": 42.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -2.223726952518258,
+          "end_surplus_p10_yi": -8.81136028053451,
+          "end_surplus_p90_yi": 6.730322338649792,
+          "end_loss_fraction": 0.59375,
+          "end_wage_cost_yi_median": 11.555109389971086,
+          "end_net_receipts_median_yi": 0.880525443548489,
+          "cumulative_surplus_median_yi": -57.71167918001103,
+          "loss_years_median": 42.0
+        }
+      }
+    },
+    {
+      "bureau_id": "kashgar",
+      "name": "喀什",
+      "region_id": "northwest",
+      "base_net_yi": 0.28,
+      "scenarios": {
+        "legacy_v03": {
+          "end_surplus_median_yi": -4.492416296832402,
+          "end_surplus_p10_yi": -6.57446264558812,
+          "end_surplus_p90_yi": -1.7130413910325046,
+          "end_loss_fraction": 0.96875,
+          "end_wage_cost_yi_median": 7.306401581669311,
+          "end_net_receipts_median_yi": 0.3286951862981219,
+          "cumulative_surplus_median_yi": -216.59386655909267,
+          "loss_years_median": 60.0
+        },
+        "independent_only": {
+          "end_surplus_median_yi": -4.492416296832402,
+          "end_surplus_p10_yi": -6.57446264558812,
+          "end_surplus_p90_yi": -1.7130413910325046,
+          "end_loss_fraction": 0.96875,
+          "end_wage_cost_yi_median": 7.306401581669311,
+          "end_net_receipts_median_yi": 0.3286951862981219,
+          "cumulative_surplus_median_yi": -216.59386655909267,
+          "loss_years_median": 60.0
+        },
+        "elasticity_only": {
+          "end_surplus_median_yi": -4.174500847412616,
+          "end_surplus_p10_yi": -6.559001758409156,
+          "end_surplus_p90_yi": -1.354337832838565,
+          "end_loss_fraction": 0.9583333333333334,
+          "end_wage_cost_yi_median": 7.306401581669311,
+          "end_net_receipts_median_yi": 0.33669660999264395,
+          "cumulative_surplus_median_yi": -206.48448008044198,
+          "loss_years_median": 60.0
+        },
+        "combined_v04": {
+          "end_surplus_median_yi": -4.174500847412616,
+          "end_surplus_p10_yi": -6.559001758409156,
+          "end_surplus_p90_yi": -1.354337832838565,
+          "end_loss_fraction": 0.9583333333333334,
+          "end_wage_cost_yi_median": 7.306401581669311,
+          "end_net_receipts_median_yi": 0.33669660999264395,
+          "cumulative_surplus_median_yi": -206.48448008044198,
+          "loss_years_median": 60.0
+        }
+      }
+    }
+  ],
+  "regions": {
+    "northeast": {
+      "legacy_v03": {
+        "end_surplus_median_yi": -9.156096662178435,
+        "end_surplus_p10_yi": -41.388264109606965,
+        "end_surplus_p90_yi": 36.31727903316555,
+        "end_loss_fraction": 0.6458333333333334,
+        "end_wage_cost_yi_median": 75.3222589958671,
+        "end_net_receipts_median_yi": 0.0,
+        "cumulative_surplus_median_yi": -149.8074006885949,
+        "loss_years_median": 439.0,
+        "pooled_end_loss_fraction": 0.6588541666666666
+      },
+      "independent_only": {
+        "end_surplus_median_yi": 0.5465327028647309,
+        "end_surplus_p10_yi": -34.90079191253038,
+        "end_surplus_p90_yi": 49.72960503141622,
+        "end_loss_fraction": 0.4895833333333333,
+        "end_wage_cost_yi_median": 75.3222589958671,
+        "end_net_receipts_median_yi": 9.365107197122718,
+        "cumulative_surplus_median_yi": 401.1554460009034,
+        "loss_years_median": 311.5,
+        "pooled_end_loss_fraction": 0.5538194444444444
+      },
+      "elasticity_only": {
+        "end_surplus_median_yi": -5.530649350415208,
+        "end_surplus_p10_yi": -43.635469503104744,
+        "end_surplus_p90_yi": 50.06677484326264,
+        "end_loss_fraction": 0.5729166666666666,
+        "end_wage_cost_yi_median": 75.3222589958671,
+        "end_net_receipts_median_yi": 0.0,
+        "cumulative_surplus_median_yi": 10.651864967749667,
+        "loss_years_median": 408.5,
+        "pooled_end_loss_fraction": 0.6171875
+      },
+      "combined_v04": {
+        "end_surplus_median_yi": 5.56128626054116,
+        "end_surplus_p10_yi": -38.2158231209947,
+        "end_surplus_p90_yi": 65.7970502743203,
+        "end_loss_fraction": 0.46875,
+        "end_wage_cost_yi_median": 75.3222589958671,
+        "end_net_receipts_median_yi": 9.60035141872596,
+        "cumulative_surplus_median_yi": 520.5283296428063,
+        "loss_years_median": 290.5,
+        "pooled_end_loss_fraction": 0.5199652777777778
+      }
+    },
+    "north": {
+      "legacy_v03": {
+        "end_surplus_median_yi": 57.8184198292023,
+        "end_surplus_p10_yi": -41.15860986041611,
+        "end_surplus_p90_yi": 242.15948971299468,
+        "end_loss_fraction": 0.25,
+        "end_wage_cost_yi_median": 215.31345177210915,
+        "end_net_receipts_median_yi": 75.46637428470832,
+        "cumulative_surplus_median_yi": 4657.851397753178,
+        "loss_years_median": 63.5,
+        "pooled_end_loss_fraction": 0.29583333333333334
+      },
+      "independent_only": {
+        "end_surplus_median_yi": 57.8184198292023,
+        "end_surplus_p10_yi": -41.15860986041611,
+        "end_surplus_p90_yi": 242.15948971299468,
+        "end_loss_fraction": 0.25,
+        "end_wage_cost_yi_median": 215.31345177210915,
+        "end_net_receipts_median_yi": 75.46637428470832,
+        "cumulative_surplus_median_yi": 4657.851397753178,
+        "loss_years_median": 63.5,
+        "pooled_end_loss_fraction": 0.29583333333333334
+      },
+      "elasticity_only": {
+        "end_surplus_median_yi": 66.02761664958186,
+        "end_surplus_p10_yi": -43.26519027713995,
+        "end_surplus_p90_yi": 287.0673178241826,
+        "end_loss_fraction": 0.22916666666666666,
+        "end_wage_cost_yi_median": 215.31345177210915,
+        "end_net_receipts_median_yi": 77.57967632182002,
+        "cumulative_surplus_median_yi": 4844.5842389120935,
+        "loss_years_median": 65.0,
+        "pooled_end_loss_fraction": 0.2989583333333333
+      },
+      "combined_v04": {
+        "end_surplus_median_yi": 66.02761664958186,
+        "end_surplus_p10_yi": -43.26519027713995,
+        "end_surplus_p90_yi": 287.0673178241826,
+        "end_loss_fraction": 0.22916666666666666,
+        "end_wage_cost_yi_median": 215.31345177210915,
+        "end_net_receipts_median_yi": 77.57967632182002,
+        "cumulative_surplus_median_yi": 4844.5842389120935,
+        "loss_years_median": 65.0,
+        "pooled_end_loss_fraction": 0.2989583333333333
+      }
+    },
+    "northwest": {
+      "legacy_v03": {
+        "end_surplus_median_yi": 33.006262306507374,
+        "end_surplus_p10_yi": -70.28610168765648,
+        "end_surplus_p90_yi": 164.7218080356339,
+        "end_loss_fraction": 0.3333333333333333,
+        "end_wage_cost_yi_median": 193.69443148762446,
+        "end_net_receipts_median_yi": 13.4295288251428,
+        "cumulative_surplus_median_yi": 2202.5107019991365,
+        "loss_years_median": 590.0,
+        "pooled_end_loss_fraction": 0.55
+      },
+      "independent_only": {
+        "end_surplus_median_yi": 33.006262306507374,
+        "end_surplus_p10_yi": -70.28610168765648,
+        "end_surplus_p90_yi": 164.7218080356339,
+        "end_loss_fraction": 0.3333333333333333,
+        "end_wage_cost_yi_median": 193.69443148762446,
+        "end_net_receipts_median_yi": 13.4295288251428,
+        "cumulative_surplus_median_yi": 2202.5107019991365,
+        "loss_years_median": 590.0,
+        "pooled_end_loss_fraction": 0.55
+      },
+      "elasticity_only": {
+        "end_surplus_median_yi": 46.535698664160776,
+        "end_surplus_p10_yi": -75.35786552571261,
+        "end_surplus_p90_yi": 212.30387968763648,
+        "end_loss_fraction": 0.3229166666666667,
+        "end_wage_cost_yi_median": 193.69443148762446,
+        "end_net_receipts_median_yi": 13.826027126694157,
+        "cumulative_surplus_median_yi": 2688.7606284768963,
+        "loss_years_median": 561.5,
+        "pooled_end_loss_fraction": 0.5234375
+      },
+      "combined_v04": {
+        "end_surplus_median_yi": 46.535698664160776,
+        "end_surplus_p10_yi": -75.35786552571261,
+        "end_surplus_p90_yi": 212.30387968763648,
+        "end_loss_fraction": 0.3229166666666667,
+        "end_wage_cost_yi_median": 193.69443148762446,
+        "end_net_receipts_median_yi": 13.826027126694157,
+        "cumulative_surplus_median_yi": 2688.7606284768963,
+        "loss_years_median": 561.5,
+        "pooled_end_loss_fraction": 0.5234375
+      }
+    },
+    "all": {
+      "legacy_v03": {
+        "end_surplus_median_yi": 83.34068146810516,
+        "end_surplus_p10_yi": -132.0127183789926,
+        "end_surplus_p90_yi": 434.0773707000317,
+        "end_loss_fraction": 0.2916666666666667,
+        "end_wage_cost_yi_median": 494.85571884136823,
+        "end_net_receipts_median_yi": 90.88728323582569,
+        "cumulative_surplus_median_yi": 6714.183520733404,
+        "loss_years_median": 1053.5,
+        "pooled_end_loss_fraction": 0.5205853174603174
+      },
+      "independent_only": {
+        "end_surplus_median_yi": 94.0793070156827,
+        "end_surplus_p10_yi": -125.17536546319482,
+        "end_surplus_p90_yi": 445.45222404368155,
+        "end_loss_fraction": 0.2916666666666667,
+        "end_wage_cost_yi_median": 494.85571884136823,
+        "end_net_receipts_median_yi": 100.71897620587708,
+        "cumulative_surplus_median_yi": 7280.834328447487,
+        "loss_years_median": 909.5,
+        "pooled_end_loss_fraction": 0.4905753968253968
+      },
+      "elasticity_only": {
+        "end_surplus_median_yi": 110.50821274666501,
+        "end_surplus_p10_yi": -149.05395347447634,
+        "end_surplus_p90_yi": 549.4769311155937,
+        "end_loss_fraction": 0.2916666666666667,
+        "end_wage_cost_yi_median": 494.85571884136823,
+        "end_net_receipts_median_yi": 93.92833888412767,
+        "cumulative_surplus_median_yi": 7443.9308205359885,
+        "loss_years_median": 980.0,
+        "pooled_end_loss_fraction": 0.49677579365079366
+      },
+      "combined_v04": {
+        "end_surplus_median_yi": 122.6114527138798,
+        "end_surplus_p10_yi": -144.65764588144373,
+        "end_surplus_p90_yi": 561.9325811108658,
+        "end_loss_fraction": 0.2916666666666667,
+        "end_wage_cost_yi_median": 494.85571884136823,
+        "end_net_receipts_median_yi": 104.15954511832513,
+        "cumulative_surplus_median_yi": 8027.369560888885,
+        "loss_years_median": 858.0,
+        "pooled_end_loss_fraction": 0.46899801587301587
+      }
+    }
+  },
+  "regionModeLabels": {
+    "northwest": {
+      "legacy_v03": "西北基值 · 线性收益参考",
+      "combined_v04": "当前V0.4 · 收益弹性"
+    }
+  },
+  "verification": {
+    "annualRecords": 1004304,
+    "maxAccountingErrorYi": 1.1368683772161603e-13,
+    "maxVolumeOrCostDifference": 0.0,
+    "maxExisting22SampleDifference": 0.0,
+    "settlementBasis": "independent_bureau_business"
+  },
+  "note": "Independent bureau receipts. Northwest reference uses the same candidate bases and costs with linear yields; it is not a historical Northwest model. North retains 90% original base. No pool."
+}

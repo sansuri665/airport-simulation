@@ -4,6 +4,7 @@ Run from map_research: py -3 -m bureau_model.audit_v04
 Historical V0.2/V0.3 reports are never overwritten.
 """
 import collections
+import argparse
 import copy
 import csv
 import json
@@ -46,7 +47,13 @@ def write_csv(name, rows):
 
 
 def main():
-    profiles = load_all_profiles()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--three-north', action='store_true', help='Include Northwest twenty; write separate three_north reports')
+    args = parser.parse_args()
+    profiles = [p for p in load_all_profiles() if args.three_north or p['region_id'] != 'northwest']
+    count = len(profiles)
+    region_ids = tuple(dict.fromkeys(p['region_id'] for p in profiles)) + ('all',)
+    prefix = 'three_north_revenue' if args.three_north else 'revenue'
     old_profiles = copy.deepcopy(profiles)
     for p in old_profiles:
         if p['region_id'] == 'northeast': p.pop('hidden_freight', None)
@@ -92,8 +99,8 @@ def main():
                             'settlement_unit_yield_factor')
                     annual.append({'mode': mode, **{k:r[k] for k in keys}})
             if seed == 0:
-                base[mode] = {rid: sum(r['operating_surplus_yi'] for r, p in zip(rows[:22], profiles)
-                                     if rid == 'all' or p['region_id'] == rid) for rid in ('northeast', 'north', 'all')}
+                base[mode] = {rid: sum(r['operating_surplus_yi'] for r, p in zip(rows[:count], profiles)
+                                     if rid == 'all' or p['region_id'] == rid) for rid in region_ids}
             if seed >= 96: continue
             for p in profiles:
                 history = groups[p['bureau_id']][1:]; end = history[-1]
@@ -104,9 +111,9 @@ def main():
                                 'loss_years':sum(r['operating_surplus_yi']<0 for r in history)})
         if seed < 96:
             for mode in MODES:
-                for rid in ('northeast', 'north', 'all'):
+                for rid in region_ids:
                     delta = {'ordinary_freight_yield_yi': 0., 'station_yield_yi':0., 'net_receipts_change_yi':0., 'surplus_change_yi':0.}
-                    for before, after, p in zip(reference[-22:], scenarios[mode][-22:], profiles):
+                    for before, after, p in zip(reference[-count:], scenarios[mode][-count:], profiles):
                         if rid != 'all' and p['region_id'] != rid: continue
                         for field, key in [('ordinary_freight_income_yi','ordinary_freight_yield_yi'),
                                            ('station_income_yi','station_yield_yi'),('hidden_freight_income_yi','net_receipts_change_yi'),
@@ -124,7 +131,7 @@ def main():
                         'base_net_yi':p['hidden_freight']['base_net_receipts_yi']*p['hidden_freight']['settlement_scale'],
                         'scenarios':{mode:summary([r for r in bs if r['mode']==mode]) for mode in MODES}})
     regions = {}
-    for rid in ('northeast', 'north', 'all'):
+    for rid in region_ids:
         regions[rid] = {}
         for mode in MODES:
             rs = [r for r in samples if r['mode']==mode and (rid=='all' or r['region_id']==rid)]
@@ -135,18 +142,32 @@ def main():
             stats = summary(totals)
             stats['pooled_end_loss_fraction'] = sum(r['end_surplus_yi']<0 for r in rs)/len(rs)
             regions[rid][mode] = stats
+    # Existing 22 bureaux must retain their complete 96-seed current outcomes.
+    preserved_error = 0.
+    if args.three_north:
+        with (OUT/'revenue_samples_96seeds_v04.csv').open(encoding='utf-8-sig', newline='') as f:
+            old = {(int(r['seed']),r['mode'],r['bureau_id']):r for r in csv.DictReader(f)}
+        for r in samples:
+            if r['region_id']=='northwest': continue
+            before = old[(r['seed'],r['mode'],r['bureau_id'])]
+            for key in ('end_surplus_yi','end_wage_cost_yi','end_net_receipts_yi','cumulative_surplus_yi','loss_years'):
+                preserved_error = max(preserved_error, abs(r[key]-float(before[key])))
+        if preserved_error > 1e-8: raise AssertionError('Existing 22-bureau outcomes changed')
     report = {'modelVersion':VERSION, 'settlementVersion':SETTLEMENT_VERSION, 'configHash':config_hash(),
               'seedCount':96,'seedRange':[0,95], 'endYear':2085,'operatingYears':[2026,2085],
               'policy':CURRENT_POLICY,'modes':MODES,'baselineSurplusYi':base,'bureaus':bureaus,'regions':regions,
+              'regionModeLabels': {'northwest': {'legacy_v03':'西北基值 · 线性收益参考',
+                                                'combined_v04':'当前V0.4 · 收益弹性'}},
               'verification':{'annualRecords':annual_count,'maxAccountingErrorYi':max_balance,
-                              'maxVolumeOrCostDifference':max_unchanged,'settlementBasis':'independent_bureau_business'},
-              'note':'Independent new Northeast net income. North retains 90% original base; no pool or cross-region conservation.'}
+                              'maxVolumeOrCostDifference':max_unchanged,'maxExisting22SampleDifference':preserved_error,
+                              'settlementBasis':'independent_bureau_business'},
+              'note':'Independent bureau receipts. Northwest reference uses the same candidate bases and costs with linear yields; it is not a historical Northwest model. North retains 90% original base. No pool.'}
     OUT.mkdir(exist_ok=True)
-    (OUT/'revenue_comparison_v04.json').write_text(json.dumps(report,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
-    write_csv('revenue_samples_96seeds_v04.csv', samples)
-    write_csv('revenue_8seed_annual_v04.csv', annual)
-    write_csv('revenue_attribution_v04.csv', attribution)
-    write_csv('revenue_summary_v04.csv', [dict(bureau_id=b['bureau_id'],name=b['name'],region_id=b['region_id'],mode=mode,**s)
+    (OUT/(prefix+'_comparison_v04.json')).write_text(json.dumps(report,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
+    write_csv(prefix+'_samples_96seeds_v04.csv', samples)
+    write_csv(prefix+'_8seed_annual_v04.csv', annual)
+    write_csv(prefix+'_attribution_v04.csv', attribution)
+    write_csv(prefix+'_summary_v04.csv', [dict(bureau_id=b['bureau_id'],name=b['name'],region_id=b['region_id'],mode=mode,**s)
                                        for b in bureaus for mode,s in b['scenarios'].items()])
     print(json.dumps({'baseline':base,'regions':regions,'verification':report['verification']},ensure_ascii=False,indent=2))
 

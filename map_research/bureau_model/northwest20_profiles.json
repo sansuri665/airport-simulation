@@ -1,0 +1,2987 @@
+{
+  "schema": "nw20-prototype-v0.1",
+  "repository": "sansuri665/airport-simulation",
+  "branch": "map",
+  "target_operations_version": "railway-bureau-operations-v0.4",
+  "target_revenue_policy_version": "independent-revenue-v0.4",
+  "price_basis": "constant_2025_purchasing_power",
+  "currency_unit": "100_million_CNY",
+  "status": "ACTIVE_LOCAL_RESEARCH_CONFIGURATION",
+  "warnings": [
+    "2025 base volumes, yields, costs, 3x4 input splits and off-map net receipts are fictional trial calibration, not observed financial accounts.",
+    "Map length is geodesic proxy; conventional track and actual operating kms are not complete. No CAPEX, depreciation, financing, fiscal subsidies or debt.",
+    "Do not conflate counted transport tonnes with hidden equivalent settlement tonnes, or infer real profitability.",
+    "Imported into the V0.4 research model; 96-seed native replay is recorded separately under bureau_model/reports. Not a real financial forecast."
+  ],
+  "cost_calibration": {
+    "high_speed": "(0.0065*HS_geodesic_km + 0.0018*passengers_10k)*terrain_factor + 0.12",
+    "conventional": "(0.0027*CONV_geodesic_km + 0.0027*freight_tons_10k + 0.0005*passengers_10k)*terrain_factor + 0.28",
+    "station": "(0.072*station_count + 0.00125*passengers_10k + 0.00036*freight_tons_10k)*station_factor + 0.22",
+    "currency": "All base operating costs in 100 million CNY, 2025 constant",
+    "general_caution": "Heuristic trial only; capex, maintenance realities and line utilization may differ drastically."
+  },
+  "bureau_profiles": [
+    {
+      "bureau_id": "jining",
+      "name": "集宁",
+      "region_id": "northwest",
+      "type": "蒙西换装与通道型",
+      "map_stats": {
+        "stations": 12,
+        "high_speed_km_proxy": 177,
+        "conventional_km_proxy": 468
+      },
+      "exposure": {
+        "passenger_local_weight": 0.7,
+        "freight_local_weight": 0.65,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.0,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": 0,
+        "freight_local_drift_year": 0.0005,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 650,
+        "base_freight_tons_10k": 1300,
+        "passenger_net_yield_yuan_per_trip": 55.0,
+        "freight_net_yield_yuan_per_ton": 44.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 3.575,
+        "freight_revenue": 5.72,
+        "station_revenue": 1.25,
+        "high_speed_cost": 2.556525,
+        "conventional_cost": 5.531558,
+        "station_cost": 2.4502800000000002
+      },
+      "station_revenue_passenger_share": 0.6,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 0.63913125,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.79252275,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.48573975,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 0.63913125,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 0.99568044,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 1.77009856,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 1.4935206600000002,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 1.27225834,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.2695308,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.8085924000000001,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.2695308,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.102626,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.2,
+        "base_equivalent_tons_10k": 45.45454545454545,
+        "accounting_yield_yuan_per_ton": 44,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "hohhot",
+      "name": "呼和浩特",
+      "region_id": "northwest",
+      "type": "区域客运枢纽型",
+      "map_stats": {
+        "stations": 8,
+        "high_speed_km_proxy": 379,
+        "conventional_km_proxy": 0
+      },
+      "exposure": {
+        "passenger_local_weight": 0.77,
+        "freight_local_weight": 0.56,
+        "passenger_trend_beta": 1.0,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.0,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": 0.001,
+        "freight_local_drift_year": 0,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 1400,
+        "base_freight_tons_10k": 1200,
+        "passenger_net_yield_yuan_per_trip": 70.0,
+        "freight_net_yield_yuan_per_ton": 43.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 9.8,
+        "freight_revenue": 5.16,
+        "station_revenue": 2.2,
+        "high_speed_cost": 5.352675,
+        "conventional_cost": 4.298800000000001,
+        "station_cost": 3.3089600000000003
+      },
+      "station_revenue_passenger_share": 0.73,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 1.33816875,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.6593292499999999,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 1.01700825,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.33816875,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 0.7737840000000001,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 1.3756160000000004,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 1.1606760000000003,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 0.9887240000000003,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.3639856,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.0919568000000002,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.3639856,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.4890320000000001,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.05,
+        "base_equivalent_tons_10k": 11.627906976744185,
+        "accounting_yield_yuan_per_ton": 43,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "baotou",
+      "name": "包头",
+      "region_id": "northwest",
+      "type": "资源重载与工业枢纽型",
+      "map_stats": {
+        "stations": 20,
+        "high_speed_km_proxy": 743,
+        "conventional_km_proxy": 856
+      },
+      "exposure": {
+        "passenger_local_weight": 0.65,
+        "freight_local_weight": 0.76,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.12,
+        "freight_cycle_beta": 1.16,
+        "passenger_local_drift_year": 0.0007,
+        "freight_local_drift_year": 0.0015,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.0055,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.019,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 1500,
+        "base_freight_tons_10k": 4800,
+        "passenger_net_yield_yuan_per_trip": 65.0,
+        "freight_net_yield_yuan_per_ton": 52.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 9.75,
+        "freight_revenue": 24.96,
+        "station_revenue": 3.35,
+        "high_speed_cost": 8.10127,
+        "conventional_cost": 17.582896,
+        "station_cost": 5.56558
+      },
+      "station_revenue_passenger_share": 0.47,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 2.0253175,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 2.5113936999999997,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 1.5392413,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 2.0253175,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 3.16492128,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 5.62652672,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 4.7473819200000005,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 4.04406608,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.6122138,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.8366414,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.6122138,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 2.504511,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 2.1,
+        "base_equivalent_tons_10k": 403.84615384615387,
+        "accounting_yield_yuan_per_ton": 52,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "yinchuan",
+      "name": "银川",
+      "region_id": "northwest",
+      "type": "都市圈客货综合型",
+      "map_stats": {
+        "stations": 12,
+        "high_speed_km_proxy": 463,
+        "conventional_km_proxy": 139
+      },
+      "exposure": {
+        "passenger_local_weight": 0.73,
+        "freight_local_weight": 0.7,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.0,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": 0.0007,
+        "freight_local_drift_year": 0.0008,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 1000,
+        "base_freight_tons_10k": 1700,
+        "passenger_net_yield_yuan_per_trip": 66.0,
+        "freight_net_yield_yuan_per_ton": 50.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 6.6,
+        "freight_revenue": 8.5,
+        "station_revenue": 1.8,
+        "high_speed_cost": 5.169975,
+        "conventional_cost": 5.9639120000000005,
+        "station_cost": 3.0823000000000005
+      },
+      "station_revenue_passenger_share": 0.73,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 1.29249375,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.60269225,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.9822952500000001,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.29249375,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 1.0735041600000002,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 1.9084518400000001,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 1.6102562400000002,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 1.3716997600000003,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.33905300000000005,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.0171590000000001,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.33905300000000005,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.3870350000000002,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.35,
+        "base_equivalent_tons_10k": 70.0,
+        "accounting_yield_yuan_per_ton": 50,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "zhongwei",
+      "name": "中卫",
+      "region_id": "northwest",
+      "type": "宁夏干线与地方支网型",
+      "map_stats": {
+        "stations": 11,
+        "high_speed_km_proxy": 132,
+        "conventional_km_proxy": 486
+      },
+      "exposure": {
+        "passenger_local_weight": 0.7,
+        "freight_local_weight": 0.61,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.0,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": -0.0004,
+        "freight_local_drift_year": 0,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 420,
+        "base_freight_tons_10k": 1200,
+        "passenger_net_yield_yuan_per_trip": 55.0,
+        "freight_net_yield_yuan_per_ton": 48.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 2.31,
+        "freight_revenue": 5.76,
+        "station_revenue": 0.9,
+        "high_speed_cost": 1.8954,
+        "conventional_cost": 5.75653,
+        "station_cost": 2.1439000000000004
+      },
+      "station_revenue_passenger_share": 0.6,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 0.47385,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.587574,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.360126,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 0.47385,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 1.0361753999999999,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 1.8420896,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 1.5542631,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 1.3240019,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.23582900000000004,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.7074870000000002,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.23582900000000004,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 0.9647550000000001,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.12,
+        "base_equivalent_tons_10k": 25.0,
+        "accounting_yield_yuan_per_ton": 48,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "xian",
+      "name": "西安",
+      "region_id": "northwest",
+      "type": "超大型高速客运枢纽型",
+      "map_stats": {
+        "stations": 48,
+        "high_speed_km_proxy": 1621,
+        "conventional_km_proxy": 172
+      },
+      "exposure": {
+        "passenger_local_weight": 0.6,
+        "freight_local_weight": 0.52,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.0,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": 0.0013,
+        "freight_local_drift_year": 0.001,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 4900,
+        "base_freight_tons_10k": 1600,
+        "passenger_net_yield_yuan_per_trip": 74.0,
+        "freight_net_yield_yuan_per_ton": 49.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 36.26,
+        "freight_revenue": 7.84,
+        "station_revenue": 7.2,
+        "high_speed_cost": 21.412150000000004,
+        "conventional_cost": 8.454872,
+        "station_cost": 11.087990000000001
+      },
+      "station_revenue_passenger_share": 0.73,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 5.353037500000001,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 6.6377665000000015,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 4.0683085000000005,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 5.353037500000001,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 1.52187696,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 2.7055590400000002,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 2.2828154400000003,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 1.9446205600000002,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 1.2196789000000001,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 3.6590367000000006,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 1.2196789000000001,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 4.989595500000001,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.25,
+        "base_equivalent_tons_10k": 51.02040816326531,
+        "accounting_yield_yuan_per_ton": 49,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "baoji",
+      "name": "宝鸡",
+      "region_id": "northwest",
+      "type": "山地干线与地区客运型",
+      "map_stats": {
+        "stations": 12,
+        "high_speed_km_proxy": 88,
+        "conventional_km_proxy": 299
+      },
+      "exposure": {
+        "passenger_local_weight": 0.7,
+        "freight_local_weight": 0.57,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.0,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": 0,
+        "freight_local_drift_year": -0.0005,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 750,
+        "base_freight_tons_10k": 850,
+        "passenger_net_yield_yuan_per_trip": 62.0,
+        "freight_net_yield_yuan_per_ton": 43.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 4.65,
+        "freight_revenue": 3.655,
+        "station_revenue": 1.4,
+        "high_speed_cost": 2.5225,
+        "conventional_cost": 4.974355000000001,
+        "station_cost": 2.53825
+      },
+      "station_revenue_passenger_share": 0.6,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 0.630625,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.781975,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.479275,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 0.630625,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 0.8953839000000001,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 1.5917936000000004,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 1.3430758500000004,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 1.1441016500000003,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.2792075,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.8376225,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.2792075,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.1422125,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.1,
+        "base_equivalent_tons_10k": 23.25581395348837,
+        "accounting_yield_yuan_per_ton": 43,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "ankang",
+      "name": "安康",
+      "region_id": "northwest",
+      "type": "秦巴山区高铁重资产型",
+      "map_stats": {
+        "stations": 12,
+        "high_speed_km_proxy": 691,
+        "conventional_km_proxy": 0
+      },
+      "exposure": {
+        "passenger_local_weight": 0.79,
+        "freight_local_weight": 0.66,
+        "passenger_trend_beta": 1.0,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.0,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": -0.0004,
+        "freight_local_drift_year": 0,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 450,
+        "base_freight_tons_10k": 550,
+        "passenger_net_yield_yuan_per_trip": 68.0,
+        "freight_net_yield_yuan_per_ton": 42.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 3.06,
+        "freight_revenue": 2.31,
+        "station_revenue": 1.2,
+        "high_speed_cost": 7.966219999999998,
+        "conventional_cost": 2.7595,
+        "station_cost": 2.250625
+      },
+      "station_revenue_passenger_share": 0.6,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 1.9915549999999995,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 2.469528199999999,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 1.5135817999999996,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.9915549999999995,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 0.49671,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 0.88304,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 0.7450650000000001,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 0.634685,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.24756874999999998,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.74270625,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.24756874999999998,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.01278125,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.05,
+        "base_equivalent_tons_10k": 11.904761904761905,
+        "accounting_yield_yuan_per_ton": 42,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "suidexi",
+      "name": "绥德",
+      "region_id": "northwest",
+      "type": "陕北能源货运型",
+      "map_stats": {
+        "stations": 7,
+        "high_speed_km_proxy": 499,
+        "conventional_km_proxy": 0
+      },
+      "exposure": {
+        "passenger_local_weight": 0.55,
+        "freight_local_weight": 0.77,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.12,
+        "freight_cycle_beta": 1.16,
+        "passenger_local_drift_year": -0.0007,
+        "freight_local_drift_year": 0.002,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.0055,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.019,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 350,
+        "base_freight_tons_10k": 2500,
+        "passenger_net_yield_yuan_per_trip": 57.0,
+        "freight_net_yield_yuan_per_ton": 55.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 1.995,
+        "freight_revenue": 13.75,
+        "station_revenue": 1.25,
+        "high_speed_cost": 4.303380000000001,
+        "conventional_cost": 7.5512500000000005,
+        "station_cost": 2.153575
+      },
+      "station_revenue_passenger_share": 0.47,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 1.0758450000000002,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.3340478000000002,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.8176422000000001,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.0758450000000002,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 1.3592250000000001,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 2.4164000000000003,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 2.0388375,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 1.7367875000000002,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.23689325,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.71067975,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.23689325,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 0.9691087500000001,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 1.2,
+        "base_equivalent_tons_10k": 218.1818181818182,
+        "accounting_yield_yuan_per_ton": 55,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "lanzhou",
+      "name": "兰州",
+      "region_id": "northwest",
+      "type": "西北十字干线枢纽型",
+      "map_stats": {
+        "stations": 38,
+        "high_speed_km_proxy": 778,
+        "conventional_km_proxy": 916
+      },
+      "exposure": {
+        "passenger_local_weight": 0.65,
+        "freight_local_weight": 0.59,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.0,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": 0.0007,
+        "freight_local_drift_year": 0.0005,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 2600,
+        "base_freight_tons_10k": 2200,
+        "passenger_net_yield_yuan_per_trip": 68.0,
+        "freight_net_yield_yuan_per_ton": 51.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 17.68,
+        "freight_revenue": 11.22,
+        "station_revenue": 4.4,
+        "high_speed_cost": 12.291249999999996,
+        "conventional_cost": 12.712896,
+        "station_cost": 8.0147
+      },
+      "station_revenue_passenger_share": 0.73,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 3.072812499999999,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 3.810287499999999,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 2.335337499999999,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 3.072812499999999,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 2.28832128,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 4.06812672,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 3.4324819200000003,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 2.9239660800000005,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.881617,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 2.644851,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.881617,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 3.6066149999999997,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.4,
+        "base_equivalent_tons_10k": 78.43137254901961,
+        "accounting_yield_yuan_per_ton": 51,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "pingliang",
+      "name": "平凉",
+      "region_id": "northwest",
+      "type": "陇东煤炭与地方客运型",
+      "map_stats": {
+        "stations": 17,
+        "high_speed_km_proxy": 212,
+        "conventional_km_proxy": 405
+      },
+      "exposure": {
+        "passenger_local_weight": 0.75,
+        "freight_local_weight": 0.75,
+        "passenger_trend_beta": 1.0,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.12,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": -0.0004,
+        "freight_local_drift_year": 0.001,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 350,
+        "base_freight_tons_10k": 1550,
+        "passenger_net_yield_yuan_per_trip": 54.0,
+        "freight_net_yield_yuan_per_ton": 50.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 1.89,
+        "freight_revenue": 7.75,
+        "station_revenue": 1.15,
+        "high_speed_cost": 2.69024,
+        "conventional_cost": 7.096875000000002,
+        "station_cost": 2.728035
+      },
+      "station_revenue_passenger_share": 0.47,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 0.67256,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.8339744,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.5111456000000001,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 0.67256,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 1.2774375000000002,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 2.2710000000000004,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 1.9161562500000004,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 1.6322812500000003,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.30008385000000004,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.9002515500000001,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.30008385000000004,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.2276157500000002,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.45,
+        "base_equivalent_tons_10k": 90.0,
+        "accounting_yield_yuan_per_ton": 50,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "wuwei",
+      "name": "武威",
+      "region_id": "northwest",
+      "type": "河西走廊转运型",
+      "map_stats": {
+        "stations": 9,
+        "high_speed_km_proxy": 225,
+        "conventional_km_proxy": 121
+      },
+      "exposure": {
+        "passenger_local_weight": 0.69,
+        "freight_local_weight": 0.67,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.0,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": -0.0005,
+        "freight_local_drift_year": 0.0002,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 350,
+        "base_freight_tons_10k": 1100,
+        "passenger_net_yield_yuan_per_trip": 58.0,
+        "freight_net_yield_yuan_per_ton": 49.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 2.03,
+        "freight_revenue": 5.39,
+        "station_revenue": 0.8,
+        "high_speed_cost": 2.3799,
+        "conventional_cost": 4.203021,
+        "station_cost": 1.8200200000000002
+      },
+      "station_revenue_passenger_share": 0.6,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 0.594975,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.737769,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.45218100000000006,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 0.594975,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 0.7565437799999999,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 1.34496672,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 1.13481567,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 0.96669483,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.20020220000000002,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.6006066000000001,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.20020220000000002,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 0.8190090000000001,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.15,
+        "base_equivalent_tons_10k": 30.612244897959183,
+        "accounting_yield_yuan_per_ton": 49,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "zhangye",
+      "name": "张掖",
+      "region_id": "northwest",
+      "type": "河西走廊长距离高铁型",
+      "map_stats": {
+        "stations": 20,
+        "high_speed_km_proxy": 916,
+        "conventional_km_proxy": 599
+      },
+      "exposure": {
+        "passenger_local_weight": 0.76,
+        "freight_local_weight": 0.62,
+        "passenger_trend_beta": 1.0,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.0,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": -0.0003,
+        "freight_local_drift_year": -0.0005,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 650,
+        "base_freight_tons_10k": 950,
+        "passenger_net_yield_yuan_per_trip": 64.0,
+        "freight_net_yield_yuan_per_ton": 47.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 4.16,
+        "freight_revenue": 4.465,
+        "station_revenue": 1.6,
+        "high_speed_cost": 8.6688,
+        "conventional_cost": 6.13949,
+        "station_cost": 3.3334
+      },
+      "station_revenue_passenger_share": 0.6,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 2.1672,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 2.687328,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 1.6470719999999999,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 2.1672,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 1.1051082,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 1.9646368,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 1.6576623000000001,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 1.4120827000000002,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.366674,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.100022,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.366674,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.5000300000000002,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.22,
+        "base_equivalent_tons_10k": 46.808510638297875,
+        "accounting_yield_yuan_per_ton": 47,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "xining",
+      "name": "西宁",
+      "region_id": "northwest",
+      "type": "高原门户型",
+      "map_stats": {
+        "stations": 12,
+        "high_speed_km_proxy": 210,
+        "conventional_km_proxy": 346
+      },
+      "exposure": {
+        "passenger_local_weight": 0.7,
+        "freight_local_weight": 0.65,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.0,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": 0,
+        "freight_local_drift_year": 0,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 1100,
+        "base_freight_tons_10k": 850,
+        "passenger_net_yield_yuan_per_trip": 69.0,
+        "freight_net_yield_yuan_per_ton": 49.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 7.59,
+        "freight_revenue": 4.165,
+        "station_revenue": 1.8,
+        "high_speed_cost": 4.802999999999999,
+        "conventional_cost": 5.873216000000001,
+        "station_cost": 3.274
+      },
+      "station_revenue_passenger_share": 0.73,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 1.2007499999999998,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.4889299999999996,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.9125699999999999,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.2007499999999998,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 1.0571788800000002,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 1.8794291200000004,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 1.5857683200000003,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 1.3508396800000002,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.4,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.36014,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.0804200000000002,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.36014,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.4733,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.12,
+        "base_equivalent_tons_10k": 24.489795918367346,
+        "accounting_yield_yuan_per_ton": 49,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "golmud",
+      "name": "格尔木",
+      "region_id": "northwest",
+      "type": "高原资源及过境运输型",
+      "map_stats": {
+        "stations": 20,
+        "high_speed_km_proxy": 0,
+        "conventional_km_proxy": 1826
+      },
+      "exposure": {
+        "passenger_local_weight": 0.8,
+        "freight_local_weight": 0.7,
+        "passenger_trend_beta": 1.0,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.12,
+        "freight_cycle_beta": 1.16,
+        "passenger_local_drift_year": -0.0006,
+        "freight_local_drift_year": 0.0015,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.0055,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.019,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 400,
+        "base_freight_tons_10k": 1900,
+        "passenger_net_yield_yuan_per_trip": 65.0,
+        "freight_net_yield_yuan_per_ton": 55.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 2.6,
+        "freight_revenue": 10.45,
+        "station_revenue": 1.65,
+        "high_speed_cost": 0.984,
+        "conventional_cost": 16.69632,
+        "station_cost": 3.5000000000000004
+      },
+      "station_revenue_passenger_share": 0.47,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 0.246,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.30504,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.18696,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 0.246,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 3.0053376,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 5.3428224,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 4.5080064,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 3.8401536000000003,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.38500000000000006,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.1550000000000002,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.38500000000000006,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.5750000000000002,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.35,
+        "base_equivalent_tons_10k": 63.63636363636363,
+        "accounting_yield_yuan_per_ton": 55,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "hami",
+      "name": "哈密",
+      "region_id": "northwest",
+      "type": "东疆煤炭外运型",
+      "map_stats": {
+        "stations": 5,
+        "high_speed_km_proxy": 386,
+        "conventional_km_proxy": 675
+      },
+      "exposure": {
+        "passenger_local_weight": 0.56,
+        "freight_local_weight": 0.8,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.12,
+        "freight_cycle_beta": 1.16,
+        "passenger_local_drift_year": 0.0005,
+        "freight_local_drift_year": 0.002,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.0055,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.019,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 450,
+        "base_freight_tons_10k": 4300,
+        "passenger_net_yield_yuan_per_trip": 72.0,
+        "freight_net_yield_yuan_per_ton": 57.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 3.24,
+        "freight_revenue": 24.51,
+        "station_revenue": 1.45,
+        "high_speed_cost": 3.8372800000000002,
+        "conventional_cost": 16.39585,
+        "station_cost": 2.9869600000000003
+      },
+      "station_revenue_passenger_share": 0.47,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 0.9593200000000001,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.1895568,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.7290832,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 0.9593200000000001,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 2.951253,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 5.246672,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 4.4268795,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 3.7710455,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.3285656,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.9856968000000002,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.3285656,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.344132,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 1.8,
+        "base_equivalent_tons_10k": 315.7894736842105,
+        "accounting_yield_yuan_per_ton": 57,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "urumqi",
+      "name": "乌鲁木齐",
+      "region_id": "northwest",
+      "type": "新疆综合运输枢纽型",
+      "map_stats": {
+        "stations": 10,
+        "high_speed_km_proxy": 262,
+        "conventional_km_proxy": 729
+      },
+      "exposure": {
+        "passenger_local_weight": 0.62,
+        "freight_local_weight": 0.63,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.0,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": 0.001,
+        "freight_local_drift_year": 0.0015,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 2200,
+        "base_freight_tons_10k": 3300,
+        "passenger_net_yield_yuan_per_trip": 75.0,
+        "freight_net_yield_yuan_per_ton": 56.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 16.5,
+        "freight_revenue": 18.48,
+        "station_revenue": 4.2,
+        "high_speed_cost": 6.292670000000001,
+        "conventional_cost": 13.935261999999996,
+        "station_cost": 5.43696
+      },
+      "station_revenue_passenger_share": 0.73,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 1.5731675000000003,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.9507277000000003,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 1.1956073000000003,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.5731675000000003,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 2.508347159999999,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 4.4592838399999986,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 3.7625207399999994,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 3.205110259999999,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.5980656,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.7941968000000001,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.5980656,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 2.446632,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.73,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 1.05,
+        "base_equivalent_tons_10k": 187.5,
+        "accounting_yield_yuan_per_ton": 56,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "kuitun",
+      "name": "奎屯",
+      "region_id": "northwest",
+      "type": "准噶尔资源运输型",
+      "map_stats": {
+        "stations": 19,
+        "high_speed_km_proxy": 0,
+        "conventional_km_proxy": 1387
+      },
+      "exposure": {
+        "passenger_local_weight": 0.64,
+        "freight_local_weight": 0.79,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.12,
+        "freight_cycle_beta": 1.16,
+        "passenger_local_drift_year": 0.0005,
+        "freight_local_drift_year": 0.0025,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.0055,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.019,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 500,
+        "base_freight_tons_10k": 4500,
+        "passenger_net_yield_yuan_per_trip": 58.0,
+        "freight_net_yield_yuan_per_ton": 55.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 2.9,
+        "freight_revenue": 24.75,
+        "station_revenue": 2.2,
+        "high_speed_cost": 1.1280000000000001,
+        "conventional_cost": 19.492431,
+        "station_cost": 4.04978
+      },
+      "station_revenue_passenger_share": 0.47,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 0.28200000000000003,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.34968000000000005,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.21432,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 0.28200000000000003,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 3.50863758,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 6.23757792,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 5.26295637,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 4.48325913,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.44547580000000003,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.3364274,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.44547580000000003,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.8224010000000002,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 1.15,
+        "base_equivalent_tons_10k": 209.0909090909091,
+        "accounting_yield_yuan_per_ton": 55,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "korla",
+      "name": "库尔勒",
+      "region_id": "northwest",
+      "type": "南疆长途货运型",
+      "map_stats": {
+        "stations": 17,
+        "high_speed_km_proxy": 0,
+        "conventional_km_proxy": 1938
+      },
+      "exposure": {
+        "passenger_local_weight": 0.63,
+        "freight_local_weight": 0.75,
+        "passenger_trend_beta": 1.05,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.12,
+        "freight_cycle_beta": 1.16,
+        "passenger_local_drift_year": 0.0007,
+        "freight_local_drift_year": 0.001,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.0055,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.019,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 600,
+        "base_freight_tons_10k": 2500,
+        "passenger_net_yield_yuan_per_trip": 64.0,
+        "freight_net_yield_yuan_per_ton": 57.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 3.84,
+        "freight_revenue": 14.25,
+        "station_revenue": 1.9,
+        "high_speed_cost": 1.3944,
+        "conventional_cost": 17.229988000000002,
+        "station_cost": 3.3814000000000006
+      },
+      "station_revenue_passenger_share": 0.47,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 0.3486,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.43226400000000004,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.264936,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 0.3486,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 3.10139784,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 5.5135961600000005,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 4.652096760000001,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 3.9628972400000007,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.37195400000000006,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 1.1158620000000004,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.37195400000000006,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.5216300000000003,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.47,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.75,
+        "base_equivalent_tons_10k": 131.57894736842104,
+        "accounting_yield_yuan_per_ton": 57,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    },
+    {
+      "bureau_id": "kashgar",
+      "name": "喀什",
+      "region_id": "northwest",
+      "type": "南疆末端客运与边贸型",
+      "map_stats": {
+        "stations": 13,
+        "high_speed_km_proxy": 0,
+        "conventional_km_proxy": 1288
+      },
+      "exposure": {
+        "passenger_local_weight": 0.77,
+        "freight_local_weight": 0.65,
+        "passenger_trend_beta": 1.0,
+        "passenger_cycle_beta": 1.05,
+        "freight_trend_beta": 1.0,
+        "freight_cycle_beta": 1.07,
+        "passenger_local_drift_year": 0.0008,
+        "freight_local_drift_year": 0.0005,
+        "passenger_drift_vol": 0.0045,
+        "freight_drift_vol": 0.004,
+        "passenger_cycle_vol": 0.012,
+        "freight_cycle_vol": 0.015,
+        "energy_price_beta": 1.05,
+        "materials_price_beta": 1.05
+      },
+      "transport": {
+        "base_passenger_trips_10k": 750,
+        "base_freight_tons_10k": 850,
+        "passenger_net_yield_yuan_per_trip": 68.0,
+        "freight_net_yield_yuan_per_ton": 47.0
+      },
+      "finance_base_yi": {
+        "passenger_revenue": 5.1,
+        "freight_revenue": 3.995,
+        "station_revenue": 1.55,
+        "high_speed_cost": 1.7129999999999996,
+        "conventional_cost": 9.378448,
+        "station_cost": 2.79181
+      },
+      "station_revenue_passenger_share": 0.6,
+      "reference_v02_wage_price_beta": 1.0,
+      "cost_inputs": {
+        "high_speed": {
+          "energy": {
+            "base_cost_yi": 0.4282499999999999,
+            "fixed_share": 0.2,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.5310299999999999,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.35
+          },
+          "materials": {
+            "base_cost_yi": 0.3254699999999999,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.1,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 0.4282499999999999,
+            "fixed_share": 0.74,
+            "variable_passenger_share": 1.0,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "conventional": {
+          "energy": {
+            "base_cost_yi": 1.68812064,
+            "fixed_share": 0.25,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "wage": {
+            "base_cost_yi": 3.00110336,
+            "fixed_share": 0.85,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.22
+          },
+          "materials": {
+            "base_cost_yi": 2.5321809600000003,
+            "fixed_share": 0.5,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.13
+          },
+          "other": {
+            "base_cost_yi": 2.15704304,
+            "fixed_share": 0.788,
+            "variable_passenger_share": 0.28,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        },
+        "station": {
+          "energy": {
+            "base_cost_yi": 0.3070991,
+            "fixed_share": 0.65,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "wage": {
+            "base_cost_yi": 0.9212973,
+            "fixed_share": 0.9,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0,
+            "labor_adjustment_theta": 0.18
+          },
+          "materials": {
+            "base_cost_yi": 0.3070991,
+            "fixed_share": 0.55,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.07,
+            "freight_congestion": 0.08
+          },
+          "other": {
+            "base_cost_yi": 1.2563145,
+            "fixed_share": 0.528,
+            "variable_passenger_share": 0.6,
+            "passenger_congestion": 0.0,
+            "freight_congestion": 0.0
+          }
+        }
+      },
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.28,
+        "base_equivalent_tons_10k": 59.574468085106396,
+        "accounting_yield_yuan_per_ton": 47,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0
+      }
+    }
+  ],
+  "source_file": "airport_map_northwest20_candidate_profiles.json",
+  "source_sha256": "7cd518e5147e2abdbecfed9ff3eee929d7e0aa42d51c962cc0b0c7e14886c18d"
+}

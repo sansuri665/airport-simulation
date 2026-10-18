@@ -56,12 +56,13 @@ class SettlementTests(unittest.TestCase):
 
     def test_combined_catalog_keeps_northeast_results_and_prefix(self):
         all_profiles=load_all_profiles()
-        self.assertEqual(len(all_profiles),22)
+        self.assertEqual(len(all_profiles),42)
         macro=simulate_scenario(seed=20261014,years=5)
         combined=simulate_bureaus(macro,all_profiles)
         northeast_ids={p['bureau_id'] for p in load_profiles()}
         self.assertEqual([r for r in combined if r['bureau_id'] in northeast_ids],simulate_bureaus(macro))
-        north=[r for r in combined if r['bureau_id'] not in northeast_ids and r['year_index']<=2]
+        north_ids={p['bureau_id'] for p in self.profiles}
+        north=[r for r in combined if r['bureau_id'] in north_ids and r['year_index']<=2]
         short=simulate_bureaus(simulate_scenario(seed=20261014,years=2),self.profiles)
         self.assertEqual(north,short)
 
