@@ -53,6 +53,7 @@ def legacy_cost(profile: dict, macro: dict, p_index: float, f_index: float) -> f
 
 def main():
     profiles = load_profiles()
+    for p in profiles: p.pop('hidden_freight', None)
     old = {p['bureau_id']: p for p in read_prototype(ARCHIVE)['bureau_profiles']}
     split_only = {p['bureau_id']: copy.deepcopy(p) for p in profiles}
     for bid, p in split_only.items():

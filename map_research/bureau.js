@@ -76,11 +76,11 @@
     $('hiddenFreightVolume').textContent = `${fixed(row.hidden_equivalent_freight_tons_10k)} 万吨`;
     if (settlement) {
       $('hiddenFreightTitle').textContent = `${year} 年 · 地图外货运净结算`;
-      $('settlementScale').textContent = `原包基值权重 ${fixed(settlement.settlement_scale*100,0)}%`;
+      $('settlementScale').textContent = `独立结算 · 基值权重 ${fixed(settlement.settlement_scale*100,0)}%`;
       $('ordinaryFreightIncome').textContent = `${fixed(row.ordinary_freight_income_yi)} 亿元`;
       $('hiddenFreightIncome').textContent = `${fixed(row.hidden_freight_income_yi)} 亿元`;
       $('totalFreightIncome').textContent = `${fixed(row.freight_income_yi)} 亿元`;
-      $('settlementReadout').textContent = `原包基期净结算 ${fixed(settlement.base_net_receipts_yi)} 亿元／年，当前基值 ${fixed(settlement.base_net_receipts_yi*settlement.settlement_scale)} 亿元／年；当年货运指数 ${fixed(row.freight_index,1)}。普通货运量 ${fixed(row.ordinary_freight_tons_10k)} 万吨，另有隐藏等效结算量 ${fixed(row.hidden_equivalent_freight_tons_10k)} 万吨。`;
+      $('settlementReadout').textContent = `配置基期净结算 ${fixed(settlement.base_net_receipts_yi)} 亿元／年，当前基值 ${fixed(settlement.base_net_receipts_yi*settlement.settlement_scale)} 亿元／年；当年货运指数 ${fixed(row.freight_index,1)}，单位净收益系数 ${fixed(row.settlement_unit_yield_factor,3)}。普通货运量 ${fixed(row.ordinary_freight_tons_10k)} 万吨，另有隐藏等效结算量 ${fixed(row.hidden_equivalent_freight_tons_10k)} 万吨。`;
     }
     $('laborTitle').textContent = `${year} 年人工成本对照`;
     $('wagePeakReadout').textContent = `地区工资 ${fixed(row.regional_wage_index, 1)} · 历史高点 ${fixed(row.historical_wage_peak_index, 1)}（2025 = 100）`;
@@ -202,34 +202,29 @@
       config.append(tr);
     }
     $('configRows').replaceChildren(config);
-    $('configReference').textContent = `客运基准 ${fixed(p.transport.base_passenger_trips_10k)} 万人次；货运基准 ${fixed(p.transport.base_freight_tons_10k)} 万吨。单位净收入：客运 ${fixed(p.finance_base_yi.passenger_revenue*10000/p.transport.base_passenger_trips_10k)} 元／人次、货运 ${fixed(p.finance_base_yi.freight_revenue*10000/p.transport.base_freight_tons_10k)} 元／吨。站务收入的客运关联权重 ${fixed(p.station_revenue_passenger_share*100, 0)}%。`;
+    $('configReference').textContent = `客运基准 ${fixed(p.transport.base_passenger_trips_10k)} 万人次；货运基准 ${fixed(p.transport.base_freight_tons_10k)} 万吨。基期单位净收入：客运 ${fixed(p.finance_base_yi.passenger_revenue*10000/p.transport.base_passenger_trips_10k)} 元／人次、货运 ${fixed(p.finance_base_yi.freight_revenue*10000/p.transport.base_freight_tons_10k)} 元／吨。站务收入的客运关联权重 ${fixed(p.station_revenue_passenger_share*100, 0)}%。普通货运单位收益系数为货运量倍数的0.15次方（0.85—1.15），站务两项各为对应运量倍数的0.10次方（0.90—1.10）。客运票务收益不变。`;
     $('bureauVersion').textContent = `${data.modelVersion} · 宏观 V0.5 · 配置 ${data.bureauConfigHash.slice(0, 10)} · Seed ${data.seed}`;
-    $('laborAuditPanel').hidden = p.region_id !== 'northeast';
-    const audit = data.laborAudit, auditRows = document.createDocumentFragment();
+    const audit = data.calibrationAudit;
+    const modeRows = document.createDocumentFragment(), bureauRows = document.createDocumentFragment();
     if (audit) {
-      $('auditNote').textContent = `Seed ${audit.seedRange[0]}—${audit.seedRange[1]}，共 ${audit.seedCount} 个；亏损占比是该分局在 2085 年出现经营亏损的 Seed 比例，和上方所选 Seed 无关。`;
-      for (const bureau of audit.bureaus) {
-        const tr = node('tr'); if (bureau.bureau_id===p.bureau_id) tr.className='current-bureau';
-        const name = node('th',bureau.name); name.scope='row'; tr.append(name);
-        for (const g of ['v02','full','adjusted']) tr.append(node('td',`${fixed(bureau.groups[g].end_loss_fraction*100,1)}%`));
-        for (const g of ['v02','full','adjusted']) tr.append(node('td',fixed(bureau.groups[g].end_wage_cost_yi_median)));
-        auditRows.append(tr);
+      $('calibrationNote').textContent = `Seed ${audit.seedRange[0]}—${audit.seedRange[1]}，共 ${audit.seedCount} 个。地区统计与上方所选 Seed 无关。当前收益弹性：普通货运0.15、站务0.10；净结算使用货运收益系数。`;
+      for (const [key, label] of Object.entries(audit.modes)) {
+        const r = audit.region[key], tr = node('tr');
+        if (key === 'combined_v04') tr.className = 'current-bureau';
+        const th = node('th', label); th.scope = 'row'; tr.append(th);
+        tr.append(node('td', fixed(r.end_surplus_median_yi)), node('td', `${fixed(r.pooled_end_loss_fraction*100,1)}%`), node('td', fixed(r.cumulative_surplus_median_yi)));
+        modeRows.append(tr);
       }
-    } else $('auditNote').textContent = '当前配置尚无匹配的 96 Seed 对照报告，请重跑人工成本审计并重启服务。';
-    $('laborAuditRows').replaceChildren(auditRows);
-    const freightAudit = data.freightAudit, freightRows = document.createDocumentFragment();
-    $('freightAuditPanel').hidden = p.region_id !== 'north';
-    if (freightAudit) {
-      $('freightAuditNote').textContent = `Seed ${freightAudit.seedRange[0]}—${freightAudit.seedRange[1]}。当前净结算权重 ${fixed(freightAudit.selectedScale*100,0)}%，华北基期净结算合计 ${fixed(freightAudit.currentBaseNetTotalYi)} 亿元／年（原包 ${fixed(freightAudit.originalBaseNetTotalYi)} 亿元）。地区 2085 年结余合计中位数：原包 ${fixed(freightAudit.region.scale100.end_total_surplus_median_yi)} 亿元 → 当前 ${fixed(freightAudit.region.current.end_total_surplus_median_yi)} 亿元。`;
-      for (const b of freightAudit.bureaus) {
-        const tr = node('tr'); if (b.bureau_id === p.bureau_id) tr.className = 'current-bureau';
-        const th=node('th',b.name); th.scope='row'; tr.append(th);
-        for (const key of ['core','scale100','current']) tr.append(node('td',fixed(b.scenarios[key].end_surplus_median_yi)));
-        tr.append(node('td',`${fixed(b.scenarios.current.end_loss_fraction*100,1)}%`),node('td',fixed(b.original_base_net_yi)),node('td',fixed(b.current_base_net_yi)));
-        freightRows.append(tr);
+      for (const b of audit.bureaus) {
+        const a = b.scenarios.legacy_v03, c = b.scenarios.combined_v04, tr = node('tr');
+        if (b.bureau_id === p.bureau_id) tr.className = 'current-bureau';
+        const th = node('th', b.name); th.scope = 'row'; tr.append(th);
+        tr.append(node('td', `${fixed(a.end_loss_fraction*100,1)}%`), node('td', `${fixed(c.end_loss_fraction*100,1)}%`), node('td', fixed(a.end_surplus_median_yi)), node('td', fixed(c.end_surplus_median_yi)), node('td', fixed(b.base_net_yi)));
+        bureauRows.append(tr);
       }
-    } else $('freightAuditNote').textContent = '当前配置尚无匹配的 96 Seed 净结算报告，请重跑华北审计并重启服务。';
-    $('freightAuditRows').replaceChildren(freightRows);
+    } else $('calibrationNote').textContent = '当前配置尚无匹配的96 Seed报告，请重跑V0.4审计并重启服务。';
+    $('calibrationModes').replaceChildren(modeRows);
+    $('calibrationRows').replaceChildren(bureauRows);
     drawChart(); renderYear();
   }
   async function getJSON(url) {
@@ -276,7 +271,7 @@
     if (!data) return;
     const columns = [['seed', 'Seed'], ['bureau_name', '铁路分局'], ['model_version', '经营模型版本'], ['bureau_config_hash', '经营配置哈希'], ...annualColumns,
       ['passenger_index', '客运量指数'], ['freight_index', '货运量指数'], ...inputs.map(([k, n]) => [k+'_cost_yi', n+'成本']), ['fixed_operating_cost_yi', '固定成本合计'], ['volume_operating_cost_yi', '变动成本合计'],
-      ['regional_wage_index','地区实际工资指数'],['historical_wage_peak_index','历史工资高点指数'],['v02_wage_cost_yi','A原V0.2人工成本'],['full_wage_cost_yi','B工资完全传导人工成本'],['v02_operating_surplus_yi','A原V0.2经营结余'],['full_operating_surplus_yi','B工资完全传导经营结余'],['core_operating_surplus_yi','不含隐藏净结算的经营结余'],['unscaled_hidden_freight_income_yi','原包100%权重净结算收入']];
+      ['regional_wage_index','地区实际工资指数'],['historical_wage_peak_index','历史工资高点指数'],['v02_wage_cost_yi','A原V0.2人工成本'],['full_wage_cost_yi','B工资完全传导人工成本'],['v02_operating_surplus_yi','A原V0.2经营结余'],['full_operating_surplus_yi','B工资完全传导经营结余'],['core_operating_surplus_yi','不含隐藏净结算的经营结余'],['unscaled_hidden_freight_income_yi','本局基值100%权重净结算收入'],['settlement_base_net_yi','本局生效基期净结算'],['freight_unit_yield_factor','普通货运单位收益系数'],['station_passenger_unit_yield_factor','站务客运单位收益系数'],['station_freight_unit_yield_factor','站务货运单位收益系数'],['settlement_unit_yield_factor','净结算单位收益系数']];
     for (const [s, name] of segments) for (const [k, label] of inputs) for (const [field, title] of [['fixed_cost_yi', '固定支出'], ['variable_cost_yi', '变动支出'], ['cost_yi', '合计'], ['price_factor', '价格倍数'], ['unit_cost_factor','综合投入系数'], ['workload_factor', '工作量倍数']]) columns.push([`${s}.${k}.${field}`, `${name}/${label}/${title}`]);
     const quote = value => `"${String(value).replaceAll('"', '""')}"`;
     const lines = [columns.map(([, title]) => quote(title)).join(',')];

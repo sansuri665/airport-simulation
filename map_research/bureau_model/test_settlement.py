@@ -6,6 +6,7 @@ import unittest
 from economy_model.scenarios import simulate_scenario
 from .operations import NORTH_PROFILE_PATH, finance, load_profiles, load_all_profiles, simulate_bureaus, validate_profiles
 from .settlement import apply_hidden_freight
+from .revenue import LINEAR_POLICY
 
 PRICES={'energy_real_index':100.,'wage_real_index':100.,'materials_real_index':100.}
 
@@ -21,7 +22,7 @@ class SettlementTests(unittest.TestCase):
         p=next(p for p in self.profiles if p['bureau_id']=='datong')
         for index in (0,25,100,150,400):
             original=self.core(p,index); before=copy.deepcopy(original)
-            result=apply_hidden_freight(original,p)
+            result=apply_hidden_freight(original,p,revenue_policy=LINEAR_POLICY)
             self.assertEqual(original,before)
             self.assertEqual(result['freight_tons_10k'],original['freight_tons_10k'])
             self.assertAlmostEqual(result['hidden_freight_income_yi'],14.4*index/100)

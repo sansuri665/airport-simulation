@@ -51,10 +51,12 @@ class BureauAPITests(unittest.TestCase):
         self.assertEqual(len(data['regionalPrices']), 61)
         self.assertEqual(len(data['bureauConfigHash']), 64)
         self.assertAlmostEqual(data['rows'][0]['cost_yi'], 10.65)
-        self.assertEqual(data['modelVersion'], 'railway-bureau-operations-v0.3')
-        self.assertIsNotNone(data['laborAudit'])
-        self.assertEqual(data['laborAudit']['seedCount'],96)
-        self.assertEqual(len(data['laborAudit']['bureaus']),12)
+        self.assertEqual(data['modelVersion'], 'railway-bureau-operations-v0.4')
+        self.assertIsNotNone(data['calibrationAudit'])
+        self.assertEqual(data['calibrationAudit']['configHash'],data['bureauConfigHash'])
+        self.assertEqual(data['calibrationAudit']['seedCount'],96)
+        self.assertEqual(len(data['calibrationAudit']['bureaus']),12)
+        self.assertAlmostEqual(data['rows'][0]['hidden_freight_income_yi'],.8)
         peak=100.
         for row in data['rows']:
             self.assertEqual(row['bureau_id'], 'jiamusi')
@@ -71,10 +73,9 @@ class BureauAPITests(unittest.TestCase):
     def test_north_volume_semantics_and_matching_audit(self):
         data=self.fetch('/api/bureau?seed=20261014&bureau=datong')
         self.assertEqual(data['profile']['region_id'],'north')
-        self.assertIsNone(data['laborAudit'])
-        self.assertEqual(data['freightAudit']['seedCount'],96)
-        self.assertEqual(len(data['freightAudit']['bureaus']),10)
-        self.assertEqual(data['freightAudit']['selectedScale'],.9)
+        self.assertEqual(data['calibrationAudit']['seedCount'],96)
+        self.assertEqual(len(data['calibrationAudit']['bureaus']),10)
+        self.assertEqual(data['profile']['hidden_freight']['settlement_scale'],.9)
         base=data['rows'][0]
         self.assertEqual(base['freight_tons_10k'],6000)
         self.assertEqual(base['ordinary_freight_tons_10k'],6000)
@@ -83,7 +84,7 @@ class BureauAPITests(unittest.TestCase):
         for r in data['rows']:
             self.assertEqual(r['freight_tons_10k'],r['ordinary_freight_tons_10k'])
             self.assertAlmostEqual(r['freight_income_yi'],r['ordinary_freight_income_yi']+r['hidden_freight_income_yi'])
-            self.assertAlmostEqual(r['hidden_freight_income_yi'],14.4*r['freight_index']/100)
+            self.assertAlmostEqual(r['hidden_freight_income_yi'],14.4*r['freight_index']/100*r['settlement_unit_yield_factor'])
 
 
 if __name__ == '__main__':

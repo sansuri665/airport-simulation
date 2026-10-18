@@ -145,7 +145,18 @@
           }
         }
       },
-      "reference_v02_wage_price_beta": 0.92
+      "reference_v02_wage_price_beta": 0.92,
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.8,
+        "base_equivalent_tons_10k": 222.22222222222223,
+        "accounting_yield_yuan_per_ton": 36.0,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "source": "V0.4 independent off-map net receipts; not transferred from North China"
+      }
     },
     {
       "bureau_id": "mudanjiang",
@@ -284,7 +295,18 @@
           }
         }
       },
-      "reference_v02_wage_price_beta": 0.98
+      "reference_v02_wage_price_beta": 0.98,
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.4,
+        "base_equivalent_tons_10k": 95.45454545454545,
+        "accounting_yield_yuan_per_ton": 41.904761904761905,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "source": "V0.4 independent off-map net receipts; not transferred from North China"
+      }
     },
     {
       "bureau_id": "qiqihar",
@@ -423,7 +445,18 @@
           }
         }
       },
-      "reference_v02_wage_price_beta": 1.02
+      "reference_v02_wage_price_beta": 1.02,
+      "hidden_freight": {
+        "base_net_receipts_yi": 1.5,
+        "base_equivalent_tons_10k": 372.97297297297297,
+        "accounting_yield_yuan_per_ton": 40.21739130434783,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "source": "V0.4 independent off-map net receipts; not transferred from North China"
+      }
     },
     {
       "bureau_id": "harbin",
@@ -562,7 +595,18 @@
           }
         }
       },
-      "reference_v02_wage_price_beta": 0.95
+      "reference_v02_wage_price_beta": 0.95,
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.3,
+        "base_equivalent_tons_10k": 68.47826086956522,
+        "accounting_yield_yuan_per_ton": 43.80952380952381,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "source": "V0.4 independent off-map net receipts; not transferred from North China"
+      }
     },
     {
       "bureau_id": "meihekou",
@@ -701,7 +745,18 @@
           }
         }
       },
-      "reference_v02_wage_price_beta": 1
+      "reference_v02_wage_price_beta": 1,
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.0,
+        "base_equivalent_tons_10k": 0.0,
+        "accounting_yield_yuan_per_ton": 37.2093023255814,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "source": "V0.4 independent off-map net receipts; not transferred from North China"
+      }
     },
     {
       "bureau_id": "changchun",
@@ -840,7 +895,18 @@
           }
         }
       },
-      "reference_v02_wage_price_beta": 0.98
+      "reference_v02_wage_price_beta": 0.98,
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.2,
+        "base_equivalent_tons_10k": 44.44444444444444,
+        "accounting_yield_yuan_per_ton": 45.0,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "source": "V0.4 independent off-map net receipts; not transferred from North China"
+      }
     },
     {
       "bureau_id": "siping",
@@ -979,7 +1045,18 @@
           }
         }
       },
-      "reference_v02_wage_price_beta": 1
+      "reference_v02_wage_price_beta": 1,
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.1,
+        "base_equivalent_tons_10k": 28.8,
+        "accounting_yield_yuan_per_ton": 34.72222222222222,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "source": "V0.4 independent off-map net receipts; not transferred from North China"
+      }
     },
     {
       "bureau_id": "tongliao",
@@ -1118,7 +1195,18 @@
           }
         }
       },
-      "reference_v02_wage_price_beta": 0.98
+      "reference_v02_wage_price_beta": 0.98,
+      "hidden_freight": {
+        "base_net_receipts_yi": 1.5,
+        "base_equivalent_tons_10k": 413.7931034482759,
+        "accounting_yield_yuan_per_ton": 36.25,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "source": "V0.4 independent off-map net receipts; not transferred from North China"
+      }
     },
     {
       "bureau_id": "shenyang",
@@ -1257,7 +1345,18 @@
           }
         }
       },
-      "reference_v02_wage_price_beta": 1.01
+      "reference_v02_wage_price_beta": 1.01,
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.2,
+        "base_equivalent_tons_10k": 44.21052631578947,
+        "accounting_yield_yuan_per_ton": 45.23809523809524,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "source": "V0.4 independent off-map net receipts; not transferred from North China"
+      }
     },
     {
       "bureau_id": "dalian",
@@ -1396,7 +1495,18 @@
           }
         }
       },
-      "reference_v02_wage_price_beta": 1.02
+      "reference_v02_wage_price_beta": 1.02,
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.7,
+        "base_equivalent_tons_10k": 159.55882352941177,
+        "accounting_yield_yuan_per_ton": 43.87096774193548,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "source": "V0.4 independent off-map net receipts; not transferred from North China"
+      }
     },
     {
       "bureau_id": "jinzhou",
@@ -1535,7 +1645,18 @@
           }
         }
       },
-      "reference_v02_wage_price_beta": 1.02
+      "reference_v02_wage_price_beta": 1.02,
+      "hidden_freight": {
+        "base_net_receipts_yi": 1.5,
+        "base_equivalent_tons_10k": 364.86486486486484,
+        "accounting_yield_yuan_per_ton": 41.111111111111114,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "source": "V0.4 independent off-map net receipts; not transferred from North China"
+      }
     },
     {
       "bureau_id": "chifeng",
@@ -1674,7 +1795,18 @@
           }
         }
       },
-      "reference_v02_wage_price_beta": 1.01
+      "reference_v02_wage_price_beta": 1.01,
+      "hidden_freight": {
+        "base_net_receipts_yi": 0.8,
+        "base_equivalent_tons_10k": 217.6470588235294,
+        "accounting_yield_yuan_per_ton": 36.75675675675676,
+        "demand_beta": 1.0,
+        "settlement_scale": 1.0,
+        "volume_driver": "bureau_freight_index",
+        "extra_modeled_cost_yi": 0.0,
+        "station_income_increment_yi": 0.0,
+        "source": "V0.4 independent off-map net receipts; not transferred from North China"
+      }
     }
   ],
   "cost_model": "independent-input-peak-wage-adjustment-v0.3",

@@ -14,8 +14,11 @@ import statistics
 import zipfile
 
 from economy_model.scenarios import simulate_scenario
-from .operations import NORTH_PROFILE_PATH, VERSION, load_profiles, simulate_bureaus
-from .settlement import VERSION as SETTLEMENT_VERSION
+from .operations import NORTH_PROFILE_PATH, load_profiles, simulate_bureaus
+from .revenue import LINEAR_POLICY
+
+VERSION = 'railway-bureau-operations-v0.3'
+SETTLEMENT_VERSION = 'railway-freight-settlement-v0.1'
 
 OUT = Path(__file__).with_name('reports')
 SCALES = {'core': 0., 'scale80': .8, 'scale90': .9, 'scale100': 1.}
@@ -47,7 +50,7 @@ def main():
     samples=[]; checkpoints=[]; annual=[]; matched=0; reference_error=balance_error=0.
     for seed in list(range(96))+[20261014,5767783356797806]:
         macro=simulate_scenario(seed=seed)
-        rows=simulate_bureaus(macro,profiles)
+        rows=simulate_bureaus(macro,profiles,revenue_policy=LINEAR_POLICY)
         groups=collections.defaultdict(list)
         for r in rows:
             groups[r['bureau_id']].append(r)

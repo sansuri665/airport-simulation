@@ -13,7 +13,10 @@ from pathlib import Path
 import statistics
 
 from economy_model.scenarios import simulate_scenario
-from .operations import PROFILE_PATH, SEGMENTS, VERSION, finance, load_profiles, simulate_bureaus
+from .operations import PROFILE_PATH, SEGMENTS, finance, load_profiles, simulate_bureaus
+from .revenue import LINEAR_POLICY
+
+VERSION = 'railway-bureau-operations-v0.3'
 
 OUTPUT = Path(__file__).with_name('reports')
 GROUPS = {
@@ -25,6 +28,7 @@ GROUPS = {
 
 def main():
     profiles = load_profiles()
+    for p in profiles: p.pop('hidden_freight', None)
     old = json.loads((OUTPUT/'cost_comparison_v02.json').read_text(encoding='utf-8'))
     checkpoints = {(r['seed'],r['year'],r['bureau_id']):r for r in old['demonstration_checkpoints']}
     samples, demonstration = [], []
@@ -32,7 +36,7 @@ def main():
     checked = 0
     for seed in list(range(96)) + [20261014,5767783356797806]:
         macro = simulate_scenario(seed=seed)
-        rows = simulate_bureaus(macro, profiles)
+        rows = simulate_bureaus(macro, profiles, revenue_policy=LINEAR_POLICY)
         grouped = collections.defaultdict(list)
         for r in rows:
             grouped[r['bureau_id']].append(r)

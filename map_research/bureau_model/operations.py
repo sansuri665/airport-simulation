@@ -11,8 +11,9 @@ from pathlib import Path
 
 from .exposure import Exposure, bureau_specific_states, compute_transport_index, national_factors, validate_profile
 from .settlement import apply_hidden_freight, validate_hidden_freight
+from .revenue import CURRENT_POLICY, LINEAR_POLICY, unit_yield, validate_policy
 
-VERSION = 'railway-bureau-operations-v0.3'
+VERSION = 'railway-bureau-operations-v0.4'
 INPUTS = ('energy', 'wage', 'materials', 'other')
 SEGMENTS = ('high_speed', 'conventional', 'station')
 PROFILE_PATH = Path(__file__).with_name('northeast12_profiles.json')
@@ -81,7 +82,7 @@ def load_all_profiles() -> list[dict]:
 
 
 def finance(profile: dict, macro: dict, p_index: float, f_index: float, *,
-            wage_peak_index: float, labor_model: str = 'peak') -> dict:
+            wage_peak_index: float, labor_model: str = 'peak', revenue_policy: dict | None = None) -> dict:
     """Compute one year's accounts without state, future information or caps.
 
     Volumes are already realized business volumes. 'Fixed' means independent
@@ -92,6 +93,10 @@ def finance(profile: dict, macro: dict, p_index: float, f_index: float, *,
     """
     qp = number(p_index, 'passenger volume') / 100
     qf = number(f_index, 'freight volume') / 100
+    policy = validate_policy(revenue_policy if revenue_policy is not None else
+                             (LINEAR_POLICY if labor_model == 'v02' else CURRENT_POLICY))
+    uf = unit_yield(qf, 'freight', policy)
+    usp, usf = unit_yield(qp, 'station', policy), unit_yield(qf, 'station', policy)
     prices = {'other': 1.}
     if labor_model not in ('peak', 'full_wage', 'v02'):
         raise ValueError('Unsupported labor model')
@@ -112,8 +117,11 @@ def finance(profile: dict, macro: dict, p_index: float, f_index: float, *,
         'passenger_trips_10k': profile['transport']['base_passenger_trips_10k'] * qp,
         'freight_tons_10k': profile['transport']['base_freight_tons_10k'] * qf,
         'passenger_income_yi': base['passenger_revenue'] * qp,
-        'freight_income_yi': base['freight_revenue'] * qf,
-        'station_income_yi': base['station_revenue'] * (share * qp + (1 - share) * qf),
+        'freight_income_yi': base['freight_revenue'] * qf * uf,
+        'station_income_yi': base['station_revenue'] * (share * qp * usp + (1 - share) * qf * usf),
+        'freight_unit_yield_factor': uf,
+        'station_passenger_unit_yield_factor': usp,
+        'station_freight_unit_yield_factor': usf,
     }
     detail = {}
     wage_units = 0.
@@ -164,13 +172,16 @@ def finance(profile: dict, macro: dict, p_index: float, f_index: float, *,
     return result
 
 
-def simulate_bureaus(macro_result: dict, profiles: list[dict] | None = None, *, labor_model: str = 'peak') -> list[dict]:
+def simulate_bureaus(macro_result: dict, profiles: list[dict] | None = None, *, labor_model: str = 'peak',
+                     revenue_policy: dict | None = None) -> list[dict]:
     """Run against the existing macro engine's INTERNAL trend/cycle rows.
 
     This is a research backend, not a game-facing future-data API.
     """
     profiles = load_profiles() if profiles is None else profiles
     validate_profiles(profiles)
+    policy = revenue_policy if revenue_policy is not None else (LINEAR_POLICY if labor_model == 'v02' else CURRENT_POLICY)
+    validate_policy(policy)
     source = {}
     for row in macro_result['rows']:
         source.setdefault(row['year_index'], {})[row['region_id']] = row
@@ -189,7 +200,7 @@ def simulate_bureaus(macro_result: dict, profiles: list[dict] | None = None, *, 
         for p in profiles:
             volumes = compute_transport_index(profile_exposure(p), regions[p['region_id']], national, paths[p['bureau_id']][t])
             accounts = finance(p, regions[p['region_id']], volumes['passenger_index'], volumes['freight_index'],
-                               wage_peak_index=wage_peaks[p['region_id']], labor_model=labor_model)
+                               wage_peak_index=wage_peaks[p['region_id']], labor_model=labor_model, revenue_policy=policy)
             row = {
                 'seed': seed, 'year_index': t, 'year': macro_result['metadata']['base_year'] + t,
                 'bureau_id': p['bureau_id'], 'bureau_name': p['name'],
@@ -197,5 +208,5 @@ def simulate_bureaus(macro_result: dict, profiles: list[dict] | None = None, *, 
                 'macro_scenario': macro_result.get('scenario', {}).get('name', ''),
                 **volumes, **accounts,
             }
-            result.append(apply_hidden_freight(row, p))
+            result.append(apply_hidden_freight(row, p, revenue_policy=policy))
     return result

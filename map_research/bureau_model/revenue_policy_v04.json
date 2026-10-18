@@ -1,0 +1,11 @@
+{
+  "version": "independent-revenue-v0.4",
+  "freight_exponent": 0.15,
+  "freight_floor": 0.85,
+  "freight_ceiling": 1.15,
+  "station_exponent": 0.10,
+  "station_floor": 0.90,
+  "station_ceiling": 1.10,
+  "settlement_uses_freight_yield": true,
+  "settlement_basis": "independent_bureau_business"
+}

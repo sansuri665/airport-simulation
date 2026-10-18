@@ -7,8 +7,9 @@ from __future__ import annotations
 
 import copy
 import math
+from .revenue import CURRENT_POLICY, unit_yield, validate_policy
 
-VERSION = 'railway-freight-settlement-v0.1'
+VERSION = 'railway-freight-settlement-v0.2-independent'
 
 
 def validate_hidden_freight(rec: dict | None) -> None:
@@ -30,7 +31,7 @@ def validate_hidden_freight(rec: dict | None) -> None:
         raise ValueError('Settlement tonnes and base receipts do not reconcile')
 
 
-def apply_hidden_freight(core: dict, profile: dict) -> dict:
+def apply_hidden_freight(core: dict, profile: dict, *, revenue_policy: dict | None = None) -> dict:
     if core.get('freight_settlement_applied'):
         raise ValueError('Do not apply net freight settlement twice')
     rec = profile.get('hidden_freight')
@@ -39,9 +40,11 @@ def apply_hidden_freight(core: dict, profile: dict) -> dict:
     if not math.isfinite(index) or index < 0:
         raise ValueError('Invalid freight index')
     factor = index / 100
-    unscaled = rec['base_net_receipts_yi'] * factor if rec else 0.
+    policy = validate_policy(CURRENT_POLICY if revenue_policy is None else revenue_policy)
+    unit = unit_yield(factor, 'freight', policy) if policy['settlement_uses_freight_yield'] else 1.
+    unscaled = rec['base_net_receipts_yi'] * factor * unit if rec else 0.
     hidden = unscaled * rec['settlement_scale'] if rec else 0.
-    equivalent = rec['base_equivalent_tons_10k'] * factor * rec['settlement_scale'] if rec else 0.
+    equivalent = hidden * 10000 / rec['accounting_yield_yuan_per_ton'] if rec else 0.
     if not all(math.isfinite(v) for v in (hidden, unscaled, equivalent)):
         raise ValueError('Nonfinite net settlement')
     result = copy.deepcopy(core)
@@ -52,6 +55,8 @@ def apply_hidden_freight(core: dict, profile: dict) -> dict:
         'hidden_equivalent_freight_tons_10k': equivalent,
         'hidden_freight_income_yi': hidden,
         'unscaled_hidden_freight_income_yi': unscaled,
+        'settlement_unit_yield_factor': unit,
+        'settlement_base_net_yi': rec['base_net_receipts_yi'] * rec['settlement_scale'] if rec else 0.,
         'core_operating_surplus_yi': core['operating_surplus_yi'],
         'core_revenue_yi': core['revenue_yi'],
         'freight_income_yi': core['freight_income_yi'] + hidden,
