@@ -50,13 +50,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     scope = parser.add_mutually_exclusive_group()
     scope.add_argument('--three-north', action='store_true', help='Replay original 42 bureaus; write separate three_north reports')
-    scope.add_argument('--all-configured', action='store_true', help='Replay all active bureaus; write separate five_region reports')
+    scope.add_argument('--five-regions', action='store_true', help='Replay original 62 bureaus; write separate five_region reports')
+    scope.add_argument('--all-configured', action='store_true', help='Replay all 100 active bureaus; write separate national reports')
     args = parser.parse_args()
     included = {'northeast', 'north', 'northwest'} if args.three_north else {'northeast','north'}
+    if args.five_regions: included.update(('northwest','southwest','south'))
     profiles = [p for p in load_all_profiles() if args.all_configured or p['region_id'] in included]
     count = len(profiles)
     region_ids = tuple(dict.fromkeys(p['region_id'] for p in profiles)) + ('all',)
-    prefix = 'five_region_revenue' if args.all_configured else ('three_north_revenue' if args.three_north else 'revenue')
+    prefix = ('national_revenue' if args.all_configured else 'five_region_revenue' if args.five_regions
+              else 'three_north_revenue' if args.three_north else 'revenue')
     old_profiles = copy.deepcopy(profiles)
     for p in old_profiles:
         if p['region_id'] == 'northeast': p.pop('hidden_freight', None)
@@ -93,7 +96,10 @@ def main():
                     residuals.append(r['hidden_equivalent_freight_tons_10k']*rec['accounting_yield_yuan_per_ton']/10000-r['hidden_freight_income_yi'])
                 max_balance = max(max_balance, *(abs(v) for v in residuals))
                 if r['freight_tons_10k'] != r['ordinary_freight_tons_10k']: raise AssertionError('Physical tonnes contaminated')
-                if seed in DEMO:
+                # Other regions' two Northeast-only comparison modes are exact
+                # duplicates; store their two distinct paths in the new export.
+                if seed in DEMO and (not args.all_configured or p['region_id'] in ('northeast','north')
+                                     or mode in ('legacy_v03','combined_v04')):
                     keys = ('seed', 'year', 'bureau_id', 'bureau_name', 'passenger_index', 'freight_index',
                             'passenger_trips_10k', 'ordinary_freight_tons_10k', 'hidden_equivalent_freight_tons_10k',
                             'passenger_income_yi', 'ordinary_freight_income_yi', 'hidden_freight_income_yi', 'freight_income_yi',
@@ -108,6 +114,7 @@ def main():
             for p in profiles:
                 history = groups[p['bureau_id']][1:]; end = history[-1]
                 samples.append({'seed': seed, 'mode': mode, 'bureau_id': p['bureau_id'], 'name':p['name'],
+                                'macro_scenario_id':macro['scenario']['id'], 'macro_scenario_name':macro['scenario']['name'],
                                 'region_id':p['region_id'], 'end_surplus_yi':end['operating_surplus_yi'],
                                 'end_wage_cost_yi':end['wage_cost_yi'], 'end_net_receipts_yi':end['hidden_freight_income_yi'],
                                 'cumulative_surplus_yi':sum(r['operating_surplus_yi'] for r in history),
@@ -148,8 +155,9 @@ def main():
     # Existing regions must retain all four 96-seed comparison outcomes.
     preserved_error = 0.
     preserved_count = 0
-    if args.three_north or args.all_configured:
-        previous = 'three_north_revenue_samples_96seeds_v04.csv' if args.all_configured else 'revenue_samples_96seeds_v04.csv'
+    if args.three_north or args.five_regions or args.all_configured:
+        previous = ('five_region_revenue_samples_96seeds_v04.csv' if args.all_configured else
+                    'three_north_revenue_samples_96seeds_v04.csv' if args.five_regions else 'revenue_samples_96seeds_v04.csv')
         with (OUT/previous).open(encoding='utf-8-sig', newline='') as f:
             old = {(int(r['seed']),r['mode'],r['bureau_id']):r for r in csv.DictReader(f)}
         preserved_ids = {key[2] for key in old}
@@ -160,9 +168,21 @@ def main():
             for key in ('end_surplus_yi','end_wage_cost_yi','end_net_receipts_yi','cumulative_surplus_yi','loss_years'):
                 preserved_error = max(preserved_error, abs(r[key]-float(before[key])))
         if preserved_error > 1e-8: raise AssertionError('Existing bureau outcomes changed')
+    scenario_groups = {}
+    for rid in region_ids:
+        rs = [r for r in samples if r['mode']=='combined_v04' and (rid=='all' or r['region_id']==rid)]
+        scenario_groups[rid] = {}
+        for sid in sorted({r['macro_scenario_id'] for r in rs}):
+            selected = [r for r in rs if r['macro_scenario_id']==sid]
+            seeds = sorted({r['seed'] for r in selected})
+            totals = [sum(r['end_surplus_yi'] for r in selected if r['seed']==seed) for seed in seeds]
+            scenario_groups[rid][sid] = {'name':selected[0]['macro_scenario_name'],'seedCount':len(seeds),
+                                        'end_total_surplus_median_yi':statistics.median(totals),
+                                        'pooled_end_loss_fraction':sum(r['end_surplus_yi']<0 for r in selected)/len(selected)}
     report = {'modelVersion':VERSION, 'settlementVersion':SETTLEMENT_VERSION, 'configHash':config_hash(),
               'seedCount':96,'seedRange':[0,95], 'endYear':2085,'operatingYears':[2026,2085],
               'policy':CURRENT_POLICY,'modes':MODES,'baselineSurplusYi':base,'bureaus':bureaus,'regions':regions,
+              'scenarioGroups':scenario_groups,
               'regionModeLabels': {rid: {'legacy_v03':'候选基值 · 线性收益参考',
                                        'combined_v04':'当前V0.4 · 收益弹性'}
                                    for rid in region_ids if rid not in ('northeast','north','all')},

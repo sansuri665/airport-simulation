@@ -211,7 +211,7 @@
     $('referenceLossHead').textContent = linearReference ? '线性参考亏损占比' : '原亏损占比';
     $('referenceSurplusHead').textContent = linearReference ? '线性参考结余' : '原结余中位数';
     $('calibrationScopeNote').textContent = `同一组 Seed 0—95、客货运和成本路径。地区金额先逐 Seed 加总再取中位数；亏损样本占比按“分局×Seed”统计。累计为2026—2085年。${linearReference ? `线性参考使用相同${region.name}基期参数，仅关闭收益弹性，并非历史旧模型。${region.name}净结算各家独立，基期合计${fixed(regionBaseNet)}亿元。` : '东北独立新增收入，华北保持90%原基值。'}不设跨区域资金池。`;
-    const modeRows = document.createDocumentFragment(), bureauRows = document.createDocumentFragment();
+    const modeRows = document.createDocumentFragment(), bureauRows = document.createDocumentFragment(), scenarioRows = document.createDocumentFragment();
     if (audit) {
       $('calibrationNote').textContent = `Seed ${audit.seedRange[0]}—${audit.seedRange[1]}，共 ${audit.seedCount} 个。地区统计与上方所选 Seed 无关。当前收益弹性：普通货运0.15、站务0.10；净结算使用货运收益系数。`;
       for (const [key, label] of Object.entries(audit.modes)) {
@@ -220,6 +220,11 @@
         const th = node('th', label); th.scope = 'row'; tr.append(th);
         tr.append(node('td', fixed(r.end_surplus_median_yi)), node('td', `${fixed(r.pooled_end_loss_fraction*100,1)}%`), node('td', fixed(r.cumulative_surplus_median_yi)));
         modeRows.append(tr);
+      }
+      for (const group of Object.values(audit.scenarioGroups || {})) {
+        const tr = node('tr'), th = node('th',group.name); th.scope='row'; tr.append(th);
+        tr.append(node('td',String(group.seedCount)),node('td',fixed(group.end_total_surplus_median_yi)),node('td',`${fixed(group.pooled_end_loss_fraction*100,1)}%`));
+        scenarioRows.append(tr);
       }
       for (const b of audit.bureaus) {
         const a = b.scenarios.legacy_v03, c = b.scenarios.combined_v04, tr = node('tr');
@@ -230,6 +235,7 @@
       }
     } else $('calibrationNote').textContent = '当前配置尚无匹配的96 Seed报告，请重跑V0.4审计并重启服务。';
     $('calibrationModes').replaceChildren(modeRows);
+    $('calibrationScenarios').replaceChildren(scenarioRows);
     $('calibrationRows').replaceChildren(bureauRows);
     drawChart(); renderYear();
   }

@@ -7,7 +7,7 @@
   <title>分局经营试算 · 铁路网络</title>
   <link rel="stylesheet" href="./style.css?v=20261017-economy">
   <link rel="stylesheet" href="./economy.css?v=20261017-forecast">
-  <link rel="stylesheet" href="./bureau.css?v=20261018-five-regions">
+  <link rel="stylesheet" href="./bureau.css?v=20261018-national">
 </head>
 <body class="economy-page bureau-page">
   <header class="topbar">
@@ -16,7 +16,7 @@
   </header>
   <main class="economy-workspace">
     <section class="economy-intro">
-      <div><span class="eyebrow">60-YEAR OPERATING SCENARIO</span><h1 id="bureauTitle">分局的六十年经营路径</h1><p id="bureauSubtitle">东北、华北、西北、西南、华南 · 运量、收入与独立投入成本</p></div>
+      <div><span class="eyebrow">60-YEAR OPERATING SCENARIO</span><h1 id="bureauTitle">分局的六十年经营路径</h1><p id="bureauSubtitle">八大经济区 · 100家铁路分局 · 运量、收入与独立投入成本</p></div>
       <span class="scenario-badge">参数校准参考 · 经营模型 V0.4</span>
     </section>
     <form id="bureauForm" class="bureau-controls" aria-label="分局试算设置">
@@ -75,6 +75,8 @@
         <div class="panel-heading"><div><span class="eyebrow">PAIRED CALIBRATION / 96 SEEDS</span><h2 id="calibrationTitle">96 个 Seed · 收益参数调整对照</h2></div><span>2085 年 · 亿元</span></div>
         <p id="calibrationNote" class="economy-note"></p>
         <div class="table-scroll"><table><thead><tr><th>方案</th><th>地区结余中位数</th><th>分局亏损样本占比</th><th>60年累计结余中位数</th></tr></thead><tbody id="calibrationModes"></tbody></table></div>
+        <p class="economy-note">按世界情景倾向分组。分类描述整段世界设定，不代表2085年的具体阶段；各组Seed数量不同。</p>
+        <div class="table-scroll"><table><thead><tr><th>世界情景倾向</th><th>Seed数量</th><th>地区结余中位数</th><th>分局亏损样本占比</th></tr></thead><tbody id="calibrationScenarios"></tbody></table></div>
         <div class="table-scroll"><table><thead><tr><th>铁路分局</th><th id="referenceLossHead">原亏损占比</th><th>当前亏损占比</th><th id="referenceSurplusHead">原结余中位数</th><th>当前结余中位数</th><th>基期净结算</th></tr></thead><tbody id="calibrationRows"></tbody></table></div>
         <p id="calibrationScopeNote" class="economy-note">同一组 Seed 0—95、客货运和成本路径。地区金额先逐 Seed 加总再取中位数；亏损样本占比按“分局×Seed”统计。累计为2026—2085年。东北独立新增收入，华北保持90%原基值，不设跨区域资金池。</p>
       </section>
@@ -82,6 +84,6 @@
       <footer class="economy-footer"><span id="bureauVersion"></span><span>合成经营情景；含工资高点驱动的隐含用工调整，未计折旧、融资与新增投资。</span></footer>
     </div>
   </main>
-  <script src="./bureau.js?v=20261018-five-regions"></script>
+  <script src="./bureau.js?v=20261018-national"></script>
 </body>
 </html>
