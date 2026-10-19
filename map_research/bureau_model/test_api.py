@@ -115,6 +115,31 @@ class BureauAPITests(unittest.TestCase):
                 self.assertGreaterEqual(r['cash_closing_yi'], r['cash_dividend_minimum_yi'])
         self.assertIn('withoutDividends', cash['calibrationAudit']['bureau'])
 
+    def test_official_valuation_quotes_and_locked_forecasts(self):
+        path = '/api/bureau?seed=20261014&bureau=shanghai'
+        data = self.fetch(path)
+        valuation = data['officialValuation']
+        self.assertEqual(valuation['modelVersion'], 'railway-official-valuation-v0.1')
+        self.assertEqual(len(valuation['configHash']), 64)
+        self.assertTrue(valuation['quotePolicy']['merchant']['old_share_bid_unconditional'])
+        self.assertEqual(len(valuation['rows']), 61)
+        self.assertEqual(valuation, self.fetch(path)['officialValuation'])
+        for v, cash in zip(valuation['rows'], data['cash']['rows']):
+            self.assertEqual(v['year'], cash['year'])
+            self.assertEqual(v['seed'], data['seed'])
+            self.assertEqual(v['valuation_cash_yi'], cash['cash_closing_yi'])
+            self.assertEqual(len(v['forecastRows']), 10)
+            self.assertEqual(v['forecastRows'][0]['year'], v['year'] + 1)
+            self.assertEqual(v['forecastRows'][0]['predicted_surplus_yi'], v['valuation_next_surplus_forecast_yi'])
+            self.assertAlmostEqual(v['valuation_official_yi'], max(0, v['valuation_operating_right_yi'] + v['valuation_cash_yi']))
+            self.assertAlmostEqual(v['valuation_old_share_state_bid_yi'], v['valuation_official_yi'] * .6)
+            self.assertAlmostEqual(v['valuation_issue_pre_yi'], v['valuation_official_yi'] * v['valuation_issue_multiplier'])
+            self.assertGreaterEqual(v['valuation_forecast_score'], 66)
+            self.assertLessEqual(v['valuation_forecast_score'], 74)
+        self.assertEqual(valuation['rows'][0]['valuation_tail_years'], 0)
+        self.assertEqual(valuation['rows'][-1]['valuation_tail_years'], 10)
+        self.assertIsNotNone(data['cash']['calibrationAudit'])
+
     def test_north_volume_semantics_and_matching_audit(self):
         data=self.fetch('/api/bureau?seed=20261014&bureau=datong')
         self.assertEqual(data['profile']['region_id'],'north')

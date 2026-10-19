@@ -1,0 +1,64 @@
+{
+  "schema": "railway-bureau-capital-quotation-reference-v0.1",
+  "status": "ACTIVE_QUOTES_ONLY",
+  "as_of_branch": "sansuri665/airport-simulation@map",
+  "shares": {
+    "total_units": 400,
+    "unit_percent": 0.25,
+    "normal_resolution_yes_min": 201,
+    "capital_resolution_yes_min": 267,
+    "capital_veto_units_min": 134,
+    "rounding": "ROUND_HALF_UP; allocate residue by largest remainders; preserve pro-rata subscriptions",
+    "small_owner_zero_rounding": "REJECT_OR_REQUIRE_EXPLICIT_EXIT_SETTLEMENT"
+  },
+  "merchant": {
+    "official_valuation_forecast_quality_target": 70,
+    "official_valuation_quality_is_verified": false,
+    "old_share_ask_mult": 1.05,
+    "old_share_state_bid_mult": 0.6,
+    "old_share_bid_unconditional": true,
+    "voluntary_equity_subscriptions": {
+      "uses_market_liquidity_spread_only": true,
+      "liquidity_projection": "months = 12 * (current_cash + official_one_year_expected_operating_cashflow - committed_net_cash_outflows) / trailing_annual_operating_cost",
+      "bands": [
+        {
+          "months_min_inclusive": 6,
+          "state": "comfortable",
+          "issue_prevaluation_mult": 0.9
+        },
+        {
+          "months_min_inclusive": 2,
+          "months_max_exclusive": 6,
+          "state": "watch",
+          "issue_prevaluation_mult": 0.85
+        },
+        {
+          "months_max_exclusive": 2,
+          "state": "strained_before_formal_crisis",
+          "issue_prevaluation_mult": 0.8
+        }
+      ],
+      "random_investment_willingness_check": false,
+      "ordinary_annual_frequency_limit": 1,
+      "shareholders_first_pro_rata": true,
+      "state_subscribes_remainder": true,
+      "funding_year_dividend_blocked": true
+    },
+    "public_service_emergency": {
+      "formal_crisis_order_required": true,
+      "new_equity_prevaluation_mult": 1.0,
+      "temporary_cash_advance_is_debt": true,
+      "force_issue_without_resolution": false,
+      "separate_special_rescue_procedure_required": true
+    },
+    "forecast_source": "future_plus_locked_error"
+  },
+  "share_issue_rounding": {
+    "new_unit_ideal": "400 * cash_investment / (actual_issue_prevaluation + cash_investment)",
+    "min_units": 1,
+    "max_units": 399,
+    "post_units_total": 400,
+    "no_silent_wipeout_of_existing_holders": true
+  },
+  "note": "Game quotation reference only. Official forecast uses true future plus locked synthetic errors. State always bids at 60%; no GUI trading, share changes, subscriptions or emergency process are implemented."
+}

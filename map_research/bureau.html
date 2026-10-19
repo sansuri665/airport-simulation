@@ -7,7 +7,7 @@
   <title>分局经营试算 · 铁路网络</title>
   <link rel="stylesheet" href="./style.css?v=20261017-economy">
   <link rel="stylesheet" href="./economy.css?v=20261017-forecast">
-  <link rel="stylesheet" href="./bureau.css?v=20261018-cash-dividends-v03">
+  <link rel="stylesheet" href="./bureau.css?v=20261019-official-valuation-v01">
 </head>
 <body class="economy-page bureau-page">
   <header class="topbar">
@@ -48,10 +48,16 @@
         <div class="bureau-kpi"><span>累计国铁净投入</span><strong id="cashNetInvestment">—</strong><small>增资减国铁分红 · 负数表示净回流</small></div>
         <div class="bureau-kpi"><span>不分红参考期末现金</span><strong id="cashWithoutDividend">—</strong><small>亿元 · 相同经营路径</small></div>
       </section>
+      <section id="valuationSummary" class="bureau-kpis" aria-label="国铁估值摘要" hidden>
+        <div class="bureau-kpi"><span>国铁官方股权估值</span><strong id="valuationOfficial">—</strong><small>亿元 · 全公司股权</small></div>
+        <div class="bureau-kpi"><span>预测经营权现值</span><strong id="valuationRight">—</strong><small>亿元 · 十年现金流折现 + 终值</small></div>
+        <div class="bureau-kpi"><span>估值时点公司现金</span><strong id="valuationCash">—</strong><small>亿元 · 分红后、下一年度补资前</small></div>
+        <div class="bureau-kpi"><span>下一年经营结余预测</span><strong id="valuationNext">—</strong><small id="valuationNextNote">—</small></div>
+      </section>
       <div class="bureau-main-grid">
         <section class="economy-panel bureau-chart-panel" aria-labelledby="bureauChartTitle">
           <div class="panel-heading"><div><span class="eyebrow">LONG-RUN PATH</span><h2 id="bureauChartTitle">经营收支</h2></div><span id="bureauChartUnit">亿元／年 · 2025 年不变价</span></div>
-          <div id="bureauChartTabs" class="bureau-tabs" role="tablist" aria-label="曲线类型"><button type="button" role="tab" id="tabAccounts" aria-controls="bureauChartPanel" aria-selected="true" tabindex="0" data-view="accounts">经营收支</button><button type="button" role="tab" id="tabInputs" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="inputs">成本投入</button><button type="button" role="tab" id="tabVolumes" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="volumes">业务规模</button><button type="button" role="tab" id="tabLabor" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="labor">人工对照</button><button type="button" role="tab" id="tabFreight" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="freight">货运收入</button><button type="button" role="tab" id="tabCash" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="cash">现金与分红</button><button type="button" role="tab" id="tabCashCompare" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="cash_compare">现金积累对照</button></div>
+          <div id="bureauChartTabs" class="bureau-tabs" role="tablist" aria-label="曲线类型"><button type="button" role="tab" id="tabAccounts" aria-controls="bureauChartPanel" aria-selected="true" tabindex="0" data-view="accounts">经营收支</button><button type="button" role="tab" id="tabInputs" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="inputs">成本投入</button><button type="button" role="tab" id="tabVolumes" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="volumes">业务规模</button><button type="button" role="tab" id="tabLabor" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="labor">人工对照</button><button type="button" role="tab" id="tabFreight" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="freight">货运收入</button><button type="button" role="tab" id="tabCash" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="cash">现金与分红</button><button type="button" role="tab" id="tabCashCompare" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="cash_compare">现金积累对照</button><button type="button" role="tab" id="tabValuation" aria-controls="bureauChartPanel" aria-selected="false" tabindex="-1" data-view="valuation">国铁估值</button></div>
           <div id="bureauChartPanel" role="tabpanel" aria-labelledby="tabAccounts">
             <div class="chart-wrap"><svg id="bureauChart" viewBox="0 0 960 370" role="group" aria-label="分局六十年经营曲线"></svg><div id="bureauTooltip" class="chart-tooltip" role="tooltip" hidden></div></div>
             <div id="bureauLegend" class="chart-legend"></div>
@@ -65,6 +71,13 @@
           <p id="fixedReadout" class="economy-note"></p>
           <div class="bureau-volume-readout"><div><span>客运量</span><strong id="passengerVolume">—</strong></div><div><span>普通货运量</span><strong id="freightVolume">—</strong></div><div id="hiddenVolumeRow" hidden><span>隐藏等效结算量</span><strong id="hiddenFreightVolume">—</strong></div></div>
         </aside>
+        <aside id="valuationNotesPanel" class="economy-panel bureau-cost-panel" hidden>
+          <span class="eyebrow">OFFICIAL VALUATION / LOCKED FORECAST</span><h2>估值依据</h2>
+          <div class="bureau-volume-readout"><div><span>折现率</span><strong id="valuationRate">—</strong></div><div><span>最近三年加权结余</span><strong id="valuationNormalized">—</strong></div><div><span>目标预测得分</span><strong id="valuationTarget">—</strong></div><div><span>十年预测研究评分</span><strong id="valuationScore">—</strong></div><div><span>融资前预测储备</span><strong id="valuationCover">—</strong></div></div>
+          <p id="valuationBasisNote" class="economy-note"></p>
+          <p class="economy-note">真实未来加锁定误差生成预测，同一Seed、分局和估值年份不重抽；现金变化只更新现金和报价。70分是游戏预测质量目标，不是70%准确概率。</p>
+          <p class="economy-note">暂定十年经营结余折现，加零增长终值和公司现金；折现率为当年实际利率加6个百分点，限制在6%—14%。行业PE不参与计算。</p>
+        </aside>
         <aside id="cashNotesPanel" class="economy-panel bureau-cost-panel" hidden>
           <span class="eyebrow">ANNUAL CAPITAL WINDOW</span><h2>年度现金安排</h2>
           <div class="bureau-volume-readout"><div><span>上年结转现金</span><strong id="cashBefore">—</strong></div><div><span>预计年末现金（补资前）</span><strong id="cashProjected">—</strong></div><div><span>预计年末储备线</span><strong id="cashTrigger">—</strong></div><div><span>本年度期初现金目标</span><strong id="cashTarget">—</strong></div><div><span>本年度预计亏损</span><strong id="cashExpectedLoss">—</strong></div></div>
@@ -73,6 +86,21 @@
           <p class="economy-note">当前均按国铁控股、年度足额补资试算。允许负现金，无计划外垫款或自动代管。增资独立记账，不进入收入和利润。</p>
         </aside>
       </div>
+      <section id="valuationQuotePanel" class="economy-panel bureau-labor" aria-labelledby="valuationQuoteTitle" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">STANDING REFERENCE QUOTES</span><h2 id="valuationQuoteTitle">国铁公开报价</h2></div><span id="valuationBand">—</span></div>
+        <div class="labor-cards"><div><span>国铁卖出旧股</span><strong id="valuationAsk">—</strong><small id="valuationAskUnit">—</small></div><div><span>国铁始终承接旧股</span><strong id="valuationBid">—</strong><small id="valuationBidUnit">—</small></div><div><span>主动增资投前报价</span><strong id="valuationIssue">—</strong><small id="valuationIssueNote">—</small></div></div>
+        <p class="economy-note">旧股卖出按官方估值105%，国铁买入按60%，无额外购买意愿抽签。主动增资依融资前预测储备选择90%／85%／80%，报价均为全公司股权口径。正式危机使用危机当期估值100%，本页未认定危机。以上仅展示报价，不执行交易、增资或股权变化。</p>
+      </section>
+      <section id="valuationForecastPanel" class="economy-panel snapshot-panel bureau-annual" aria-labelledby="valuationForecastTitle" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">SYNTHETIC FORECAST / TEN YEARS</span><h2 id="valuationForecastTitle">未来十年经营预测</h2></div><span>亿元 · 有符号经营结余</span></div>
+        <p id="valuationForecastNote" class="economy-note"></p>
+        <div class="table-scroll"><table><thead><tr><th>预测年份</th><th>国铁预测</th><th>完整未来／延续参考</th><th>归一化偏差</th><th>参考来源</th></tr></thead><tbody id="valuationForecastRows"></tbody></table></div>
+        <p class="economy-note">预测误差按 max（真实结余绝对值，年度成本的10%）归一化，可处理亏损和接近零的结余，与客流指数的百分比误差不同。2085年以后暂按末年经营水平延续，仅用于补足估值窗口；永久经营权不随试算终点归零。完整未来参考和评分只供研究校准。</p>
+      </section>
+      <section id="valuationAnnualPanel" class="economy-panel snapshot-panel bureau-annual" aria-labelledby="valuationAnnualTitle" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">VALUATION HISTORY / 2025—2085</span><h2 id="valuationAnnualTitle">年度估值与报价</h2></div><button id="exportValuation" class="bureau-secondary" type="button">导出估值 CSV ↓</button></div>
+        <div class="table-scroll annual-scroll"><table><thead><tr><th>年份</th><th>官方股权估值</th><th>完整未来参考估值</th><th>经营权现值</th><th>公司现金</th><th>旧股卖价</th><th>国铁旧股买价</th><th>增资投前报价</th><th>十年预测评分</th></tr></thead><tbody id="valuationAnnualRows"></tbody></table></div>
+      </section>
       <section id="cashDividendPanel" class="economy-panel bureau-labor" aria-labelledby="dividendTitle" hidden>
         <div class="panel-heading"><div><span class="eyebrow">SHAREHOLDER DISTRIBUTION</span><h2 id="dividendTitle">年末分红</h2></div><span>50%利润 + 50%超额现金</span></div>
         <div class="labor-cards"><div><span>利润分红</span><strong id="dividendProfit">—</strong><small>正经营结余的50%，受现金储备约束</small></div><div><span>超额现金分红</span><strong id="dividendExcess">—</strong><small>利润分红后，超过充裕现金线部分的50%</small></div><div><span>分红后最低保留现金</span><strong id="dividendReserve">—</strong><small>六个月成本 + 一年预计亏损，至少0.5亿元</small></div></div>
@@ -118,6 +146,6 @@
       <footer class="economy-footer"><span id="bureauVersion"></span><span>合成经营情景；含工资高点驱动的隐含用工调整，未计折旧、融资与新增投资。</span></footer>
     </div>
   </main>
-  <script src="./bureau.js?v=20261018-cash-dividends-v03"></script>
+  <script src="./bureau.js?v=20261019-official-valuation-v01"></script>
 </body>
 </html>

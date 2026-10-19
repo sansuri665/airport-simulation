@@ -11,8 +11,10 @@
     labor: {title: '人工成本 · 三组对照', unit: '亿元／年 · 同一业务量', series: [['v02_wage_cost_yi', 'A 原 V0.2', '#dca872', '5 4'], ['full_wage_cost_yi', 'B 工资完全传导', '#b8a0d1', '3 4'], ['wage_cost_yi', 'C 当前规则', '#93d2c6']]},
     freight: {title: '货运收入构成', unit: '亿元／年 · 含净结算', series: [['ordinary_freight_income_yi','普通货运收入','#83c6dc'],['hidden_freight_income_yi','隐藏净结算','#dca872'],['freight_income_yi','货运收入合计','#93d2c6']]},
     cash: {title: '现金、年度补资与分红', unit: '亿元 · 2025 年不变价', series: [['cash_opening_yi','期初可用现金','#dca872','5 4'],['cash_closing_yi','期末现金','#83c6dc'],['cash_state_equity_yi','本年度增资（上年末到账）','#93d2c6'],['cash_dividend_yi','年末分红','#b8a0d1']]},
-    cash_compare: {title: '分红前后现金积累',unit:'亿元 · 相同 Seed 与经营路径',series:[['cash_without_dividends_closing_yi','不分红参考现金','#dca872','5 4'],['cash_closing_yi','分红后现金','#83c6dc']]}
+    cash_compare: {title: '分红前后现金积累',unit:'亿元 · 相同 Seed 与经营路径',series:[['cash_without_dividends_closing_yi','不分红参考现金','#dca872','5 4'],['cash_closing_yi','分红后现金','#83c6dc']]},
+    valuation: {title:'国铁官方估值与完整未来参考',unit:'亿元 · 全公司股权',series:[['valuation_official_yi','国铁官方估值','#83c6dc'],['valuation_full_future_reference_yi','完整未来参考估值','#dca872','5 4'],['valuation_cash_yi','公司现金','#93d2c6']]}
   };
+  const valuationColumns=[['year','年份'],['valuation_official_yi','官方股权估值'],['valuation_full_future_reference_yi','完整未来参考估值'],['valuation_operating_right_yi','经营权现值'],['valuation_cash_yi','公司现金'],['valuation_old_share_ask_yi','旧股卖价（全公司）'],['valuation_old_share_state_bid_yi','国铁旧股买价（全公司）'],['valuation_issue_pre_yi','增资投前报价'],['valuation_forecast_score','十年预测评分']];
   const cashColumns = [['year','经营年度'],['cash_funding_year','增资到账年份（年末）'],['cash_carryover_yi','上年结转现金（补资前）'],['cash_state_equity_yi','本年度国铁增资'],['cash_opening_yi','期初可用现金'],['cash_operating_proxy_yi','当年经营结余现金近似'],['cash_dividend_yi','年末分红'],['cash_closing_yi','年末现金'],['cash_cumulative_equity_yi','累计国铁增资'],['cash_cumulative_dividend_yi','累计分红'],['cash_cumulative_state_net_investment_yi','累计国铁净投入']];
   const annualColumns = [['year', '年份'], ['passenger_trips_10k', '客运量（万人次）'], ['ordinary_freight_tons_10k', '普通货运量（万吨）'], ['hidden_equivalent_freight_tons_10k','隐藏等效结算量（万吨）'], ['passenger_income_yi', '客运收入'], ['ordinary_freight_income_yi','普通货运收入'], ['hidden_freight_income_yi','隐藏货运净结算'], ['freight_income_yi', '货运收入合计'], ['station_income_yi', '站务收入'], ['high_speed_cost_yi', '高速成本'], ['conventional_cost_yi', '普速成本'], ['station_cost_yi', '站务成本'], ['revenue_yi', '总收入'], ['cost_yi', '总成本'], ['operating_surplus_yi', '经营结余']];
   let catalog = null, data = null, busy = false, chartCursor = null, chartX = null;
@@ -109,6 +111,7 @@
       if (selected) tr.querySelector('button').setAttribute('aria-current', 'true'); else tr.querySelector('button').removeAttribute('aria-current');
     }
     renderCashYear(row);
+    renderValuationYear(row);
     if (chartCursor && chartX) {const x = chartX(year); chartCursor.setAttribute('x1', x); chartCursor.setAttribute('x2', x);}
     const target = $('bureauChart').querySelector('.chart-inspection-target');
     if (target) {target.setAttribute('aria-valuenow', year); target.setAttribute('aria-valuetext', `${year} 年`);}
@@ -117,9 +120,52 @@
   function selectYear(value) {year = Math.max(2025, Math.min(2085, Math.round(value))); renderYear();}
   function syncView() {
     const cash = view === 'cash' || view === 'cash_compare';
-    for (const id of ['operatingSummary','bureauCostPanel','laborPanel','costDetailPanel','operatingAnnualPanel','operatingConfig','calibrationPanel']) $(id).hidden = cash;
+    const valuation = view === 'valuation';
+    for (const id of ['operatingSummary','bureauCostPanel','laborPanel','costDetailPanel','operatingAnnualPanel','operatingConfig','calibrationPanel']) $(id).hidden = cash || valuation;
     for (const id of ['cashSummary','cashNotesPanel','cashDividendPanel','cashLedgerPanel','cashAuditPanel']) $(id).hidden = !cash;
-    $('hiddenFreightPanel').hidden = cash || !data.profile.hidden_freight;
+    for (const id of ['valuationSummary','valuationNotesPanel','valuationQuotePanel','valuationForecastPanel','valuationAnnualPanel']) $(id).hidden = !valuation;
+    $('hiddenFreightPanel').hidden = cash || valuation || !data.profile.hidden_freight;
+  }
+  function renderValuationYear(row) {
+    for(const [id,key] of [['valuationOfficial','valuation_official_yi'],['valuationRight','valuation_operating_right_yi'],['valuationCash','valuation_cash_yi'],['valuationNext','valuation_next_surplus_forecast_yi']]) {
+      $(id).textContent=fixed(row[key]); $(id).classList.toggle('negative',row[key]<0);
+    }
+    $('valuationNextNote').textContent=`${year+1} 年 · 一年期研究评分 ${fixed(row.valuation_one_year_score,1)}`;
+    $('valuationRate').textContent=`${fixed(row.valuation_discount_rate_pct,1)}%`;
+    $('valuationNormalized').textContent=`${fixed(row.valuation_historical_normalized_surplus_yi)} 亿元`;
+    $('valuationTarget').textContent=`${row.valuation_quality_target} 分`;
+    $('valuationScore').textContent=`${fixed(row.valuation_forecast_score,1)} 分`;
+    $('valuationCover').textContent=`${fixed(row.valuation_cash_cover_months,1)} 个月`;
+    $('valuationBasisNote').textContent=`${year}年末估值。${row.valuation_tail_years?`窗口中${row.valuation_tail_years}年采用末年延续假设。`:'十年窗口全部位于现有模拟样本内。'}${row.valuation_at_floor?'预测经营权与现金合计为负，股权参考值取0。':''}`;
+    const bands={comfortable:'现金充足',watch:'现金偏紧',strained_before_formal_crisis:'资金紧迫（未认定危机）'};
+    $('valuationBand').textContent=bands[row.valuation_active_band];
+    $('valuationQuoteTitle').textContent=`${year} 年末 · 国铁公开报价`;
+    $('valuationAsk').textContent=`${fixed(row.valuation_old_share_ask_yi)} 亿元`;
+    $('valuationBid').textContent=`${fixed(row.valuation_old_share_state_bid_yi)} 亿元`;
+    $('valuationIssue').textContent=`${fixed(row.valuation_issue_pre_yi)} 亿元`;
+    $('valuationAskUnit').textContent=`每0.25%股权 ${fixed(row.valuation_old_share_ask_per_unit_yi,4)} 亿元 · 105%`;
+    $('valuationBidUnit').textContent=`每0.25%股权 ${fixed(row.valuation_old_share_state_bid_per_unit_yi,4)} 亿元 · 60% · 始终承接`;
+    $('valuationIssueNote').textContent=`投前估值 · ${bands[row.valuation_active_band]}档 × ${fixed(row.valuation_issue_multiplier*100,0)}%`;
+    $('valuationForecastTitle').textContent=`${year+1}—${year+10} 年经营结余预测`;
+    $('valuationForecastNote').textContent=`目标${row.valuation_quality_target}分；十年研究评分${fixed(row.valuation_forecast_score,1)}分，平均归一化偏差${fixed(row.valuation_normalized_error_pct,2)}%。同一估值时点的预测锁定。`;
+    const fragment=document.createDocumentFragment();
+    for(const f of row.forecastRows) {
+      const tr=node('tr');
+      for(const text of [String(f.year),fixed(f.predicted_surplus_yi),fixed(f.reference_surplus_yi),`${fixed(Math.abs(f.predicted_surplus_yi-f.reference_surplus_yi)/f.error_scale_yi*100,2)}%`,f.sample_extension?'末年延续假设':'模拟未来']) tr.append(node('td',text));
+      fragment.append(tr);
+    }
+    $('valuationForecastRows').replaceChildren(fragment);
+    for(const tr of $('valuationAnnualRows').children) tr.classList.toggle('selected-year',Number(tr.dataset.year)===year);
+  }
+  function renderValuation() {
+    const fragment=document.createDocumentFragment();
+    for(const r of data.rows) {
+      const tr=node('tr'); tr.dataset.year=r.year;
+      const th=node('th'),button=node('button',r.year);th.scope='row';button.type='button';button.dataset.year=r.year;button.setAttribute('aria-label',`查看 ${r.year} 年国铁估值`);th.append(button);tr.append(th);
+      for(const [key] of valuationColumns.slice(1)) tr.append(node('td',fixed(r[key])));
+      fragment.append(tr);
+    }
+    $('valuationAnnualRows').replaceChildren(fragment);
   }
   function renderCashYear(row) {
     $('cashInitial').textContent = fixed(row.cash_initial_yi);
@@ -219,7 +265,7 @@
     let hovered = year;
     function inspect(value) {
       hovered = Math.max(2025, Math.min(2085, value)); const row = data.rows[hovered - 2025];
-      const title = node('strong', `${hovered} 年`), subtitle = node('span', view === 'volumes' ? '基期 = 100' : (view === 'cash' || view === 'cash_compare') ? '亿元 · 余额 / 当年收支' : '亿元／年');
+      const title = node('strong', `${hovered} 年`), subtitle = node('span', view === 'volumes' ? '基期 = 100' : view === 'valuation' ? '亿元 · 全公司股权' : (view === 'cash' || view === 'cash_compare') ? '亿元 · 余额 / 当年收支' : '亿元／年');
       const content = [title, subtitle];
       spec.series.forEach(([key, label, color], i) => {
         const line = node('div', undefined, 'chart-tooltip-row'), swatch = node('i'); swatch.style.background = color;
@@ -311,6 +357,7 @@
     $('calibrationScenarios').replaceChildren(scenarioRows);
     $('calibrationRows').replaceChildren(bureauRows);
     renderCash();
+    renderValuation();
     drawChart(); renderYear();
   }
   async function getJSON(url) {
@@ -327,7 +374,9 @@
       if (next.seed !== seed || next.profile?.bureau_id !== bureau || next.baseYear !== 2025 || next.rows?.length !== 61 || next.rows.some((r, i) => r.year !== 2025 + i || !Number.isFinite(r.cost_yi) || !Number.isFinite(r.operating_surplus_yi))) throw new Error('返回的分局数据不完整');
       if (next.cash?.modelVersion !== 'railway-bureau-annual-cash-dividends-v0.3' || next.cash.rows?.length !== 61 || next.cash.rows.some((r,i)=>r.year!==2025+i || r.bureau_id!==bureau || !Number.isFinite(r.cash_closing_yi) || !Number.isFinite(r.cash_carryover_yi) || !Number.isFinite(r.cash_opening_yi) || !Number.isFinite(r.cash_dividend_yi) || !Number.isFinite(r.cash_without_dividends_closing_yi) || (i>0 && r.cash_funding_year!==r.year-1))) throw new Error('现金数据不完整，请更新本地服务。');
       const cashByYear=new Map(next.cash.rows.map(r=>[r.year,r]));
-      next.rows=next.rows.map(r=>({...r,...cashByYear.get(r.year)}));
+      if(next.officialValuation?.modelVersion!=='railway-official-valuation-v0.1' || next.officialValuation.rows?.length!==61 || next.officialValuation.rows.some((r,i)=>r.year!==2025+i || r.bureau_id!==bureau || !Number.isFinite(r.valuation_official_yi) || r.forecastRows?.length!==10)) throw new Error('国铁估值数据不完整，请更新本地服务。');
+      const valuationByYear=new Map(next.officialValuation.rows.map(r=>[r.year,r]));
+      next.rows=next.rows.map(r=>({...r,...cashByYear.get(r.year),...valuationByYear.get(r.year)}));
       data = next; cache.set(key, next); if (cache.size > 4) cache.delete(cache.keys().next().value);
       $('bureauRegion').value = data.profile.region_id; populateBureaus(bureau); $('bureauSeed').value = String(seed);
       renderAll();
@@ -344,6 +393,7 @@
   $('bureauYear').addEventListener('input', () => selectYear(Number($('bureauYear').value)));
   $('annualRows').addEventListener('click', event => {const button = event.target.closest('button[data-year]'); if (button) selectYear(Number(button.dataset.year));});
   $('cashLedgerRows').addEventListener('click', event => {const button=event.target.closest('button[data-year]'); if(button) selectYear(Number(button.dataset.year));});
+  $('valuationAnnualRows').addEventListener('click',event=>{const b=event.target.closest('button[data-year]');if(b)selectYear(Number(b.dataset.year));});
   $('bureauChartTabs').addEventListener('click', event => {const button = event.target.closest('button[data-view]'); if (!button || !data) return; view = button.dataset.view; syncView(); drawChart(); syncLocation();});
   $('bureauChartTabs').addEventListener('keydown', event => {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
@@ -364,9 +414,11 @@
       ['regional_wage_index','地区实际工资指数'],['historical_wage_peak_index','历史工资高点指数'],['v02_wage_cost_yi','A原V0.2人工成本'],['full_wage_cost_yi','B工资完全传导人工成本'],['v02_operating_surplus_yi','A原V0.2经营结余'],['full_operating_surplus_yi','B工资完全传导经营结余'],['core_operating_surplus_yi','不含隐藏净结算的经营结余'],['unscaled_hidden_freight_income_yi','本局基值100%权重净结算收入'],['settlement_base_net_yi','本局生效基期净结算'],['freight_unit_yield_factor','普通货运单位收益系数'],['station_passenger_unit_yield_factor','站务客运单位收益系数'],['station_freight_unit_yield_factor','站务货运单位收益系数'],['settlement_unit_yield_factor','净结算单位收益系数']];
     for (const [s, name] of segments) for (const [k, label] of inputs) for (const [field, title] of [['fixed_cost_yi', '固定支出'], ['variable_cost_yi', '变动支出'], ['cost_yi', '合计'], ['price_factor', '价格倍数'], ['unit_cost_factor','综合投入系数'], ['workload_factor', '工作量倍数']]) columns.push([`${s}.${k}.${field}`, `${name}/${label}/${title}`]);
     if (view==='cash' || view==='cash_compare') columns.splice(0,columns.length,['seed','Seed'],['bureau_name','铁路分局'],...cashColumns);
+    else if(view==='valuation') columns.splice(0,columns.length,['seed','Seed'],['bureau_name','铁路分局'],...valuationColumns,['valuation_discount_rate_pct','折现率（%）'],['valuation_next_surplus_forecast_yi','下一年经营结余预测'],['valuation_cash_cover_months','融资前预测储备月数'],['valuation_active_band','增资档位'],['valuation_issue_multiplier','增资定价倍数'],['valuation_tail_years','末年延续年数']);
     else columns.push(...cashColumns.slice(1));
     columns.push(['cash_profit_dividend_yi','利润分红'],['cash_excess_dividend_yi','超额现金分红'],['cash_without_dividends_closing_yi','不分红参考现金'],['cash_without_dividends_cumulative_equity_yi','不分红参考累计增资'],['cash_dividend_status','分红状态'],['cash_dividend_minimum_yi','分红最低保留现金'],['cash_dividend_comfortable_yi','充裕现金线']);
     columns.push(['cash_model_version','现金模型版本'],['cash_config_hash','现金配置哈希']);
+    columns.push(['valuation_model_version','估值模型版本'],['valuation_config_hash','估值配置哈希']);
     const quote = value => `"${String(value).replaceAll('"', '""')}"`;
     const lines = [columns.map(([, title]) => quote(title)).join(',')];
     for (const row of data.rows) lines.push(columns.map(([key]) => {
@@ -374,15 +426,18 @@
       if (key === 'bureau_config_hash') value = data.bureauConfigHash;
       else if (key === 'cash_config_hash') value = data.cash.configHash;
       else if (key === 'cash_model_version') value = data.cash.modelVersion;
+      else if (key === 'valuation_model_version') value = data.officialValuation.modelVersion;
+      else if (key === 'valuation_config_hash') value = data.officialValuation.configHash;
       else if (key.includes('.')) {const [s, k, field] = key.split('.'); value = row.cost_breakdown[s][k][field];}
       else value = row[key];
       return quote(value ?? '');
     }).join(','));
     const url = URL.createObjectURL(new Blob(['\ufeff', lines.join('\r\n')], {type:'text/csv;charset=utf-8'}));
-    const link = node('a'); link.href = url; link.download = `${data.profile.bureau_id}-seed-${data.seed}-${view==='cash'||view==='cash_compare'?'cash-':''}2025-2085.csv`; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const link = node('a'); link.href = url; link.download = `${data.profile.bureau_id}-seed-${data.seed}-${view==='valuation'?'valuation-':view==='cash'||view==='cash_compare'?'cash-':''}2025-2085.csv`; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   $('exportBureau').addEventListener('click',exportCSV);
   $('exportCash').addEventListener('click',exportCSV);
+  $('exportValuation').addEventListener('click',exportCSV);
   let previousWidth = 0;
   new ResizeObserver(entries => {const width = Math.round(entries[0].contentRect.width); if (width !== previousWidth) {previousWidth = width; drawChart();}}).observe($('bureauChart').parentElement);
   async function initialize() {

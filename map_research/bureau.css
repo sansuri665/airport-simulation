@@ -80,3 +80,7 @@
 
 #cashAuditPanel .labor-cards { margin-bottom:24px; }
 #cashLedgerPanel table { min-width:1250px; }
+
+#valuationQuotePanel,#valuationForecastPanel { margin-bottom:20px; }
+#valuationForecastPanel table { min-width:680px; }
+#valuationAnnualPanel table { min-width:1180px; }

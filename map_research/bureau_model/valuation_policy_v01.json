@@ -1,0 +1,49 @@
+{
+  "version": "official-bureau-valuation-policy-v0.1",
+  "forecast_years": 10,
+  "expected_score": 70,
+  "score_jitter": 4,
+  "annual_error_cap_multiplier": 2.4,
+  "cost_scale_floor_fraction": 0.1,
+  "score_error_percent": {
+    "1": {
+      "0": 20,
+      "50": 8,
+      "60": 5,
+      "70": 3,
+      "80": 1.5,
+      "90": 0.7,
+      "95": 0.3,
+      "100": 0
+    },
+    "10": {
+      "0": 80,
+      "50": 40,
+      "60": 28,
+      "70": 17,
+      "80": 8.5,
+      "90": 4.5,
+      "95": 2.2,
+      "100": 0
+    }
+  },
+  "risk_premium_pct": 6,
+  "discount_rate_floor_pct": 6,
+  "discount_rate_ceiling_pct": 14,
+  "terminal_growth_pct": 0,
+  "terminal_profit_weights": [
+    0.5,
+    0.3,
+    0.2
+  ],
+  "history_profit_weights": [
+    0.5,
+    0.3,
+    0.2
+  ],
+  "end_of_sample_extension": "hold_2085_operating_surplus_and_cost_constant",
+  "current_cash_basis": "after_current_year_dividends_before_next_year_funding",
+  "committed_cash_outflows_yi": 0,
+  "industry_pe_used": false,
+  "description": "Research DCF of signed operating cash proxy plus net company cash. State forecast errors are locked per seed/bureau/as-of-year/horizon. This game metric uses max(abs(surplus),10% cost), not passenger-index MAPE."
+}

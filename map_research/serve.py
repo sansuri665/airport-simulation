@@ -19,6 +19,7 @@ from bureau_model.operations import PROFILE_PATH, NORTH_PROFILE_PATH, NORTHWEST_
 from bureau_model.settlement import VERSION as SETTLEMENT_VERSION
 from bureau_model.revenue import CURRENT_POLICY, config_hash
 from bureau_model.cash import VERSION as CASH_VERSION, load_config as load_cash_config, cash_ledger, config_hash as cash_config_hash
+from bureau_model.valuation import VERSION as VALUATION_VERSION, load_config as load_valuation_config, valuation_history, config_hash as valuation_config_hash
 
 ROOT = Path(__file__).resolve().parent
 MAX_SEED = 9_007_199_254_740_991
@@ -34,6 +35,8 @@ PROFILE_HASHES = {'northeast': hashlib.sha256(PROFILE_PATH.read_bytes()).hexdige
 CONFIG_HASH = config_hash()
 CASH_OPENING, CASH_POLICY = load_cash_config()
 CASH_CONFIG_HASH = cash_config_hash()
+VALUATION_POLICY, CAPITAL_QUOTE_POLICY = load_valuation_config()
+VALUATION_CONFIG_HASH = valuation_config_hash()
 CASH_AUDIT = None
 _cash_report = ROOT / 'bureau_model' / 'reports' / 'cash_capital_summary_v03.json'
 if _cash_report.is_file():
@@ -78,6 +81,15 @@ def bureau_cash(seed: int):
             for r in rows], events
 
 
+@lru_cache(maxsize=12)
+def bureau_valuations(seed: int, bureau_id: str):
+    cash_rows, _ = bureau_cash(seed)
+    return valuation_history([r for r in bureau_rows(seed) if r['bureau_id'] == bureau_id],
+                             [r for r in cash_rows if r['bureau_id'] == bureau_id],
+                             scenario_result(seed)['national_factors'],
+                             policy=VALUATION_POLICY, quote_policy=CAPITAL_QUOTE_POLICY)
+
+
 def bureau_payload(seed: int, bureau_id: str) -> bytes:
     profile = next((p for p in BUREAU_PROFILES if p['bureau_id'] == bureau_id), None)
     if profile is None:
@@ -100,6 +112,9 @@ def bureau_payload(seed: int, bureau_id: str) -> bytes:
         'settlementVersion': SETTLEMENT_VERSION,
         'priceBasis': 'constant_2025_purchasing_power', 'currencyUnit': '100_million_CNY',
         'scenario': result['scenario'], 'profile': profile,
+        'officialValuation': {'modelVersion': VALUATION_VERSION, 'configHash': VALUATION_CONFIG_HASH,
+                             'policy': VALUATION_POLICY, 'quotePolicy': CAPITAL_QUOTE_POLICY,
+                             'rows': bureau_valuations(seed, bureau_id)},
         'cash': {'modelVersion': CASH_VERSION, 'configHash': CASH_CONFIG_HASH,
                  'policy': CASH_POLICY, 'calibrationAudit': cash_audit,
                  'rows': [r for r in cash_rows if r['bureau_id'] == bureau_id],
