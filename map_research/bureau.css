@@ -84,3 +84,8 @@
 #valuationQuotePanel,#valuationForecastPanel { margin-bottom:20px; }
 #valuationForecastPanel table { min-width:680px; }
 #valuationAnnualPanel table { min-width:1180px; }
+#lossValuationPanel,#lossComparisonPanel { margin-bottom:20px; }
+#lossComparisonPanel table { min-width:1080px; }
+#lossComparisonPanel .annual-scroll { max-height:560px; }
+#lossValuationPanel .labor-cards { grid-template-columns:repeat(3,minmax(0,1fr)); }
+@media(max-width:760px) { #lossValuationPanel .labor-cards { grid-template-columns:1fr; } }

@@ -1,0 +1,2411 @@
+{
+  "seed": 5767783356797806,
+  "modelVersion": "railway-official-valuation-v0.3",
+  "configHash": "4a66b6099e368633a571623dfa0c4474a4f9eeadada9030431628d9a879e40e4",
+  "definition": "2025: current revenue/cash/future fixed; change current cost so surplus is -10000, 0, +10000 CNY",
+  "bureauCount": 100,
+  "maxNewGapYi": 0.00029149906665182357,
+  "maxV02GapYi": 53.12488368373113,
+  "rows": [
+    {
+      "bureau_id": "jiamusi",
+      "name": "佳木斯",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 9.34439866215855,
+          "v02_value_yi": 11.033703424355277
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 9.344443288554075,
+          "v02_value_yi": 10.359754132304356
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 9.344487914949587,
+          "v02_value_yi": 10.359754132304356
+        }
+      ],
+      "newGapYi": 8.925279103699779e-05,
+      "v02GapYi": 0.6739492920509207
+    },
+    {
+      "bureau_id": "mudanjiang",
+      "name": "牡丹江",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 2.6958263914600384,
+          "v02_value_yi": 2.8670580071784926
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 2.6958824199929565,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 2.695938452972759,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0001120615127203628,
+      "v02GapYi": 2.8670580071784926
+    },
+    {
+      "bureau_id": "qiqihar",
+      "name": "齐齐哈尔",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 5.424305219509903,
+          "v02_value_yi": 8.262289768707658
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 5.424373545377912,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 5.424441874042781,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0001366545328780333,
+      "v02GapYi": 8.262289768707658
+    },
+    {
+      "bureau_id": "harbin",
+      "name": "哈尔滨",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 26.152454524503423,
+          "v02_value_yi": 30.921867336970575
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 26.15249813247209,
+          "v02_value_yi": 30.15690265673117
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 26.152541733293454,
+          "v02_value_yi": 30.15690265673117
+        }
+      ],
+      "newGapYi": 8.72087900312124e-05,
+      "v02GapYi": 0.7649646802394052
+    },
+    {
+      "bureau_id": "meihekou",
+      "name": "梅河口",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 0.20495024094195985,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 0.20495024094195985,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 0.20495024094195985,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "changchun",
+      "name": "长春",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 16.24916132192112,
+          "v02_value_yi": 21.40496670222182
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 16.249307069701814,
+          "v02_value_yi": 14.775615763392974
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 16.249452820987774,
+          "v02_value_yi": 14.775615763392974
+        }
+      ],
+      "newGapYi": 0.00029149906665182357,
+      "v02GapYi": 6.629350938828846
+    },
+    {
+      "bureau_id": "siping",
+      "name": "四平",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 0.4679285833245098,
+          "v02_value_yi": 0.22101028685278024
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 0.4679639513154783,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 0.4679993294130322,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 7.074608852236652e-05,
+      "v02GapYi": 0.22101028685278024
+    },
+    {
+      "bureau_id": "tongliao",
+      "name": "通辽",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 14.85212509481957,
+          "v02_value_yi": 18.058784673469024
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 14.85216533633315,
+          "v02_value_yi": 16.638071451496064
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 14.852205577846778,
+          "v02_value_yi": 16.638071451496064
+        }
+      ],
+      "newGapYi": 8.04830272080892e-05,
+      "v02GapYi": 1.4207132219729601
+    },
+    {
+      "bureau_id": "shenyang",
+      "name": "沈阳",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 12.036297950927688,
+          "v02_value_yi": 13.816536701084399
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 12.036377664072052,
+          "v02_value_yi": 5.654014666845594
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 12.03645737907112,
+          "v02_value_yi": 5.654014666845594
+        }
+      ],
+      "newGapYi": 0.00015942814343183898,
+      "v02GapYi": 8.162522034238805
+    },
+    {
+      "bureau_id": "dalian",
+      "name": "大连",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 17.229864333982075,
+          "v02_value_yi": 20.935798361399748
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 17.229912826455347,
+          "v02_value_yi": 18.74860444146767
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 17.22996131892863,
+          "v02_value_yi": 18.74860444146767
+        }
+      ],
+      "newGapYi": 9.698494655552281e-05,
+      "v02GapYi": 2.187193919932078
+    },
+    {
+      "bureau_id": "jinzhou",
+      "name": "锦州",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 5.382163052937313,
+          "v02_value_yi": 6.707981800830184
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 5.38223938582668,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 5.382315722040718,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.00015266910340550055,
+      "v02GapYi": 6.707981800830184
+    },
+    {
+      "bureau_id": "chifeng",
+      "name": "赤峰",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 6.710385196725718,
+          "v02_value_yi": 9.546751613401273
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 6.71043128473495,
+          "v02_value_yi": 5.370938233815474
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 6.710477373798964,
+          "v02_value_yi": 5.370938233815474
+        }
+      ],
+      "newGapYi": 9.2177073246269e-05,
+      "v02GapYi": 4.175813379585799
+    },
+    {
+      "bureau_id": "zhangjiakou",
+      "name": "张家口",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 15.937790212127974,
+          "v02_value_yi": 18.725470902935342
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 15.937838086483154,
+          "v02_value_yi": 18.391727506301873
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 15.937885960838333,
+          "v02_value_yi": 18.391727506301873
+        }
+      ],
+      "newGapYi": 9.574871035944454e-05,
+      "v02GapYi": 0.3337433966334693
+    },
+    {
+      "bureau_id": "beijing",
+      "name": "北京",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 124.50831767445266,
+          "v02_value_yi": 141.39700939380006
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 124.50836006960908,
+          "v02_value_yi": 144.6431083474627
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 124.50840246476578,
+          "v02_value_yi": 144.6431083474627
+        }
+      ],
+      "newGapYi": 8.479031312447205e-05,
+      "v02GapYi": 3.2460989536626244
+    },
+    {
+      "bureau_id": "tangshan",
+      "name": "唐山",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 143.3375525391886,
+          "v02_value_yi": 147.28598447954658
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 143.33758559106838,
+          "v02_value_yi": 158.70060874379956
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 143.33761864294794,
+          "v02_value_yi": 158.70060874379956
+        }
+      ],
+      "newGapYi": 6.610375933746582e-05,
+      "v02GapYi": 11.414624264252978
+    },
+    {
+      "bureau_id": "tianjin",
+      "name": "天津",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 65.6307763388444,
+          "v02_value_yi": 75.99557707961588
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 65.6308221805474,
+          "v02_value_yi": 76.30996692668222
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 65.63086802225044,
+          "v02_value_yi": 76.30996692668222
+        }
+      ],
+      "newGapYi": 9.168340604048808e-05,
+      "v02GapYi": 0.3143898470663373
+    },
+    {
+      "bureau_id": "xiongan",
+      "name": "雄安",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 6.172102597995543,
+          "v02_value_yi": 6.887099637647358
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 6.172144843064079,
+          "v02_value_yi": 3.3440532037264434
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 6.172187089979352,
+          "v02_value_yi": 3.3440532037264434
+        }
+      ],
+      "newGapYi": 8.449198380944267e-05,
+      "v02GapYi": 3.5430464339209147
+    },
+    {
+      "bureau_id": "shijiazhuang",
+      "name": "石家庄",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 69.36878868352606,
+          "v02_value_yi": 78.29573208563941
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 69.36883026980921,
+          "v02_value_yi": 81.33806938460278
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 69.36887185609235,
+          "v02_value_yi": 81.33806938460278
+        }
+      ],
+      "newGapYi": 8.3172566291978e-05,
+      "v02GapYi": 3.0423372989633606
+    },
+    {
+      "bureau_id": "datong",
+      "name": "大同",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 136.0727542181673,
+          "v02_value_yi": 141.56120907762596
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 136.07278550342562,
+          "v02_value_yi": 151.1591337374861
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 136.072816788684,
+          "v02_value_yi": 151.1591337374861
+        }
+      ],
+      "newGapYi": 6.257051671809677e-05,
+      "v02GapYi": 9.597924659860126
+    },
+    {
+      "bureau_id": "taiyuan",
+      "name": "太原",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 112.79032044518871,
+          "v02_value_yi": 124.71726962651283
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 112.79033710529217,
+          "v02_value_yi": 130.68972306964108
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 112.7903537653957,
+          "v02_value_yi": 130.68972306964108
+        }
+      ],
+      "newGapYi": 3.3320206981102274e-05,
+      "v02GapYi": 5.972453443128245
+    },
+    {
+      "bureau_id": "changzhi",
+      "name": "长治",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 55.37510047543042,
+          "v02_value_yi": 59.25841188391784
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 55.37512309099727,
+          "v02_value_yi": 62.716813747857344
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 55.37514567736236,
+          "v02_value_yi": 62.716813747857344
+        }
+      ],
+      "newGapYi": 4.52019319396868e-05,
+      "v02GapYi": 3.458401863939507
+    },
+    {
+      "bureau_id": "houma",
+      "name": "侯马",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 79.09163302295187,
+          "v02_value_yi": 81.09333045420826
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 79.0916452267744,
+          "v02_value_yi": 88.32604491533463
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 79.09165743059701,
+          "v02_value_yi": 88.32604491533463
+        }
+      ],
+      "newGapYi": 2.4407645142332512e-05,
+      "v02GapYi": 7.232714461126378
+    },
+    {
+      "bureau_id": "jining",
+      "name": "集宁",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 6.626810728247452,
+          "v02_value_yi": 7.922745463712653
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 6.6268251631300545,
+          "v02_value_yi": 7.488986021487156
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 6.626839598012645,
+          "v02_value_yi": 7.488986021487156
+        }
+      ],
+      "newGapYi": 2.8869765192673924e-05,
+      "v02GapYi": 0.43375944222549734
+    },
+    {
+      "bureau_id": "hohhot",
+      "name": "呼和浩特",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 59.653849421339224,
+          "v02_value_yi": 59.48452436809585
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 59.65386043262399,
+          "v02_value_yi": 65.61274336722298
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 59.653871443908685,
+          "v02_value_yi": 65.61274336722298
+        }
+      ],
+      "newGapYi": 2.2022569460489194e-05,
+      "v02GapYi": 6.128218999127128
+    },
+    {
+      "bureau_id": "baotou",
+      "name": "包头",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 97.02908329899223,
+          "v02_value_yi": 99.31488009611981
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 97.02910394859741,
+          "v02_value_yi": 109.6524513694373
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 97.02912459820247,
+          "v02_value_yi": 109.6524513694373
+        }
+      ],
+      "newGapYi": 4.129921023832139e-05,
+      "v02GapYi": 10.337571273317494
+    },
+    {
+      "bureau_id": "yinchuan",
+      "name": "银川",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 32.71198147417987,
+          "v02_value_yi": 34.06402434568274
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 32.71202242516262,
+          "v02_value_yi": 37.52328881061074
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 32.712063376145345,
+          "v02_value_yi": 37.52328881061074
+        }
+      ],
+      "newGapYi": 8.190196547275264e-05,
+      "v02GapYi": 3.4592644649279976
+    },
+    {
+      "bureau_id": "zhongwei",
+      "name": "中卫",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 1.0347189190277037,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 1.0347189190277037,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 1.0347189190277037,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "xian",
+      "name": "西安",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 139.92100944296294,
+          "v02_value_yi": 145.1229212044061
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 139.92103126743112,
+          "v02_value_yi": 158.02747148022323
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 139.92105309189876,
+          "v02_value_yi": 158.02747148022323
+        }
+      ],
+      "newGapYi": 4.364893581509932e-05,
+      "v02GapYi": 12.904550275817115
+    },
+    {
+      "bureau_id": "baoji",
+      "name": "宝鸡",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 3.9514122883505003,
+          "v02_value_yi": 4.440005764721157
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 3.951422234778678,
+          "v02_value_yi": 2.319253850762321
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 3.9514321819314775,
+          "v02_value_yi": 2.319253850762321
+        }
+      ],
+      "newGapYi": 1.989358097720384e-05,
+      "v02GapYi": 2.120751913958836
+    },
+    {
+      "bureau_id": "ankang",
+      "name": "安康",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 0.00019962000581800693,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 0.00019962000581800693,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 0.00019962000581800693,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "suidexi",
+      "name": "绥德",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 71.17364295354024,
+          "v02_value_yi": 69.91215435637338
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 71.1736555959985,
+          "v02_value_yi": 77.67265822533903
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 71.17366823845683,
+          "v02_value_yi": 77.67265822533903
+        }
+      ],
+      "newGapYi": 2.5284916588930173e-05,
+      "v02GapYi": 7.760503868965657
+    },
+    {
+      "bureau_id": "lanzhou",
+      "name": "兰州",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 15.083347405545089,
+          "v02_value_yi": 16.660197916714573
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 15.083413432565628,
+          "v02_value_yi": 11.432805661856083
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 15.083479460985629,
+          "v02_value_yi": 11.432805661856083
+        }
+      ],
+      "newGapYi": 0.00013205544053995766,
+      "v02GapYi": 5.22739225485849
+    },
+    {
+      "bureau_id": "pingliang",
+      "name": "平凉",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 0.85855135486955,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 0.85855135486955,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 0.85855135486955,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "wuwei",
+      "name": "武威",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 2.9358407101147463,
+          "v02_value_yi": 2.6447060525318804
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 2.9358920266064006,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 2.9359433474775196,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0001026373627732724,
+      "v02GapYi": 2.6447060525318804
+    },
+    {
+      "bureau_id": "zhangye",
+      "name": "张掖",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 6.493571729254993e-05,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 6.493571729254993e-05,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 6.493571729254993e-05,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "xining",
+      "name": "西宁",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 7.17396407992224,
+          "v02_value_yi": 7.873789828012635
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 7.173970976127697,
+          "v02_value_yi": 6.576255961684377
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 7.173977872693386,
+          "v02_value_yi": 6.576255961684377
+        }
+      ],
+      "newGapYi": 1.3792771145659799e-05,
+      "v02GapYi": 1.2975338663282576
+    },
+    {
+      "bureau_id": "golmud",
+      "name": "格尔木",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 0.020410003117709744,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 0.020410003117709744,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 0.020410003117709744,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "hami",
+      "name": "哈密",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 124.28513985035273,
+          "v02_value_yi": 122.30101875664604
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 124.28515072563813,
+          "v02_value_yi": 135.39363717130777
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 124.28516160092363,
+          "v02_value_yi": 135.39363717130777
+        }
+      ],
+      "newGapYi": 2.175057089459642e-05,
+      "v02GapYi": 13.092618414661729
+    },
+    {
+      "bureau_id": "urumqi",
+      "name": "乌鲁木齐",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 170.70500854171027,
+          "v02_value_yi": 172.19956252214905
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 170.7050406175402,
+          "v02_value_yi": 185.4190601582605
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 170.70507269337008,
+          "v02_value_yi": 185.4190601582605
+        }
+      ],
+      "newGapYi": 6.415165981366044e-05,
+      "v02GapYi": 13.219497636111441
+    },
+    {
+      "bureau_id": "kuitun",
+      "name": "奎屯",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 64.11397676446256,
+          "v02_value_yi": 69.9122403252386
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 64.11400262470114,
+          "v02_value_yi": 73.74690886822054
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 64.1140284849397,
+          "v02_value_yi": 73.74690886822054
+        }
+      ],
+      "newGapYi": 5.172047713131178e-05,
+      "v02GapYi": 3.8346685429819445
+    },
+    {
+      "bureau_id": "korla",
+      "name": "库尔勒",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 6.04378013397901,
+          "v02_value_yi": 5.606101785608221
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 6.043763542391253,
+          "v02_value_yi": 0.5800016051611525
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 6.04374695023207,
+          "v02_value_yi": 0.5800016051611525
+        }
+      ],
+      "newGapYi": 3.3183746939613457e-05,
+      "v02GapYi": 5.026100180447068
+    },
+    {
+      "bureau_id": "kashgar",
+      "name": "喀什",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 0.1341516800949329,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 0.1341516800949329,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 0.1341516800949329,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "lhasa",
+      "name": "拉萨",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 0.0006224768818269398,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 0.0006224768818269398,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 0.0006224768818269398,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "chengdu",
+      "name": "成都",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 244.77012687775377,
+          "v02_value_yi": 255.6343428792594
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 244.77015732596482,
+          "v02_value_yi": 278.27604706722275
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 244.7701877741759,
+          "v02_value_yi": 278.27604706722275
+        }
+      ],
+      "newGapYi": 6.0896422127143524e-05,
+      "v02GapYi": 22.64170418796334
+    },
+    {
+      "bureau_id": "chongqing",
+      "name": "重庆",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 257.52184016548733,
+          "v02_value_yi": 266.1701644929341
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 257.5218597501421,
+          "v02_value_yi": 289.55588860488757
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 257.52187933479655,
+          "v02_value_yi": 289.55588860488757
+        }
+      ],
+      "newGapYi": 3.916930921832318e-05,
+      "v02GapYi": 23.385724111953493
+    },
+    {
+      "bureau_id": "guangyuan",
+      "name": "广元",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 0.0605571047778347,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 0.0605571047778347,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 0.0605571047778347,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "dazhou",
+      "name": "达州",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 3.3519686724146753,
+          "v02_value_yi": 1.6642533701597397
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 3.351949791163537,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 3.3519309091656098,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 3.776324906556994e-05,
+      "v02GapYi": 1.6642533701597397
+    },
+    {
+      "bureau_id": "wanzhou",
+      "name": "万州",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 3.6817661700114694,
+          "v02_value_yi": 3.3465361966889424
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 3.6817500123612397,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 3.681733854024628,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 3.231598684161341e-05,
+      "v02GapYi": 3.3465361966889424
+    },
+    {
+      "bureau_id": "yibin",
+      "name": "宜宾",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 17.68631425746686,
+          "v02_value_yi": 22.60477398809998
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 17.686342922120904,
+          "v02_value_yi": 18.305277745869496
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 17.68637158677489,
+          "v02_value_yi": 18.305277745869496
+        }
+      ],
+      "newGapYi": 5.732930802793135e-05,
+      "v02GapYi": 4.299496242230482
+    },
+    {
+      "bureau_id": "guiyang",
+      "name": "贵阳",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 12.27254883391304,
+          "v02_value_yi": 9.793123557876795
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 12.27253414521356,
+          "v02_value_yi": 0.9499094301972395
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 12.272519456248855,
+          "v02_value_yi": 0.9499094301972395
+        }
+      ],
+      "newGapYi": 2.9377664185759045e-05,
+      "v02GapYi": 8.843214127679556
+    },
+    {
+      "bureau_id": "liupanshui",
+      "name": "六盘水",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 16.73746407453257,
+          "v02_value_yi": 21.709604479162998
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 16.737545309942238,
+          "v02_value_yi": 13.62150608454721
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 16.737626547092827,
+          "v02_value_yi": 13.62150608454721
+        }
+      ],
+      "newGapYi": 0.00016247256025536672,
+      "v02GapYi": 8.088098394615788
+    },
+    {
+      "bureau_id": "kunming",
+      "name": "昆明",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 81.44634859434338,
+          "v02_value_yi": 92.4206752863447
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 81.44638973322365,
+          "v02_value_yi": 94.68895350362388
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 81.44643087210363,
+          "v02_value_yi": 94.68895350362388
+        }
+      ],
+      "newGapYi": 8.227776025648836e-05,
+      "v02GapYi": 2.2682782172791747
+    },
+    {
+      "bureau_id": "dali",
+      "name": "大理",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 10.847777420219748,
+          "v02_value_yi": 13.664748640813563
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 10.847878108081453,
+          "v02_value_yi": 10.193665740492388
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 10.847978799614467,
+          "v02_value_yi": 10.193665740492388
+        }
+      ],
+      "newGapYi": 0.00020137939471887023,
+      "v02GapYi": 3.471082900321175
+    },
+    {
+      "bureau_id": "yuxi",
+      "name": "玉溪",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 79.6928244757384,
+          "v02_value_yi": 85.29019320516014
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 79.6928491684265,
+          "v02_value_yi": 90.87900001964523
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 79.69287386111462,
+          "v02_value_yi": 90.87900001964523
+        }
+      ],
+      "newGapYi": 4.938537621512751e-05,
+      "v02GapYi": 5.588806814485096
+    },
+    {
+      "bureau_id": "nanning",
+      "name": "南宁",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 94.80877901640889,
+          "v02_value_yi": 106.197002506154
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 94.8088175017749,
+          "v02_value_yi": 111.05050311292858
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 94.80885598714094,
+          "v02_value_yi": 111.05050311292858
+        }
+      ],
+      "newGapYi": 7.697073205292781e-05,
+      "v02GapYi": 4.853500606774574
+    },
+    {
+      "bureau_id": "liuzhou",
+      "name": "柳州",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 14.969320352771819,
+          "v02_value_yi": 22.8166906615597
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 14.969426606673007,
+          "v02_value_yi": 7.363744224697205
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 14.969532862797294,
+          "v02_value_yi": 7.363744224697205
+        }
+      ],
+      "newGapYi": 0.00021251002547550968,
+      "v02GapYi": 15.452946436862495
+    },
+    {
+      "bureau_id": "guilin",
+      "name": "桂林",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 2.166566557234351,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 2.166561002622945,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 2.1665554478521645,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 1.1109382186624828e-05,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "guangzhou",
+      "name": "广州",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 261.56126291068995,
+          "v02_value_yi": 284.50282025749385
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 261.561297457798,
+          "v02_value_yi": 302.6537303691379
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 261.561332004906,
+          "v02_value_yi": 302.6537303691379
+        }
+      ],
+      "newGapYi": 6.909421603040755e-05,
+      "v02GapYi": 18.150910111644066
+    },
+    {
+      "bureau_id": "shenzhen",
+      "name": "深圳",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 250.8077744804091,
+          "v02_value_yi": 264.8079844509549
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 250.80778580473918,
+          "v02_value_yi": 285.82138830469796
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 250.8077971290694,
+          "v02_value_yi": 285.82138830469796
+        }
+      ],
+      "newGapYi": 2.2648660291224587e-05,
+      "v02GapYi": 21.013403853743057
+    },
+    {
+      "bureau_id": "shantou",
+      "name": "汕头",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 24.004981213625097,
+          "v02_value_yi": 29.407836637281427
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 24.005027501623356,
+          "v02_value_yi": 27.175567368464414
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 24.005073789621683,
+          "v02_value_yi": 27.175567368464414
+        }
+      ],
+      "newGapYi": 9.257599658596405e-05,
+      "v02GapYi": 2.2322692688170136
+    },
+    {
+      "bureau_id": "zhanjiang",
+      "name": "湛江",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 64.25896004424932,
+          "v02_value_yi": 68.94580369454309
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 64.2589911486827,
+          "v02_value_yi": 73.92105847395766
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 64.25902225311607,
+          "v02_value_yi": 73.92105847395766
+        }
+      ],
+      "newGapYi": 6.220886675123438e-05,
+      "v02GapYi": 4.97525477941457
+    },
+    {
+      "bureau_id": "haikou",
+      "name": "海口",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 9.23277502758276,
+          "v02_value_yi": 10.487677483396581
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 9.232834961458844,
+          "v02_value_yi": 2.5031942884881975
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 9.23289490218722,
+          "v02_value_yi": 2.5031942884881975
+        }
+      ],
+      "newGapYi": 0.00011987460446150067,
+      "v02GapYi": 7.984483194908384
+    },
+    {
+      "bureau_id": "zhengzhou",
+      "name": "郑州",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 310.4623764941587,
+          "v02_value_yi": 307.09924076260097
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 310.4624100618875,
+          "v02_value_yi": 335.7876147508029
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 310.4624436296171,
+          "v02_value_yi": 335.7876147508029
+        }
+      ],
+      "newGapYi": 6.71354583801076e-05,
+      "v02GapYi": 28.68837398820193
+    },
+    {
+      "bureau_id": "jiaozuo",
+      "name": "焦作",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 26.573339851662812,
+          "v02_value_yi": 29.56850936894304
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 26.5733818817228,
+          "v02_value_yi": 30.13155683557175
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 26.57342391178278,
+          "v02_value_yi": 30.13155683557175
+        }
+      ],
+      "newGapYi": 8.406011996697771e-05,
+      "v02GapYi": 0.56304746662871
+    },
+    {
+      "bureau_id": "luoyang",
+      "name": "洛阳",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 23.647580870368408,
+          "v02_value_yi": 25.365151342659416
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 23.647626086321342,
+          "v02_value_yi": 27.282928275611233
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 23.647671302274258,
+          "v02_value_yi": 27.282928275611233
+        }
+      ],
+      "newGapYi": 9.043190584989702e-05,
+      "v02GapYi": 1.917776932951817
+    },
+    {
+      "bureau_id": "shangqiu",
+      "name": "商丘",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 24.550731112211555,
+          "v02_value_yi": 28.670907830973537
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 24.550777930016853,
+          "v02_value_yi": 28.24615847930452
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 24.550824747822144,
+          "v02_value_yi": 28.24615847930452
+        }
+      ],
+      "newGapYi": 9.363561058961523e-05,
+      "v02GapYi": 0.4247493516690177
+    },
+    {
+      "bureau_id": "nanyang",
+      "name": "南阳",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 0.9565394387416903,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 0.9565394387416903,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 0.9565394387416903,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "xiangyang",
+      "name": "襄阳",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 8.457207154396768,
+          "v02_value_yi": 9.132555484741186
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 8.457249735259348,
+          "v02_value_yi": 2.750534425851258
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 8.457292317446633,
+          "v02_value_yi": 2.750534425851258
+        }
+      ],
+      "newGapYi": 8.516304986549983e-05,
+      "v02GapYi": 6.3820210588899275
+    },
+    {
+      "bureau_id": "yichang",
+      "name": "宜昌",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 0.6461212792464085,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 0.6461212792464085,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 0.6461212792464085,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "wuhan",
+      "name": "武汉",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 277.3764992632587,
+          "v02_value_yi": 282.8171144594254
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 277.37651142876155,
+          "v02_value_yi": 308.59324300581005
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 277.3765235942647,
+          "v02_value_yi": 308.59324300581005
+        }
+      ],
+      "newGapYi": 2.4331005988642573e-05,
+      "v02GapYi": 25.776128546384655
+    },
+    {
+      "bureau_id": "changsha",
+      "name": "长沙",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 141.11268018681955,
+          "v02_value_yi": 147.8127885911449
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 141.11269793998818,
+          "v02_value_yi": 161.067723219962
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 141.1127156931569,
+          "v02_value_yi": 161.067723219962
+        }
+      ],
+      "newGapYi": 3.55063373547182e-05,
+      "v02GapYi": 13.254934628817097
+    },
+    {
+      "bureau_id": "hengyang",
+      "name": "衡阳",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 17.38978614394781,
+          "v02_value_yi": 21.554222336038002
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 17.389868742176013,
+          "v02_value_yi": 17.332795119186542
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 17.38995134228796,
+          "v02_value_yi": 17.332795119186542
+        }
+      ],
+      "newGapYi": 0.00016519834015227275,
+      "v02GapYi": 4.22142721685146
+    },
+    {
+      "bureau_id": "huaihua",
+      "name": "怀化",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 0.0012497669852779662,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 0.0012497669852779662,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 0.0012497669852779662,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "jinan",
+      "name": "济南",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 218.6765716028343,
+          "v02_value_yi": 224.19846808904776
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 218.6765995895428,
+          "v02_value_yi": 246.83298773766353
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 218.67662757625152,
+          "v02_value_yi": 246.83298773766353
+        }
+      ],
+      "newGapYi": 5.59734172327353e-05,
+      "v02GapYi": 22.634519648615765
+    },
+    {
+      "bureau_id": "qingdao",
+      "name": "青岛",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 249.93085092627194,
+          "v02_value_yi": 261.50701238776435
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 249.93086415846352,
+          "v02_value_yi": 280.34833893812726
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 249.93087739065516,
+          "v02_value_yi": 280.34833893812726
+        }
+      ],
+      "newGapYi": 2.6464383211077802e-05,
+      "v02GapYi": 18.841326550362908
+    },
+    {
+      "bureau_id": "weifang",
+      "name": "潍坊",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 43.69153308245308,
+          "v02_value_yi": 48.654207395451074
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 43.69156811848038,
+          "v02_value_yi": 50.39044368333432
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 43.69160315450769,
+          "v02_value_yi": 50.39044368333432
+        }
+      ],
+      "newGapYi": 7.007205461206922e-05,
+      "v02GapYi": 1.7362362878832442
+    },
+    {
+      "bureau_id": "hefei",
+      "name": "合肥",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 172.9787464101038,
+          "v02_value_yi": 178.78353471900908
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 172.97875748248427,
+          "v02_value_yi": 193.9642435308358
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 172.97876855486464,
+          "v02_value_yi": 193.9642435308358
+        }
+      ],
+      "newGapYi": 2.2144760833953114e-05,
+      "v02GapYi": 15.180708811826719
+    },
+    {
+      "bureau_id": "bengbu",
+      "name": "蚌埠",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 32.0756992124304,
+          "v02_value_yi": 36.79017446764347
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 32.075737446627684,
+          "v02_value_yi": 36.921155310206515
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 32.07577568082491,
+          "v02_value_yi": 36.921155310206515
+        }
+      ],
+      "newGapYi": 7.646839451069809e-05,
+      "v02GapYi": 0.13098084256304787
+    },
+    {
+      "bureau_id": "fuyang",
+      "name": "阜阳",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 22.932788743289468,
+          "v02_value_yi": 27.52069536223359
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 22.93283527884151,
+          "v02_value_yi": 26.788972636006278
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 22.93288181439352,
+          "v02_value_yi": 26.788972636006278
+        }
+      ],
+      "newGapYi": 9.307110405387675e-05,
+      "v02GapYi": 0.7317227262273107
+    },
+    {
+      "bureau_id": "huangshan",
+      "name": "黄山",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 0.029405653477383602,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 0.029405653477383602,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 0.029405653477383602,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "nanjing",
+      "name": "南京",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 247.37144985690975,
+          "v02_value_yi": 259.42152977942084
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 247.37146067939923,
+          "v02_value_yi": 277.9756088342327
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 247.37147150188966,
+          "v02_value_yi": 277.9756088342327
+        }
+      ],
+      "newGapYi": 2.1644979909751783e-05,
+      "v02GapYi": 18.554079054811837
+    },
+    {
+      "bureau_id": "xuzhou",
+      "name": "徐州",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 52.96990604305487,
+          "v02_value_yi": 57.80778724899052
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 52.96992016668479,
+          "v02_value_yi": 60.741920359057744
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 52.96993429031467,
+          "v02_value_yi": 60.741920359057744
+        }
+      ],
+      "newGapYi": 2.824725979877485e-05,
+      "v02GapYi": 2.934133110067222
+    },
+    {
+      "bureau_id": "suzhou",
+      "name": "苏州",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 346.0138126151927,
+          "v02_value_yi": 353.5941885698643
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 346.01384548383317,
+          "v02_value_yi": 380.73054646948844
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 346.01387835247425,
+          "v02_value_yi": 380.73054646948844
+        }
+      ],
+      "newGapYi": 6.573728154535274e-05,
+      "v02GapYi": 27.13635789962416
+    },
+    {
+      "bureau_id": "nantong",
+      "name": "南通",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 91.25374004042247,
+          "v02_value_yi": 99.47874179460888
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 91.25377739278356,
+          "v02_value_yi": 103.29308520517215
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 91.2538147451446,
+          "v02_value_yi": 103.29308520517215
+        }
+      ],
+      "newGapYi": 7.470472212389723e-05,
+      "v02GapYi": 3.814343410563268
+    },
+    {
+      "bureau_id": "lianyungang",
+      "name": "连云港",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 86.68416858564018,
+          "v02_value_yi": 89.82065037164574
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 86.68418880563819,
+          "v02_value_yi": 97.4598516136913
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 86.6842090018619,
+          "v02_value_yi": 97.4598516136913
+        }
+      ],
+      "newGapYi": 4.041622172223924e-05,
+      "v02GapYi": 7.639201242045559
+    },
+    {
+      "bureau_id": "huaian",
+      "name": "淮安",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 41.99847897649662,
+          "v02_value_yi": 50.31581125135002
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 41.99852092564708,
+          "v02_value_yi": 48.59791541201957
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 41.9985628747976,
+          "v02_value_yi": 48.59791541201957
+        }
+      ],
+      "newGapYi": 8.389830097854656e-05,
+      "v02GapYi": 1.7178958393304526
+    },
+    {
+      "bureau_id": "shanghai",
+      "name": "上海",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 564.5809107835682,
+          "v02_value_yi": 570.2315320020123
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 564.5809476894495,
+          "v02_value_yi": 623.3564156857434
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 564.5809845953324,
+          "v02_value_yi": 623.3564156857434
+        }
+      ],
+      "newGapYi": 7.381176419585245e-05,
+      "v02GapYi": 53.12488368373113
+    },
+    {
+      "bureau_id": "hangzhou",
+      "name": "杭州",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 201.75484217297995,
+          "v02_value_yi": 206.6762386602431
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 201.75486395857675,
+          "v02_value_yi": 226.31129464549016
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 201.75488574417437,
+          "v02_value_yi": 226.31129464549016
+        }
+      ],
+      "newGapYi": 4.357119442488511e-05,
+      "v02GapYi": 19.635055985247078
+    },
+    {
+      "bureau_id": "ningbo",
+      "name": "宁波",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 265.2766697405004,
+          "v02_value_yi": 262.4596159003835
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 265.2767041908756,
+          "v02_value_yi": 287.58830167234527
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 265.27673864125086,
+          "v02_value_yi": 287.58830167234527
+        }
+      ],
+      "newGapYi": 6.890075047749633e-05,
+      "v02GapYi": 25.128685771961784
+    },
+    {
+      "bureau_id": "jinhua",
+      "name": "金华",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 142.00026660294293,
+          "v02_value_yi": 144.98478002622667
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 142.00028833893157,
+          "v02_value_yi": 157.22794113075454
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 142.00031007492018,
+          "v02_value_yi": 157.22794113075454
+        }
+      ],
+      "newGapYi": 4.3471977249964766e-05,
+      "v02GapYi": 12.243161104527871
+    },
+    {
+      "bureau_id": "wenzhou",
+      "name": "温州",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 117.64534886775975,
+          "v02_value_yi": 119.02797404306028
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 117.64537289477768,
+          "v02_value_yi": 129.79405974015327
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 117.64539692179575,
+          "v02_value_yi": 129.79405974015327
+        }
+      ],
+      "newGapYi": 4.805403600016689e-05,
+      "v02GapYi": 10.76608569709299
+    },
+    {
+      "bureau_id": "nanchang",
+      "name": "南昌",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 136.76273794641386,
+          "v02_value_yi": 142.07829228978161
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 136.7627492971638,
+          "v02_value_yi": 154.2527609750413
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 136.76276064791355,
+          "v02_value_yi": 154.2527609750413
+        }
+      ],
+      "newGapYi": 2.270149968808255e-05,
+      "v02GapYi": 12.174468685259683
+    },
+    {
+      "bureau_id": "jiujiang",
+      "name": "九江",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 17.571050759245946,
+          "v02_value_yi": 21.58310465904312
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 17.571092635768924,
+          "v02_value_yi": 19.188409557436476
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 17.571134512291856,
+          "v02_value_yi": 19.188409557436476
+        }
+      ],
+      "newGapYi": 8.375304591012878e-05,
+      "v02GapYi": 2.3946951016066436
+    },
+    {
+      "bureau_id": "shangrao",
+      "name": "上饶",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 6.54903471976491,
+          "v02_value_yi": 7.989643394979354
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 6.549135422593661,
+          "v02_value_yi": 4.146097765485042
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 6.549236130008455,
+          "v02_value_yi": 4.146097765485042
+        }
+      ],
+      "newGapYi": 0.00020141024354547454,
+      "v02GapYi": 3.8435456294943124
+    },
+    {
+      "bureau_id": "ganzhou",
+      "name": "赣州",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 1.4901907747835004,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 1.4901907747835004,
+          "v02_value_yi": 0.0
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 1.4901907747835004,
+          "v02_value_yi": 0.0
+        }
+      ],
+      "newGapYi": 0.0,
+      "v02GapYi": 0.0
+    },
+    {
+      "bureau_id": "fuzhou",
+      "name": "福州",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 93.70466832444087,
+          "v02_value_yi": 100.054525599477
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 93.70470683882087,
+          "v02_value_yi": 108.34648500993342
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 93.70474535320065,
+          "v02_value_yi": 108.34648500993342
+        }
+      ],
+      "newGapYi": 7.702875977599888e-05,
+      "v02GapYi": 8.291959410456414
+    },
+    {
+      "bureau_id": "xiamen",
+      "name": "厦门",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 207.39613307146945,
+          "v02_value_yi": 207.59570309652955
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 207.39616486001336,
+          "v02_value_yi": 226.49218135711055
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 207.39619664855707,
+          "v02_value_yi": 226.49218135711055
+        }
+      ],
+      "newGapYi": 6.357708761584036e-05,
+      "v02GapYi": 18.896478260581006
+    },
+    {
+      "bureau_id": "longyan",
+      "name": "龙岩",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 7.002573182141101,
+          "v02_value_yi": 9.849233590019768
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 7.002680508993945,
+          "v02_value_yi": 4.528768216212252
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 7.002787840519982,
+          "v02_value_yi": 4.528768216212252
+        }
+      ],
+      "newGapYi": 0.00021465837888090533,
+      "v02GapYi": 5.320465373807516
+    },
+    {
+      "bureau_id": "taipei",
+      "name": "台北",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 319.9825999025118,
+          "v02_value_yi": 317.0107546209233
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 319.98263542488087,
+          "v02_value_yi": 348.00314504123077
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 319.9826709472507,
+          "v02_value_yi": 348.00314504123077
+        }
+      ],
+      "newGapYi": 7.104473888830398e-05,
+      "v02GapYi": 30.99239042030746
+    },
+    {
+      "bureau_id": "kaohsiung",
+      "name": "高雄",
+      "year": 2025,
+      "points": [
+        {
+          "surplus_yi": -0.0001,
+          "value_yi": 198.98448803362936,
+          "v02_value_yi": 206.80013734123816
+        },
+        {
+          "surplus_yi": 0.0,
+          "value_yi": 198.9845246162844,
+          "v02_value_yi": 223.16267755918267
+        },
+        {
+          "surplus_yi": 0.0001,
+          "value_yi": 198.9845611279439,
+          "v02_value_yi": 223.16267755918267
+        }
+      ],
+      "newGapYi": 7.309431452995341e-05,
+      "v02GapYi": 16.362540217944513
+    }
+  ]
+}

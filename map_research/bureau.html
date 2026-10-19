@@ -7,7 +7,7 @@
   <title>分局经营试算 · 铁路网络</title>
   <link rel="stylesheet" href="./style.css?v=20261017-economy">
   <link rel="stylesheet" href="./economy.css?v=20261017-forecast">
-  <link rel="stylesheet" href="./bureau.css?v=20261019-official-valuation-v01">
+  <link rel="stylesheet" href="./bureau.css?v=20261019-continuous-equity-v03">
 </head>
 <body class="economy-page bureau-page">
   <header class="topbar">
@@ -49,8 +49,8 @@
         <div class="bureau-kpi"><span>不分红参考期末现金</span><strong id="cashWithoutDividend">—</strong><small>亿元 · 相同经营路径</small></div>
       </section>
       <section id="valuationSummary" class="bureau-kpis" aria-label="国铁估值摘要" hidden>
-        <div class="bureau-kpi"><span>国铁官方股权估值</span><strong id="valuationOfficial">—</strong><small>亿元 · 全公司股权</small></div>
-        <div class="bureau-kpi"><span>预测经营权现值</span><strong id="valuationRight">—</strong><small>亿元 · 十年现金流折现 + 终值</small></div>
+        <div class="bureau-kpi"><span>国铁官方股权估值</span><strong id="valuationOfficial">—</strong><small id="valuationEquityNote">亿元 · 全公司股权</small></div>
+        <div class="bureau-kpi"><span>十年预计补资需求</span><strong id="valuationRight">—</strong><small id="valuationRightNote">亿元 · 情景均值，不计入营业收入</small></div>
         <div class="bureau-kpi"><span>估值时点公司现金</span><strong id="valuationCash">—</strong><small>亿元 · 分红后、下一年度补资前</small></div>
         <div class="bureau-kpi"><span>下一年经营结余预测</span><strong id="valuationNext">—</strong><small id="valuationNextNote">—</small></div>
       </section>
@@ -76,7 +76,7 @@
           <div class="bureau-volume-readout"><div><span>折现率</span><strong id="valuationRate">—</strong></div><div><span>最近三年加权结余</span><strong id="valuationNormalized">—</strong></div><div><span>目标预测得分</span><strong id="valuationTarget">—</strong></div><div><span>十年预测研究评分</span><strong id="valuationScore">—</strong></div><div><span>融资前预测储备</span><strong id="valuationCover">—</strong></div></div>
           <p id="valuationBasisNote" class="economy-note"></p>
           <p class="economy-note">真实未来加锁定误差生成预测，同一Seed、分局和估值年份不重抽；现金变化只更新现金和报价。70分是游戏预测质量目标，不是70%准确概率。</p>
-          <p class="economy-note">暂定十年经营结余折现，加零增长终值和公司现金；折现率为当年实际利率加6个百分点，限制在6%—14%。行业PE不参与计算。</p>
+          <p id="valuationMethodNote" class="economy-note"></p>
         </aside>
         <aside id="cashNotesPanel" class="economy-panel bureau-cost-panel" hidden>
           <span class="eyebrow">ANNUAL CAPITAL WINDOW</span><h2>年度现金安排</h2>
@@ -86,10 +86,21 @@
           <p class="economy-note">当前均按国铁控股、年度足额补资试算。允许负现金，无计划外垫款或自动代管。增资独立记账，不进入收入和利润。</p>
         </aside>
       </div>
+      <section id="lossValuationPanel" class="economy-panel bureau-labor" aria-labelledby="lossValuationTitle" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">SCENARIO EQUITY / CONTINUOUS PRICING</span><h2 id="lossValuationTitle">统一情景估值分解</h2></div><span id="lossValuationState"></span></div>
+        <div class="labor-cards"><div><span>正常化年度营收</span><strong id="lossRevenue">—</strong><small>最近已知三年，50%／30%／20%加权</small></div><div><span>十年末持续盈利概率</span><strong id="lossProbability">—</strong><small>末三年为正且利润率至少3%，只作诊断</small></div><div><span>不跟投的旧股估值</span><strong id="lossRecoveryValue">—</strong><small>接受国铁补资引起的持续稀释</small></div><div><span>跟投策略净估值</span><strong id="lossDistressValue">—</strong><small>保留持股，减去自身追加投入现值</small></div><div><span>不跟投期末保留比例</span><strong id="lossWeightedValue">—</strong><small>原有股份占全公司的比例，情景均值</small></div><div><span>预计十年补资现值</span><strong id="lossFundingBurden">—</strong><small>跟投时需付出，不跟投时由新资本买股</small></div></div>
+        <p id="lossValuationEquation" class="economy-note"></p><p id="lossValuationAssumptions" class="economy-note"></p><p id="valuationContinuityNote" class="economy-note"></p>
+      </section>
       <section id="valuationQuotePanel" class="economy-panel bureau-labor" aria-labelledby="valuationQuoteTitle" hidden>
         <div class="panel-heading"><div><span class="eyebrow">STANDING REFERENCE QUOTES</span><h2 id="valuationQuoteTitle">国铁公开报价</h2></div><span id="valuationBand">—</span></div>
         <div class="labor-cards"><div><span>国铁卖出旧股</span><strong id="valuationAsk">—</strong><small id="valuationAskUnit">—</small></div><div><span>国铁始终承接旧股</span><strong id="valuationBid">—</strong><small id="valuationBidUnit">—</small></div><div><span>主动增资投前报价</span><strong id="valuationIssue">—</strong><small id="valuationIssueNote">—</small></div></div>
-        <p class="economy-note">旧股卖出按官方估值105%，国铁买入按60%，无额外购买意愿抽签。主动增资依融资前预测储备选择90%／85%／80%，报价均为全公司股权口径。正式危机使用危机当期估值100%，本页未认定危机。以上仅展示报价，不执行交易、增资或股权变化。</p>
+        <p class="economy-note">正股权估值下，旧股卖出按105%，国铁按60%始终承接，无购买意愿抽签；主动增资依预测储备选择90%／85%／80%。非正股权估值转为需重组定价，不生成零元普通交易报价。正式危机100%规则须另行认定。本页仅展示报价，不执行交易、增资或股权变化。</p>
+      </section>
+      <section id="lossComparisonPanel" class="economy-panel snapshot-panel bureau-annual" aria-labelledby="lossComparisonTitle" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">BASE-YEAR LOSS COHORT / SAME SEED</span><h2 id="lossComparisonTitle">24家基期亏损分局 · 估值对照</h2></div><button id="exportLossComparison" class="bureau-secondary" type="button">导出24家 CSV ↓</button></div>
+        <p id="lossComparisonSummary" class="economy-note"></p>
+        <div class="table-scroll annual-scroll"><table><thead><tr><th>分局</th><th>基期营收</th><th>基期结余</th><th>末期持续盈利概率</th><th>不跟投保留比例</th><th>上版V0.2估值</th><th>统一股权估值</th><th>参考策略</th><th>类型</th></tr></thead><tbody id="lossComparisonRows"></tbody></table></div>
+        <p class="economy-note">固定比较2025年24家亏损分局，使用上方当前Seed；与查看年份和已有96 Seed经营报告分开。点击分局查看其2025年分解。盈利概率是512条合成情景的诊断比例，不决定换价公式，未作经验校准。小额显示万元或元，避免正值被显示为零。当前旧股价值已考虑后续补资的稀释或跟投支出，不等于增资后全部股权价值；不执行真实股权结算。</p>
       </section>
       <section id="valuationForecastPanel" class="economy-panel snapshot-panel bureau-annual" aria-labelledby="valuationForecastTitle" hidden>
         <div class="panel-heading"><div><span class="eyebrow">SYNTHETIC FORECAST / TEN YEARS</span><h2 id="valuationForecastTitle">未来十年经营预测</h2></div><span>亿元 · 有符号经营结余</span></div>
@@ -99,7 +110,7 @@
       </section>
       <section id="valuationAnnualPanel" class="economy-panel snapshot-panel bureau-annual" aria-labelledby="valuationAnnualTitle" hidden>
         <div class="panel-heading"><div><span class="eyebrow">VALUATION HISTORY / 2025—2085</span><h2 id="valuationAnnualTitle">年度估值与报价</h2></div><button id="exportValuation" class="bureau-secondary" type="button">导出估值 CSV ↓</button></div>
-        <div class="table-scroll annual-scroll"><table><thead><tr><th>年份</th><th>官方股权估值</th><th>完整未来参考估值</th><th>经营权现值</th><th>公司现金</th><th>旧股卖价</th><th>国铁旧股买价</th><th>增资投前报价</th><th>十年预测评分</th></tr></thead><tbody id="valuationAnnualRows"></tbody></table></div>
+        <div class="table-scroll annual-scroll"><table><thead><tr><th>年份</th><th>官方股权估值</th><th>无预测误差参考估值</th><th>经营融资净归因</th><th>公司现金</th><th>旧股卖价</th><th>国铁旧股买价</th><th>增资投前报价</th><th>十年预测评分</th></tr></thead><tbody id="valuationAnnualRows"></tbody></table></div>
       </section>
       <section id="cashDividendPanel" class="economy-panel bureau-labor" aria-labelledby="dividendTitle" hidden>
         <div class="panel-heading"><div><span class="eyebrow">SHAREHOLDER DISTRIBUTION</span><h2 id="dividendTitle">年末分红</h2></div><span>50%利润 + 50%超额现金</span></div>
@@ -146,6 +157,6 @@
       <footer class="economy-footer"><span id="bureauVersion"></span><span>合成经营情景；含工资高点驱动的隐含用工调整，未计折旧、融资与新增投资。</span></footer>
     </div>
   </main>
-  <script src="./bureau.js?v=20261019-official-valuation-v01"></script>
+  <script src="./bureau.js?v=20261019-continuous-equity-v03"></script>
 </body>
 </html>

@@ -1,14 +1,14 @@
-"""Locked errors, DCF identity, standing quotes and no operating mutations."""
+"""Legacy V0.2 reference replay, locked errors and standing quote invariants."""
 import copy
 import unittest
 
-from .valuation import load_config, locked_forecast, quotation, valuation_history
+from .valuation import load_config, locked_forecast, quotation, valuation_history_v02 as valuation_history, loss_right
 
 
 class ValuationTests(unittest.TestCase):
     def setUp(self):
         self.p, self.q = load_config()
-        self.ops = [{'seed': 7, 'bureau_id': 'example', 'year': y, 'cost_yi': 100.,
+        self.ops = [{'seed': 7, 'bureau_id': 'example', 'year': y, 'cost_yi': 100., 'revenue_yi': 110.,
                      'operating_surplus_yi': 10.} for y in range(2025, 2086)]
         self.cash = [{'seed': 7, 'bureau_id': 'example', 'year': y, 'cash_closing_yi': 20.} for y in range(2025, 2086)]
         self.national = [{'calendar_year': y, 'rate': 2.} for y in range(2025, 2086)]
@@ -59,8 +59,47 @@ class ValuationTests(unittest.TestCase):
         rows = valuation_history(ops, self.cash, self.national, policy={**self.p, 'expected_score': 100}, quote_policy=self.q)
         self.assertLess(rows[0]['valuation_operating_right_yi'], 0)
         self.assertEqual(rows[0]['valuation_official_yi'], 0)
-        self.assertEqual(rows[0]['valuation_old_share_state_bid_yi'], 0)
+        self.assertIsNone(rows[0]['valuation_old_share_state_bid_yi'])
+        self.assertEqual(rows[0]['valuation_quote_status'], 'restructuring_required')
         self.assertTrue(rows[0]['valuation_at_floor'])
+
+    def test_loss_scenarios_reconcile_and_cash_not_double_counted(self):
+        ops = [{**r, 'operating_surplus_yi': -.05, 'revenue_yi': 100.} for r in self.ops]
+        before = copy.deepcopy((ops, self.cash, self.national))
+        a = valuation_history(ops, self.cash, self.national, as_of_years={2025})[0]
+        b = valuation_history(ops, [{**r, 'cash_closing_yi': 70.} for r in self.cash], self.national, as_of_years={2025})[0]
+        p = a['valuation_recovery_probability']
+        self.assertGreater(p, 0)
+        self.assertLess(p, 1)
+        self.assertAlmostEqual(a['valuation_weighted_right_before_burden_yi'],
+                               p*a['valuation_recovery_right_yi']+(1-p)*a['valuation_distress_right_yi'])
+        self.assertAlmostEqual(a['valuation_official_yi'], max(0, a['valuation_weighted_right_before_burden_yi']
+                              + a['valuation_net_cash_yi'] - a['valuation_transition_loss_pv_yi']))
+        self.assertGreater(a['valuation_official_yi'], a['valuation_legacy_dcf_yi'])
+        for key in ('forecastRows', 'valuation_recovery_probability', 'valuation_weighted_right_before_burden_yi', 'valuation_transition_loss_pv_yi'):
+            self.assertEqual(a[key], b[key])
+        self.assertAlmostEqual(b['valuation_official_yi']-a['valuation_official_yi'], 50)
+        self.assertEqual(before, (ops, self.cash, self.national))
+
+    def test_perfect_loss_scenarios_and_each_cashflow_counted_once(self):
+        p = {**self.p, 'expected_score': 100}
+        identity = dict(seed=7, bureau_id='example', year=2025, policy=p)
+        negative = loss_right([-2.]*10, 100., .08, **identity)
+        expected_loss = sum(2/(1.08)**i for i in range(1, 11))
+        self.assertEqual(negative['valuation_recovery_probability'], 0)
+        self.assertAlmostEqual(negative['valuation_weighted_right_before_burden_yi'], 10)
+        self.assertAlmostEqual(negative['valuation_transition_loss_pv_yi'], expected_loss)
+        self.assertAlmostEqual(negative['valuation_loss_right_yi'], 10-expected_loss)
+        positive = loss_right([10.]*10, 100., .08, **identity)
+        self.assertEqual(positive['valuation_recovery_probability'], 1)
+        self.assertEqual(positive['valuation_transition_loss_pv_yi'], 0)
+        self.assertAlmostEqual(positive['valuation_loss_right_yi'], sum(10/(1.08)**i for i in range(1, 11))+100/(1.08)**10)
+
+    def test_zero_quotes_never_make_free_issuance(self):
+        q = quotation(0., -5., -20., 100., self.q)
+        self.assertEqual(q['valuation_quote_status'], 'restructuring_required')
+        for key in ('valuation_issue_pre_yi', 'valuation_old_share_ask_yi', 'valuation_old_share_state_bid_yi'):
+            self.assertIsNone(q[key])
 
     def test_longer_history_preserves_unaffected_windows(self):
         short = valuation_history(self.ops[:31], self.cash[:31], self.national)

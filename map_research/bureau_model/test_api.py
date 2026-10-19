@@ -119,7 +119,7 @@ class BureauAPITests(unittest.TestCase):
         path = '/api/bureau?seed=20261014&bureau=shanghai'
         data = self.fetch(path)
         valuation = data['officialValuation']
-        self.assertEqual(valuation['modelVersion'], 'railway-official-valuation-v0.1')
+        self.assertEqual(valuation['modelVersion'], 'railway-official-valuation-v0.3')
         self.assertEqual(len(valuation['configHash']), 64)
         self.assertTrue(valuation['quotePolicy']['merchant']['old_share_bid_unconditional'])
         self.assertEqual(len(valuation['rows']), 61)
@@ -132,12 +132,42 @@ class BureauAPITests(unittest.TestCase):
             self.assertEqual(v['forecastRows'][0]['year'], v['year'] + 1)
             self.assertEqual(v['forecastRows'][0]['predicted_surplus_yi'], v['valuation_next_surplus_forecast_yi'])
             self.assertAlmostEqual(v['valuation_official_yi'], max(0, v['valuation_operating_right_yi'] + v['valuation_cash_yi']))
-            self.assertAlmostEqual(v['valuation_old_share_state_bid_yi'], v['valuation_official_yi'] * .6)
-            self.assertAlmostEqual(v['valuation_issue_pre_yi'], v['valuation_official_yi'] * v['valuation_issue_multiplier'])
+            if v['valuation_quote_status'] == 'quoted':
+                self.assertAlmostEqual(v['valuation_old_share_state_bid_yi'], v['valuation_official_yi'] * .6)
+                self.assertAlmostEqual(v['valuation_issue_pre_yi'], v['valuation_official_yi'] * v['valuation_issue_multiplier'])
+            else:
+                self.assertIsNone(v['valuation_issue_pre_yi'])
             self.assertGreaterEqual(v['valuation_forecast_score'], 66)
             self.assertLessEqual(v['valuation_forecast_score'], 74)
         self.assertEqual(valuation['rows'][0]['valuation_tail_years'], 0)
         self.assertEqual(valuation['rows'][-1]['valuation_tail_years'], 10)
+        self.assertIsNotNone(data['cash']['calibrationAudit'])
+
+    def test_loss_cohort_and_no_free_quotes(self):
+        data = self.fetch('/api/bureau?seed=5767783356797806&bureau=lhasa')
+        cohort = data['officialValuation']['lossComparison']
+        self.assertEqual(cohort['year'], 2025)
+        self.assertEqual(cohort['seed'], data['seed'])
+        self.assertEqual(len(cohort['rows']), 24)
+        self.assertEqual(len({r['bureau_id'] for r in cohort['rows']}), 24)
+        for r in cohort['rows']:
+            self.assertLess(r['base_surplus_yi'], 0)
+            self.assertEqual(r['valuation_method'], 'unified_scenario_equity')
+            self.assertAlmostEqual(r['valuation_official_yi'], max(0, r['valuation_passive_equity_yi'], r['valuation_follow_equity_yi']))
+            self.assertAlmostEqual(r['valuation_official_yi'], r['valuation_dividends_pv_yi']+r['valuation_residual_pv_yi']-r['valuation_own_funding_pv_yi'])
+            self.assertEqual(r['valuation_loss_scenario_count'], 512)
+            if r['valuation_at_floor']:
+                self.assertEqual(r['valuation_quote_status'], 'restructuring_required')
+                self.assertIsNone(r['valuation_old_share_ask_yi'])
+        summary = cohort['summary']
+        self.assertAlmostEqual(summary['newTotalYi'], sum(r['valuation_official_yi'] for r in cohort['rows']))
+        self.assertEqual(summary['newZeroCount'], sum(r['valuation_at_floor'] for r in cohort['rows']))
+        base = next(r for r in cohort['rows'] if r['bureau_id'] == 'lhasa')
+        self.assertEqual(base['valuation_official_yi'], data['officialValuation']['rows'][0]['valuation_official_yi'])
+        check = data['officialValuation']['continuityCheck']
+        self.assertEqual(check['year'], 2025)
+        self.assertEqual(len(check['points']), 3)
+        self.assertLess(check['newGapYi'], .01)
         self.assertIsNotNone(data['cash']['calibrationAudit'])
 
     def test_north_volume_semantics_and_matching_audit(self):

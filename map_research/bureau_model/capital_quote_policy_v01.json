@@ -51,7 +51,8 @@
       "force_issue_without_resolution": false,
       "separate_special_rescue_procedure_required": true
     },
-    "forecast_source": "future_plus_locked_error"
+    "forecast_source": "future_plus_locked_error",
+    "nonpositive_equity_quote_policy": "restructuring_required_no_ordinary_zero_price_quotes"
   },
   "share_issue_rounding": {
     "new_unit_ideal": "400 * cash_investment / (actual_issue_prevaluation + cash_investment)",
@@ -60,5 +61,5 @@
     "post_units_total": 400,
     "no_silent_wipeout_of_existing_holders": true
   },
-  "note": "Game quotation reference only. Official forecast uses true future plus locked synthetic errors. State always bids at 60%; no GUI trading, share changes, subscriptions or emergency process are implemented."
+  "note": "Read-only quotes. State always bids 60% of a positive official equity valuation; nonpositive equity requires separate restructuring pricing. No transactions, dilution, subscriptions or emergency execution."
 }

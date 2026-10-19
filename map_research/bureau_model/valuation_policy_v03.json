@@ -1,0 +1,81 @@
+{
+  "version": "official-bureau-valuation-policy-v0.3",
+  "forecast_years": 10,
+  "expected_score": 70,
+  "score_jitter": 4,
+  "annual_error_cap_multiplier": 2.4,
+  "cost_scale_floor_fraction": 0.1,
+  "score_error_percent": {
+    "1": {
+      "0": 20,
+      "50": 8,
+      "60": 5,
+      "70": 3,
+      "80": 1.5,
+      "90": 0.7,
+      "95": 0.3,
+      "100": 0
+    },
+    "10": {
+      "0": 80,
+      "50": 40,
+      "60": 28,
+      "70": 17,
+      "80": 8.5,
+      "90": 4.5,
+      "95": 2.2,
+      "100": 0
+    }
+  },
+  "risk_premium_pct": 6,
+  "discount_rate_floor_pct": 6,
+  "discount_rate_ceiling_pct": 14,
+  "terminal_growth_pct": 0,
+  "terminal_profit_weights": [
+    0.5,
+    0.3,
+    0.2
+  ],
+  "history_profit_weights": [
+    0.5,
+    0.3,
+    0.2
+  ],
+  "end_of_sample_extension": "hold_2085_operating_surplus_and_cost_constant",
+  "current_cash_basis": "after_current_year_dividends_before_next_year_funding",
+  "committed_cash_outflows_yi": 0,
+  "industry_pe_used": false,
+  "description": "All bureaus use one continuous scenario equity model. Compare ex-ante passive dilution and paid follow-on funding; no switch at zero operating profit. Probability thresholds are diagnostic only. V0.2 settings retained solely for comparison.",
+  "loss_valuation": {
+    "scenario_count": 512,
+    "terminal_margin_sigma": 0.12,
+    "recovery_margin_min": 0.03,
+    "recovery_profit_multiple": 10.0,
+    "distress_revenue_multiple": 0.1,
+    "trigger": "current_year_operating_surplus_negative",
+    "recovery_definition": "last_3_years_positive_and_weighted_terminal_margin_at_least_3pct_of_normalized_revenue",
+    "normalization": "known_recent_revenue_50_30_20",
+    "transition_loss": "mean_discounted_negative_operating_surplus_over_next_10_years",
+    "financing_basis": "current_100pct_equity_reference_with_funding_burden_deducted_once_no_additional_dilution",
+    "probability_status": "synthetic_uncalibrated_game_scenarios_not_empirical_frequency",
+    "special_policy_contracts": false,
+    "senior_rescue_advances": false
+  },
+  "equity_scenarios": {
+    "scenario_count": 512,
+    "terminal_margin_sigma": 0.12,
+    "franchise_revenue_multiple": 0.1,
+    "sustained_margin_min": 0.03,
+    "minimum_cash_reserve_yi": 0.5,
+    "funding_reserve_months": 3,
+    "dividend_reserve_months": 6,
+    "profit_payout_ratio": 0.5,
+    "excess_cash_payout_ratio": 0.5,
+    "low_value_revenue_ratio": 0.02,
+    "strategy_selection": "max_of_ex_ante_expected_passive_and_follow_values",
+    "future_funding_issue_price": "positive_known_cash_plus_earnings_or_revenue_reference_no_merchant_discount",
+    "funding_timing": "year_start_using_previous_surplus_and_cost_continuous_reserve_gap",
+    "sample_payoff": "passive_diluted_dividends_and_terminal_equity_or_follow_dividends_and_terminal_equity_less_own_funding",
+    "probability_status": "synthetic_diagnostic_not_a_pricing_switch_or_empirical_frequency"
+  }
+}

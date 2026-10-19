@@ -12,9 +12,10 @@
     freight: {title: '货运收入构成', unit: '亿元／年 · 含净结算', series: [['ordinary_freight_income_yi','普通货运收入','#83c6dc'],['hidden_freight_income_yi','隐藏净结算','#dca872'],['freight_income_yi','货运收入合计','#93d2c6']]},
     cash: {title: '现金、年度补资与分红', unit: '亿元 · 2025 年不变价', series: [['cash_opening_yi','期初可用现金','#dca872','5 4'],['cash_closing_yi','期末现金','#83c6dc'],['cash_state_equity_yi','本年度增资（上年末到账）','#93d2c6'],['cash_dividend_yi','年末分红','#b8a0d1']]},
     cash_compare: {title: '分红前后现金积累',unit:'亿元 · 相同 Seed 与经营路径',series:[['cash_without_dividends_closing_yi','不分红参考现金','#dca872','5 4'],['cash_closing_yi','分红后现金','#83c6dc']]},
-    valuation: {title:'国铁官方估值与完整未来参考',unit:'亿元 · 全公司股权',series:[['valuation_official_yi','国铁官方估值','#83c6dc'],['valuation_full_future_reference_yi','完整未来参考估值','#dca872','5 4'],['valuation_cash_yi','公司现金','#93d2c6']]}
+    valuation: {title:'国铁官方估值与无预测误差参考',unit:'亿元 · 全公司股权',series:[['valuation_official_yi','国铁官方估值','#83c6dc'],['valuation_full_future_reference_yi','无预测误差参考估值','#dca872','5 4'],['valuation_cash_yi','公司现金','#93d2c6']]}
   };
-  const valuationColumns=[['year','年份'],['valuation_official_yi','官方股权估值'],['valuation_full_future_reference_yi','完整未来参考估值'],['valuation_operating_right_yi','经营权现值'],['valuation_cash_yi','公司现金'],['valuation_old_share_ask_yi','旧股卖价（全公司）'],['valuation_old_share_state_bid_yi','国铁旧股买价（全公司）'],['valuation_issue_pre_yi','增资投前报价'],['valuation_forecast_score','十年预测评分']];
+  const valuationColumns=[['year','年份'],['valuation_official_yi','官方股权估值'],['valuation_full_future_reference_yi','无预测误差参考估值'],['valuation_operating_right_yi','经营融资净归因（股权减净现金）'],['valuation_cash_yi','公司现金'],['valuation_old_share_ask_yi','旧股卖价（全公司）'],['valuation_old_share_state_bid_yi','国铁旧股买价（全公司）'],['valuation_issue_pre_yi','增资投前报价'],['valuation_forecast_score','十年预测评分']];
+  const lossColumns=[['valuation_method','估值方法'],['valuation_quote_status','报价状态'],['valuation_strategy','参考策略'],['valuation_v02_reference_yi','上版V0.2估值'],['valuation_legacy_dcf_yi','原DCF估值'],['valuation_normalized_revenue_yi','正常化年营收'],['valuation_recovery_probability','末期持续盈利概率（0—1）'],['valuation_passive_equity_yi','不跟投旧股估值'],['valuation_follow_equity_yi','跟投策略净估值'],['valuation_expected_retention','不跟投期末保留比例（0—1）'],['valuation_expected_funding_yi','预计十年补资需求'],['valuation_expected_funding_pv_yi','十年补资现值'],['valuation_dividends_pv_yi','参考策略分红现值'],['valuation_residual_pv_yi','参考策略剩余权益现值'],['valuation_own_funding_pv_yi','参考策略自身出资现值'],['valuation_loss_scenario_count','合成情景条数']];
   const cashColumns = [['year','经营年度'],['cash_funding_year','增资到账年份（年末）'],['cash_carryover_yi','上年结转现金（补资前）'],['cash_state_equity_yi','本年度国铁增资'],['cash_opening_yi','期初可用现金'],['cash_operating_proxy_yi','当年经营结余现金近似'],['cash_dividend_yi','年末分红'],['cash_closing_yi','年末现金'],['cash_cumulative_equity_yi','累计国铁增资'],['cash_cumulative_dividend_yi','累计分红'],['cash_cumulative_state_net_investment_yi','累计国铁净投入']];
   const annualColumns = [['year', '年份'], ['passenger_trips_10k', '客运量（万人次）'], ['ordinary_freight_tons_10k', '普通货运量（万吨）'], ['hidden_equivalent_freight_tons_10k','隐藏等效结算量（万吨）'], ['passenger_income_yi', '客运收入'], ['ordinary_freight_income_yi','普通货运收入'], ['hidden_freight_income_yi','隐藏货运净结算'], ['freight_income_yi', '货运收入合计'], ['station_income_yi', '站务收入'], ['high_speed_cost_yi', '高速成本'], ['conventional_cost_yi', '普速成本'], ['station_cost_yi', '站务成本'], ['revenue_yi', '总收入'], ['cost_yi', '总成本'], ['operating_surplus_yi', '经营结余']];
   let catalog = null, data = null, busy = false, chartCursor = null, chartX = null;
@@ -24,7 +25,10 @@
   const ns = 'http://www.w3.org/2000/svg';
   const node = (tag, text, className) => {const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (className) el.className = className; return el;};
   const svgNode = (tag, attributes = {}, text) => {const el = document.createElementNS(ns, tag); for (const [k, v] of Object.entries(attributes)) el.setAttribute(k, v); if (text !== undefined) el.textContent = text; return el;};
-  const fixed = (n, digits = 2) => n.toLocaleString('zh-CN', {minimumFractionDigits: digits, maximumFractionDigits: digits});
+  const fixed = (n, digits = 2) => Number.isFinite(n) ? n.toLocaleString('zh-CN', {minimumFractionDigits: digits, maximumFractionDigits: digits}) : '—';
+  const money = (n, digits=2) => !Number.isFinite(n) ? '—' : n!==0 && Math.abs(n)<.01 ?
+    (Math.abs(n)>=.0001 ? `${fixed(n*1e4,2)} 万元` : Math.abs(n)>=1e-10 ? `${fixed(n*1e8,2)} 元` : `约 ${(n*1e8).toExponential(2)} 元`) : `${fixed(n,digits)} 亿元`;
+  const amount = n => n>0 && n<.01 ? money(n) : fixed(n);
   const signClass = n => n < 0 ? 'negative' : n > 0 ? 'positive' : '';
   function setSigned(el, n) {el.textContent = fixed(n); el.classList.remove('negative', 'positive'); if (signClass(n)) el.classList.add(signClass(n));}
   function status(text, error = false) {$('bureauStatus').textContent = text; $('bureauStatus').classList.toggle('error', error);}
@@ -123,29 +127,49 @@
     const valuation = view === 'valuation';
     for (const id of ['operatingSummary','bureauCostPanel','laborPanel','costDetailPanel','operatingAnnualPanel','operatingConfig','calibrationPanel']) $(id).hidden = cash || valuation;
     for (const id of ['cashSummary','cashNotesPanel','cashDividendPanel','cashLedgerPanel','cashAuditPanel']) $(id).hidden = !cash;
-    for (const id of ['valuationSummary','valuationNotesPanel','valuationQuotePanel','valuationForecastPanel','valuationAnnualPanel']) $(id).hidden = !valuation;
+    for (const id of ['valuationSummary','valuationNotesPanel','valuationQuotePanel','valuationForecastPanel','valuationAnnualPanel','lossComparisonPanel']) $(id).hidden = !valuation;
+    $('lossValuationPanel').hidden = !valuation;
     $('hiddenFreightPanel').hidden = cash || valuation || !data.profile.hidden_freight;
   }
   function renderValuationYear(row) {
-    for(const [id,key] of [['valuationOfficial','valuation_official_yi'],['valuationRight','valuation_operating_right_yi'],['valuationCash','valuation_cash_yi'],['valuationNext','valuation_next_surplus_forecast_yi']]) {
+    for(const [id,key] of [['valuationOfficial','valuation_official_yi'],['valuationRight','valuation_expected_funding_yi'],['valuationCash','valuation_cash_yi'],['valuationNext','valuation_next_surplus_forecast_yi']]) {
       $(id).textContent=fixed(row[key]); $(id).classList.toggle('negative',row[key]<0);
     }
     $('valuationNextNote').textContent=`${year+1} 年 · 一年期研究评分 ${fixed(row.valuation_one_year_score,1)}`;
+    const reorg = row.valuation_quote_status === 'restructuring_required';
+    $('valuationOfficial').textContent = row.valuation_official_yi>0 && row.valuation_official_yi<.01 ? money(row.valuation_official_yi) : fixed(row.valuation_official_yi);
+    $('valuationEquityNote').textContent = reorg ? '财务参考值0，需重组定价' : (row.valuation_official_yi<.01 ? '全公司股权 · 小额单位展示' : '亿元 · 全公司股权');
+    $('valuationRightNote').textContent = '亿元 · 情景均值，不计入营业收入';
+    $('valuationMethodNote').textContent = '所有分局统一用情景股权估值。分别求不跟投、按比例跟投两种策略的平均净价值，再取较高者。经营结余跨过零点不切换算法；持续盈利概率仅作诊断。';
     $('valuationRate').textContent=`${fixed(row.valuation_discount_rate_pct,1)}%`;
     $('valuationNormalized').textContent=`${fixed(row.valuation_historical_normalized_surplus_yi)} 亿元`;
     $('valuationTarget').textContent=`${row.valuation_quality_target} 分`;
     $('valuationScore').textContent=`${fixed(row.valuation_forecast_score,1)} 分`;
     $('valuationCover').textContent=`${fixed(row.valuation_cash_cover_months,1)} 个月`;
-    $('valuationBasisNote').textContent=`${year}年末估值。${row.valuation_tail_years?`窗口中${row.valuation_tail_years}年采用末年延续假设。`:'十年窗口全部位于现有模拟样本内。'}${row.valuation_at_floor?'预测经营权与现金合计为负，股权参考值取0。':''}`;
+    $('valuationBasisNote').textContent=`${year}年末估值。${row.valuation_tail_years?`窗口中${row.valuation_tail_years}年采用末年延续假设。`:'十年窗口全部位于现有模拟样本内。'}${reorg?'当前情景股权参考值不为正，需重组定价。':''}`;
     const bands={comfortable:'现金充足',watch:'现金偏紧',strained_before_formal_crisis:'资金紧迫（未认定危机）'};
-    $('valuationBand').textContent=bands[row.valuation_active_band];
+    $('valuationBand').textContent=reorg ? '需重组定价' : bands[row.valuation_active_band];
     $('valuationQuoteTitle').textContent=`${year} 年末 · 国铁公开报价`;
-    $('valuationAsk').textContent=`${fixed(row.valuation_old_share_ask_yi)} 亿元`;
-    $('valuationBid').textContent=`${fixed(row.valuation_old_share_state_bid_yi)} 亿元`;
-    $('valuationIssue').textContent=`${fixed(row.valuation_issue_pre_yi)} 亿元`;
-    $('valuationAskUnit').textContent=`每0.25%股权 ${fixed(row.valuation_old_share_ask_per_unit_yi,4)} 亿元 · 105%`;
-    $('valuationBidUnit').textContent=`每0.25%股权 ${fixed(row.valuation_old_share_state_bid_per_unit_yi,4)} 亿元 · 60% · 始终承接`;
-    $('valuationIssueNote').textContent=`投前估值 · ${bands[row.valuation_active_band]}档 × ${fixed(row.valuation_issue_multiplier*100,0)}%`;
+    $('valuationAsk').textContent=reorg ? '需重组定价' : money(row.valuation_old_share_ask_yi);
+    $('valuationBid').textContent=reorg ? '需重组定价' : money(row.valuation_old_share_state_bid_yi);
+    $('valuationIssue').textContent=reorg ? '需重组定价' : money(row.valuation_issue_pre_yi);
+    $('valuationAskUnit').textContent=reorg ? '不生成零元普通交易报价' : `每0.25%股权 ${money(row.valuation_old_share_ask_per_unit_yi,4)} · 105%`;
+    $('valuationBidUnit').textContent=reorg ? '重组条件明确后另行定价' : `每0.25%股权 ${money(row.valuation_old_share_state_bid_per_unit_yi,4)} · 60% · 始终承接`;
+    $('valuationIssueNote').textContent=reorg ? '不按零投前估值直接清空旧股' : `投前估值 · ${bands[row.valuation_active_band]}档 × ${fixed(row.valuation_issue_multiplier*100,0)}%`;
+    $('lossValuationPanel').hidden=view!=='valuation';
+    const strategy=row.valuation_strategy==='follow'?'按比例跟投':'不跟投，接受稀释';
+    $('lossValuationState').textContent=`参考策略：${strategy}`;
+    $('lossRevenue').textContent=money(row.valuation_normalized_revenue_yi);
+    $('lossProbability').textContent=`${fixed(row.valuation_recovery_probability*100,1)}%`;
+    $('lossRecoveryValue').textContent=money(row.valuation_passive_equity_yi);
+    $('lossDistressValue').textContent=money(row.valuation_follow_equity_yi);
+    $('lossWeightedValue').textContent=`${fixed(row.valuation_expected_retention*100,4)}%`;
+    $('lossFundingBurden').textContent=money(row.valuation_expected_funding_pv_yi);
+    $('lossValuationEquation').textContent=`参考策略股权价值 = 股东分红现值 ${money(row.valuation_dividends_pv_yi)} + 期末剩余权益现值 ${money(row.valuation_residual_pv_yi)} − 自身跟投资金现值 ${money(row.valuation_own_funding_pv_yi)} = ${money(row.valuation_official_yi)}。初始净现金已在情景余额内计算，不再次相加。`;
+    const p=data.officialValuation.policy.equity_scenarios;
+    $('lossValuationAssumptions').textContent=`${p.scenario_count}条锁定情景，各估值年份复用同组扰动。未来补资先用已知盈亏预测三个月储备缺口，按正的营收/盈利参考定价；不跟投会连续稀释，跟投支付的资金只扣一次。所有路径统一用 max（营收${fixed(p.franchise_revenue_multiple*100,0)}%经营资格参考，末期正常利润/折现率）计算终值。持续盈利的3%利润率门槛不改变价格公式。此处融资是估值代理，不改实际现金V0.3，也不执行股权变更。概率与参数尚未经验校准；0%表示本组样本未出现，不排除更罕见的反转。`;
+    const check=data.officialValuation.continuityCheck;
+    $('valuationContinuityNote').textContent=`${check.year}基期连续性核对：固定未来预测、营收和现金，仅调整当前成本，使结余为−1万元／0／＋1万元，对应估值 ${check.points.map(p=>fixed(p.value_yi,6)).join('／')} 亿元；两端差 ${money(check.newGapYi)}。这是控制变量检查，不是实际年度涨跌预测。`;
     $('valuationForecastTitle').textContent=`${year+1}—${year+10} 年经营结余预测`;
     $('valuationForecastNote').textContent=`目标${row.valuation_quality_target}分；十年研究评分${fixed(row.valuation_forecast_score,1)}分，平均归一化偏差${fixed(row.valuation_normalized_error_pct,2)}%。同一估值时点的预测锁定。`;
     const fragment=document.createDocumentFragment();
@@ -162,10 +186,20 @@
     for(const r of data.rows) {
       const tr=node('tr'); tr.dataset.year=r.year;
       const th=node('th'),button=node('button',r.year);th.scope='row';button.type='button';button.dataset.year=r.year;button.setAttribute('aria-label',`查看 ${r.year} 年国铁估值`);th.append(button);tr.append(th);
-      for(const [key] of valuationColumns.slice(1)) tr.append(node('td',fixed(r[key])));
+      for(const [key] of valuationColumns.slice(1)) tr.append(node('td',key==='valuation_forecast_score'?fixed(r[key]):amount(r[key])));
       fragment.append(tr);
     }
     $('valuationAnnualRows').replaceChildren(fragment);
+    const comparison=data.officialValuation.lossComparison, s=comparison.summary;
+    $('lossComparisonSummary').textContent=`Seed ${comparison.seed} · 2025年24家：上版V0.2合计 ${fixed(s.v02TotalYi)} → 统一估值 ${fixed(s.newTotalYi)} 亿元；零参考值 ${s.v02ZeroCount} → ${s.newZeroCount} 家；低于正常化年营收2%的小额权益 ${s.lowValueCount} 家。`;
+    const comparisonRows=document.createDocumentFragment();
+    for(const r of comparison.rows) {
+      const tr=node('tr');tr.classList.toggle('current-bureau',r.bureau_id===data.profile.bureau_id);
+      const th=node('th'), b=node('button',r.name);b.type='button';b.dataset.bureau=r.bureau_id;b.dataset.region=r.region_id;b.setAttribute('aria-label',`查看${r.name}2025年亏损估值`);th.append(b);tr.append(th);
+      for(const text of [fixed(r.base_revenue_yi),fixed(r.base_surplus_yi),`${fixed(r.valuation_recovery_probability*100,1)}%`,`${fixed(r.valuation_expected_retention*100,4)}%`,amount(r.valuation_v02_reference_yi),amount(r.valuation_official_yi),r.valuation_strategy==='follow'?'跟投':'不跟投',r.valuation_quote_status!=='quoted'?'需重组':r.valuation_low_value_option?'低值期权/残值':'可报价']) tr.append(node('td',text));
+      comparisonRows.append(tr);
+    }
+    $('lossComparisonRows').replaceChildren(comparisonRows);
   }
   function renderCashYear(row) {
     $('cashInitial').textContent = fixed(row.cash_initial_yi);
@@ -374,7 +408,7 @@
       if (next.seed !== seed || next.profile?.bureau_id !== bureau || next.baseYear !== 2025 || next.rows?.length !== 61 || next.rows.some((r, i) => r.year !== 2025 + i || !Number.isFinite(r.cost_yi) || !Number.isFinite(r.operating_surplus_yi))) throw new Error('返回的分局数据不完整');
       if (next.cash?.modelVersion !== 'railway-bureau-annual-cash-dividends-v0.3' || next.cash.rows?.length !== 61 || next.cash.rows.some((r,i)=>r.year!==2025+i || r.bureau_id!==bureau || !Number.isFinite(r.cash_closing_yi) || !Number.isFinite(r.cash_carryover_yi) || !Number.isFinite(r.cash_opening_yi) || !Number.isFinite(r.cash_dividend_yi) || !Number.isFinite(r.cash_without_dividends_closing_yi) || (i>0 && r.cash_funding_year!==r.year-1))) throw new Error('现金数据不完整，请更新本地服务。');
       const cashByYear=new Map(next.cash.rows.map(r=>[r.year,r]));
-      if(next.officialValuation?.modelVersion!=='railway-official-valuation-v0.1' || next.officialValuation.rows?.length!==61 || next.officialValuation.rows.some((r,i)=>r.year!==2025+i || r.bureau_id!==bureau || !Number.isFinite(r.valuation_official_yi) || r.forecastRows?.length!==10)) throw new Error('国铁估值数据不完整，请更新本地服务。');
+      if(next.officialValuation?.modelVersion!=='railway-official-valuation-v0.3' || next.officialValuation.lossComparison?.rows?.length!==24 || next.officialValuation.rows?.length!==61 || next.officialValuation.rows.some((r,i)=>r.year!==2025+i || r.bureau_id!==bureau || !Number.isFinite(r.valuation_official_yi) || r.forecastRows?.length!==10)) throw new Error('国铁估值数据不完整，请更新本地服务。');
       const valuationByYear=new Map(next.officialValuation.rows.map(r=>[r.year,r]));
       next.rows=next.rows.map(r=>({...r,...cashByYear.get(r.year),...valuationByYear.get(r.year)}));
       data = next; cache.set(key, next); if (cache.size > 4) cache.delete(cache.keys().next().value);
@@ -394,6 +428,7 @@
   $('annualRows').addEventListener('click', event => {const button = event.target.closest('button[data-year]'); if (button) selectYear(Number(button.dataset.year));});
   $('cashLedgerRows').addEventListener('click', event => {const button=event.target.closest('button[data-year]'); if(button) selectYear(Number(button.dataset.year));});
   $('valuationAnnualRows').addEventListener('click',event=>{const b=event.target.closest('button[data-year]');if(b)selectYear(Number(b.dataset.year));});
+  $('lossComparisonRows').addEventListener('click',event=>{const b=event.target.closest('button[data-bureau]');if(!b || busy)return; year=2025;load(data.seed,b.dataset.bureau);});
   $('bureauChartTabs').addEventListener('click', event => {const button = event.target.closest('button[data-view]'); if (!button || !data) return; view = button.dataset.view; syncView(); drawChart(); syncLocation();});
   $('bureauChartTabs').addEventListener('keydown', event => {
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
@@ -414,7 +449,7 @@
       ['regional_wage_index','地区实际工资指数'],['historical_wage_peak_index','历史工资高点指数'],['v02_wage_cost_yi','A原V0.2人工成本'],['full_wage_cost_yi','B工资完全传导人工成本'],['v02_operating_surplus_yi','A原V0.2经营结余'],['full_operating_surplus_yi','B工资完全传导经营结余'],['core_operating_surplus_yi','不含隐藏净结算的经营结余'],['unscaled_hidden_freight_income_yi','本局基值100%权重净结算收入'],['settlement_base_net_yi','本局生效基期净结算'],['freight_unit_yield_factor','普通货运单位收益系数'],['station_passenger_unit_yield_factor','站务客运单位收益系数'],['station_freight_unit_yield_factor','站务货运单位收益系数'],['settlement_unit_yield_factor','净结算单位收益系数']];
     for (const [s, name] of segments) for (const [k, label] of inputs) for (const [field, title] of [['fixed_cost_yi', '固定支出'], ['variable_cost_yi', '变动支出'], ['cost_yi', '合计'], ['price_factor', '价格倍数'], ['unit_cost_factor','综合投入系数'], ['workload_factor', '工作量倍数']]) columns.push([`${s}.${k}.${field}`, `${name}/${label}/${title}`]);
     if (view==='cash' || view==='cash_compare') columns.splice(0,columns.length,['seed','Seed'],['bureau_name','铁路分局'],...cashColumns);
-    else if(view==='valuation') columns.splice(0,columns.length,['seed','Seed'],['bureau_name','铁路分局'],...valuationColumns,['valuation_discount_rate_pct','折现率（%）'],['valuation_next_surplus_forecast_yi','下一年经营结余预测'],['valuation_cash_cover_months','融资前预测储备月数'],['valuation_active_band','增资档位'],['valuation_issue_multiplier','增资定价倍数'],['valuation_tail_years','末年延续年数']);
+    else if(view==='valuation') columns.splice(0,columns.length,['seed','Seed'],['bureau_name','铁路分局'],...valuationColumns,...lossColumns,['valuation_discount_rate_pct','折现率（%）'],['valuation_next_surplus_forecast_yi','下一年经营结余预测'],['valuation_cash_cover_months','融资前预测储备月数'],['valuation_active_band','增资档位'],['valuation_issue_multiplier','增资定价倍数'],['valuation_tail_years','末年延续年数']);
     else columns.push(...cashColumns.slice(1));
     columns.push(['cash_profit_dividend_yi','利润分红'],['cash_excess_dividend_yi','超额现金分红'],['cash_without_dividends_closing_yi','不分红参考现金'],['cash_without_dividends_cumulative_equity_yi','不分红参考累计增资'],['cash_dividend_status','分红状态'],['cash_dividend_minimum_yi','分红最低保留现金'],['cash_dividend_comfortable_yi','充裕现金线']);
     columns.push(['cash_model_version','现金模型版本'],['cash_config_hash','现金配置哈希']);
@@ -438,6 +473,14 @@
   $('exportBureau').addEventListener('click',exportCSV);
   $('exportCash').addEventListener('click',exportCSV);
   $('exportValuation').addEventListener('click',exportCSV);
+  $('exportLossComparison').addEventListener('click',()=>{
+    if(!data)return;
+    const columns=[['seed','Seed'],['name','分局'],['year','估值年份'],['base_revenue_yi','基期营收'],['base_surplus_yi','基期结余'],['valuation_official_yi','新股权估值'],...lossColumns];
+    const quote=v=>`"${String(v??'').replaceAll('"','""')}"`;
+    const lines=[columns.map(([,title])=>quote(title)).join(','),...data.officialValuation.lossComparison.rows.map(r=>columns.map(([key])=>quote(r[key])).join(','))];
+    const url=URL.createObjectURL(new Blob(['\ufeff',lines.join('\r\n')],{type:'text/csv;charset=utf-8'}));
+    const link=node('a');link.href=url;link.download=`loss-24-seed-${data.seed}-2025-v03.csv`;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
   let previousWidth = 0;
   new ResizeObserver(entries => {const width = Math.round(entries[0].contentRect.width); if (width !== previousWidth) {previousWidth = width; drawChart();}}).observe($('bureauChart').parentElement);
   async function initialize() {
